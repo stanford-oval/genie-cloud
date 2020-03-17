@@ -110,10 +110,12 @@ router.get('/download/:job_id', (req, res, next) => {
         const outputPath = AbstractFS.resolve(jobDir, 'output.tsv');
 
         const streamOrLink = await AbstractFS.getDownloadLinkOrStream(outputPath);
-        if (typeof streamOrLink === 'string')
+        if (typeof streamOrLink === 'string') {
             res.redirect(302, streamOrLink);
-        else
+        } else {
+            res.set('Content-Type', 'text/tab-separated-values; charset=utf-8');
             streamOrLink.pipe(res);
+        }
     }).catch(next);
 });
 

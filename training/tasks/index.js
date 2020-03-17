@@ -16,4 +16,5 @@ module.exports = {
     'evaluate': require('./evaluate'),
     'gen-custom-synthetic': require('./gen-custom-synthetic'),
     'gen-custom-augmented': require('./gen-custom-augmented'),
+    'gen-custom-turking': require('./gen-custom-turking'),
 };

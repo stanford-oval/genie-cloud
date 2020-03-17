@@ -9,20 +9,25 @@
 // See COPYING for details
 "use strict";
 
+const path = require('path');
 const Stream = require('stream');
 const seedrandom = require('seedrandom');
 const tmp = require('tmp-promise');
 const fs = require('fs');
 const byline = require('byline');
+const csvstringify = require('csv-stringify');
 
 const ThingTalk = require('thingtalk');
 const Genie = require('genie-toolkit');
+// FIXME this should be exported in the normal way...
+const ConstantSampler = require('genie-toolkit/tool/lib/constants-sampler');
 
 const BaseThingpediaClient = require('../../util/thingpedia-client');
 const { parseFlags } = require('../../util/genie_flag_utils');
 const StreamUtils = require('../../util/stream-utils');
-const DatabaseParameterProvider = require('../lib/param_provider');
 const genSynthetic = require('../sandboxed_synthetic_gen');
+const DatabaseParameterProvider = require('./param_provider');
+const { parseConstant, parseConstantFile } = require('./constant-file');
 
 const schemaModel = require('../../model/schema');
 const orgModel = require('../../model/organization');
@@ -146,11 +151,18 @@ module.exports = class DatasetGenerator {
             this._shouldSplitTrainEval = true;
             this._shouldComputeSize = false;
         } else if (this._task.name === 'gen-custom-turking') {
-            this._shouldSplitForTurking = true;
-            this._shouldComputeSize = false;
+            this._shouldSampleForTurking = true;
         }
 
         this._language = task.language;
+
+        this._locale = this._language;
+        if (this._locale === 'en') {
+            // HACK we must pass "en-US" otherwise Genie will load the wrong i18n module
+            // and sentence post-processing + detokenization will be wrong
+            this._locale = 'en-US';
+        }
+
         this._options = options;
         this._contextual = options.contextual;
 
@@ -185,7 +197,7 @@ module.exports = class DatasetGenerator {
         if (this._options.approvedOnly) {
             org = null;
 
-            const approvedKinds = (await schemaModel.getAllApproved(this._dbClient)).map((d) => d.kind);
+            const approvedKinds = (await schemaModel.getAllApproved(this._dbClient, null)).map((d) => d.kind);
             if (this._forDevices === null) {
                 this._forDevices = approvedKinds;
             } else {
@@ -211,6 +223,38 @@ module.exports = class DatasetGenerator {
 
         this._tpClient = new OrgThingpediaClient(this._language, this._dbClient, org);
         this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, !this._options.debug);
+
+        let constProvider;
+        if (this._shouldDoAugmentation || this._shouldSampleForTurking)
+            constProvider = new DatabaseParameterProvider(this._language, this._dbClient);
+
+        let constants;
+        if (this._shouldSampleForTurking) {
+            // XXX we might want to let people supply the constant file, in some way
+            // or maybe not: if people want to go crazy, they should download the synthetic only
+            // and run genie locally...
+
+            // FIXME this is very hacky, and also English-specific...
+            const constantFile = path.resolve(path.dirname(module.filename), '../../node_modules/genie-toolkit/data/en-US/constants.tsv');
+
+            constants = await parseConstantFile(this._locale, constantFile);
+
+            // XXX loading all devices like this is suboptimal...
+            const forDevices = (await schemaModel.getAllApproved(this._dbClient, this._options.owner)).map((d) => d.kind);
+            const constSampler = new ConstantSampler(this._schemas, constProvider, {
+                rng: this._rng,
+                locale: this._locale,
+
+                devices: forDevices.join(','),
+                sample_size: this._options.turkingConstantSampleSize,
+            });
+            for (let [key, value, display] of await constSampler.sample()) {
+                // HACK it would be nice to avoid this parsing step...
+                if (!constants[key])
+                    constants[key] = [];
+                constants[key] = parseConstant(this._language, key, value, display);
+            }
+        }
 
         const tmpDir = await genSynthetic.prepare({
             dbClient: this._dbClient,
@@ -331,7 +375,6 @@ module.exports = class DatasetGenerator {
         let dataset;
 
         if (this._shouldDoAugmentation) {
-            const constProvider = new DatabaseParameterProvider(this._language, this._dbClient);
             const ppdb = await Genie.BinaryPPDB.mapFile(this._options.ppdbFile);
 
             const augmenter = new Genie.DatasetAugmenter(this._schemas, constProvider, this._tpClient, {
@@ -347,7 +390,7 @@ module.exports = class DatasetGenerator {
 
                 ppdbFile: ppdb,
 
-                locale: this._language,
+                locale: this._locale,
                 rng: this._rng,
                 debug: this._options.debug,
             });
@@ -357,6 +400,10 @@ module.exports = class DatasetGenerator {
         }
 
         let counter;
+        if (this._shouldComputeSize) {
+            counter = new Counter();
+            dataset = dataset.pipe(counter);
+        }
 
         if (this._shouldSplitTrainEval) {
             const train = new Genie.DatasetStringifier();
@@ -383,13 +430,25 @@ module.exports = class DatasetGenerator {
 
             await Promise.all(promises);
         } else if (this._shouldSampleForTurking) {
-            // TODO
-        } else {
-            if (this._shouldComputeSize) {
-                counter = new Counter();
-                dataset = dataset.pipe(counter);
-            }
+            const sampler = new Genie.SentenceSampler(this._schemas, constants, {
+                rng: this._rng,
+                locale: this._language,
 
+                samplingStrategy: this._options.turkingSamplingStrategy,
+                functionBlackList: this._options.turkingFunctionBlackList,
+                functionHighValueList: this._options.turkingFunctionHighValueList,
+                functionWhiteList: this._options.turkingFunctionWhiteList,
+
+                compoundOnly: this._options.turkingCompoundOnly,
+
+                debug: this._options.debug
+            });
+
+            await StreamUtils.waitFinish(dataset
+                .pipe(sampler)
+                .pipe(csvstringify({ header: true, delimiter: '\t' }))
+                .pipe(this._options.output));
+        } else {
             await StreamUtils.waitFinish(dataset
                 .pipe(new Genie.DatasetStringifier())
                 .pipe(this._options.output));

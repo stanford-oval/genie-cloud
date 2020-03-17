@@ -379,6 +379,47 @@ async function testCustomDataset() {
     });
 
     await waitUntilAllJobsDone();
+
+    // third job type...
+    await sessionRequest('/luinet/custom-datasets/create', 'POST', {
+        job_type: 'gen-custom-turking',
+        language: 'en-US',
+        template: 'org.thingpedia.genie.thingtalk',
+        flags: 'aggregation projection',
+        config: JSON.stringify({
+            synthetic_depth: 3,
+            target_pruning_size: 1000
+        })
+    }, root);
+
+    const queue3 = await db.withClient((dbClient) => server.getJobQueue(dbClient));
+    //console.log(queue);
+    removeTimes(queue3);
+
+    deepStrictEqual(queue3, {
+        'gen-custom-turking': [{
+            all_devices: 1,
+            config: '{"synthetic_depth":3,"target_pruning_size":1000,"owner":1,"template_file_name":"org.thingpedia.genie.thingtalk","synthetic_flags":["aggregation","projection"]}',
+            depends_on: null,
+            end_time: null,
+            error: null,
+            eta: null,
+            for_devices: [],
+            id: 8,
+            job_type: 'gen-custom-turking',
+            language: 'en',
+            metrics: null,
+            model_tag: null,
+            owner: 1,
+            progress: 0,
+            start_time: null,
+            status: 'started',
+            task_index: null,
+            task_name: null,
+        }]
+    });
+
+    await waitUntilAllJobsDone();
 }
 
 async function main() {

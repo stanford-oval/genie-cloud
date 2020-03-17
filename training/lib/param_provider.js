@@ -27,6 +27,7 @@ module.exports = class DatabaseParameterProvider {
         return rows.map((e) => {
             return {
                 preprocessed: e.entity_canonical,
+                name: e.entity_name,
                 weight: 1.0
             };
         });
