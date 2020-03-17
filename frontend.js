@@ -293,6 +293,7 @@ class Frontend {
         if (Config.WITH_LUINET === 'embedded') {
             this._app.use('/luinet/datasets', require('./routes/luinet_dataset'));
             this._app.use('/luinet/models', require('./routes/luinet_models'));
+            this._app.use('/luinet/custom-datasets', require('./routes/luinet_custom_datasets'));
         }
 
         this._app.use('/profiles', require('./routes/thingpedia_profiles'));

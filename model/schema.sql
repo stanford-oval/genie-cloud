@@ -898,6 +898,7 @@ CREATE TABLE `training_jobs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `depends_on` int(11) NULL,
   `job_type` varchar(255) COLLATE utf8_bin NOT NULL,
+  `owner` int(11) NULL DEFAULT NULL,
   `language` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en',
   `model_tag` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `all_devices` boolean NOT NULL DEFAULT false,
@@ -915,6 +916,7 @@ CREATE TABLE `training_jobs` (
   PRIMARY KEY (`id`),
   KEY `status` (`status`),
   KEY `end_time` (`end_time`),
+  CONSTRAINT `training_job_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `organizations` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT,
   CONSTRAINT `training_job_ibfk_2` FOREIGN KEY (`depends_on`) REFERENCES `training_jobs` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;

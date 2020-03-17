@@ -34,6 +34,22 @@ var router = express.Router();
 
 const HAS_ABOUT_GET_INVOLVED = Config.EXTRA_ABOUT_PAGES.some((p) => p.url === 'get-involved');
 
+const DEFAULT_TRAINING_CONFIG = JSON.stringify({
+    synthetic_depth: 4,
+    dataset_target_pruning_size: 100000,
+    dataset_ppdb_probability_synthetic: 0.1,
+    dataset_ppdb_probability_paraphrase: 1.0,
+    dataset_quoted_probability: 0.1,
+    dataset_eval_probability: 0.5,
+    dataset_split_strategy: 'sentence'
+}, undefined, 2);
+const DEFAULT_CUSTOM_DATASET_CONFIG = JSON.stringify({
+    synthetic_depth: 4,
+    target_pruning_size: 100000,
+    ppdb_probability_synthetic: 0.1,
+    ppdb_probability_paraphrase: 1.0,
+}, undefined, 2);
+
 router.get('/', (req, res, next) => {
     if (!req.user || !req.user.developer_org) {
         if (HAS_ABOUT_GET_INVOLVED)
@@ -264,7 +280,7 @@ if (Config.WITH_LUINET === 'embedded') {
             const [models, templatePacks, trainingJobs] = await Promise.all([
                 nlpModelsModel.getByOwner(dbClient, req.user.developer_org),
                 templatePackModel.getByOwner(dbClient, req.user.developer_org),
-                trainingJobModel.getQueue(dbClient)
+                trainingJobModel.getRecent(dbClient, ['train', 'gen-custom-synthetic', 'gen-custom-augmented', 'gen-custom-turking']),
             ]);
             for (let model of models) {
                 if (model.metrics)
@@ -272,7 +288,7 @@ if (Config.WITH_LUINET === 'embedded') {
 
                 model.current_job = null;
                 for (let job of trainingJobs) {
-                    if (job.job_type !== 'train')
+                    if (job.job_type !== 'train' || ['started', 'queued'].indexOf(job.status) < 0)
                         continue;
                     if (model.language === job.language && model.tag === job.model_tag) {
                         model.current_job = job;
@@ -281,9 +297,13 @@ if (Config.WITH_LUINET === 'embedded') {
                 }
             }
 
+            const customDatasetJobs = trainingJobs.filter((job) => job.job_type !== 'train' && job.owner === req.user.developer_org);
+
             res.render('dev_nlp_models', {
                 page_title: req._("Almond Developer Console - Models"),
-                models, templatePacks,
+                models, templatePacks, customDatasetJobs,
+                defaultModelConfig: DEFAULT_TRAINING_CONFIG,
+                defaultCustomDatasetConfig: DEFAULT_CUSTOM_DATASET_CONFIG,
                 trainPublicCost: creditSystem.TRAIN_LUINET_PUBLIC_COST,
                 trainPrivateCost: creditSystem.TRAIN_LUINET_PRIVATE_COST,
             });

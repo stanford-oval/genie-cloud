@@ -166,7 +166,7 @@ block content
                       div.form-group
                         label(for='new-model-config').control-label= _("Hyper-parameters")
                         textarea(name='config').form-control#new-model-config
-                          = defaultConfig
+                          = defaultModelConfig
 
                       div.form-group
                         div.checkbox
@@ -260,3 +260,95 @@ block content
                     div.modal-footer
                       div.form-group
                         button(type='submit').btn.btn-primary= _("Upload")
+
+        section.divider
+          h3= _("Custom Datasets")
+
+          div.alert.alert-info(role='alert')
+            p= _("Note: custom datasets are automatically deleted one week after generation.")
+
+          table.table
+            thead
+              th= _("Job ID")
+              th= _("Pipeline")
+              th= _("Status")
+              th= _("Size")
+              th= _("Actions")
+
+            tbody
+              for job in customDatasetJobs
+                tr
+                  td= job.id
+                  td
+                    if job.job_type === 'gen-custom-synthetic'
+                      = _("Synthetic only")
+                    else if job.job_type === 'gen-custom-augmented'
+                      = _("Synthetic + paraphrase + augmentation")
+                    else if job.job_type === 'gen-custom-turking'
+                      = _("Synthetic for paraphrase")
+                  td
+                    if job.status === 'queued'
+                      = _("queued")
+                    else if job.status === 'started'
+                      = _("in progress (%.0f%%)").format(job.progress*100)
+                    else if job.status === 'failed'
+                      = _("failed")
+                    else if job.status === 'success'
+                      = _("ready")
+                  td
+                    if job.status === 'success'
+                      = JSON.parse(job.metrics).dataset_size
+                    else
+                      = _("n/a")
+                  td
+                    if job.status === 'success'
+                      a(href='/luinet/custom-datasets/download/' + job.id)= _("Download")
+
+          if user.developer_status > Constants.DeveloperStatus.USER
+            div.row
+              div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
+                a(href='#new-dataset-dialog',data-toggle='modal').btn.btn-block.btn-primary= _("Generate a new custom dataset")
+            div.modal.fade(role='dialog')#new-dataset-dialog
+              div.modal-dialog
+                div.modal-content
+                  div.modal-header
+                    a.close(data-dismiss='modal', aria-label="Close")
+                      span(aria-hidden='true') ×
+                    h4.modal-title= _("New Custom Dataset")
+                  form(action='/luinet/custom-datasets/create', method='post', data-toggle='validator')
+                    div.modal-body
+                      input(type='hidden',name='_csrf',value=csrfToken)
+
+                      div.form-group
+                        label(for='new-dataset-job-type').control-label= _("Pipeline")
+                        select(name='job_type',required=true).form-control#new-dataset-job-type
+                          option(value='gen-custom-synthetic',selected=true)= _("Synthetic only")
+                          option(value='gen-custom-augmented')= _("Synthetic + paraphrase + augmentation")
+                          option(value='gen-custom-turking')= _("Synthetic for paraphrase")
+
+                      div.form-group
+                        label(for='new-dataset-locale').control-label= _("Language")
+                        select(name='language',required=true).form-control#new-dataset-locale
+                          for lang, i in Config.SUPPORTED_LANGUAGES
+                            option(value=lang,selected=(i===0))= I18n.getLangName(_, lang)
+
+                      div.form-group
+                        label(for='new-dataset-template').control-label= _("Template pack")
+                        input(type='text',name='template',required=true).form-control#new-dataset-template
+                        span.help-block= _("The ID of the template pack to use when generating the dataset.")
+
+                      div.form-group
+                        label(for='new-dataset-flags').control-label= _("Flags")
+                        input(type='text',name='flags').form-control#new-dataset-flags
+                        span.help-block= _("Template flags to enable.")
+
+                      +device_selector('new-dataset-devices', 'for_devices', _("Devices"), _("Choose which devices to include in your dataset, or choose none to include all available devices."))
+
+                      div.form-group
+                        label(for='new-dataset-config').control-label= _("Hyper-parameters")
+                        textarea(name='config').form-control#new-dataset-config
+                          = defaultCustomDatasetConfig
+
+                    div.modal-footer
+                      div.form-group
+                        button(type='submit').btn.btn-primary= _("Generate")

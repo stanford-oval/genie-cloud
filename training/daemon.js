@@ -143,7 +143,7 @@ Check the logs for further information.`
         if (modelInfo)
             return modelInfo.config;
 
-        // all other jobs are scheduled with a modelInfo
+        // all other jobs are scheduled with a modelInfo or a custom config
         assert(jobType === 'update-dataset');
 
         // update-dataset ignores the config and uses hard-coded defaults that are appropriate
@@ -152,11 +152,15 @@ Check the logs for further information.`
         return '{}';
     }
 
+    _jobTypeIsMergeable(jobType) {
+        return jobType === 'train' || jobType === 'update-dataset';
+    }
+
     async _queueOrMergeJob(dbClient, jobTemplate, jobType, modelInfo, dependsOn) {
         const config = this._getJobConfig(jobTemplate, jobType, modelInfo);
         assert(config);
 
-        if (dependsOn === null) {
+        if (dependsOn === null && this._jobTypeIsMergeable(jobType)) {
             // if there is no dependency, check for an existing queued job for this type, language and model tag
             // if so, we add the forDevice to it and be done with it
             //
@@ -192,6 +196,7 @@ Check the logs for further information.`
         // we did not merge, let's make a new job
         const newjob = await trainingJobModel.create(dbClient, {
             job_type: jobType,
+            owner: jobTemplate.owner,
             language: jobTemplate.language,
             model_tag: modelInfo ? modelInfo.tag : null,
             config: config,
@@ -239,8 +244,8 @@ Check the logs for further information.`
                     }
                     await this._queueOrMergeJob(dbClient, jobTemplate, 'train', modelInfo, dependsOn);
                 }
-            } else if (jobType === 'update-dataset') {
-                await this._queueOrMergeJob(dbClient, jobTemplate, 'update-dataset', null, null);
+            } else if (JOB_TYPES.includes(jobType)) {
+                await this._queueOrMergeJob(dbClient, jobTemplate, jobType, null, null);
             } else {
                 throw new Error(`Invalid job type ${jobType}`);
             }
@@ -291,11 +296,11 @@ Check the logs for further information.`
 
         app.post('/jobs/create', async (req, res, next) => { //'
             try {
-                let id = await this.scheduleJob(req.body);
-                res.json({result:'scheduled', id: id });
+                await this.scheduleJob(req.body);
+                res.json({ result: 'ok' });
             } catch(e) {
                 console.error(e);
-                res.status(400).json({error: e.message, code: e.code});
+                res.status(400).json({ error: e.message, code: e.code });
             }
         });
         app.post('/jobs/kill', (req, res, next) => {

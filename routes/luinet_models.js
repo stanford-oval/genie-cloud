@@ -36,17 +36,6 @@ const Config = require('../config');
 
 const router = express.Router();
 
-const DEFAULT_TRAINING_CONFIG = JSON.stringify({
-    synthetic_depth: 4,
-    dataset_target_pruning_size: 100000,
-    dataset_contextual_target_pruning_size: 10000,
-    dataset_ppdb_probability_synthetic: 0.1,
-    dataset_ppdb_probability_paraphrase: 1.0,
-    dataset_quoted_probability: 0.1,
-    dataset_eval_probability: 0.5,
-    dataset_split_strategy: 'sentence'
-}, undefined, 2);
-
 router.post('/create', user.requireLogIn, user.requireDeveloper(),
     iv.validatePOST({ tag: 'string', language: 'string', template: 'string', flags: '?string', config: 'string',
                       for_devices: '?string', use_approved: 'boolean', use_exact: 'boolean',
@@ -141,8 +130,7 @@ router.get('/', (req, res, next) => {
         const models = await nlpModelsModel.getPublic(dbClient, user.isAuthenticated(req) ? req.user.developer_org : null);
         res.render('luinet_model_list', {
             page_title: req._("LUInet - Available Models"),
-            models,
-            defaultConfig: DEFAULT_TRAINING_CONFIG
+            models
         });
     }).catch(next);
 });
@@ -243,7 +231,7 @@ router.post('/train', user.requireLogIn, user.requireDeveloper(), iv.validatePOS
 
         if ((req.user.roles & user.Role.ADMIN) !== user.Role.ADMIN)
             await creditSystem.payCredits(dbClient, req, req.user.developer_org, creditSystem.TRAIN_THINGPEDIA_COST);
-        await TrainingServer.get().queueModel(req.body.language, req.body.tag, 'train');
+        await TrainingServer.get().queueModel(req.body.language, req.body.tag, 'train', req.user.developer_org);
     }).then(() => {
         res.redirect(303, '/developers/models');
     }).catch(next);
