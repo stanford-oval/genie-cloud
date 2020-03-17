@@ -364,15 +364,6 @@ This token protects all requests to the training server.
 
 Default value: `null`
 
-## TRAINING_CONFIG_FILE
-Configuration file for training.
-
-Set this to the path to JSON file to override the default options passed
-to `decanlp`. Configuration lives in a separate file so it can be changed
-without restarting the training server (which would stop all running jobs).
-
-Default value: `null`
-
 ## TRAINING_MEMORY_USAGE
 Maximum memory usage for training processes.
 
