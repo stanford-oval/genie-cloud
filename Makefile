@@ -12,7 +12,8 @@ bundles := \
 	thingpedia-device-translate \
 	thingpedia-portal \
 	trainer \
-	blog-editor
+	blog-editor \
+	dev-console-nlp-models
 
 prepare-bundles: $(foreach b,$(bundles),public/javascripts/$(b)-bundle.js)
 

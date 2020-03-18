@@ -34,8 +34,8 @@ block content
               label.control-label(for='new-job-type')= _("Job Type")
               select(name='job_type').form-control#new-job-type
                 option(value='update-dataset')= _("Update dataset")
-                option(value='train-only')= _("Train model")
-                option(value='train',selected=true)= _("Update & Train")
+                option(value='train')= _("Train model")
+                option(value='update-dataset,train',selected=true)= _("Update & Train")
                 //option(value='es')= _("Spanish")
 
             button(type='submit').btn.btn-primary= _("Queue Job")

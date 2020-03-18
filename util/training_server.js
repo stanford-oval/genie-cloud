@@ -57,13 +57,13 @@ class TrainingServer {
         });
     }
 
-    queue(language, forDevices, jobType) {
+    queue(language, forDevices, jobType, owner = null, config = null) {
         if (!Config.TRAINING_URL)
             return Promise.resolve();
 
         let auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : null;
         return Tp.Helpers.Http.post(Config.TRAINING_URL + '/jobs/create', JSON.stringify({
-            language, forDevices, jobType,
+            language, forDevices, jobType, owner, config
         }), { auth: auth, dataContentType: 'application/json' }).then((response) => {
             let parsed = JSON.parse(response);
             console.log('Successfully started training job ' + parsed.id);
@@ -75,13 +75,13 @@ class TrainingServer {
         });
     }
 
-    queueModel(language, modelTag, jobType) {
+    queueModel(language, modelTag, jobType, owner = null, config = null) {
         if (!Config.TRAINING_URL)
             throw new InternalError('E_INVALID_CONFIG', "Configuration error: Training server is not configured");
 
         let auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : null;
         return Tp.Helpers.Http.post(Config.TRAINING_URL + '/jobs/create', JSON.stringify({
-            language, forDevices: null, modelTag, jobType,
+            language, forDevices: null, modelTag, jobType, owner, config
         }), { auth: auth, dataContentType: 'application/json' }).then((response) => {
             let parsed = JSON.parse(response);
             console.log('Successfully started training job ' + parsed.id);

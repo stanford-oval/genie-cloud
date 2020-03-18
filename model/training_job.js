@@ -54,6 +54,12 @@ module.exports = {
         return db.selectAll(client, `select * from training_jobs where depends_on = ? for update`, [jobId]);
     },
 
+    getRecent(client, jobTypes) {
+        return db.selectAll(client, `select * from training_jobs where job_type in (?)
+            and (end_time is null or end_time >= date_sub(now(), interval 1 week))
+            order by id asc`, [jobTypes]);
+    },
+
     getAllInProgress(client, error) {
         return db.selectAll(client, `select * from training_jobs where
             status = 'started' order by id asc for update`);

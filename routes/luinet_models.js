@@ -37,9 +37,15 @@ const Config = require('../config');
 const router = express.Router();
 
 router.post('/create', user.requireLogIn, user.requireDeveloper(),
-    iv.validatePOST({ tag: 'string', language: 'string', template: 'string', flags: '?string',
+    iv.validatePOST({ tag: 'string', language: 'string', template: 'string', flags: '?string', config: 'string',
                       for_devices: '?string', use_approved: 'boolean', use_exact: 'boolean',
                       public: 'boolean' }), (req, res, next) => {
+    try {
+        JSON.parse(req.body.config);
+    } catch(e) {
+        iv.failKey(req, res, 'config');
+        return;
+    }
     if (!I18n.get(req.body.language))
         throw new BadRequestError(req._("Unsupported language"));
     const language = I18n.localeToLanguage(req.body.language);
@@ -47,13 +53,14 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
     validateTag(req.body.tag, req.user, user.Role.NLP_ADMIN);
 
     db.withTransaction(async (dbClient) => {
-        let trained = false, version = 0;
+        let trained = false, version = 0, trained_config = null;
         try {
             const existing = await nlpModelsModel.getByTagForUpdate(dbClient, language, req.body.tag);
             if (existing && existing.owner !== req.user.developer_org)
                 throw new ForbiddenError(req._("A model with this ID already exists."));
             trained = existing.trained;
             version = existing.version;
+            trained_config = existing.trained_config;
         } catch(e) {
             if (e.code !== 'ENOENT')
                 throw e;
@@ -95,6 +102,9 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
         if (missing.length > 0)
             throw new BadRequestError(req._("The following devices do not exist or are not visible: %s").format(missing.join(req._(", "))));
 
+        // normalize config JSON, strip spaces
+        const config = JSON.stringify(JSON.parse(req.body.config));
+
         await nlpModelsModel.create(dbClient, {
             language,
             tag: req.body.tag,
@@ -102,10 +112,12 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
             access_token: req.body.public ? null : makeRandom(32),
             template_file: template.id,
             flags: JSON.stringify(flags),
+            config: config,
             all_devices: devices.length === 0,
             use_approved: !!req.body.use_approved,
             use_exact: !!req.body.use_exact,
             trained: trained,
+            trained_config: trained_config,
             version: version
         }, devices);
 
@@ -219,7 +231,7 @@ router.post('/train', user.requireLogIn, user.requireDeveloper(), iv.validatePOS
 
         if ((req.user.roles & user.Role.ADMIN) !== user.Role.ADMIN)
             await creditSystem.payCredits(dbClient, req, req.user.developer_org, creditSystem.TRAIN_THINGPEDIA_COST);
-        await TrainingServer.get().queueModel(req.body.language, req.body.tag, 'train-only');
+        await TrainingServer.get().queueModel(req.body.language, req.body.tag, 'train', req.user.developer_org);
     }).then(() => {
         res.redirect(303, '/developers/models');
     }).catch(next);

@@ -371,15 +371,6 @@ module.exports.TRAINING_URL = null;
 module.exports.TRAINING_ACCESS_TOKEN = null;
 
 /**
-  Configuration file for training.
-
-  Set this to the path to JSON file to override the default options passed
-  to `decanlp`. Configuration lives in a separate file so it can be changed
-  without restarting the training server (which would stop all running jobs).
-*/
-module.exports.TRAINING_CONFIG_FILE = null;
-
-/**
   Maximum memory usage for training processes.
 
   In megabytes.

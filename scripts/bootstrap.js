@@ -38,6 +38,20 @@ const Config = require('../config');
 
 const req = { _(x) { return x; } };
 
+const DEFAULT_TRAINING_CONFIG = JSON.stringify({
+    dataset_target_pruning_size: 10000,
+    dataset_contextual_target_pruning_size: 10000,
+    dataset_ppdb_probability_synthetic: 0.1,
+    dataset_ppdb_probability_paraphrase: 1.0,
+    dataset_quoted_probability: 0.1,
+    dataset_eval_probability: 0.5,
+    dataset_split_strategy: 'sentence',
+    synthetic_depth: 5,
+    train_iterations: 100000,
+    trainable_decoder_embedding: 50,
+    no_glove_decoder: true,
+});
+
 async function createRootOrg(dbClient) {
     return organization.create(dbClient, {
         name: 'Site Administration',
@@ -260,6 +274,7 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
             'projection',
             'undefined_filter',
         ]),
+        config: DEFAULT_TRAINING_CONFIG,
         contextual: false,
         all_devices: true,
         use_approved: true,
@@ -282,6 +297,7 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
             'projection',
             'undefined_filter',
         ]),
+        config: DEFAULT_TRAINING_CONFIG,
         contextual: true,
         all_devices: true,
         use_approved: true,
@@ -305,6 +321,7 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
             'undefined_filter',
             'projection_with_filter',
         ]),
+        config: DEFAULT_TRAINING_CONFIG,
         contextual: false,
         all_devices: true,
         use_approved: false,
@@ -328,6 +345,7 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
             'undefined_filter',
             'projection_with_filter',
         ]),
+        config: DEFAULT_TRAINING_CONFIG,
         contextual: true,
         all_devices: true,
         use_approved: false,

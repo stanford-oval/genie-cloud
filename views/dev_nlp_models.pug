@@ -4,10 +4,12 @@ include device_selector
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/dev_sidebar.css')
+  link(rel='stylesheet', href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css")
 
 block scripts
   script(src=Config.ASSET_CDN + '/javascripts/docsearch.js')
   script(src=Config.ASSET_CDN + '/javascripts/device-selector.js')
+  script(src=Config.ASSET_CDN + '/javascripts/dev-console-nlp-models-bundle.js')
 
 block page_name
   - stdlayout = false;
@@ -72,41 +74,52 @@ block content
                     else
                       = _("Status: not trained yet.")
 
-                  if m.metrics
-                    p= _("Current metrics: ")
-                    a(href='#',data-toggle='collapse',data-target='#metrics-' + m.tag.replace(/\./g, '-') + '-' + m.language)= _("Show/Hide")
-                    div.collapse(id='metrics-' + m.tag.replace(/\./g, '-') + '-' + m.language)
+                  if user.developer_status > Constants.DeveloperStatus.USER && m.access_token
+                    p
+                      = _("Access Token: ")
+                      a(href='#',data-toggle='collapse',data-target='#secret-' + m.tag.replace(/\./g, '-') + '-' + m.language)= _("Show/Hide")
+                    div.collapse(id='secret-' + m.tag.replace(/\./g, '-') + '-' + m.language)= m.access_token
+                  p
+                    a(href='#',data-toggle='collapse',role='button',data-target='#details-' + m.tag.replace(/\./g, '-') + '-' + m.language).btn.btn-default.btn-sm= _("Show/Hide Details")
+                  div.collapse(id='details-' + m.tag.replace(/\./g, '-') + '-' + m.language)
+                    if m.metrics
+                      h5= _("Current metrics: ")
                       p= _("Accuracy: %.2f%%").format(100 * m.metrics.ok)
                       p= _("Function Accuracy: %.2f%%").format(100 * m.metrics.ok_function)
                       p= _("Device Accuracy: %.2f%%").format(100 * m.metrics.ok_device)
                       p= _("Syntax Accuracy: %.2f%%").format(100 * m.metrics.ok_syntax)
 
-                  p= _("Template Pack: %s").format(m.template_file_name)
-                  p= _("Flags: %s").format(m.flags.join(_(", ")))
+                    p= _("Template Pack: %s").format(m.template_file_name)
+                    p= _("Flags: %s").format(m.flags.join(_(", ")))
 
-                  if m.all_devices
-                    if m.use_approved
-                      p!= _("Devices: <i>all</i> (approved only)")
+                    if m.all_devices
+                      if m.use_approved
+                        p!= _("Devices: <i>all</i> (approved only)")
+                      else
+                        p!= _("Devices: <i>all</i>")
                     else
-                      p!= _("Devices: <i>all</i>")
-                  else
-                    p
-                      = _("Devices: ")
-                      - var first = true;
-                      each d in m.for_devices
-                        if !first
-                          | ,
-                          |
-                          |
-                        - first = false;
-                        a(href=Config.THINGPEDIA_URL + '/devices/by-id/' + d)= d
+                      p
+                        = _("Devices: ")
+                        - var first = true;
+                        each d in m.for_devices
+                          if !first
+                            | ,
+                            |
+                            |
+                          - first = false;
+                          a(href=Config.THINGPEDIA_URL + '/devices/by-id/' + d)= d
 
-                  if user.developer_status > Constants.DeveloperStatus.USER && m.access_token
-                    p
-                      = _("Access Token: ")
-                      a(href='#',data-toggle='collapse',data-target='#secret-' + m.tag.replace(/\./g, '-') + '-' + m.language)= _("Show/Hide")
-                      div.collapse(id='secret-' + m.tag.replace(/\./g, '-') + '-' + m.language)= m.access_token
-
+                    if m.trained_config && m.trained_config !== m.config
+                      h5= _("Hyper-parameters (next training):")
+                      pre
+                        code.json= JSON.stringify(JSON.parse(m.config), undefined, 2)
+                      h5= _("Hyper-parameters (last successful training):")
+                      pre
+                        code.json= JSON.stringify(JSON.parse(m.config), undefined, 2)
+                    else
+                      h5= _("Hyper-parameters:")
+                      pre
+                        code.json= JSON.stringify(JSON.parse(m.config), undefined, 2)
 
           else
             div.row
@@ -149,6 +162,11 @@ block content
                         span.help-block= _("Template flags to enable.")
 
                       +device_selector('new-model-devices', 'for_devices', _("Devices"), _("Choose which devices to include in your model, or choose none to include all available devices."))
+
+                      div.form-group
+                        label(for='new-model-config').control-label= _("Hyper-parameters")
+                        textarea(name='config').form-control#new-model-config
+                          = defaultModelConfig
 
                       div.form-group
                         div.checkbox
@@ -242,3 +260,95 @@ block content
                     div.modal-footer
                       div.form-group
                         button(type='submit').btn.btn-primary= _("Upload")
+
+        section.divider
+          h3= _("Custom Datasets")
+
+          div.alert.alert-info(role='alert')
+            p= _("Note: custom datasets are automatically deleted one week after generation.")
+
+          table.table
+            thead
+              th= _("Job ID")
+              th= _("Pipeline")
+              th= _("Status")
+              th= _("Size")
+              th= _("Actions")
+
+            tbody
+              for job in customDatasetJobs
+                tr
+                  td= job.id
+                  td
+                    if job.job_type === 'gen-custom-synthetic'
+                      = _("Synthetic only")
+                    else if job.job_type === 'gen-custom-augmented'
+                      = _("Synthetic + paraphrase + augmentation")
+                    else if job.job_type === 'gen-custom-turking'
+                      = _("Synthetic for paraphrase")
+                  td
+                    if job.status === 'queued'
+                      = _("queued")
+                    else if job.status === 'started'
+                      = _("in progress (%.0f%%)").format(job.progress*100)
+                    else if job.status === 'failed'
+                      = _("failed")
+                    else if job.status === 'success'
+                      = _("ready")
+                  td
+                    if job.status === 'success'
+                      = JSON.parse(job.metrics).dataset_size
+                    else
+                      = _("n/a")
+                  td
+                    if job.status === 'success'
+                      a(href='/luinet/custom-datasets/download/' + job.id)= _("Download")
+
+          if user.developer_status > Constants.DeveloperStatus.USER
+            div.row
+              div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
+                a(href='#new-dataset-dialog',data-toggle='modal').btn.btn-block.btn-primary= _("Generate a new custom dataset")
+            div.modal.fade(role='dialog')#new-dataset-dialog
+              div.modal-dialog
+                div.modal-content
+                  div.modal-header
+                    a.close(data-dismiss='modal', aria-label="Close")
+                      span(aria-hidden='true') ×
+                    h4.modal-title= _("New Custom Dataset")
+                  form(action='/luinet/custom-datasets/create', method='post', data-toggle='validator')
+                    div.modal-body
+                      input(type='hidden',name='_csrf',value=csrfToken)
+
+                      div.form-group
+                        label(for='new-dataset-job-type').control-label= _("Pipeline")
+                        select(name='job_type',required=true).form-control#new-dataset-job-type
+                          option(value='gen-custom-synthetic',selected=true)= _("Synthetic only")
+                          option(value='gen-custom-augmented')= _("Synthetic + paraphrase + augmentation")
+                          option(value='gen-custom-turking')= _("Synthetic for paraphrase")
+
+                      div.form-group
+                        label(for='new-dataset-locale').control-label= _("Language")
+                        select(name='language',required=true).form-control#new-dataset-locale
+                          for lang, i in Config.SUPPORTED_LANGUAGES
+                            option(value=lang,selected=(i===0))= I18n.getLangName(_, lang)
+
+                      div.form-group
+                        label(for='new-dataset-template').control-label= _("Template pack")
+                        input(type='text',name='template',required=true).form-control#new-dataset-template
+                        span.help-block= _("The ID of the template pack to use when generating the dataset.")
+
+                      div.form-group
+                        label(for='new-dataset-flags').control-label= _("Flags")
+                        input(type='text',name='flags').form-control#new-dataset-flags
+                        span.help-block= _("Template flags to enable.")
+
+                      +device_selector('new-dataset-devices', 'for_devices', _("Devices"), _("Choose which devices to include in your dataset, or choose none to include all available devices."))
+
+                      div.form-group
+                        label(for='new-dataset-config').control-label= _("Hyper-parameters")
+                        textarea(name='config').form-control#new-dataset-config
+                          = defaultCustomDatasetConfig
+
+                    div.modal-footer
+                      div.form-group
+                        button(type='submit').btn.btn-primary= _("Generate")

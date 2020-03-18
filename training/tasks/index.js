@@ -13,5 +13,8 @@ module.exports = {
     'prepare-training-set': require('./prepare-training-set'),
     'update-dataset': require('./update-dataset'),
     'train': require('./train'),
-    'evaluate': require('./evaluate')
+    'evaluate': require('./evaluate'),
+    'gen-custom-synthetic': require('./gen-custom-synthetic'),
+    'gen-custom-augmented': require('./gen-custom-augmented'),
+    'gen-custom-turking': require('./gen-custom-turking'),
 };
