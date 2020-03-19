@@ -62,7 +62,7 @@ class ThingTalkTrainer {
             contentType: false,
             processData: false,
             success: (data) => {
-                if (data.success) {
+                if (data.status === 'ok') {
                     this._verbalRaw = data.text;
                     $('#utterance').val(data.text).focus();
                     $('#record-button').text('Say a command!');
@@ -73,8 +73,8 @@ class ThingTalkTrainer {
                 }
             },
             error: (error) => {
-                console.log(data);
-                $('#record-button').text('Hmm I couldn\'t understand...');
+                console.log(error);
+                $('#record-button').text('Hmm there seems to be an error...');
             }
         });
     }
