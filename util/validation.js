@@ -84,7 +84,7 @@ async function loadClassDef(dbClient, req, kind, classCode, datasetCode) {
     if (parsed.datasets.length > 0 && parsed.datasets[0].language !== 'en')
         throw new ValidationError("The dataset must be for English: use `en` as the language tag.");
     const dataset = parsed.datasets.length > 0 ? parsed.datasets[0] :
-        new ThingTalk.Ast.Dataset('@' + kind, 'en', [], {});
+        new ThingTalk.Ast.Dataset(null, '@' + kind, 'en', [], {});
 
     return [classDef, dataset];
 }
@@ -109,7 +109,7 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
         if (!classDef.loader)
             throw new ValidationError("loader mixin missing from class declaration");
         if (!classDef.config)
-            classDef.imports.push(new ThingTalk.Ast.ImportStmt.Mixin(['config'], 'org.thingpedia.config.none', []));
+            classDef.imports.push(new ThingTalk.Ast.ImportStmt.Mixin(null, ['config'], 'org.thingpedia.config.none', []));
     }
 
     const moduleType = classDef.is_abstract ? null : classDef.loader.module;
@@ -261,9 +261,9 @@ function validateInvocation(kind, where, what, entities, stringTypes, options = 
                 throw new ValidationError(`Invalid #[confirm] annotation for ${name}, must be a Boolean`);
         } else {
             if (what === 'query')
-                where[name].annotations.confirm = ThingTalk.Ast.Value.Boolean(false);
+                where[name].annotations.confirm = new ThingTalk.Ast.Value.Boolean(false);
             else
-                where[name].annotations.confirm = ThingTalk.Ast.Value.Boolean(true);
+                where[name].annotations.confirm = new ThingTalk.Ast.Value.Boolean(true);
         }
         if (options.checkPollInterval && what === 'query' && where[name].is_monitorable) {
             if (!where[name].annotations.poll_interval)

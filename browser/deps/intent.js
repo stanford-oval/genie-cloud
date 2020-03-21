@@ -114,35 +114,41 @@ const Intent = adt.data({
     Failed: { command: adt.only(String, null), platformData: adt.any },
 
     // bookkeeping intents that require special handling in the dialogues and the dispatcher
-    Train: { command: adt.only(Object, null), fallbacks: adt.only(Array, null), thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any },
-    Back: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any },
-    More: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any },
-    Empty: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any },
-    Debug: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any },
-    Maybe: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any },
-    CommandList: { device: adt.only(String, null), category: adt.only(String), thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any },
-    NeverMind: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any }, // cancel the current task
-    Stop: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any }, // cancel the current task, quietly
-    Help: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any }, // ask for contextual help, or start a new task
-    Make: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any }, // reset and start a new task
-    WakeUp: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any }, // do nothing and wake up the screen
-    Answer: { category: adt.only(ValueCategory), value: adt.only(Ast.Value, Number), thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any },
+    // most of these are obsolete
+    Train: { command: adt.only(Object, null), fallbacks: adt.only(Array, null), thingtalk: adt.only(Ast.Input), platformData: adt.any },
+    Back: { thingtalk: adt.only(Ast.Input), platformData: adt.any },
+    More: { thingtalk: adt.only(Ast.Input), platformData: adt.any },
+    Empty: { thingtalk: adt.only(Ast.Input), platformData: adt.any },
+    Debug: { thingtalk: adt.only(Ast.Input), platformData: adt.any },
+    Maybe: { thingtalk: adt.only(Ast.Input), platformData: adt.any },
+    CommandList: { device: adt.only(String, null), category: adt.only(String), thingtalk: adt.only(Ast.Input), platformData: adt.any },
+    NeverMind: { thingtalk: adt.only(Ast.Input), platformData: adt.any }, // cancel the current task
+    Stop: { thingtalk: adt.only(Ast.Input), platformData: adt.any }, // cancel the current task, quietly
+    Help: { thingtalk: adt.only(Ast.Input), platformData: adt.any }, // ask for contextual help, or start a new task
+    Make: { thingtalk: adt.only(Ast.Input), platformData: adt.any }, // reset and start a new task
+    WakeUp: { thingtalk: adt.only(Ast.Input), platformData: adt.any }, // do nothing and wake up the screen
+    Answer: { category: adt.only(ValueCategory), value: adt.only(Ast.Value, Number), thingtalk: adt.only(Ast.Input), platformData: adt.any },
 
     // thingtalk
     Program: {
         program: adt.only(Ast.Program),
-        thingtalk: adt.only(ThingTalk.Ast.Input),
+        thingtalk: adt.only(Ast.Input),
         platformData: adt.any
     },
     Predicate: {
         predicate: adt.only(Ast.BooleanExpression),
-        thingtalk: adt.only(ThingTalk.Ast.Input),
+        thingtalk: adt.only(Ast.Input),
         platformData: adt.any
     },
     PermissionRule: {
         rule: adt.only(Ast.PermissionRule),
-        thingtalk: adt.only(ThingTalk.Ast.Input),
+        thingtalk: adt.only(Ast.Input),
         platformData: adt.any
+    },
+    DialogueState: {
+        prediction: adt.only(Ast.DialogueState),
+        thingtalk: adt.only(Ast.DialogueState),
+        platformData: adt.only
     }
 });
 
@@ -163,12 +169,12 @@ function parseSpecial(thingtalk, context) {
     let intent;
     switch (thingtalk.intent.type) {
     case 'yes':
-        intent = new Intent.Answer(ValueCategory.YesNo, Ast.Value.Boolean(true), thingtalk, context.platformData);
+        intent = new Intent.Answer(ValueCategory.YesNo, new Ast.Value.Boolean(true), thingtalk, context.platformData);
         intent.isYes = true;
         intent.isNo = false;
         break;
     case 'no':
-        intent = new Intent.Answer(ValueCategory.YesNo, Ast.Value.Boolean(false), thingtalk, context.platformData);
+        intent = new Intent.Answer(ValueCategory.YesNo, new Ast.Value.Boolean(false), thingtalk, context.platformData);
         intent.isYes = false;
         intent.isNo = true;
         break;
@@ -205,6 +211,8 @@ Intent.fromThingTalk = function(thingtalk, context) {
         return new Intent.Program(thingtalk, thingtalk, context.platformData);
     } else if (thingtalk.isPermissionRule) {
         return new Intent.PermissionRule(thingtalk, thingtalk, context.platformData);
+    } else if (thingtalk.isDialogueState) {
+        return new Intent.DialogueState(thingtalk, thingtalk, context.platformData);
     } else {
         throw new TypeError(`Unrecognized ThingTalk command: ${thingtalk.prettyprint()}`);
     }
@@ -219,7 +227,7 @@ Intent.parse = async function parse(json, schemaRetriever, context) {
         if (name.startsWith('SLOT_')) {
             let slotname = json.slots[parseInt(name.substring('SLOT_'.length))];
             let slotType = ThingTalk.Type.fromString(json.slotTypes[slotname]);
-            let value = ThingTalk.Ast.Value.fromJSON(slotType, entities[name]);
+            let value = Ast.Value.fromJSON(slotType, entities[name]);
             entities[name] = value;
         }
     }
