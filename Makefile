@@ -13,7 +13,8 @@ bundles := \
 	thingpedia-portal \
 	trainer \
 	blog-editor \
-	dev-console-nlp-models
+	dev-console-nlp-models \
+	conversation
 
 prepare-bundles: $(foreach b,$(bundles),public/javascripts/$(b)-bundle.js)
 

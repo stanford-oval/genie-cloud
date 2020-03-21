@@ -1,10 +1,17 @@
 "use strict";
+
+const Recorder = require('./deps/recorder');
+
 $(function() {
     var url = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host
         + $('#conversation').attr('data-target');
 
     var ws;
     var open = false;
+
+    let _isRecording = false;
+    let _stream, _recorder;
+    const _sttUrl = document.body.dataset.voiceServerUrl + '/rest/stt' || 'http://127.0.0.1:8000/rest/stt';
 
     var pastCommandsUp = []; // array accessed by pressing up arrow
     var pastCommandsDown = []; // array accessed by pressing down arrow
@@ -24,6 +31,65 @@ $(function() {
             $('#input-form-group .spinner-container').removeClass('hidden');
         else
             $('#input-form-group .spinner-container').addClass('hidden');
+    }
+
+    function postAudio(blob) {
+        const data = new FormData();
+        data.append('audio', blob);
+        $.ajax({
+            url: _sttUrl,
+            type: 'POST',
+            data: data,
+            contentType: false,
+            processData: false,
+            success: (data) => {
+                if (data.status === 'ok') {
+                    $('#input').val(data.text).focus();
+                    $('#record-button').text('Say a command!');
+                    handleUtterance();
+                } else {
+                    console.log(data);
+                    $('#record-button').text('Hmm I couldn\'t understand...');
+                }
+            },
+            error: (error) => {
+                console.log(error);
+                $('#record-button').text('Hmm there seems to be an error...');
+            }
+        });
+    }
+
+    function startStopRecord() {
+        if (!_isRecording) {
+            navigator.mediaDevices.getUserMedia({audio: true, video: false}).then((stream) => {
+                // console.log('getUserMedia() success, stream created, initializing Recorder.js...');
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const context = new AudioContext(); 
+                const input = context.createMediaStreamSource(stream);
+                const rec = new Recorder(input, {numChannels: 1});
+                rec.record();
+
+                // console.log('Recording started');
+                $('#record-button').text('Recording... Press this to stop');
+
+                _isRecording = true;
+                _stream = stream;
+                _recorder = rec; 
+            }).catch((err) => {
+                console.log('getUserMedia() failed');
+                console.log(err);
+                $('#record-button').text('You don\'t seem to have a recording device enabled!');
+                // alert('You don\'t seem to have a recording device enabled!');
+            });
+        } else {
+            $('#record-button').text('Processing command...');
+            _recorder.stop();
+            _stream.getAudioTracks()[0].stop();
+            _recorder.exportWAV((blob) => {
+                postAudio(blob);
+            });
+            _isRecording = false;
+        }
     }
 
     (function() {
@@ -317,7 +383,7 @@ $(function() {
             .text(text));
     }
 
-    $('#input-form').submit(function(event) {
+    function handleUtterance() {
         var text = $('#input').val();
         if (currCommand !== "")
           pastCommandsUp.push(currCommand);
@@ -330,7 +396,11 @@ $(function() {
         $('#input').val('');
 
         handleCommand(text);
+    }
+
+    $('#input-form').submit(function(event) {
         event.preventDefault();
+        handleUtterance();
     });
     $('#cancel').click(function() {
         handleSpecial('nevermind', "Cancel.");
@@ -358,5 +428,9 @@ $(function() {
           pastCommandsUp.push($('#input').val());
         $('#input').val(currCommand);
       }
+    });
+
+    $('#record-button').click(function(event) {
+        startStopRecord();
     });
 });

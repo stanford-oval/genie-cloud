@@ -9,7 +9,7 @@ block scripts
   script(src=Config.ASSET_CDN + '/javascripts/commandpedia-bundle.js')
   script(src=Config.ASSET_CDN + '/javascripts/index.js')
   if ENABLE_ANONYMOUS_USER && !authenticated
-    script(src=Config.ASSET_CDN + '/javascripts/conversation.js')
+    script(src=Config.ASSET_CDN + '/javascripts/conversation-bundle.js')
 
 block page_name
   - stdlayout = false;
@@ -57,6 +57,7 @@ block content
                         div.form-group.has-feedback#input-form-group
                           label(for='#chat-input').sr-only= _("Command:")
                           input(type='text',placeholder=_("Write your command or answer here")).form-control#input
+                          button(type='button').btn.btn-primary#record-button= _("Say a command!")
                           span.spinner-container.form-control-feedback.hidden
                             span.spinner
                             span.sr-only= _("Almond is thinking…")
