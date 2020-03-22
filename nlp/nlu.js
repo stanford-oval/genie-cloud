@@ -188,7 +188,8 @@ async function runNLU(query, params, data, service, res) {
     if (exact !== null)
         result = exact.map((code) => ({ code, score: 'Infinity' })).concat(result);
 
-    await applyCompatibility(params.locale, result, tokenized.entities, thingtalk_version);
+    if (!data.skip_typechecking)
+        await applyCompatibility(params.locale, result, tokenized.entities, thingtalk_version);
 
     res.set("Cache-Control", "no-store,must-revalidate");
     return {
