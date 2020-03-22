@@ -21,6 +21,9 @@ const applyCompatibility = require('./compat');
 // thingtalk version from before we started passing it to the API
 const DEFAULT_THINGTALK_VERSION = '1.0.0';
 
+const SEMANTIC_PARSING_TASK = 'almond';
+const NLU_TASK = 'almond_dialogue_nlu';
+
 function isValidDeveloperKey(developerKey) {
     return developerKey && developerKey !== 'null' && developerKey !== 'undefined';
 }
@@ -28,15 +31,29 @@ function isValidDeveloperKey(developerKey) {
 async function runPrediction(model, tokens, entities, context, limit, skipTypechecking) {
     const schemas = new ThingTalk.SchemaRetriever(model.tpClient, null, true);
 
-    let candidates = await model.predictor.predict(tokens, context);
-    if (skipTypechecking)
-        return candidates.slice(0, limit);
+    let candidates;
+    if (context)
+        candidates = await model.predictor.predict(context, tokens.join(' '), NLU_TASK);
+    else
+        candidates = await model.predictor.predict(tokens.join(' '), undefined, SEMANTIC_PARSING_TASK);
+
+    if (skipTypechecking) {
+        return candidates.map((c) => {
+            return {
+                code: c.answer.split(' '),
+                score: c.score
+            };
+       }).slice(0, limit);
+    }
 
     candidates = await Promise.all(candidates.map(async (c) => {
         try {
-            const parsed = ThingTalk.NNSyntax.fromNN(c.code, entities);
+            const parsed = ThingTalk.NNSyntax.fromNN(c.answer.split(' '), entities);
             await parsed.typecheck(schemas);
-            return c;
+            return {
+                code: c.answer.split(' '),
+                score: c.score
+            };
         } catch(e) {
             return null;
         }
@@ -152,7 +169,7 @@ async function runNLU(query, params, data, service, res) {
             }];
         } else {
             result = await runPrediction(model, tokens, tokenized.entities,
-                                         data.context ? data.context.split(' ') : undefined,
+                                         data.context,
                                          data.limit ? parseInt(data.limit) : 5,
                                          !!data.skip_typechecking);
         }

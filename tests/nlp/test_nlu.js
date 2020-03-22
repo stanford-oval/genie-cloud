@@ -73,7 +73,7 @@ async function testEverything() {
     }
 }
 
-async function testContextual() {
+async function testTokenize() {
     const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US');
 
     const tok1 = await parser.tokenize('1234');
@@ -124,6 +124,10 @@ async function testContextual() {
             NUMBER_0: 1234,
         }
     });
+}
+
+async function testContextual() {
+    const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US');
 
     const q1 = await parser.sendUtterance('another one', {
         code: 'now => @com.thecatapi.get => notify',
@@ -280,8 +284,11 @@ async function testAdmin() {
 }
 
 async function main() {
-    await testContextual();
+    // TODO: train a full contextual model so we can enable this
+    //await testContextual();
+
     await testEverything();
+    await testTokenize();
     await testExpect();
     await testMultipleChoice('choice number one', '0');
     await testMultipleChoice('choice number two', '1');

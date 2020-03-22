@@ -68,7 +68,7 @@ jobs:
       - (cd node_modules/genie-toolkit ; yarn ; rm -fr node_modules)
       - pyenv global 3.6.7
       - ./tests/install-nlp-deps.sh
-      - export DECANLP_EMBEDDINGS=`pwd`/tests/embeddings
+      - export GENIENLP_EMBEDDINGS=`pwd`/tests/embeddings
       - export PATH="`pwd`/cvc4:`pwd`/geckodriver:$PATH"
       script: yarn run nyc ./tests/nlp-integration.sh
       after_success: yarn run coverage
@@ -80,7 +80,7 @@ jobs:
       - (cd node_modules/genie-toolkit ; yarn ; rm -fr node_modules)
       - pyenv global 3.6.7
       - ./tests/install-nlp-deps.sh
-      - export DECANLP_EMBEDDINGS=`pwd`/tests/embeddings
+      - export GENIENLP_EMBEDDINGS=`pwd`/tests/embeddings
       - export PATH="`pwd`/cvc4:`pwd`/geckodriver:$PATH"
       script: yarn run nyc ./tests/training-integration.sh
       after_success: yarn run coverage
