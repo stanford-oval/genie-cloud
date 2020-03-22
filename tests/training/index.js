@@ -22,6 +22,7 @@ const db = require('../../util/db');
 const sleep = require('../../util/sleep');
 const trainingJobModel = require('../../model/training_job');
 const TrainingServer = require('../../util/training_server');
+const AbstractFS = require('../../util/abstract_fs');
 
 const { assertHttpError, sessionRequest } = require('../website/scaffold');
 const { login, } = require('../login');
@@ -45,6 +46,10 @@ async function waitUntilAllJobsDone() {
             `select * from training_jobs where status = 'error'`);
     });
     assert.deepStrictEqual(failed, []);
+}
+
+async function cleanJob(jobId) {
+    await AbstractFS.removeRecursive(AbstractFS.resolve(Config.TRAINING_DIR, './jobs/' + jobId));
 }
 
 function removeTimes(queue) {
@@ -117,7 +122,7 @@ async function testBasic() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: '{"synthetic_depth":2,"dataset_target_pruning_size":1000,"dataset_contextual_target_pruning_size":1000,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
+            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_ppdb_probability_synthetic": 0.1,"dataset_ppdb_probability_paraphrase": 1.0,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 2,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
             metrics: null,
             for_devices: []
         }, {
@@ -136,13 +141,17 @@ async function testBasic() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: '{"synthetic_depth":2,"dataset_target_pruning_size":1000,"dataset_contextual_target_pruning_size":1000,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
+            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_ppdb_probability_synthetic": 0.1,"dataset_ppdb_probability_paraphrase": 1.0,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 2,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
             metrics: null,
             for_devices: []
         }
     ]});
 
     await waitUntilAllJobsDone();
+
+    // remove job directory to save disk space
+    await cleanJob(2);
+    await cleanJob(3);
 }
 
 async function testForDevice() {
@@ -194,7 +203,7 @@ async function testForDevice() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: '{"synthetic_depth":2,"dataset_target_pruning_size":1000,"dataset_contextual_target_pruning_size":1000,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
+            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_ppdb_probability_synthetic": 0.1,"dataset_ppdb_probability_paraphrase": 1.0,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 2,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
             metrics: null,
             for_devices: ['org.thingpedia.builtin.test.adminonly']
         }
@@ -245,7 +254,7 @@ async function testForDevice() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: '{"synthetic_depth":2,"dataset_target_pruning_size":1000,"dataset_contextual_target_pruning_size":1000,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
+            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_ppdb_probability_synthetic": 0.1,"dataset_ppdb_probability_paraphrase": 1.0,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 2,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
             metrics: null,
         }
     ]);
@@ -255,6 +264,9 @@ async function testForDevice() {
     deepStrictEqual(queue3, []);
 
     await waitUntilAllJobsDone();
+
+    // remove job directory to save disk space
+    await cleanJob(5);
 }
 
 async function testDownload() {
@@ -283,7 +295,10 @@ async function testDownload() {
     });
 
     entries.sort();
-    assert.deepStrictEqual(entries, ['best.pth', 'config.json']);
+    assert.deepStrictEqual(entries, [
+        'added_tokens.json', 'best.pth', 'config.json', 'decoder-vocab.txt',
+        'special_tokens_map.json', 'tokenizer_config.json', 'vocab.txt'
+    ]);
 }
 
 async function testCustomDataset() {
