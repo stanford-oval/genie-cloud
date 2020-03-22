@@ -20,14 +20,44 @@ const { tokenize } = require('../util/tokenize');
 
 function mockTokenize(string) {
     const entities = {};
-    let num = 0;
+    let num = 0, hashtag = 0, username = 0, email = 0, phone = 0, url = 0;
 
     const rawTokens = tokenize(string);
     const tokens = rawTokens.map((token) => {
-        if (/^[0-9]+$/.test(token) && token !== '1' && token !== '0' && token !== '911') {
-            const tok = `NUMBER_${num}`;
-            num++;
-            entities[tok] = parseInt(token);
+        if (token.startsWith('+')) {
+            const tok = `PHONE_NUMBER_${phone}`;
+            phone++;
+            entities[tok] = token;
+            return tok;
+        } else if (/^[0-9]+$/.test(token) && token !== '911') {
+            const v = parseInt(token);
+            if (v < -12 || v > 12) {
+                const tok = `NUMBER_${num}`;
+                num++;
+                entities[tok] = v;
+                return tok;
+            } else {
+                return token;
+            }
+        } else if (token.startsWith('#')) {
+            const tok = `HASHTAG_${hashtag}`;
+            hashtag++;
+            entities[tok] = token.substring(1);
+            return tok;
+        } else if (token.startsWith('@')) {
+            const tok = `USERNAME_${username}`;
+            username++;
+            entities[tok] = token.substring(1);
+            return tok;
+        } else if (token.indexOf('@') > 0) {
+            const tok = `EMAIL_ADDRESS_${email}`;
+            email++;
+            entities[tok] = token;
+            return tok;
+        } else if (token.startsWith('http') > 0) {
+            const tok = `URL_${url}`;
+            url++;
+            entities[tok] = token;
             return tok;
         } else {
             return token;
