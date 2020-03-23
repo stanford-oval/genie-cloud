@@ -11,7 +11,6 @@
 
 const Stream = require('stream');
 const seedrandom = require('seedrandom');
-const path = require('path');
 const assert = require('assert');
 
 const ThingTalk = require('thingtalk');
