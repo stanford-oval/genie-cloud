@@ -54,7 +54,7 @@ const TEST_CASES = [
             }
         }
     },
-    `now => @org.thingpedia.weather.current(location=makeLocation("palo alto california")) => notify;`,
+    `now => @org.thingpedia.weather.current(location=new Location("palo alto california")) => notify;`,
     ],
 
     [
@@ -146,7 +146,7 @@ const TEST_CASES = [
             }
         }
     },
-    `now => @org.thingpedia.weather.sunrise(date=makeDate(1564556400000)) => notify;`,
+    `now => @org.thingpedia.weather.sunrise(date=new Date("2019-07-31T07:00:00.000Z")) => notify;`,
     ],
 
     [
@@ -160,7 +160,7 @@ const TEST_CASES = [
             }
         }
     },
-    `now => @org.thingpedia.weather.sunrise(date=makeDate(1564642800000)) => notify;`,
+    `now => @org.thingpedia.weather.sunrise(date=new Date("2019-08-01T07:00:00.000Z")) => notify;`,
     ],
 
     [
@@ -174,7 +174,7 @@ const TEST_CASES = [
             }
         }
     },
-    `now => @org.thingpedia.weather.sunrise(date=makeDate(1546329600000)) => notify;`,
+    `now => @org.thingpedia.weather.sunrise(date=new Date("2019-01-01T08:00:00.000Z")) => notify;`,
     ],
 
     [
@@ -202,7 +202,7 @@ const TEST_CASES = [
             }
         }
     },
-    `now => @com.spotify.play_seek_seconds(seconds=(1day + 1hour));`,
+    `now => @com.spotify.play_seek_seconds(seconds=1day + 1hour);`,
     ],
 
     [
