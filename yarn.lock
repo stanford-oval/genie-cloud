@@ -2978,9 +2978,10 @@ gcp-metadata@^1.0.0:
     gaxios "^1.0.2"
     json-bigint "^0.3.0"
 
-"genie-toolkit@github:stanford-oval/genie-toolkit#wip/multi-step-thingtalk":
-  version "0.5.3"
-  resolved "https://codeload.github.com/stanford-oval/genie-toolkit/tar.gz/dd80568f72d1978646f2ddc76b4ea20ae6613313"
+genie-toolkit@~0.6.0-alpha.1:
+  version "0.6.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.6.0-alpha.1.tgz#0085d6e0fdc13b0d3a6b6550de6c598848d0a5ff"
+  integrity sha512-ycaSsNU3nywi6eejoLQV0bjiFYU8A54QMTgJhpgGGKz57gd+lXob0ZdEMuYtf+l2eARsG7yl8aO0t3Rh2btVUQ==
   dependencies:
     JSONStream "^1.3.5"
     argparse "^1.0.10"
@@ -5687,11 +5688,6 @@ pbkdf2@^3.0.3:
     ripemd160 "^2.0.1"
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
-
-pegjs@^0.10.0:
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/pegjs/-/pegjs-0.10.0.tgz#cf8bafae6eddff4b5a7efb185269eaaf4610ddbd"
-  integrity sha1-z4uvrm7d/0tafvsYUmnqr0YQ3b0=
 
 performance-now@^2.1.0:
   version "2.1.0"
