@@ -73,7 +73,13 @@ class GoogleAssistantDelegate {
     }
 
     sendChoice(idx, what, title, text) {
-        // TODO
+        // Output choice options as regular text
+        if (typeof this._buffer[this._buffer.length - 1] === 'string')
+            // If there is already a text reply immediately before, we merge text replies
+            // because Google Assistant limits at most 2 chat bubbles per turn
+            this._buffer[this._buffer.length - 1] += '\n' + text;
+        else
+            this._buffer.push(text);
     }
 
     sendButton(title, json) {
@@ -89,7 +95,7 @@ class GoogleAssistantDelegate {
         } else {
             this._buffer.push(new Button({
                 title: title,
-                url: url,
+                url: Config.SERVER_ORIGIN + url,
             }));
         }
     }
