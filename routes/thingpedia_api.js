@@ -1748,8 +1748,8 @@ v3.get('/strings/list/:type', (req, res, next) => {
  *
  * @apiSuccess {String} result Whether the API call was successful; always the value `ok`
  * @apiSuccess {Object[]} data List of candidate locations values; the list is sorted by importance
- * @apiSuccess {Number{-90,90}} data.lat Latitude
- * @apiSuccess {Number{-180,180}} data.lon Longitude
+ * @apiSuccess {Number{-90,90}} data.latitude Latitude
+ * @apiSuccess {Number{-180,180}} data.longitude Longitude
  * @apiSuccess {String} data.display User-visible name of this location
  * @apiSuccess {Number} data.canonical Preprocessed (tokenized and lower-cased) version of the user-visible name
  *
@@ -1777,7 +1777,7 @@ v3.get('/locations/lookup', (req, res, next) => {
 
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
 
-    client.lookupLocation(searchKey).then((data) => {
+    client.lookupLocation(searchKey, req.query.latitude && req.query.longitude ? { latitude: req.query.latitude, longitude: req.query.longitude } : undefined).then((data) => {
         res.cacheFor(300000);
         res.status(200).json({ result: 'ok', data });
     }).catch(next);

@@ -401,8 +401,8 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
         });
     }
 
-    lookupLocation(searchTerm) {
-        return resolveLocation(this.locale, searchTerm);
+    lookupLocation(searchTerm, around) {
+        return resolveLocation(this.locale, searchTerm, around);
     }
 
     getAllExamples(accept = 'application/x-thingtalk') {
