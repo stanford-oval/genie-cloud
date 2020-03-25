@@ -43,10 +43,10 @@ function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
         }
         const annotations = {};
         if (isMeta && schema.string_values[i])
-            annotations.string_values = Ast.Value.String(schema.string_values[i]);
+            annotations.string_values = new Ast.Value.String(schema.string_values[i]);
 
-        args.push(new Ast.ArgumentDef(direction, argname,
-            type, metadata, annotations));
+        args.push(new Ast.ArgumentDef(null, direction, argname,
+            type, { nl: metadata, impl: annotations }));
     });
 
     const metadata = {};
@@ -59,16 +59,18 @@ function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
     }
     const annotations = {};
     if (isMeta)
-        annotations.confirm = Ast.Value.Boolean(schema.confirm);
+        annotations.confirm = new Ast.Value.Boolean(schema.confirm);
 
-    return new Ast.FunctionDef(functionType,
+    return new Ast.FunctionDef(null, functionType,
+                               null, /* class */
                                functionName,
                                schema.extends || [],
+                               {
+                                   is_list: schema.is_list,
+                                   is_monitorable: schema.is_monitorable,
+                               },
                                args,
-                               schema.is_list,
-                               schema.is_monitorable,
-                               metadata,
-                               annotations);
+                               { nl: metadata, impl: annotations });
 }
 
 function makeSchemaClassDef(kind, schema, isMeta) {
@@ -85,8 +87,7 @@ function makeSchemaClassDef(kind, schema, isMeta) {
 
     if (isMeta && schema.kind_canonical)
         metadata.canonical = schema.kind_canonical;
-    return new Ast.ClassDef(kind, null, queries, actions,
-                            imports, metadata, annotations);
+    return new Ast.ClassDef(null, kind, null, { queries, actions, imports }, { nl: metadata, impl: annotations });
 }
 
 function mergeFunctionDefAndSchema(fnDef, schema) {
@@ -129,7 +130,7 @@ module.exports = {
         const classes = [];
         for (let row of rows)
             classes.push(makeSchemaClassDef(row.kind, row, isMeta));
-        return new Ast.Input.Library(classes, []);
+        return new Ast.Input.Library(null, classes, []);
     },
 
     classDefToSchema(classDef) {

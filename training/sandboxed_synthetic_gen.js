@@ -48,6 +48,16 @@ async function downloadThingpedia(dbClient, orgId, language, tmpDir) {
         DatasetUtils.examplesToDataset(`org.thingpedia.dynamic.everything`, language, examples));
 }
 
+async function symlinkModule(tmpDir, moduleName) {
+    try {
+        await util.promisify(fs.symlink)(path.dirname(require.resolve(moduleName)),
+                                         path.resolve(tmpDir, './node_modules/' + moduleName));
+    } catch(e) {
+        if (e.code !== 'EEXIST')
+            throw e;
+    }
+}
+
 async function downloadTemplatePack(dbClient, language, templatePack, tmpDir) {
     const tmpl = await templatePackModel.getByTag(dbClient, language, templatePack);
 
@@ -70,13 +80,10 @@ async function downloadTemplatePack(dbClient, language, templatePack, tmpDir) {
         if (e.code !== 'EEXIST')
             throw e;
     }
-    try {
-        await util.promisify(fs.symlink)(path.dirname(require.resolve('thingtalk')),
-                                         path.resolve(tmpDir, './node_modules/thingtalk'));
-    } catch(e) {
-        if (e.code !== 'EEXIST')
-            throw e;
-    }
+
+    // symlink modules that will be useful inside the templates
+    for (let module of ['thingtalk', 'thingpedia', 'thingtalk-units'])
+        await symlinkModule(tmpDir, module);
 }
 
 function cleanEnv() {

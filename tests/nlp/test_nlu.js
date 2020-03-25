@@ -14,8 +14,6 @@ const ThingTalk = require('thingtalk');
 const Gettext = require('node-gettext');
 const Tp = require('thingpedia');
 
-const Almond = require('almond-dialog-agent');
-const Intent = Almond.Intent;
 const ParserClient = require('./parserclient');
 
 const db = require('../../util/db');
@@ -31,17 +29,6 @@ const schemas = new ThingTalk.SchemaRetriever(new Tp.HttpClient({
     },
     locale: 'en-US',
 }, Config.THINGPEDIA_URL), null, true);
-
-function candidateToString(cand) {
-    if (cand.isProgram)
-        return `Program(${cand.program.prettyprint(true)})`;
-    else if (cand.isSetup)
-        return `Setup(${cand.program.prettyprint(true)})`;
-    else if (cand.isPermissionRule)
-        return `PermissionRule(${cand.rule.prettyprint(true)})`;
-    else
-        return String(cand);
-}
 
 async function testEverything() {
     const TEST_CASES = require('./parser_test_cases');
@@ -61,19 +48,16 @@ async function testEverything() {
 
         // everything should typecheck because the server filters server side
         let candidates = await Promise.all(analyzed.candidates.map(async (candidate, beamposition) => {
-            return Intent.parse({ code: candidate.code, entities: analyzed.entities }, schemas, analyzed, null, null);
+            const program = ThingTalk.NNSyntax.fromNN(candidate.code, analyzed.entities);
+            await program.typecheck(schemas, false);
+            return program;
         }));
-
-        candidates = candidates.filter((c) => c !== null);
-
-        if (candidates.length === 0)
-            console.log(`${i+1}: ${test} => null`);
-        else
-            console.log(`${i+1}: ${test} => ${candidateToString(candidates[0])}`);
+        assert(candidates.length > 0, `Failed parsing ${test}`);
+        console.log(`${i+1}: ${test} => ${candidates[0].prettyprint()}`);
     }
 }
 
-async function testContextual() {
+async function testTokenize() {
     const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US');
 
     const tok1 = await parser.tokenize('1234');
@@ -124,6 +108,10 @@ async function testContextual() {
             NUMBER_0: 1234,
         }
     });
+}
+
+async function testContextual() {
+    const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US');
 
     const q1 = await parser.sendUtterance('another one', {
         code: 'now => @com.thecatapi.get => notify',
@@ -280,8 +268,11 @@ async function testAdmin() {
 }
 
 async function main() {
-    await testContextual();
+    // TODO: train a full contextual model so we can enable this
+    //await testContextual();
+
     await testEverything();
+    await testTokenize();
     await testExpect();
     await testMultipleChoice('choice number one', '0');
     await testMultipleChoice('choice number two', '1');

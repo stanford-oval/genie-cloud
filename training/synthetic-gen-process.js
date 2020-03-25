@@ -42,7 +42,8 @@ async function genBasic(args) {
         thingpediaClient: tpClient,
         schemaRetriever: schemas,
 
-        templateFile: 'index.genie',
+        templateFiles: ['index.genie'],
+        targetLanguage: 'thingtalk',
 
         rng: rng,
         locale: args.locale,

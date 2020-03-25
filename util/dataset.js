@@ -151,7 +151,7 @@ function rowsToExamples(rows, { editMode = false, skipId = false }) {
             const parsed = ThingTalk.Grammar.parse(targetCode);
             const declaration = parsed.declarations[0];
 
-            const example = new ThingTalk.Ast.Example(-1,
+            const example = new ThingTalk.Ast.Example(null, -1,
                 declaration.type === 'table' ? 'query' : declaration.type,
                 declaration.args,
                 declaration.value,

@@ -11,6 +11,7 @@
 
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
 
 const I18n = require('../../../util/i18n');
 const exampleModel = require('../../../model/example');
@@ -64,7 +65,7 @@ function parseDuration(form) {
         throw new Error(`invalid duration value ${form}`);
 
     if (measures.length > 1)
-        return new Ast.Value.CompoundMeasure(measures);
+        return new Ast.Value.Computation('+', measures, [Type.Measure('ms'), Type.Measure('ms'), Type.Measure('ms')], Type.Measure('ms'));
     else
         return measures[0];
 }

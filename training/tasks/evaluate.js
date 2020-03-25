@@ -19,11 +19,15 @@ const AdminThingpediaClient = require('../../util/admin-thingpedia-client');
 const AbstractFS = require('../../util/abstract_fs');
 const TokenizerService = require('../../util/tokenizer_service');
 
+const SEMANTIC_PARSING_TASK = 'almond';
+const NLU_TASK = 'almond_dialogue_nlu';
+
+
 class LocalParserClient {
     constructor(modeldir, locale) {
         this._locale = locale;
         this._tokenizer = TokenizerService.getLocal();
-        this._predictor = new Genie.Predictor('local', modeldir, 1);
+        this._predictor = new Genie.Predictor('local', modeldir);
     }
 
     async start() {
@@ -37,13 +41,13 @@ class LocalParserClient {
         const tokenized = await this._tokenizer.tokenize(this._locale, utterance);
         Genie.Utils.renumberEntities(tokenized, contextEntities);
         return tokenized;
-
     }
+
     async sendUtterance(utterance, tokenized, contextCode, contextEntities) {
         let tokens, entities;
         if (tokenized) {
             tokens = utterance.split(' ');
-            entities = {};
+            entities = Genie.Utils.makeDummyEntities(utterance);
             Object.assign(entities, contextEntities);
         } else {
             const tokenized = await this._tokenizer.tokenize(this._locale, utterance);
@@ -52,7 +56,18 @@ class LocalParserClient {
             entities = tokenized.entities;
         }
 
-        const candidates = await this._predictor.predict(tokens, contextCode);
+        let candidates;
+        if (contextCode)
+            candidates = await this._predictor.predict(contextCode.join(' '), tokens.join(' '), NLU_TASK);
+        else
+            candidates = await this._predictor.predict(tokens.join(' '), undefined, SEMANTIC_PARSING_TASK);
+
+        candidates = candidates.map((cand) => {
+            return {
+                code: cand.answer.split(' '),
+                score: cand.score
+            };
+        });
         return { tokens, candidates, entities };
     }
 }

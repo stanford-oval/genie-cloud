@@ -322,8 +322,8 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
                 const dummydataset = `dataset @foo { ${row.target_code} }`;
                 const parsed = ThingTalk.Grammar.parse(dummydataset);
                 const example = parsed.datasets[0].examples[0];
-                const declaration = new ThingTalk.Ast.Program([],
-                    [new ThingTalk.Ast.Statement.Declaration('x',
+                const declaration = new ThingTalk.Ast.Program(null, [],
+                    [new ThingTalk.Ast.Statement.Declaration(null, 'x',
                         example.type, example.args, example.value)],
                     [], null);
                 row.target_code = declaration.prettyprint(true);
