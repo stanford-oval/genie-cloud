@@ -21,7 +21,7 @@ RUN touch /var/lib/rpm/* && \
   dnf module install -y nodejs:10 && \
   dnf -y install unzip GraphicsMagick bubblewrap sqlcipher sqlcipher-devel procps-ng \
     python3 python3-numpy python3-scipy python3-pip && \
-  pip3 install 'genienlp==0.2.0a1' awscli && \
+  pip3 install 'genienlp==0.2.0a2' awscli && \
   dnf -y remove python3-devel gcc gcc-c++ && \
   rm -fr /root/.cache && \
   rm -rf /var/cache/dnf
