@@ -108,7 +108,7 @@ tr -d '\n' > training-config.json <<EOF
 "dimension": 768,
 "rnn_dimension": 768,
 "transformer_hidden": 768,
-"transformer_layers": 2,
+"transformer_layers": 0,
 "rnn_layers": 2,
 "rnn_zero_state": "average",
 "context_embeddings": "bert-base-uncased",

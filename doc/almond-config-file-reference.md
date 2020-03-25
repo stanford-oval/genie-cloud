@@ -447,13 +447,6 @@ point to a public website hosting your documentation.
 
 Default value: `'https://almond.stanford.edu/doc/getting-started.md'`
 
-## BING_KEY
-Access key for Bing Image API
-
-This is used to retrieve icons for entities.
-
-Default value: `''`
-
 ## GOOGLE_CLIENT_ID
 OAuth Client ID to support Login With Google
 

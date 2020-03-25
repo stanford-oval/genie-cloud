@@ -21,10 +21,9 @@ RUN touch /var/lib/rpm/* && \
   dnf module install -y nodejs:10 && \
   dnf -y install unzip GraphicsMagick bubblewrap sqlcipher sqlcipher-devel procps-ng \
     python3 python3-numpy python3-scipy python3-pip && \
-  pip3 install 'genienlp==0.2.0a2' awscli && \
-  dnf -y remove python3-devel gcc gcc-c++ && \
-  rm -fr /root/.cache && \
   rm -rf /var/cache/dnf
+RUN pip3 install 'genienlp==0.2.0a2' awscli && \
+  rm -fr /root/.cache
 
 # install cvc4
 RUN curl -sL https://almond-static.stanford.edu/test-data/cvc4-1.6-x86_64-linux-opt -o /usr/local/bin/cvc4

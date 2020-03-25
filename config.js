@@ -454,13 +454,6 @@ module.exports.TENSORBOARD_DIR = null;
 module.exports.DOCUMENTATION_URL = 'https://almond.stanford.edu/doc/getting-started.md';
 
 /**
-  Access key for Bing Image API
-
-  This is used to retrieve icons for entities.
-*/
-module.exports.BING_KEY = '';
-
-/**
   OAuth Client ID to support Login With Google
 */
 module.exports.GOOGLE_CLIENT_ID = null;
