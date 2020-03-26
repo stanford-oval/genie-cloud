@@ -7767,10 +7767,10 @@ xml@1.0.1:
   resolved "https://registry.yarnpkg.com/xml/-/xml-1.0.1.tgz#78ba72020029c5bc87b8a81a3cfcd74b4a2fc1e5"
   integrity sha1-eLpyAgApxbyHuKgaPPzXS0ovweU=
 
-xmlbuilder@^14.0.0:
-  version "14.0.0"
-  resolved "https://registry.yarnpkg.com/xmlbuilder/-/xmlbuilder-14.0.0.tgz#876b5aec4f05ffd5feb97b0a871c855d16fbeb8c"
-  integrity sha512-ts+B2rSe4fIckR6iquDjsKbQFK2NlUk6iG5nf14mDEyldgoc2nEKZ3jZWMPTxGQwVgToSjt6VGIho1H8/fNFTg==
+xmlbuilder@^15.1.0:
+  version "15.1.0"
+  resolved "https://registry.yarnpkg.com/xmlbuilder/-/xmlbuilder-15.1.0.tgz#4c4c9109180937baeb839978b590250be09a4aef"
+  integrity sha512-xae5hmPQnmSFhpiuV3NGXq+FWGOvWy/rIzxVLnRtSSABbPZWltTQCe6WlHDpCq5pGvnGwNsWnS1FdkW7Tx9FNQ==
 
 xmlbuilder@~11.0.0:
   version "11.0.1"
