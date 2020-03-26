@@ -23,7 +23,12 @@ RUN touch /var/lib/rpm/* && \
     python3 python3-numpy python3-scipy python3-pip && \
   rm -rf /var/cache/dnf
 
-RUN pip3 install 'torch~=1.4' && rm -fr /root/.cache
+# HACK: we need to download the wheel manually or docker will die
+RUN curl -sL https://files.pythonhosted.org/packages/24/19/4804aea17cd136f1705a5e98a00618cb8f6ccc375ad8bfa437408e09d058/torch-1.4.0-cp36-cp36m-manylinux1_x86_64.whl \
+  -o torch-1.4.0-cp36-cp36m-manylinux1_x86_64.whl && \
+  pip3 install torch-1.4.0-cp36-cp36m-manylinux1_x86_64.whl && \
+  rm -fr /root/.cache &&
+  rm -fr torch-1.4.0-cp36-cp36m-manylinux1_x86_64.whl
 RUN pip3 install 'genienlp==0.2.0a2' awscli && rm -fr /root/.cache
 
 # install cvc4
