@@ -4,6 +4,7 @@ env:
   node: true
 globals:
   $: false
+  ThingEngine: false
 extends: 'eslint:recommended'
 rules:
   indent: off
