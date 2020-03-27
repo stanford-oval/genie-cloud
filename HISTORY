@@ -1,3 +1,34 @@
+1.7.4
+=====
+
+Frontend & Thingpedia:
+* Web Almond now supports voice input. A "record" button has been added to all
+  Web Almond pages [#686].
+* Google Assistant support has been reintroduced, in a cleaned up and refactored way [#678].
+
+NLP & training:
+* Developers can now create MTurk batches and custom synthetic datasets, including datasets
+  in MTurk mode. This provides a one-click solution to use MTurk to improve the accuracy
+  of Thingpedia skills [#203, #681].
+* Added support for the "defaultTemperature" unit, which allows Almond to interpret
+  the word "degrees" according to the user's locale and preferences [#675].
+* The voice API, that was previously provided by the almond-voice package, has been
+  merged in almond-cloud. The new API also includes a combined voice + NLU endpoint [#677].
+* The exact matcher has been refactored and now uses a dedicate on-disk data structure,
+  which should significantly reduce memory usage [#644].
+* The models have been updated to use the genienlp library instead of decanlp. genienlp
+  provides a BERT-based model, which should yield higher accuracy [#685].
+
+Misc:
+* The NLP API is now fully documented [#671, #677].
+* Misc bug fixes [#665, #684, #687].
+* Documentation updates [#673, #674].
+* Dependency updates [#683].
+
+Contributors:
+  Euirim Choi
+  Swee Kiat (SK) Lim
+
 1.7.3
 =====
 
