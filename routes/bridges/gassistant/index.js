@@ -23,6 +23,8 @@ const gAssistantUserUtils = require('../../../util/user');
 const gAssistantUserModel = require('../../../model/user');
 const secret = require('../../../util/secret_key');
 
+const Config = require('../../../config');
+
 var router = express.Router();
 
 class GoogleAssistantDelegate {
@@ -61,14 +63,15 @@ class GoogleAssistantDelegate {
                 url: rdl.webCallback,
             }),
             display: 'CROPPED',
-        }
+        };
         if (rdl.displayText)
             card.text = rdl.displayText;
-        if (rdl.pictureUrl)
+        if (rdl.pictureUrl) {
             card.image = new Image({
                 url: rdl.pictureUrl,
                 alt: rdl.pictureUrl
-            })
+            });
+        }
         this._buffer.push(new BasicCard(card));
     }
 
@@ -185,14 +188,18 @@ app.intent('actions.intent.SIGN_IN', (conv, input, signin) => {
 app.intent('actions.intent.TEXT', async (conv, input) => {
     // Quick hack so that Almond recognizes bye and goodbye
     // and returns user to Google Assistant
-    if (input === 'bye' || input === 'goodbye')
-        return conv.close("See you later!");
+    if (input === 'bye' || input === 'goodbye') {
+        await conv.close("See you later!");
+        return;
+    }
     // TODO - better way for user to initiate sign in
-    if (input === 'I want to sign in')
+    if (input === 'I want to sign in') {
         // This will reply "<To get your account details>, I need to link your
         // <action> account to Google. Is that okay?"
         // Answering "yes" will generate the log-in link
-        return conv.ask(new SignIn("To get your account details"));
+        await conv.ask(new SignIn("To get your account details"));
+        return;
+    }
 
     const [anonymous, user] = await retrieveUser(conv.body.user.accessToken);
 
@@ -216,9 +223,9 @@ app.intent('actions.intent.TEXT', async (conv, input) => {
         delegate._buffer.forEach((reply) => conv.ask(reply));
         // Another way to initiate authentication, initiated by Almond
         if (delegate._requestSignin)
-            conv.ask(new SignIn("To get your account details"));
+            await conv.ask(new SignIn("To get your account details"));
     } else {
-        conv.close("Consider it done.");
+        await conv.close("Consider it done.");
     }
 });
 
