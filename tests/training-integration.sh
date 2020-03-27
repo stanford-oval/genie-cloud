@@ -57,7 +57,6 @@ NL_MODEL_DIR: ./models
 TENSORBOARD_DIR: ./tensorboard
 TRAINING_URL: "http://127.0.0.1:${PORT}"
 TRAINING_ACCESS_TOKEN: test-training-access-token
-TRAINING_CONFIG_FILE: ./training.conf.json
 TRAINING_MEMORY_USAGE: 1000
 SUPPORTED_LANGUAGES: ['en-US']
 EOF
@@ -66,20 +65,6 @@ node $srcdir/tests/mock-tokenizer.js &
 tokenizerpid=$!
 
 # add missing files to the workdir
-cat > './training.conf.json' <<EOF
-{
-  "train_iterations": 10,
-  "save_every": 2,
-  "val_every": 2,
-  "log_every": 2,
-  "trainable_decoder_embedding": 10,
-  "no_glove_decoder": true,
-  "synthetic_depth": 2,
-  "no_commit": true,
-  "dataset_target_pruning_size": 1000,
-  "dataset_contextual_target_pruning_size": 1000
-}
-EOF
 node $srcdir/node_modules/.bin/genie compile-ppdb $srcdir/tests/data/ppdb-2.0-xs-lexical -o $workdir/ppdb-2.0-xs-lexical.bin
 export PPDB=$workdir/ppdb-2.0-xs-lexical.bin
 
@@ -101,6 +86,43 @@ ${srcdir}/main.js bootstrap --force
 # load some more data into Thingpedia
 test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/download/devices/com.bing.zip -O $srcdir/tests/data/com.bing.zip
 eval $(node $srcdir/tests/load_test_thingpedia.js)
+
+# set the config on all models
+tr -d '\n' > training-config.json <<EOF
+{
+"synthetic_depth": 3,
+"dataset_target_pruning_size": 1000,
+"dataset_contextual_target_pruning_size": 1000,
+"dataset_ppdb_probability_synthetic": 0.1,
+"dataset_ppdb_probability_paraphrase": 1.0,
+"dataset_quoted_probability": 0.1,
+"dataset_eval_probability": 0.5,
+"dataset_split_strategy": "sentence",
+"train_iterations": 12,
+"save_every": 6,
+"val_every": 3,
+"log_every": 3,
+"train_batch_tokens": 4000,
+"val_batch_size": 128,
+"seq2seq_encoder": "Identity",
+"dimension": 768,
+"rnn_dimension": 768,
+"transformer_hidden": 768,
+"transformer_layers": 0,
+"rnn_layers": 2,
+"rnn_zero_state": "average",
+"context_embeddings": "bert-base-uncased",
+"question_embeddings": "bert-base-uncased",
+"decoder_embeddings": "",
+"trainable_encoder_embeddings": 0,
+"trainable_decoder_embeddings": 25,
+"transformer_lr_multiply": 0.5
+}
+EOF
+
+cat training-config.json
+
+${srcdir}/main.js execute-sql-file /proc/self/fd/0 <<<"update models set config = '$(cat training-config.json)';"
 
 ${srcdir}/main.js run-frontend &
 frontendpid=$!

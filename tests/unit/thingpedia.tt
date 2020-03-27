@@ -612,7 +612,7 @@ class @com.instagram
                                       out picture_url: Entity(tt:picture) #_[canonical="picture url"],
                                       out caption: String #_[canonical="caption"],
                                       out link: Entity(tt:url) #_[canonical="link"],
-                                      out filter: Entity(com.instagram:filter) #_[prompt="With what filters do you want pictures?"] #_[canonical="filter"],
+                                      out filter_: Entity(com.instagram:filter_) #_[prompt="With what filters do you want pictures?"] #_[canonical="filter"],
                                       out hashtags: Array(Entity(tt:hashtag)) #_[canonical="hashtags"],
                                       out location: Location #_[canonical="location"])
   #_[canonical="get pictures on instagram"]

@@ -42,8 +42,8 @@ module.exports = async function main(task, argv) {
     await util.promisify(fs.writeFile)(path.resolve(datadir, 'test.tsv'), '');
 
     const genieConfig = {
-        task_name: task.modelInfo.contextual ? 'contextual_almond' : 'almond',
-        locale: task.language,
+        task_name: task.modelInfo.contextual ? 'almond_dialogue_nlu' : 'almond',
+        no_commit: true
     };
     for (let key in task.config) {
         if (key.startsWith('dataset_'))
@@ -65,7 +65,7 @@ module.exports = async function main(task, argv) {
 
     const options = {
         // do not pass the job ID to Genie, otherwise the lines will be prefixed twice
-        backend: 'decanlp',
+        backend: 'genienlp',
         locale: task.language,
 
         config: genieConfig,

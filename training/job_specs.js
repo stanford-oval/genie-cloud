@@ -48,6 +48,45 @@ module.exports = {
         }
     ],
 
+    'gen-custom-synthetic': [
+        {
+            name: 'gen-custom-synthetic',
+            progress: 1,
+            computeEta: false,
+
+            requests: {
+                cpu: 1.5,
+                gpu: 0
+            }
+        }
+    ],
+
+    'gen-custom-augmented': [
+        {
+            name: 'gen-custom-augmented',
+            progress: 1,
+            computeEta: false,
+
+            requests: {
+                cpu: 1.5,
+                gpu: 0
+            }
+        }
+    ],
+
+    'gen-custom-turking': [
+        {
+            name: 'gen-custom-turking',
+            progress: 1,
+            computeEta: false,
+
+            requests: {
+                cpu: 1.5,
+                gpu: 0
+            }
+        }
+    ],
+
     'train': [
         {
             name: 'prepare-training-set',
@@ -99,7 +138,8 @@ module.exports = {
                     await modelsModel.update(dbClient, model.id, {
                         trained: true,
                         version: newVersion,
-                        metrics: trainingJobInfo.metrics
+                        metrics: trainingJobInfo.metrics,
+                        trained_config: trainingJobInfo.trained_config,
                     });
                 });
 

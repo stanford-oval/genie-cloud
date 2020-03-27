@@ -22,6 +22,7 @@ const db = require('../../util/db');
 const sleep = require('../../util/sleep');
 const trainingJobModel = require('../../model/training_job');
 const TrainingServer = require('../../util/training_server');
+const AbstractFS = require('../../util/abstract_fs');
 
 const { assertHttpError, sessionRequest } = require('../website/scaffold');
 const { login, } = require('../login');
@@ -45,6 +46,10 @@ async function waitUntilAllJobsDone() {
             `select * from training_jobs where status = 'error'`);
     });
     assert.deepStrictEqual(failed, []);
+}
+
+async function cleanJob(jobId) {
+    await AbstractFS.removeRecursive(AbstractFS.resolve(Config.TRAINING_DIR, './jobs/' + jobId));
 }
 
 function removeTimes(queue) {
@@ -73,7 +78,7 @@ async function testBasic() {
 
     // issue a basic train command
 
-    await server.queue('en', null, 'train');
+    await server.queue('en', null, 'update-dataset,train');
     await sleep(1000);
 
     const queue = await db.withClient((dbClient) => server.getJobQueue(dbClient));
@@ -87,6 +92,7 @@ async function testBasic() {
             job_type: 'update-dataset',
             language: 'en',
             model_tag: null,
+            owner: null,
             all_devices: 1,
             status: 'started',
             task_index: null,
@@ -96,8 +102,7 @@ async function testBasic() {
             eta: null,
             start_time: null,
             end_time: null,
-            config:
-            '{"synthetic_depth":2,"dataset_target_pruning_size":1000,"dataset_contextual_target_pruning_size":1000,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
+            config: '{}',
             metrics: null,
             for_devices: [] }
         ],
@@ -107,6 +112,7 @@ async function testBasic() {
             job_type: 'train',
             language: 'en',
             model_tag: 'org.thingpedia.models.default',
+            owner: null,
             all_devices: 1,
             status: 'queued',
             task_index: null,
@@ -116,7 +122,7 @@ async function testBasic() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: null,
+            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_ppdb_probability_synthetic": 0.1,"dataset_ppdb_probability_paraphrase": 1.0,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 0,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
             metrics: null,
             for_devices: []
         }, {
@@ -125,6 +131,7 @@ async function testBasic() {
             job_type: 'train',
             language: 'en',
             model_tag: 'org.thingpedia.models.developer',
+            owner: null,
             all_devices: 1,
             status: 'queued',
             task_index: null,
@@ -134,13 +141,17 @@ async function testBasic() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: null,
+            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_ppdb_probability_synthetic": 0.1,"dataset_ppdb_probability_paraphrase": 1.0,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 0,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
             metrics: null,
             for_devices: []
         }
     ]});
 
     await waitUntilAllJobsDone();
+
+    // remove job directory to save disk space
+    await cleanJob(2);
+    await cleanJob(3);
 }
 
 async function testForDevice() {
@@ -148,7 +159,7 @@ async function testForDevice() {
 
     // issue a train command for a device that is not approved
 
-    await server.queue('en', ['org.thingpedia.builtin.test.adminonly'], 'train');
+    await server.queue('en', ['org.thingpedia.builtin.test.adminonly'], 'update-dataset,train');
     await sleep(1000);
 
     const queue = await db.withClient((dbClient) => server.getJobQueue(dbClient));
@@ -162,6 +173,7 @@ async function testForDevice() {
             job_type: 'update-dataset',
             language: 'en',
             model_tag: null,
+            owner: null,
             all_devices: 0,
             status: 'started',
             task_index: null,
@@ -171,8 +183,7 @@ async function testForDevice() {
             eta: null,
             start_time: null,
             end_time: null,
-            config:
-            '{"synthetic_depth":2,"dataset_target_pruning_size":1000,"dataset_contextual_target_pruning_size":1000,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
+            config: '{}',
             metrics: null,
             for_devices: ['org.thingpedia.builtin.test.adminonly'] }
         ],
@@ -182,6 +193,7 @@ async function testForDevice() {
             job_type: 'train',
             language: 'en',
             model_tag: 'org.thingpedia.models.developer',
+            owner: null,
             all_devices: 0,
             status: 'queued',
             task_index: null,
@@ -191,7 +203,7 @@ async function testForDevice() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: null,
+            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_ppdb_probability_synthetic": 0.1,"dataset_ppdb_probability_paraphrase": 1.0,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 0,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
             metrics: null,
             for_devices: ['org.thingpedia.builtin.test.adminonly']
         }
@@ -213,6 +225,7 @@ async function testForDevice() {
             job_type: 'update-dataset',
             language: 'en',
             model_tag: null,
+            owner: null,
             all_devices: 0,
             status: 'started',
             task_index: null,
@@ -222,8 +235,7 @@ async function testForDevice() {
             eta: null,
             start_time: null,
             end_time: null,
-            config:
-            '{"synthetic_depth":2,"dataset_target_pruning_size":1000,"dataset_contextual_target_pruning_size":1000,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
+            config: '{}',
             metrics: null
         },
         {
@@ -232,6 +244,7 @@ async function testForDevice() {
             job_type: 'train',
             language: 'en',
             model_tag: 'org.thingpedia.models.developer',
+            owner: null,
             all_devices: 0,
             status: 'queued',
             task_index: null,
@@ -241,7 +254,7 @@ async function testForDevice() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: null,
+            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_ppdb_probability_synthetic": 0.1,"dataset_ppdb_probability_paraphrase": 1.0,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 0,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
             metrics: null,
         }
     ]);
@@ -251,6 +264,9 @@ async function testForDevice() {
     deepStrictEqual(queue3, []);
 
     await waitUntilAllJobsDone();
+
+    // remove job directory to save disk space
+    await cleanJob(5);
 }
 
 async function testDownload() {
@@ -279,13 +295,153 @@ async function testDownload() {
     });
 
     entries.sort();
-    assert.deepStrictEqual(entries, ['best.pth', 'config.json']);
+    assert.deepStrictEqual(entries, [
+        'added_tokens.json', 'best.pth', 'config.json', 'decoder-vocab.txt',
+        'special_tokens_map.json', 'tokenizer_config.json', 'vocab.txt'
+    ]);
+}
+
+async function testCustomDataset() {
+    const root = await login('root', 'rootroot');
+    const server = TrainingServer.get();
+
+    // there is no dataset to download yet
+    await assertHttpError(sessionRequest('/luinet/custom-datasets/download/6', 'GET', null, root), 404);
+
+    await sessionRequest('/luinet/custom-datasets/create', 'POST', {
+        job_type: 'gen-custom-synthetic',
+        language: 'en-US',
+        template: 'org.thingpedia.genie.thingtalk',
+        flags: 'aggregation projection',
+        config: JSON.stringify({
+            synthetic_depth: 3,
+            target_pruning_size: 1000
+        })
+    }, root);
+
+    const queue = await db.withClient((dbClient) => server.getJobQueue(dbClient));
+    //console.log(queue);
+    removeTimes(queue);
+
+    deepStrictEqual(queue, {
+        'gen-custom-synthetic': [{
+            all_devices: 1,
+            config: '{"synthetic_depth":3,"target_pruning_size":1000,"owner":1,"template_file_name":"org.thingpedia.genie.thingtalk","synthetic_flags":["aggregation","projection"]}',
+            depends_on: null,
+            end_time: null,
+            error: null,
+            eta: null,
+            for_devices: [],
+            id: 6,
+            job_type: 'gen-custom-synthetic',
+            language: 'en',
+            metrics: null,
+            model_tag: null,
+            owner: 1,
+            progress: 0,
+            start_time: null,
+            status: 'started',
+            task_index: null,
+            task_name: null,
+        }]
+    });
+
+    // still no dataset to download (with high probability), but now the error is 400
+    await assertHttpError(sessionRequest('/luinet/custom-datasets/download/6', 'GET', null, root), 400);
+
+    await waitUntilAllJobsDone();
+
+    // try downloading the dataset, which should succeed now
+    await sessionRequest('/luinet/custom-datasets/download/6', 'GET', null, root);
+
+    // now again with a different job type
+    await sessionRequest('/luinet/custom-datasets/create', 'POST', {
+        job_type: 'gen-custom-augmented',
+        language: 'en-US',
+        template: 'org.thingpedia.genie.thingtalk',
+        flags: 'aggregation projection',
+        config: JSON.stringify({
+            synthetic_depth: 3,
+            target_pruning_size: 1000
+        })
+    }, root);
+
+    const queue2 = await db.withClient((dbClient) => server.getJobQueue(dbClient));
+    //console.log(queue);
+    removeTimes(queue2);
+
+    deepStrictEqual(queue2, {
+        'gen-custom-augmented': [{
+            all_devices: 1,
+            config: '{"synthetic_depth":3,"target_pruning_size":1000,"owner":1,"template_file_name":"org.thingpedia.genie.thingtalk","synthetic_flags":["aggregation","projection"]}',
+            depends_on: null,
+            end_time: null,
+            error: null,
+            eta: null,
+            for_devices: [],
+            id: 7,
+            job_type: 'gen-custom-augmented',
+            language: 'en',
+            metrics: null,
+            model_tag: null,
+            owner: 1,
+            progress: 0,
+            start_time: null,
+            status: 'started',
+            task_index: null,
+            task_name: null,
+        }]
+    });
+
+    await waitUntilAllJobsDone();
+
+    // third job type...
+    await sessionRequest('/luinet/custom-datasets/create', 'POST', {
+        job_type: 'gen-custom-turking',
+        language: 'en-US',
+        template: 'org.thingpedia.genie.thingtalk',
+        flags: 'aggregation projection',
+        config: JSON.stringify({
+            synthetic_depth: 3,
+            target_pruning_size: 1000
+        })
+    }, root);
+
+    const queue3 = await db.withClient((dbClient) => server.getJobQueue(dbClient));
+    //console.log(queue);
+    removeTimes(queue3);
+
+    deepStrictEqual(queue3, {
+        'gen-custom-turking': [{
+            all_devices: 1,
+            config: '{"synthetic_depth":3,"target_pruning_size":1000,"owner":1,"template_file_name":"org.thingpedia.genie.thingtalk","synthetic_flags":["aggregation","projection"]}',
+            depends_on: null,
+            end_time: null,
+            error: null,
+            eta: null,
+            for_devices: [],
+            id: 8,
+            job_type: 'gen-custom-turking',
+            language: 'en',
+            metrics: null,
+            model_tag: null,
+            owner: 1,
+            progress: 0,
+            start_time: null,
+            status: 'started',
+            task_index: null,
+            task_name: null,
+        }]
+    });
+
+    await waitUntilAllJobsDone();
 }
 
 async function main() {
     await testBasic();
     await testForDevice();
     await testDownload();
+    await testCustomDataset();
 
     await db.tearDown();
 }

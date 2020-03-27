@@ -371,15 +371,6 @@ module.exports.TRAINING_URL = null;
 module.exports.TRAINING_ACCESS_TOKEN = null;
 
 /**
-  Configuration file for training.
-
-  Set this to the path to JSON file to override the default options passed
-  to `decanlp`. Configuration lives in a separate file so it can be changed
-  without restarting the training server (which would stop all running jobs).
-*/
-module.exports.TRAINING_CONFIG_FILE = null;
-
-/**
   Maximum memory usage for training processes.
 
   In megabytes.
@@ -461,13 +452,6 @@ module.exports.TENSORBOARD_DIR = null;
   point to a public website hosting your documentation.
 */
 module.exports.DOCUMENTATION_URL = 'https://almond.stanford.edu/doc/getting-started.md';
-
-/**
-  Access key for Bing Image API
-
-  This is used to retrieve icons for entities.
-*/
-module.exports.BING_KEY = '';
 
 /**
   OAuth Client ID to support Login With Google
@@ -642,3 +626,13 @@ module.exports.ACKEE_DOMAIN_ID = null;
   URL of a server supporting speech-to-text and text-to-speech.
 */
 module.exports.VOICE_SERVER_URL = 'https://voice.almond.stanford.edu';
+
+/**
+  Azure subscription key for Microsoft Speech Services SDK
+*/
+module.exports.MS_SPEECH_SUBSCRIPTION_KEY = null;
+
+/**
+  Azure region identifier for Microsoft Speech Services SDK
+*/
+module.exports.MS_SPEECH_SERVICE_REGION = null;

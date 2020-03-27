@@ -1,5 +1,5 @@
-# override this to "stanfordoval/decanlp:latest-cuda" if cuda is desired
-ARG BASE_IMAGE=stanfordoval/decanlp:pldi19-cameraready-68-ga4e5a82
+# override this to "nvidia/cuda:10.1-runtime-ubi8" if cuda is desired
+ARG BASE_IMAGE=registry.access.redhat.com/ubi8/ubi:latest
 FROM ${BASE_IMAGE}
 
 MAINTAINER Thingpedia Admins <thingpedia-admins@lists.stanford.edu>
@@ -19,11 +19,17 @@ RUN touch /var/lib/rpm/* && \
   curl -sL https://copr.fedorainfracloud.org/coprs/gcampax/sqlcipher/repo/epel-8/gcampax-sqlcipher-epel-8.repo -o /etc/yum.repos.d/gcampax-sqlcipher-epel-8.repo && \
   curl -sL https://copr.fedorainfracloud.org/coprs/gcampax/bubblewrap/repo/epel-8/gcampax-bubblewrap-epel-8.repo -o /etc/yum.repos.d/gcampax-bubblewrap-epel-8.repo && \
   dnf module install -y nodejs:10 && \
-  dnf -y install unzip GraphicsMagick bubblewrap sqlcipher sqlcipher-devel procps-ng && \
+  dnf -y install unzip GraphicsMagick bubblewrap sqlcipher sqlcipher-devel procps-ng \
+    python3 python3-numpy python3-scipy python3-pip && \
   rm -rf /var/cache/dnf
 
-# install aws client
-RUN pip3 install awscli && rm -fr /root/.cache
+# HACK: we need to download the wheel manually or docker will die
+RUN curl -sL https://files.pythonhosted.org/packages/24/19/4804aea17cd136f1705a5e98a00618cb8f6ccc375ad8bfa437408e09d058/torch-1.4.0-cp36-cp36m-manylinux1_x86_64.whl \
+  -o torch-1.4.0-cp36-cp36m-manylinux1_x86_64.whl && \
+  pip3 install torch-1.4.0-cp36-cp36m-manylinux1_x86_64.whl && \
+  rm -fr /root/.cache && \
+  rm -fr torch-1.4.0-cp36-cp36m-manylinux1_x86_64.whl
+RUN pip3 install 'genienlp==0.2.0a2' awscli && rm -fr /root/.cache
 
 # install cvc4
 RUN curl -sL https://almond-static.stanford.edu/test-data/cvc4-1.6-x86_64-linux-opt -o /usr/local/bin/cvc4

@@ -413,11 +413,14 @@ DROP TABLE IF EXISTS `mturk_batch`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mturk_batch` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_hash` char(32) COLLATE utf8_bin NOT NULL,
+  `owner` int(11) NOT NULL,
   `name` varchar(255) CHARACTER SET utf8 NOT NULL,
   `language` char(16) COLLATE utf8_bin NOT NULL DEFAULT 'en',
   `submissions_per_hit` int(11) NOT NULL DEFAULT 3,
   `status` enum('created','paraphrasing','validating','complete') NOT NULL COLLATE utf8_bin DEFAULT 'created',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  CONSTRAINT `mturk_batch_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `organizations` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -705,8 +708,10 @@ CREATE TABLE `models` (
   `all_devices` boolean NOT NULL DEFAULT false,
   `use_approved` boolean NOT NULL DEFAULT false,
   `use_exact` boolean NOT NULL DEFAULT false,
+  `config` MEDIUMTEXT COLLATE utf8_bin DEFAULT '{}',
   `trained` boolean NOT NULL DEFAULT false,
   `metrics` MEDIUMTEXT COLLATE utf8_bin DEFAULT NULL,
+  `trained_config` MEDIUMTEXT COLLATE utf8_bin DEFAULT NULL,
   `version` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY (`language`, `tag`),
@@ -893,6 +898,7 @@ CREATE TABLE `training_jobs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `depends_on` int(11) NULL,
   `job_type` varchar(255) COLLATE utf8_bin NOT NULL,
+  `owner` int(11) NULL DEFAULT NULL,
   `language` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en',
   `model_tag` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `all_devices` boolean NOT NULL DEFAULT false,
@@ -910,6 +916,7 @@ CREATE TABLE `training_jobs` (
   PRIMARY KEY (`id`),
   KEY `status` (`status`),
   KEY `end_time` (`end_time`),
+  CONSTRAINT `training_job_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `organizations` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT,
   CONSTRAINT `training_job_ibfk_2` FOREIGN KEY (`depends_on`) REFERENCES `training_jobs` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;

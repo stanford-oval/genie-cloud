@@ -364,15 +364,6 @@ This token protects all requests to the training server.
 
 Default value: `null`
 
-## TRAINING_CONFIG_FILE
-Configuration file for training.
-
-Set this to the path to JSON file to override the default options passed
-to `decanlp`. Configuration lives in a separate file so it can be changed
-without restarting the training server (which would stop all running jobs).
-
-Default value: `null`
-
 ## TRAINING_MEMORY_USAGE
 Maximum memory usage for training processes.
 
@@ -455,13 +446,6 @@ Set this to a string starting with `/doc` to enable the embedded documentation s
 point to a public website hosting your documentation.
 
 Default value: `'https://almond.stanford.edu/doc/getting-started.md'`
-
-## BING_KEY
-Access key for Bing Image API
-
-This is used to retrieve icons for entities.
-
-Default value: `''`
 
 ## GOOGLE_CLIENT_ID
 OAuth Client ID to support Login With Google
@@ -633,6 +617,21 @@ Default value: `null`
 Domain ID to use for [Ackee](https://github.com/electerious/Ackee) tracking.
 
 This must be set if `ACKEE_URL` is set.
+
+Default value: `null`
+
+## VOICE_SERVER_URL
+URL of a server supporting speech-to-text and text-to-speech.
+
+Default value: `'https://voice.almond.stanford.edu'`
+
+## MS_SPEECH_SUBSCRIPTION_KEY
+Azure subscription key for Microsoft Speech Services SDK
+
+Default value: `null`
+
+## MS_SPEECH_SERVICE_REGION
+Azure region identifier for Microsoft Speech Services SDK
 
 Default value: `null`
 

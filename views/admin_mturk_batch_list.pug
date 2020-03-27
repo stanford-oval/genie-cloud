@@ -8,6 +8,7 @@ block content
     thead
       th #
       th= _("Name")
+      th= _("Owner")
       th= _("# inputs")
       th= _("Target size")
       th= _("# submissions")
@@ -18,14 +19,15 @@ block content
     tbody
       for batch in batches
         tr
-          td= batch.id
+          td(title=batch.id_hash)= batch.id
           td= batch.name
+          td= batch.owner_name
           td= batch.input_count
           td= batch.input_count * batch.submissions_per_hit * 2
           td
             = _("%d (%.0f %%)").format(batch.submissions, 100*(batch.submissions / (batch.input_count * batch.submissions_per_hit * 2)))
           td
-            = _("%d (%.0f %%)").format(batch.validated, 100*(batch.validated/batch.submissions))
+            = _("%d (%.0f %%)").format(batch.validated, 100*(batch.submissions > 0 ? batch.validated / batch.submissions : 0))
           td
             if batch.status === 'created'
               = _("Not Started")
@@ -40,32 +42,12 @@ block content
               = _("Complete")
           td
             if batch.status === 'created' || batch.status === 'paraphrasing'
-              a(href='/mturk/csv/' + batch.id)= _("Downloads CSV")
+              a(href='/admin/mturk/csv/' + batch.id)= _("Downloads CSV")
             else if batch.status === 'validating'
-              a(href='/mturk/validation/csv/' + batch.id)= _("Downloads CSV")
+              a(href='/admin/mturk/validation/csv/' + batch.id)= _("Downloads CSV")
 
             if batch.status === 'paraphrasing'
-              form(action='/mturk/start-validation',method='post')
+              form(action='/admin/mturk/start-validation',method='post')
                 input(type='hidden',name='_csrf',value=csrfToken)
                 input(type='hidden',name='batch',value=batch.id)
                 button(type='submit').btn.btn-default.btn-sm= _("Start Validation")
-
-  div.panel.panel-default
-    p.panel-heading= _("Create a new batch")
-    div.panel-body
-      form(action='/mturk/create', enctype='multipart/form-data', method='post', data-toggle='validator')
-        input(type='hidden',name='_csrf',value=csrfToken)
-        div.form-group
-          label(for='new-batch-name').control-label= _("Name")
-          input(type='text',name='name').form-control#new-batch-name
-
-        div.form-group
-          label(for='new-batch-subs-per-hit').control-label= _("Submissions per HIT")
-          input(type='number',name='submissions_per_hit', value=3).form-control#new-batch-subs-per-hit
-
-        div.form-group
-          label(for='batch-upload').control-label= _("TSV File")
-          input(type='file',name='upload',accept='text/tsv')#batch-upload
-
-        div.form-group
-          button(type='submit').btn.btn-primary= _("Create")

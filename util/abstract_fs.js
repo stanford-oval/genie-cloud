@@ -128,8 +128,20 @@ const _backends = {
             });
             return download.createReadStream();
         },
+        async getDownloadLinkOrStream(url) {
+            // lazy-load AWS, which is optional
+            const AWS = require('aws-sdk');
 
-        async writeFile(url, blob, options) {
+            const s3 = new AWS.S3();
+            const key = url.pathname.startsWith('/') ? url.pathname.substring(1) : url.pathname;
+            return s3.getSignedUrlPromise('getObject', {
+                Bucket: url.hostname,
+                Key: key,
+                Expires: 60 // seconds
+            });
+        },
+
+        async writeFile(url, blob, options = {}) {
             // lazy-load AWS, which is optional
             const AWS = require('aws-sdk');
 
@@ -193,6 +205,9 @@ const _backends = {
             return fs.createWriteStream(url.pathname);
         },
         createReadStream(url) {
+            return fs.createReadStream(url.pathname);
+        },
+        getDownloadLinkOrStream(url) {
             return fs.createReadStream(url.pathname);
         },
         async writeFile(url, blob, options) {
@@ -282,6 +297,10 @@ module.exports = {
     createReadStream(url) {
         const [parsed, backend] = getBackend(url);
         return backend.createReadStream(parsed);
+    },
+    getDownloadLinkOrStream(url) {
+        const [parsed, backend] = getBackend(url);
+        return backend.getDownloadLinkOrStream(parsed);
     },
     async writeFile(url, blob, options) {
         const [parsed, backend] = getBackend(url);

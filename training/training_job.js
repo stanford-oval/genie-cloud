@@ -9,25 +9,11 @@
 // See COPYING for details
 "use strict";
 
-const util = require('util');
-const fs = require('fs');
-
 const AbstractFS = require('../util/abstract_fs');
 const db = require('../util/db');
 const trainingJobModel = require('../model/training_job');
 
 const Config = require('../config');
-
-const DEFAULT_TRAINING_CONFIG = {
-    synthetic_depth: 4,
-    dataset_target_pruning_size: 100000,
-    dataset_contextual_target_pruning_size: 10000,
-    dataset_ppdb_probability_synthetic: 0.1,
-    dataset_ppdb_probability_paraphrase: 1.0,
-    dataset_quoted_probability: 0.1,
-    dataset_eval_probability: 0.5,
-    dataset_split_strategy: 'sentence'
-};
 
 const JobSpecs = require('./job_specs');
 
@@ -70,17 +56,9 @@ module.exports = class Job {
         this.data.start_time = new Date;
         this.data.status = 'started';
 
-        const configFile = Config.TRAINING_CONFIG_FILE;
-        const config = {};
-        Object.assign(config, DEFAULT_TRAINING_CONFIG);
-        if (configFile)
-            Object.assign(config, JSON.parse(await util.promisify(fs.readFile)(configFile, { encoding: 'utf8' })));
-        this._config = config;
-        this.data.config = JSON.stringify(config);
         await trainingJobModel.update(dbClient, this.data.id, {
             start_time: this.data.start_time,
             status: this.data.status,
-            config: this.data.config,
         });
     }
 

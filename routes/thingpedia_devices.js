@@ -325,7 +325,7 @@ router.post('/train', iv.validatePOST({ kind: 'string' }), (req, res, next) => {
         }
         await creditSystem.payCredits(dbClient, req, req.user.developer_org, creditSystem.TRAIN_THINGPEDIA_COST);
 
-        return TrainingServer.get().queue('en', [req.body.kind], 'train');
+        return TrainingServer.get().queue('en', [req.body.kind], 'update-dataset,train');
     }).then(() => {
         res.redirect(303, '/thingpedia/devices/by-id/' + req.body.kind);
     }).catch(next);

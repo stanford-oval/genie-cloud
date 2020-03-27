@@ -373,8 +373,8 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
     await ensureDataset(dbClient, schemaId, dataset, json.dataset);
     const factory = FactoryUtils.makeDeviceFactory(classDef, device);
 
-    classDef.annotations.version = ThingTalk.Ast.Value.Number(device.developer_version);
-    classDef.annotations.package_version = ThingTalk.Ast.Value.Number(device.developer_version);
+    classDef.annotations.version = new ThingTalk.Ast.Value.Number(device.developer_version);
+    classDef.annotations.package_version = new ThingTalk.Ast.Value.Number(device.developer_version);
     const versionedInfo = {
         code: classDef.prettyprint(),
         factory: JSON.stringify(factory),
@@ -467,8 +467,8 @@ async function uploadDevice(req) {
             const downloadable = isDownloadable(classDef);
 
             const developer_version = create ? 0 : old.developer_version + 1;
-            classDef.annotations.version = ThingTalk.Ast.Value.Number(developer_version);
-            classDef.annotations.package_version = ThingTalk.Ast.Value.Number(developer_version);
+            classDef.annotations.version = new ThingTalk.Ast.Value.Number(developer_version);
+            classDef.annotations.package_version = new ThingTalk.Ast.Value.Number(developer_version);
 
             const generalInfo = {
                 primary_kind: req.body.primary_kind,
