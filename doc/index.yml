@@ -33,6 +33,7 @@ sections:
   title: Use Cases
   pages:
     - home-assistant-integration
+    - google-assistant
 
 -
   title: Almond Integration APIs
@@ -109,6 +110,7 @@ pages:
   train-almond: Train Almond
 
   home-assistant-integration: Integrating with Home Assistant
+  google-assistant: Google Assistant
 
   my-api: Web Almond As A Service
   almond-dialog-api-reference: Almond Dialog API
