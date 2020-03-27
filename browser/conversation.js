@@ -2,7 +2,7 @@
 
 const Recorder = require('./deps/recorder');
 
-$(function() {
+$(() => {
     var url = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host
         + $('#conversation').attr('data-target');
 
@@ -208,7 +208,7 @@ $(function() {
         var holder = $('<div>').addClass('col-xs-12 col-sm-6');
         var btn = $('<a>').addClass('message message-choice btn btn-default')
             .attr('href', '#').text(title);
-        btn.click(function(event) {
+        btn.click((event) => {
             appendUserMessage(title);
             handleChoice(idx);
             event.preventDefault();
@@ -222,7 +222,7 @@ $(function() {
         var holder = $('<div>').addClass('col-xs-12 col-sm-6');
         var btn = $('<a>').addClass('message message-button btn btn-default')
             .attr('href', '#').text(title);
-        btn.click(function(event) {
+        btn.click((event) => {
             appendUserMessage(title);
             handleParsedCommand(json);
             event.preventDefault();
@@ -250,7 +250,7 @@ $(function() {
         var holder = $('<div>').addClass('col-xs-6 col-sm-4 col-md-3');
         var btn = $('<a>').addClass('message message-yesno btn btn-default')
             .attr('href', '#').text("Yes");
-        btn.click(function(event) {
+        btn.click((event) => {
             appendUserMessage("Yes");
             handleSpecial('yes');
             event.preventDefault();
@@ -260,7 +260,7 @@ $(function() {
         holder = $('<div>').addClass('col-xs-6 col-sm-4 col-md-3');
         btn = $('<a>').addClass('message message-yesno btn btn-default')
             .attr('href', '#').text("No");
-        btn.click(function(event) {
+        btn.click((event) => {
             appendUserMessage("No");
             handleSpecial('no');
             event.preventDefault();
@@ -398,11 +398,11 @@ $(function() {
         handleCommand(text);
     }
 
-    $('#input-form').submit(function(event) {
+    $('#input-form').submit((event) => {
         event.preventDefault();
         handleUtterance();
     });
-    $('#cancel').click(function() {
+    $('#cancel').click(() => {
         handleSpecial('nevermind', "Cancel.");
     });
 
@@ -412,7 +412,7 @@ $(function() {
         event.preventDefault();
     });
 
-    $('#input-form').on('keydown', function(event) { // button is pressed
+    $('#input-form').on('keydown', (event) => { // button is pressed
       if (event.keyCode === 38) {  // Up
         // removes last item from array pastCommandsUp, displays it as currCommand, adds current input text to pastCommandsDown
         currCommand = pastCommandsUp.pop();
@@ -430,7 +430,7 @@ $(function() {
       }
     });
 
-    $('#record-button').click(function(event) {
+    $('#record-button').click((event) => {
         startStopRecord();
     });
 });
