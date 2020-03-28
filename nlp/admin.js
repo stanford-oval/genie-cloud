@@ -60,7 +60,6 @@ router.post('/reload/@:model_tag/:locale', (req, res, next) => {
     const language = i18n.localeToLanguage(req.params.locale);
 
     db.withTransaction(async (dbClient) => {
-        console.log(req.params);
         const spec = (await modelsModel.getByTag(dbClient, language, req.params.model_tag))[0];
         if (!spec) {
             res.status(404).json({ error: 'No such model' });

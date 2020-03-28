@@ -111,7 +111,6 @@ async function textToSpeech(locale, text) {
         .end();
     // Convert the XML into a string to send in the TTS request.
     const body = xmlBody.toString();
-    console.log(body);
 
     return new Promise((resolve, reject) => {
         const options = {
