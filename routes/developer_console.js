@@ -35,17 +35,33 @@ var router = express.Router();
 const HAS_ABOUT_GET_INVOLVED = Config.EXTRA_ABOUT_PAGES.some((p) => p.url === 'get-involved');
 
 const DEFAULT_TRAINING_CONFIG = JSON.stringify({
-    synthetic_depth: 4,
-    dataset_target_pruning_size: 100000,
+    synthetic_depth: 7,
+    dataset_target_pruning_size: 5000,
     dataset_ppdb_probability_synthetic: 0.1,
     dataset_ppdb_probability_paraphrase: 1.0,
     dataset_quoted_probability: 0.1,
     dataset_eval_probability: 0.5,
-    dataset_split_strategy: 'sentence'
+    dataset_split_strategy: 'sentence',
+    train_iterations: 100000,
+    train_batch_tokens: 4000,
+    val_batch_size: 128,
+    seq2seq_encoder: 'Identity',
+    dimension: 768,
+    rnn_dimension: 768,
+    transformer_hidden: 768,
+    transformer_layers: 0,
+    rnn_layers: 2,
+    rnn_zero_state: 'average',
+    context_embeddings: 'bert-base-uncased',
+    question_embeddings: 'bert-base-uncased',
+    decoder_embeddings: '',
+    trainable_encoder_embeddings: 0,
+    trainable_decoder_embeddings: 25,
+    transformer_lr_multiply: 0.5
 }, undefined, 2);
 const DEFAULT_CUSTOM_DATASET_CONFIG = JSON.stringify({
-    synthetic_depth: 4,
-    target_pruning_size: 100000,
+    synthetic_depth: 7,
+    target_pruning_size: 10000,
     ppdb_probability_synthetic: 0.1,
     ppdb_probability_paraphrase: 1.0,
 }, undefined, 2);

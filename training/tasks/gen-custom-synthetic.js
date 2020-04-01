@@ -14,9 +14,9 @@ const DatasetGenerator = require('../lib/dataset_generator');
 
 const DEFAULT_TRAINING_CONFIG = {
     use_approved: false,
-    synthetic_depth: 4,
+    synthetic_depth: 7,
     synthetic_flags: [],
-    target_pruning_size: 100000,
+    target_pruning_size: 10000,
 };
 
 module.exports = async function main(task, argv) {
