@@ -26,8 +26,12 @@ const DatasetUtils = require('../util/dataset');
 const codeStorage = require('../util/code_storage');
 const { InternalError } = require('../util/errors');
 
-async function downloadThingpedia(dbClient, orgId, language, tmpDir) {
-    const snapshot = await schemaModel.getCurrentSnapshotMeta(dbClient, language, orgId);
+async function downloadThingpedia(dbClient, orgId, language, forDevices, tmpDir) {
+    let snapshot;
+    if (forDevices !== null)
+        snapshot = await schemaModel.getMetasByKinds(dbClient, forDevices, orgId, language);
+    else
+        snapshot = await schemaModel.getCurrentSnapshotMeta(dbClient, language, orgId);
 
     await util.promisify(fs.writeFile)(path.resolve(tmpDir, 'thingpedia.tt'),
         SchemaUtils.schemaListToClassDefs(snapshot, true).prettyprint());
@@ -117,7 +121,7 @@ async function prepare(options) {
         unsafeCleanup: true
     });
 
-    await downloadThingpedia(options.dbClient, options.orgId, options.language, tmpDir);
+    await downloadThingpedia(options.dbClient, options.orgId, options.language, options.forDevices, tmpDir);
     await downloadTemplatePack(options.dbClient, options.language, options.templatePack, tmpDir);
 
     return tmpDir;

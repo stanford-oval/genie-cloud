@@ -9,6 +9,7 @@
 // See COPYING for details
 "use strict";
 
+const assert = require('assert');
 const path = require('path');
 const Stream = require('stream');
 const seedrandom = require('seedrandom');
@@ -168,7 +169,10 @@ module.exports = class DatasetGenerator {
 
         this._rng = seedrandom.alea('almond is awesome');
 
+        if (forDevices.length === 0)
+            forDevices = null;
         this._forDevices = forDevices;
+        this._forAllDevices = forDevices === null;
 
         this._dbClient = null;
         this._tpClient = null;
@@ -240,7 +244,8 @@ module.exports = class DatasetGenerator {
             constants = await parseConstantFile(this._locale, constantFile);
 
             // XXX loading all devices like this is suboptimal...
-            const forDevices = (await schemaModel.getAllApproved(this._dbClient, this._options.owner)).map((d) => d.kind);
+            const forDevices = this._forDevices || (await schemaModel.getAllApproved(this._dbClient, this._options.owner)).map((d) => d.kind);
+            assert(forDevices.length > 0);
             const constSampler = new ConstantSampler(this._schemas, constProvider, {
                 rng: this._rng,
                 locale: this._locale,
@@ -259,7 +264,8 @@ module.exports = class DatasetGenerator {
         const tmpDir = await genSynthetic.prepare({
             dbClient: this._dbClient,
             language: this._language,
-            orgId: await this._tpClient._getOrgId(),
+            orgId: this._options.approvedOnly ? null : await this._tpClient._getOrgId(),
+            forDevices: this._forAllDevices ? null : this._forDevices,
             templatePack: this._options.templatePack,
         });
 
