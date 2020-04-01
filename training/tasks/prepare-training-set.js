@@ -17,9 +17,9 @@ const DatasetGenerator = require('../lib/dataset_generator');
 const PPDB = process.env.PPDB || path.resolve('./ppdb-2.0-m-lexical.bin');
 
 const DEFAULT_TRAINING_CONFIG = {
-    synthetic_depth: 4,
-    dataset_target_pruning_size: 100000,
-    dataset_contextual_target_pruning_size: 10000,
+    synthetic_depth: 7,
+    dataset_target_pruning_size: 5000,
+    dataset_contextual_target_pruning_size: 1000,
     dataset_ppdb_probability_synthetic: 0.1,
     dataset_ppdb_probability_paraphrase: 1.0,
     dataset_quoted_probability: 0.1,

@@ -18,9 +18,9 @@ const PPDB = process.env.PPDB || path.resolve('./ppdb-2.0-m-lexical.bin');
 
 const DEFAULT_TRAINING_CONFIG = {
     use_approved: false,
-    synthetic_depth: 4,
+    synthetic_depth: 7,
     synthetic_flags: [],
-    target_pruning_size: 100000,
+    target_pruning_size: 10000,
     ppdb_probability_synthetic: 0.1,
     ppdb_probability_paraphrase: 1.0,
     quoted_probability: 0.1,
