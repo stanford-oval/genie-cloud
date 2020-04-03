@@ -1,5 +1,11 @@
-1.7.4
+1.8.0
 =====
+
+* Misc bug fixes [#691].
+* Updated dependencies [#688, #690, #692].
+
+1.8.0-beta.1
+============
 
 Frontend & Thingpedia:
 * Web Almond now supports voice input. A "record" button has been added to all
