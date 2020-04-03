@@ -125,7 +125,7 @@ module.exports = class NLPModel {
             const org = (spec.owner === null || spec.owner === 1) ? { is_admin: true, id: 1 } : { is_admin: false, id: spec.owner };
             this.tpClient = new OrgThingpediaClient(spec.language, org);
         } else {
-            this.tpClient = new Tp.HttpClient(new DummyPlatform(spec.language));
+            this.tpClient = new Tp.HttpClient(new DummyPlatform(spec.language), Config.THINGPEDIA_URL);
         }
     }
 
