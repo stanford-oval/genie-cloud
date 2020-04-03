@@ -39,6 +39,57 @@ class DummyExactMatcher {
     add() {}
 }
 
+class DummyPreferences {
+    keys() {
+        return [];
+    }
+
+    get(key) {
+        return undefined;
+    }
+
+    set(key, value) {}
+}
+
+/**
+ * A stubbed-out Tp.BasePlatform implementation to be able to use Tp.HttpClient.
+ */
+class DummyPlatform extends Tp.BasePlatform {
+    constructor(locale) {
+        super();
+        this._locale = locale;
+        this._prefs = new DummyPreferences;
+    }
+
+    get locale() {
+        return this._locale;
+    }
+
+    get type() {
+        return 'dummy';
+    }
+
+    get timezone() {
+        return 'UTC';
+    }
+
+    getDeveloperKey() {
+        return Config.NL_THINGPEDIA_DEVELOPER_KEY;
+    }
+
+    getSharedPreferences() {
+        return this._prefs;
+    }
+
+    hasCapability() {
+        return false;
+    }
+
+    getCapability() {
+        return null;
+    }
+}
+
 const nprocesses = 1;
 
 module.exports = class NLPModel {
@@ -74,12 +125,7 @@ module.exports = class NLPModel {
             const org = (spec.owner === null || spec.owner === 1) ? { is_admin: true, id: 1 } : { is_admin: false, id: spec.owner };
             this.tpClient = new OrgThingpediaClient(spec.language, org);
         } else {
-            this.tpClient = new Tp.HttpClient({
-                getDeveloperKey() {
-                    return Config.NL_THINGPEDIA_DEVELOPER_KEY;
-                },
-                locale: spec.language,
-            }, Config.THINGPEDIA_URL);
+            this.tpClient = new Tp.HttpClient(new DummyPlatform(spec.language), Config.THINGPEDIA_URL);
         }
     }
 

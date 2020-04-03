@@ -23,7 +23,23 @@ assert.strictEqual(Config.WITH_THINGPEDIA, 'external');
 const gettext = new Gettext();
 gettext.setLocale('en-US');
 
+class DummyPreferences {
+    keys() {
+        return [];
+    }
+
+    get(key) {
+        return undefined;
+    }
+
+    set(key, value) {}
+}
+
 const schemas = new ThingTalk.SchemaRetriever(new Tp.HttpClient({
+    _prefs: new DummyPreferences(),
+    getSharedPreferences() {
+        return this._prefs;
+    },
     getDeveloperKey() {
         return null;
     },
