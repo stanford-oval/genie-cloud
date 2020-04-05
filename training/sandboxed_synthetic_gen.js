@@ -136,12 +136,18 @@ function spawnSandboxed(tmpDir, script, scriptArgs, debug, contextual) {
         processPath = process.execPath;
         args = process.execArgv.slice();
         args.push(script, ...scriptArgs);
-        stdio = ['pipe', 'pipe', 'inherit', 'pipe', 'ipc'];
+
+        // wire both stdout and stderr to wherever our current logging goes
+        // (systemd journal or docker logs)
+        stdio = ['pipe', 'inherit', 'inherit', 'pipe', 'pipe', 'ipc'];
     } else {
         processPath = path.resolve(ourpath, '../sandbox/sandbox');
         args = [process.execPath].concat(process.execArgv);
         args.push(script, ...scriptArgs);
-        stdio = ['pipe', 'pipe', 'inherit', 'pipe', 'ipc'];
+
+        // wire both stdout and stderr to wherever our current logging goes
+        // (systemd journal or docker logs)
+        stdio = ['pipe', 'inherit', 'inherit', 'pipe', 'pipe', 'ipc'];
 
         const jsPrefix = path.resolve(ourpath, '..');
         const nodepath = path.resolve(process.execPath);
@@ -160,8 +166,14 @@ function spawnSandboxed(tmpDir, script, scriptArgs, debug, contextual) {
         env: env
     });
 
-    child.stdout.setEncoding('utf8');
-    const stream = child.stdout
+    // child.stdio[3] is the "info file descriptor", where the sandbox writes useful info
+    // like the PID of the real process
+    // we don't use it, so we just ignore it
+    child.stdio[3].resume();
+
+    // child.stdio[4] is where the child will write the actual sentences
+    child.stdio[4].setEncoding('utf8');
+    const stream = child.stdio[4]
         .pipe(byline())
         .pipe(new Genie.DatasetParser({ contextual }));
 

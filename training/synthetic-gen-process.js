@@ -15,6 +15,7 @@ require('thingpedia');
 
 process.on('unhandledRejection', (up) => { throw up; });
 
+const net = require('net');
 const argparse = require('argparse');
 const seedrandom = require('seedrandom');
 const byline = require('byline');
@@ -50,7 +51,7 @@ async function genBasic(args) {
         flags: args.flags || {},
         maxDepth: args.maxdepth,
         targetPruningSize: args.target_pruning_size,
-        debug: false, // no debugging, ever, because debugging also goes to stdout
+        debug: true,
     };
 
     const generator = new Genie.BasicSentenceGenerator(options);
@@ -59,8 +60,13 @@ async function genBasic(args) {
     });
     const stringifier = new Genie.DatasetStringifier();
 
-    generator.pipe(stringifier).pipe(process.stdout);
-    await StreamUtils.waitFinish(process.stdout);
+    // fd 4 is a "pipe" (see sandboxed_synthetic_gen.js) which our parent set up
+    // to stream the sentences into
+    // "pipes" in nodejs are actually unix domain sockets created with socketpair()
+    // so we wrap them into a net.Socket
+    const output = new net.Socket({ fd: 4 });
+    generator.pipe(stringifier).pipe(output);
+    await StreamUtils.waitFinish(output);
 
     process.disconnect();
 }
@@ -83,13 +89,14 @@ async function genContextual(args) {
         debug: false, // no debugging, ever, because debugging also goes to stdout
     };
 
+    const output = new net.Socket({ fd: 4 });
     inputFile
         .pipe(Genie.parallelize(PARALLEL_GENERATION,
             require.resolve('./workers/generate-contextual-worker.js'), options))
         .pipe(new Genie.DatasetStringifier())
-        .pipe(process.stdout);
+        .pipe(output);
 
-    await StreamUtils.waitFinish(process.stdout);
+    await StreamUtils.waitFinish(output);
 
     process.disconnect();
 }
