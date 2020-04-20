@@ -227,10 +227,10 @@ module.exports = async function execTask(job, spec) {
                             resources: {
                                 requests: {
                                     cpu: spec.cpu,
-                                    memory: (Config.TRAINING_MEMORY_USAGE + 100) + 'Mi'
+                                    memory: (Config.TRAINING_MEMORY_USAGE + 500) + 'Mi'
                                 },
                                 limits: {
-                                    memory: (Config.TRAINING_MEMORY_USAGE + 100) + 'Mi'
+                                    memory: (Config.TRAINING_MEMORY_USAGE + 500) + 'Mi'
                                 }
                             },
                             securityContext: {
