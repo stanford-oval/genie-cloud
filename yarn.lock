@@ -308,14 +308,14 @@
   integrity sha512-FwI9gX75FgVBJ7ywgnq/P7tw+/o1GUbtP0KzbtusLigAOgIgNISRK0ZPl4qertvXSIE8YbsVJueQ90cDt9YYyw==
 
 "@types/node@*":
-  version "13.13.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-13.13.1.tgz#1ba94c5a177a1692518bfc7b41aec0aa1a14354e"
-  integrity sha512-uysqysLJ+As9jqI5yqjwP3QJrhOcUwBjHUlUxPxjbplwKoILvXVsmYWEhfmAQlrPfbRZmhJB007o4L9sKqtHqQ==
+  version "13.13.2"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-13.13.2.tgz#160d82623610db590a64e8ca81784e11117e5a54"
+  integrity sha512-LB2R1Oyhpg8gu4SON/mfforE525+Hi/M1ineICEDftqNVTyFg1aRIeGuTvXAoWHc4nbrFncWtJgMmoyRvuGh7A==
 
 "@types/node@^10.12.0":
-  version "10.17.20"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.17.20.tgz#e6d8b3631af1e59bbb4fda04926b078acdd3c2ef"
-  integrity sha512-XgDgo6W10SeGEAM0k7FosJpvLCynOTYns4Xk3J5HGrA+UI/bKZ30PGMzOP5Lh2zs4259I71FSYLAtjnx3qhObw==
+  version "10.17.21"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.17.21.tgz#c00e9603399126925806bed2d9a1e37da506965e"
+  integrity sha512-PQKsydPxYxF1DsAFWmunaxd3sOi3iMt6Zmx/tgaagHYmwJ/9cRH91hQkeJZaUGWbvn0K5HlSVEXkn5U/llWPpQ==
 
 "@types/node@^9.4.6":
   version "9.6.55"
@@ -786,9 +786,9 @@ available-typed-arrays@^1.0.0, available-typed-arrays@^1.0.2:
     array-filter "^1.0.0"
 
 aws-sdk@^2.2.48:
-  version "2.660.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.660.0.tgz#1be2f814ffdb1aadf859b252601974073a39a4b2"
-  integrity sha512-6FR91Jg1x9TuFglsdBHkRuE4X7sPRwqeTB2GwLk9XPX1giicdMvJrWbcw5rUnMKjXs9LVlkwaK5VI9AJ0d8dpw==
+  version "2.661.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.661.0.tgz#e877dbc0d07b74e93e2383eb4cd0407592b1e46e"
+  integrity sha512-dfGtbRQQUmcpj6WGVhj7q2PADCvDhLf+/aRGPXcMrm0cnHavkmHPVaSvrw2lJJJ5N9MsBKoUyacrVcIQkfNsgw==
   dependencies:
     buffer "4.9.1"
     events "1.1.1"
@@ -1848,9 +1848,9 @@ csv-parse@^4.4.5, csv-parse@^4.6.1:
   integrity sha512-uDxIDIDLb89gxqixSgGqDj3EA5A8D0pgUeyp9Qut8u+eCIC8IXkTtaxJEnnWDb6N2HqBY64suSlcOGg5ZBtsAQ==
 
 csv-stringify@^5.3.0:
-  version "5.4.2"
-  resolved "https://registry.yarnpkg.com/csv-stringify/-/csv-stringify-5.4.2.tgz#c85dc508fec661e8056e3ef120e8ddbf2402a213"
-  integrity sha512-E30lNUlBvONUfALt+h4hAQ+EWYxI5gLZcxAZtxEYr7VAYdkUjPgdDGJNyZAcaECzZyczs16zpUveREVSUoh0sw==
+  version "5.4.3"
+  resolved "https://registry.yarnpkg.com/csv-stringify/-/csv-stringify-5.4.3.tgz#68f2e59652af7bb27bb06fe05a8237ff95bd13f9"
+  integrity sha512-WJLgRJQcVjPK45jXS1xfnkwVbw9bOjg2F2BQRa9OkG7Di2W/geclPZNlcQTwxbzn1nEDI2ane2AubTdTd6gCvw==
 
 currently-unhandled@^0.4.1:
   version "0.4.1"
@@ -2687,9 +2687,9 @@ fast-safe-stringify@^2.0.4, fast-safe-stringify@^2.0.7:
   integrity sha512-Utm6CdzT+6xsDk2m8S6uL8VHxNwI6Jub+e9NYTcAms28T84pTa25GJQV9j0CY0N1rM8hK4x6grpF2BQf+2qwVA==
 
 fast-text-encoding@^1.0.0:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/fast-text-encoding/-/fast-text-encoding-1.0.1.tgz#4a428566f74fc55ebdd447555b1eb4d9cf514455"
-  integrity sha512-x4FEgaz3zNRtJfLFqJmHWxkMDDvXVtaznj2V9jiP8ACUJrUgist4bP9FmDL2Vew2Y9mEQI/tG4GqabaitYp9CQ==
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/fast-text-encoding/-/fast-text-encoding-1.0.2.tgz#ff1ad5677bde049e0f8656aa6083a7ef2c5836e2"
+  integrity sha512-5rQdinSsycpzvAoHga2EDn+LRX1d5xLFsuNG0Kg61JrAT/tASXcLL0nf/33v+sAxlQcfYmWbTURa1mmAf55jGw==
 
 fecha@^2.3.3:
   version "2.3.3"
@@ -2960,9 +2960,9 @@ fs.realpath@^1.0.0:
   integrity sha1-FQStJSMVjKpA20onh8sBQRmU6k8=
 
 fsevents@~2.1.2:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.1.2.tgz#4c0a1fb34bc68e543b4b82a9ec392bfbda840805"
-  integrity sha512-R4wDiBwZ0KzpgOWetKDug1FZcYhqYnUYKtfZYt4mD5SBz76q0KR4Q9o7GIPamsVPGmW3EYPPJ0dOOjvx32ldZA==
+  version "2.1.3"
+  resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.1.3.tgz#fb738703ae8d2f9fe900c33836ddebee8b97f23e"
+  integrity sha512-Auw9a4AxqWpa9GUfj370BMPzzyncfBABW8Mab7BGWBYDj4Isgq+cDKtx0i6u9jcX9pQDnswsaaOTgTmA5pEjuQ==
 
 function-bind@^1.1.1:
   version "1.1.1"
@@ -3016,9 +3016,9 @@ gcp-metadata@^1.0.0:
     json-bigint "^0.3.0"
 
 genie-toolkit@~0.6.0:
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.6.1.tgz#fa4878b7f15bcc49407eaeb0657d0f7a6c3bd247"
-  integrity sha512-wOow+ZF+9tMVEoh1lgH5p4nR9EU+RGxBh4gHWGcuPgd9QTDWJYgmycirCfS9glmhv6AEWFdMvV9d1ZnyPGftfw==
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.6.2.tgz#ecd332ce36dd1d94411c840e29aa152baab01468"
+  integrity sha512-t68QlSrraZ31Ls6GyTHEvXEjUEFrSu16akuV1iLWDuM69vHI8x1gB5ok0wNp2d2BX/DFD01KgOD+flDoj1zVVA==
   dependencies:
     JSONStream "^1.3.5"
     argparse "^1.0.10"
@@ -4711,9 +4711,9 @@ lunr@^2.3.5:
   integrity sha512-oxMeX/Y35PNFuZoHp+jUj5OSEmLCaIH4KTFJh7a93cHBoFmpw2IoPs22VIz7vyO2YUnx2Tn9dzIwO2P/4quIRg==
 
 make-dir@^3.0.0, make-dir@^3.0.2:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/make-dir/-/make-dir-3.0.2.tgz#04a1acbf22221e1d6ef43559f43e05a90dbb4392"
-  integrity sha512-rYKABKutXa6vXTXhoV18cBE7PaewPXHe/Bdq4v+ZLMhxbWApkFFplT0LcbMW+6BbjnQXzZ/sAvSE/JdguApG5w==
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/make-dir/-/make-dir-3.1.0.tgz#415e967046b3a7f1d185277d84aa58203726a13f"
+  integrity sha512-g3FeP20LNwhALb/6Cz6Dd4F2ngze0jz7tbzrD2wAV+o9FeNHe4rL+yK2md0J/fiSf1sa1ADhXqi5+oVwOM/eGw==
   dependencies:
     semver "^6.0.0"
 
@@ -6361,9 +6361,9 @@ resolve@1.1.7, resolve@~1.1.0:
   integrity sha1-IDEU2CrSxe2ejgQRs5ModeiJ6Xs=
 
 resolve@^1.1.4, resolve@^1.1.6, resolve@^1.1.7, resolve@^1.10.0, resolve@^1.11.1, resolve@^1.3.2, resolve@^1.4.0:
-  version "1.16.1"
-  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.16.1.tgz#49fac5d8bacf1fd53f200fa51247ae736175832c"
-  integrity sha512-rmAglCSqWWMrrBv/XM6sW0NuRFiKViw/W4d9EbC4pt+49H8JwHy+mcGmALTEg504AUDcLTvb1T2q3E9AnmY+ig==
+  version "1.17.0"
+  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.17.0.tgz#b25941b54968231cc2d1bb76a79cb7f2c0bf8444"
+  integrity sha512-ic+7JYiV8Vi2yzQGFWOkiZD5Z9z7O2Zhm9XMaTxdJExKasieFCr+yXZ/WmXsckHiKl12ar0y6XiXDx3m4RHn1w==
   dependencies:
     path-parse "^1.0.6"
 
