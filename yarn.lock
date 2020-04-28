@@ -613,17 +613,18 @@ apidoc-core@^0.11.1:
     lodash "~4.17.15"
     semver "~6.3.0"
 
-apidoc@^0.20.0:
-  version "0.20.1"
-  resolved "https://registry.yarnpkg.com/apidoc/-/apidoc-0.20.1.tgz#b29a2e2ae47e2df6a29e1f1527b94edf91853072"
-  integrity sha512-V54vkZ2lDFBiGn0qusZmHbMi4svuFBq0rjZAIe3nwYvBY7iztW78vKOyHyTr9ASaTB7EGe8hhLbpEnYAIO31TQ==
+apidoc@^0.22.0:
+  version "0.22.0"
+  resolved "https://registry.yarnpkg.com/apidoc/-/apidoc-0.22.0.tgz#43391b37afccfd7e64100f4a0c3531ce8d956eb1"
+  integrity sha512-a29krsufR5goBUJnlh6l6z0TivfEJ+bGji7gn2AY4fd+GYDQ/zmZ7Qr7tAwd42DkSn17SJ0cLa8/6oAFB/cvxQ==
   dependencies:
     apidoc-core "^0.11.1"
     commander "^2.20.0"
     fs-extra "^8.1.0"
+    handlebars "^4.7.6"
     lodash "^4.17.15"
     markdown-it "^10.0.0"
-    nodemon "^2.0.2"
+    nodemon "^2.0.3"
     winston "^3.2.1"
 
 append-field@^1.0.0:
@@ -3414,7 +3415,7 @@ handlebars-layouts@^3.1.4:
   resolved "https://registry.yarnpkg.com/handlebars-layouts/-/handlebars-layouts-3.1.4.tgz#26b3beb931b4b877dfbf7e6feaf4058ee6228b02"
   integrity sha1-JrO+uTG0uHffv35v6vQFjuYiiwI=
 
-handlebars@^4.0.11:
+handlebars@^4.0.11, handlebars@^4.7.6:
   version "4.7.6"
   resolved "https://registry.yarnpkg.com/handlebars/-/handlebars-4.7.6.tgz#d4c05c1baf90e9945f77aa68a7a219aa4a7df74e"
   integrity sha512-1f2BACcBfiwAfStCKZNrUCgqNZkGsAT7UM3kkYtXuLo0KnaVfjKOyf7PRzB6++aK9STyT1Pd2ZCPe3EGOXleXA==
@@ -5180,7 +5181,7 @@ nodemailer@^6.0.0:
   resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.4.6.tgz#d37f504f6560b36616f646a606894fe18819107f"
   integrity sha512-/kJ+FYVEm2HuUlw87hjSqTss+GU35D4giOpdSfGp7DO+5h6RlJj7R94YaYHOkoxu1CSaM0d3WRBtCzwXrY6MKA==
 
-nodemon@^2.0.2:
+nodemon@^2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/nodemon/-/nodemon-2.0.3.tgz#e9c64df8740ceaef1cb00e1f3da57c0a93ef3714"
   integrity sha512-lLQLPS90Lqwc99IHe0U94rDgvjo+G9I4uEIxRG3evSLROcqQ9hwc0AxlSHKS4T1JW/IMj/7N5mthiN58NL/5kw==
