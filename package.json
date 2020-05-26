@@ -107,7 +107,7 @@
     "thingpedia-discovery": "^1.0.0",
     "thingtalk": "~1.10.0",
     "thirty-two": "^1.0.2",
-    "tmp-promise": "^2.0.2",
+    "tmp-promise": "^3.0.2",
     "transparent-rpc": "^1.0.0",
     "type-is": "^1.6.16",
     "wav": "^1.0.2",
