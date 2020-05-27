@@ -606,10 +606,10 @@ apidoc-core@^0.11.1:
     lodash "~4.17.15"
     semver "~6.3.0"
 
-apidoc@^0.22.0:
-  version "0.22.0"
-  resolved "https://registry.yarnpkg.com/apidoc/-/apidoc-0.22.0.tgz#43391b37afccfd7e64100f4a0c3531ce8d956eb1"
-  integrity sha512-a29krsufR5goBUJnlh6l6z0TivfEJ+bGji7gn2AY4fd+GYDQ/zmZ7Qr7tAwd42DkSn17SJ0cLa8/6oAFB/cvxQ==
+apidoc@^0.22.1:
+  version "0.22.1"
+  resolved "https://registry.yarnpkg.com/apidoc/-/apidoc-0.22.1.tgz#4f7e986430ebb7c6a4785bc857284bd43e030acc"
+  integrity sha512-A8zasxrS7RlUkwakeLKVEgp6jgPDQmX8PLt5PGp8J4wfSwZU4xcG2+nb7IaZ5qd7sLWusG75SLLqXIMcII9Jiw==
   dependencies:
     apidoc-core "^0.11.1"
     commander "^2.20.0"
