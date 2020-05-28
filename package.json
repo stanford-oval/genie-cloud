@@ -120,7 +120,7 @@
     "chart.js": "^2.7.3",
     "cli-table": "^0.3.1",
     "codemirror": "^5.54.0",
-    "coveralls": "^3.0.2",
+    "coveralls": "^3.1.0",
     "eslint": "^6.0.0",
     "foodoc": "^0.0.9",
     "form-data": "^3.0.0",
