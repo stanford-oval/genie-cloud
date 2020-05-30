@@ -114,7 +114,7 @@
     "xmlbuilder": "^15.1.0"
   },
   "devDependencies": {
-    "apidoc": "^0.22.0",
+    "apidoc": "^0.23.0",
     "browserify": "^16.1.1",
     "byline": "^5.0.0",
     "chart.js": "^2.7.3",
