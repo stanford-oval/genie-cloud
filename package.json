@@ -128,7 +128,7 @@
     "inline-worker": "^1.1.0",
     "jsdoc": "^3.6.3",
     "jsxgettext": "^0.11.0",
-    "nyc": "^15.0.0",
+    "nyc": "^15.1.0",
     "parse5": "^6.0.0",
     "proxyquire": "^2.0.0",
     "pug-lint": "^2.4.0",
