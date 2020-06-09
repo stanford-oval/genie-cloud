@@ -132,7 +132,7 @@
     "parse5": "^6.0.0",
     "proxyquire": "^2.0.0",
     "pug-lint": "^2.4.0",
-    "qs": "^6.7.0",
+    "qs": "^6.9.4",
     "tough-cookie": "^4.0.0"
   },
   "optionalDependencies": {
