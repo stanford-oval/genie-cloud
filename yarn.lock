@@ -4839,10 +4839,10 @@ methods@~1.1.2:
   resolved "https://registry.yarnpkg.com/methods/-/methods-1.1.2.tgz#5529a4d67654134edcc5266656835b0f851afcee"
   integrity sha1-VSmk1nZUE07cxSZmVoNbD4Ua/O4=
 
-microsoft-cognitiveservices-speech-sdk@^1.8.0:
-  version "1.11.0"
-  resolved "https://registry.yarnpkg.com/microsoft-cognitiveservices-speech-sdk/-/microsoft-cognitiveservices-speech-sdk-1.11.0.tgz#fa3328858da52d39c2467fda3cfa1bed7b6f745c"
-  integrity sha512-03nPTggWCjkvVvJ6Y795UUKkFhdVn32yYqIpI/vEvAQAssffbcP5syU8JfUzN9TF4UfYvUFKlnyNgGj7y1DyAw==
+microsoft-cognitiveservices-speech-sdk@^1.12.0:
+  version "1.12.0"
+  resolved "https://registry.yarnpkg.com/microsoft-cognitiveservices-speech-sdk/-/microsoft-cognitiveservices-speech-sdk-1.12.0.tgz#ad5d3bb28292b6eb904df8e6edf0dacd4a5e743b"
+  integrity sha512-1+67ejHPbz8VOBxFdh3Wq//K8mfKHFA3C1mLN779hRq0NDUfnkiGt8MApq9ry5gMLK3JX2zkt4SASI8EATyn9Q==
   dependencies:
     asn1.js-rfc2560 "^5.0.0"
     asn1.js-rfc5280 "^3.0.0"
