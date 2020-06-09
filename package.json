@@ -59,7 +59,7 @@
     "highlight.js": "^10.0.3",
     "http-proxy": "^1.18.1",
     "img-color-extractor": "^1.0.7",
-    "js-yaml": "^3.12.0",
+    "js-yaml": "^3.14.0",
     "jsonwebtoken": "^8.3.0",
     "jstransformer-markdown-it": "^2.0.0",
     "jszip": "^3.0.0",
