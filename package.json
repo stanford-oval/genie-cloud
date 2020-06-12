@@ -56,7 +56,7 @@
     "genie-toolkit": "~0.6.0",
     "gettext-parser": "^4.0.0",
     "gm": "^1.23.1",
-    "highlight.js": "^10.0.3",
+    "highlight.js": "^10.1.0",
     "http-proxy": "^1.18.1",
     "img-color-extractor": "^1.0.7",
     "js-yaml": "^3.14.0",
