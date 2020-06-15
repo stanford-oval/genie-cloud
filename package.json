@@ -62,7 +62,7 @@
     "js-yaml": "^3.14.0",
     "jsonwebtoken": "^8.3.0",
     "jstransformer-markdown-it": "^2.0.0",
-    "jszip": "^3.0.0",
+    "jszip": "^3.5.0",
     "lunr": "^2.3.5",
     "lunr-languages": "^1.0.0",
     "markdown-it": "^11.0.0",
