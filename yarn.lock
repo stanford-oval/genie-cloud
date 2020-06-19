@@ -784,10 +784,10 @@ available-typed-arrays@^1.0.0, available-typed-arrays@^1.0.2:
   dependencies:
     array-filter "^1.0.0"
 
-aws-sdk@^2.698.0:
-  version "2.698.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.698.0.tgz#edb85a004f13ac002e59baf6639f9215dbbd1e3f"
-  integrity sha512-6S01wJMGwVLU7uld3sNXd1YuZab/Rha7qMFznxOHjkX/N+N0N1+Spd0T4NqXX9ebSai+OfeLT2H0IwyH4LAIZw==
+aws-sdk@^2.700.0:
+  version "2.700.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.700.0.tgz#4bad5970e262d04f47484506f49f6d34735d3f6c"
+  integrity sha512-faBkr/D3IavfL2mwst4/thiKsHkN8YCwU9927Mkiushbe7n4UXxlcNf7LnVxFyjr3WIf4KfziSw4bajRAiAjYA==
   dependencies:
     buffer "4.9.2"
     events "1.1.1"
