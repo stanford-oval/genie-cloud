@@ -301,6 +301,7 @@ class Frontend {
         this._app.use('/user', require('./routes/user'));
         this._app.use('/admin', require('./routes/admin'));
         this._app.use('/admin/mturk', require('./routes/admin_mturk'));
+        this._app.use('/proxy', require('./routes/proxy'));
 
         this._app.use((req, res) => {
             // if we get here, we have a 404 response
