@@ -5,10 +5,14 @@ block content
     h3= _("Oauth request for %s from: %s").format(kind, redirect_address)
     div.panel-body
           p.text-center
-            != _('Are you sure you would like to grant <a href="%s" target="_blank"> %s </a> access to the credentials of device: %s').format(redirect_address, redirect_address, kind)
+            = _('Are you sure you would like to grant %s access to the credentials of device: %s').format(redirect_address, kind)
     div.container
 
-      p.text-center
-        a.btn.btn-primary(href='proxy/oauth2/%s'.format(kind))= _("Continue")
+      div.text-center
+        form(action='/proxy/oauth2', method='post').form-inline
+            input(type='hidden',name='_csrf',value=csrfToken)
+            input(type='hidden',name='device_type',value=kind)
+            button(type='submit').btn.btn-primary= _("Continue")
+        br
       p.text-center
         a.btn.btn-primary(href=redirect_address)= _("Cancel")
