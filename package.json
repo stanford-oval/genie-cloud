@@ -54,7 +54,7 @@
     "express-ws": "^4.0.0",
     "express-xml-bodyparser": "^0.3.0",
     "genie-toolkit": "~0.6.0",
-    "gettext-parser": "^4.0.0",
+    "gettext-parser": "^4.0.4",
     "gm": "^1.23.1",
     "highlight.js": "^10.1.1",
     "http-proxy": "^1.18.1",
