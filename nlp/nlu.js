@@ -17,7 +17,6 @@ const I18n = require('../util/i18n');
 const exampleModel = require('../model/example');
 const editDistance = require('../util/edit_distance');
 
-const applyCompatibility = require('./compat');
 // thingtalk version from before we started passing it to the API
 const DEFAULT_THINGTALK_VERSION = '1.0.0';
 
@@ -188,8 +187,10 @@ async function runNLU(query, params, data, service, res) {
     if (exact !== null)
         result = exact.map((code) => ({ code, score: 'Infinity' })).concat(result);
 
-    if (!data.skip_typechecking)
-        await applyCompatibility(params.locale, result, tokenized.entities, thingtalk_version);
+    if (!data.skip_typechecking) {
+        const programs = [result.map((r) => r.code)];
+        ThingTalk.NNSyntax.applyCompatibility(params.locale, programs, tokenized.entities, thingtalk_version);
+    }
 
     res.set("Cache-Control", "no-store,must-revalidate");
     return {
