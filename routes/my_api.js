@@ -70,23 +70,6 @@ router.get('/profile', user.requireScope('profile'), (req, res, next) => {
     });
 });
 
-router.get('/parse', user.requireScope('user-read'), iv.validateGET({ q: '?string', target_json: '?string' }, { json: true }), (req, res, next) => {
-    let query = req.query.q || null;
-    let targetJson = req.query.target_json || null;
-    if (!query && !targetJson) {
-        next(new BadRequestError('Missing query'));
-        return;
-    }
-
-    Q.try(() => {
-        return EngineManager.get().getEngine(req.user.id);
-    }).then((engine) => {
-        return engine.assistant.parse(query, targetJson);
-    }).then((result) => {
-        res.json(result);
-    }).catch(next);
-});
-
 router.post('/converse', user.requireScope('user-exec-command'), (req, res, next) => {
     let command = req.body.command;
     if (!command) {
