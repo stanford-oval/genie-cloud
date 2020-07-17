@@ -36,7 +36,8 @@ async function learn(req, res) {
         return;
     }
 
-    if (!I18n.get(req.params.locale, false)) {
+    const langPack = I18n.get(req.params.locale, false);
+    if (!langPack) {
         res.status(404).json({ error: 'Unsupported language' });
         return;
     }
@@ -55,7 +56,8 @@ async function learn(req, res) {
 
     const languageTag = I18n.localeToLanguage(req.params.locale);
     const utterance = req.body.q;
-    const tokenized = await service.tokenizer.tokenize(languageTag, utterance);
+    const tokenizer = langPack.genie.getTokenizer();
+    const tokenized = await tokenizer.tokenize(utterance);
     if (tokenized.tokens.length === 0) {
         res.status(400).json({ error: 'Refusing to learn an empty sentence' });
         return;

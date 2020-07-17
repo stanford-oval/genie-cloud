@@ -9,11 +9,13 @@
 // See COPYING for details
 "use strict";
 
+const path = require('path');
 const Genie = require('genie-toolkit');
 const Tp = require('thingpedia');
 
 const BaseThingpediaClient = require('../util/thingpedia-client');
 const AbstractFS = require('../util/abstract_fs');
+const localfs = require('../util/local_fs');
 
 const Config = require('../config');
 
@@ -88,6 +90,18 @@ class DummyPlatform extends Tp.BasePlatform {
     getCapability() {
         return null;
     }
+
+    getTmpDir() {
+        return localfs.getTmpDir();
+    }
+
+    getCacheDir() {
+        return localfs.getCacheDir();
+    }
+
+    getWritableDir() {
+        return localfs.getWritableDir();
+    }
 }
 
 const nprocesses = 1;
@@ -120,12 +134,13 @@ module.exports = class NLPModel {
             modeldir = `./${spec.tag}:${spec.language}-v${spec.version}`;
 
         this._modeldir = AbstractFS.resolve(Config.NL_MODEL_DIR, modeldir);
+        this._platform = new DummyPlatform(spec.language);
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
             const org = (spec.owner === null || spec.owner === 1) ? { is_admin: true, id: 1 } : { is_admin: false, id: spec.owner };
             this.tpClient = new OrgThingpediaClient(spec.language, org);
         } else {
-            this.tpClient = new Tp.HttpClient(new DummyPlatform(spec.language), Config.THINGPEDIA_URL);
+            this.tpClient = new Tp.HttpClient(this._platform, Config.THINGPEDIA_URL);
         }
     }
 
@@ -148,7 +163,8 @@ module.exports = class NLPModel {
         await this._download();
 
         const oldpredictor = this.predictor;
-        this.predictor = new Genie.Predictor(this.id, this._localdir, nprocesses);
+        this.predictor = Genie.ParserClient.get('file://' + path.resolve(this._localdir), this.locale, this._platform,
+            this.exact, this.tpClient, { id: this.id, nprocesses });
         await this.predictor.start();
 
         await Promise.all([
@@ -162,7 +178,8 @@ module.exports = class NLPModel {
             return;
 
         await this._download();
-        this.predictor = new Genie.Predictor(this.id, this._localdir, nprocesses);
+        this.predictor = Genie.ParserClient.get('file://' + path.resolve(this._localdir), this.locale, this._platform,
+            this.exact, this.tpClient, { id: this.id, nprocesses });
         await this.predictor.start();
     }
 };

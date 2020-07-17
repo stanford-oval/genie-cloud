@@ -16,6 +16,7 @@ const fs = require('fs');
 const acceptLanguage = require('accept-language');
 const assert = require('assert');
 const ThingTalk = require('thingtalk');
+const Genie = require('genie-toolkit');
 
 const { InternalError } = require('./errors');
 const userUtils = require('./user');
@@ -85,6 +86,7 @@ const self = {
             // prebind the gt for ease of use, because the usual gettext API is not object-oriented
             const prebound = {
                 locale,
+                genie: Genie.I18n.get(locale),
 
                 gettext: gt.gettext.bind(gt),
                 ngettext: gt.ngettext.bind(gt),

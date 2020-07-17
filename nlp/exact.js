@@ -100,6 +100,7 @@ module.exports = class ExactMatcher {
     }
 
     add(utterance, target_code) {
+        console.log('add', utterance, target_code);
         utterance = utterance.split(' ');
         target_code = target_code.split(' ');
 
