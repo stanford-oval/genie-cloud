@@ -468,14 +468,21 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
         });
     }
 };
-module.exports.prototype.$rpcMethods = ['getAppCode', 'getApps',
-                                        'getModuleLocation', 'getDeviceCode',
-                                        'getSchemas', 'getMixins',
-                                        'getDeviceSetup',
-                                        'getDeviceSetup2',
-                                        'getDeviceFactories',
-                                        'getDeviceList',
-                                        'getDeviceSearch',
-                                        'getKindByDiscovery',
-                                        'getExamplesByKinds', 'getExamplesByKey',
-                                        'clickExample', 'lookupEntity', 'lookupLocation'];
+module.exports.prototype.$rpcMethods = [
+    'getModuleLocation',
+    'getDeviceCode',
+    'getSchemas',
+    'getMixins',
+    'getDeviceSetup',
+    'getDeviceSetup2',
+    'getDeviceFactories',
+    'getDeviceList',
+    'getDeviceSearch',
+    'getKindByDiscovery',
+    'getExamplesByKinds',
+    'getExamplesByKey',
+    'clickExample',
+    'lookupEntity',
+    'lookupLocation',
+    'getAllEntityTypes',
+];

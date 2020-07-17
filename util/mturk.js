@@ -169,7 +169,7 @@ async function startValidation(req, dbClient, batch) {
             }
         };
 
-        const creator = new Genie.ValidationHITCreator(allSynthetics, {
+        const creator = new Genie.MTurk.ValidationHITCreator(allSynthetics, {
             targetSize,
             sentencesPerTask: SYNTHETIC_PER_PARAPHRASE_HIT,
             rng: seedrandom.alea('almond is awesome')

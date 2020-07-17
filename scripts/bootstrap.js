@@ -127,13 +127,19 @@ async function importStandardEntities(dbClient) {
         };
     }));
 
-    // this entity type is required by Almond GNOME, but is not a well known entity
+    // this entity types are not a well known entity
     // you must import the values separately
     await entityModel.create(dbClient, {
         id: 'org.freedesktop:app_id',
         name: 'Freedesktop App Identifier',
         is_well_known: false,
         has_ner_support: true
+    });
+    await entityModel.create(dbClient, {
+        id: 'tt:command_id',
+        name: 'Thingpedia Command ID',
+        is_well_known: false,
+        has_ner_support: false
     });
 }
 
@@ -207,11 +213,9 @@ async function importBuiltinDevices(dbClient, rootOrg) {
         'org.thingpedia.builtin.thingengine.builtin',
         'org.thingpedia.builtin.thingengine.gnome',
         'org.thingpedia.builtin.thingengine.phone',
-        'org.thingpedia.builtin.thingengine.remote',
         'org.thingpedia.builtin.test',
         'org.thingpedia.builtin.bluetooth.generic',
         'messaging',
-        'org.thingpedia.builtin.matrix',
     ];
 
     for (let primaryKind of BUILTIN_DEVICES) {

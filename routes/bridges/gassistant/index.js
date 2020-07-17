@@ -35,88 +35,87 @@ class GoogleAssistantDelegate {
         this._suggestions = [];
     }
 
-    send(text, icon) {
-        if (typeof this._buffer[this._buffer.length - 1] === 'string')
-            // If there is already a text reply immediately before, we merge text replies
-            // because Google Assistant limits at most 2 chat bubbles per turn
-            this._buffer[this._buffer.length - 1] += '\n' + text;
-        else
-            this._buffer.push(text);
+    setHypothesis() {}
+
+    setExpected(what) {
+        this._askSpecial = what;
     }
 
-    sendPicture(url, icon) {
-        if (typeof this._buffer[this._buffer.length - 1] !== 'string')
-            // If there is no text reply immediately before, we add the URL
-            // because Google Assistant requires a chat bubble to accompany an Image
-            this._buffer.push(url);
-        this._buffer.push(new Image({
-            url: url,
-            alt: url,
-        }));
-    }
+    addMessage(msg) {
+        switch (msg.type) {
+        case 'text':
+        case 'result':
+            if (typeof this._buffer[this._buffer.length - 1] === 'string')
+                // If there is already a text reply immediately before, we merge text replies
+                // because Google Assistant limits at most 2 chat bubbles per turn
+                this._buffer[this._buffer.length - 1] += '\n' + msg.text;
+            else
+                this._buffer.push(msg.text);
+            break;
 
-    sendRDL(rdl, icon) {
-        let card = {
-            title: rdl.displayTitle,
-            buttons: new Button({
-                title: rdl.displayTitle,
-                url: rdl.webCallback,
-            }),
-            display: 'CROPPED',
-        };
-        if (rdl.displayText)
-            card.text = rdl.displayText;
-        if (rdl.pictureUrl) {
-            card.image = new Image({
-                url: rdl.pictureUrl,
-                alt: rdl.pictureUrl
-            });
-        }
-        this._buffer.push(new BasicCard(card));
-    }
-
-    sendChoice(idx, what, title, text) {
-        // Output choice options as regular text
-        if (typeof this._buffer[this._buffer.length - 1] === 'string')
-            // If there is already a text reply immediately before, we merge text replies
-            // because Google Assistant limits at most 2 chat bubbles per turn
-            this._buffer[this._buffer.length - 1] += '\n' + text;
-        else
-            this._buffer.push(text);
-    }
-
-    sendButton(title, json) {
-        // Filter out buttons more than 25 characters long since
-        // Google Assistant has a cap of 25 characters for Suggestions
-        if (title.length <= 25)
-            this._suggestions.push(title.substring(0, 25));
-    }
-
-    sendLink(title, url) {
-        if (url === '/user/register') {
-            this._requestSignin = true;
-        } else {
-            this._buffer.push(new Button({
-                title: title,
-                url: Config.SERVER_ORIGIN + url,
+        case 'picture':
+            if (typeof this._buffer[this._buffer.length - 1] !== 'string')
+                // If there is no text reply immediately before, we add the URL
+                // because Google Assistant requires a chat bubble to accompany an Image
+                this._buffer.push(msg.url);
+            this._buffer.push(new Image({
+                url: msg.url,
+                alt: msg.url,
             }));
+            break;
+
+        case 'choice':
+            // Output choice options as regular text
+            if (typeof this._buffer[this._buffer.length - 1] === 'string')
+                // If there is already a text reply immediately before, we merge text replies
+                // because Google Assistant limits at most 2 chat bubbles per turn
+                this._buffer[this._buffer.length - 1] += '\n' + msg.title;
+            else
+                this._buffer.push(msg.title);
+            break;
+
+        case 'rdl': {
+            let card = {
+                title: msg.rdl.displayTitle,
+                buttons: new Button({
+                    title: msg.rdl.displayTitle,
+                    url: msg.rdl.webCallback,
+                }),
+                display: 'CROPPED',
+            };
+            if (msg.rdl.displayText)
+                card.text = msg.rdl.displayText;
+            if (msg.rdl.pictureUrl) {
+                card.image = new Image({
+                    url: msg.rdl.pictureUrl,
+                    alt: msg.rdl.pictureUrl
+                });
+            }
+            this._buffer.push(new BasicCard(card));
+            break;
         }
-    }
 
-    sendResult(message, icon) {
-        if (typeof this._buffer[this._buffer.length - 1] === 'string')
-            // If there is already a text reply immediately before, we merge text replies
-            // because Google Assistant limits at most 2 chat bubbles per turn
-            this._buffer[this._buffer.length - 1] += '\n' + message.toLocaleString(this._locale);
-        else
-            this._buffer.push(message.toLocaleString(this._locale));
-    }
+        case 'link':
+            if (msg.url === '/user/register') {
+                this._requestSignin = true;
+            } else {
+                this._buffer.push(new Button({
+                    title: msg.title,
+                    url: Config.SERVER_ORIGIN + msg.url,
+                }));
+            }
+            break;
 
-    sendAskSpecial(what) {
-        // TODO
+        case 'button':
+            // Filter out buttons more than 25 characters long since
+            // Google Assistant has a cap of 25 characters for Suggestions
+            if (msg.title.length <= 25)
+                this._suggestions.push(msg.title.substring(0, 25));
+            break;
+        }
     }
 }
-GoogleAssistantDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL', 'sendResult'];
+GoogleAssistantDelegate.prototype.$rpcMethods = ['setExpected', 'setHypothesis', 'addMessage'];
 
 function authenticate(req, res, next) {
     console.log(req.body.user);

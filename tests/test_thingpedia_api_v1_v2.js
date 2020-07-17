@@ -289,7 +289,7 @@ const TEST_EXAMPLES = require('./data/test-examples-v1.json');
 
 async function testGetExamplesByDevice() {
     const BING_EXAMPLES = 18;
-    const BUILTIN_EXAMPLES = 59;
+    const BUILTIN_EXAMPLES = 29;
     const INVISIBLE_EXAMPLES = 1;
 
     checkExamples(await request('/api/examples/by-kinds/com.bing'), BING_EXAMPLES);
@@ -420,21 +420,6 @@ async function testGetDeviceSetup() {
         }
     });
 
-    assert.deepStrictEqual(await request('/api/devices/setup/messaging'), {
-        'messaging': {
-            type: 'interactive',
-            text: "Matrix",
-            category: 'online',
-            kind: 'org.thingpedia.builtin.matrix'
-        },
-        'org.thingpedia.builtin.matrix': {
-            type: 'interactive',
-            text: "Matrix",
-            category: 'online',
-            kind: 'org.thingpedia.builtin.matrix'
-        },
-    });
-
     /*    'com.bing': {
             text: "Bing Search",
             category: 'data',
@@ -450,7 +435,7 @@ function assertNonEmptyString(what) {
 
 async function testGetDeviceSetupList(_class) {
     const EXPECTED = {
-        'online': ['org.thingpedia.builtin.matrix'],
+        'online': [],
         'physical': ['org.thingpedia.builtin.bluetooth.generic'],
         'data': ['com.bing'],
     };
@@ -478,7 +463,7 @@ async function testGetDeviceSetupList(_class) {
 
 async function testGetDeviceList(_class) {
     const EXPECTED = {
-        'online': ['org.thingpedia.builtin.matrix'],
+        'online': [],
         'physical': ['org.thingpedia.builtin.thingengine.phone',
                      'org.thingpedia.builtin.thingengine.home',
                      'org.thingpedia.builtin.thingengine.gnome',
@@ -487,7 +472,6 @@ async function testGetDeviceList(_class) {
                  'org.thingpedia.builtin.thingengine.builtin'],
         'system': ['org.thingpedia.builtin.test',
                    'org.thingpedia.builtin.thingengine',
-                   'org.thingpedia.builtin.thingengine.remote',
                    'messaging']
     };
 
@@ -624,6 +608,11 @@ async function testGetEntityList() {
             "name":"Freedesktop App Identifier",
             "is_well_known":0,
             "has_ner_support":1
+        },{
+            "type":"tt:command_id",
+            "name":"Thingpedia Command ID",
+            "is_well_known":0,
+            "has_ner_support":0
         },{
             "type":"tt:stock_id",
             "name":"Company Stock ID",

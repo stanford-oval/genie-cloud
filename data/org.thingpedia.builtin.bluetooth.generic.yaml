@@ -1,6 +1,6 @@
 thingpedia_name: Generic Bluetooth Device
 thingpedia_description: The most generic of Bluetooth classes, it supports no operation at all. It is used if nothing more specific is found.
-repository: https://github.com/stanford-oval/thingengine-core
+repository: https://github.com/stanford-oval/genie-toolkit
 subcategory: home
 
 class: |

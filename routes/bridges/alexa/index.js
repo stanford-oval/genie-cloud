@@ -55,44 +55,44 @@ class AlexaDelegate {
         });
     }
 
-    send(text, icon) {
-        this._buffer += text + '\n';
-    }
+    setHypothesis() {}
 
-    sendPicture(url, icon) {
-        // FIXME
-    }
-
-    sendRDL(rdl, icon) {
-        this._buffer += rdl.displayTitle + '\n';
-    }
-
-    sendChoice(idx, what, title, text) {
-        this._buffer += title + '\n';
-    }
-
-    sendButton(title, json) {
-        // FIXME
-    }
-
-    sendLink(title, url) {
-        if (url === '/user/register') {
-            this._card = {
-                type: 'LinkAccount'
-            };
-        }
-        // FIXME handle other URL types
-    }
-
-    sendResult(message, icon) {
-        this._buffer += message.toLocaleString(this._locale) + '\n';
-    }
-
-    sendAskSpecial(what) {
+    setExpected(what) {
         this._askSpecial = what;
     }
+
+    addMessage(msg) {
+        switch (msg.type) {
+        case 'text':
+        case 'result':
+            this._buffer += msg.text + '\n';
+            break;
+
+        case 'rdl':
+            this._buffer += msg.rdl.displayTitle + '\n';
+            break;
+
+        case 'choice':
+            this._buffer += msg.title + '\n';
+            break;
+
+        case 'link':
+            if (msg.url === '/user/register') {
+                this._card = {
+                    type: 'LinkAccount'
+                };
+            }
+            // FIXME handle other URL types
+            break;
+
+        case 'picture':
+        case 'button':
+            // FIXME
+            break;
+        }
+    }
 }
-AlexaDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL', 'sendResult'];
+AlexaDelegate.prototype.$rpcMethods = ['setExpected', 'setHypothesis', 'addMessage'];
 
 function authenticate(req, res, next) {
     if (req.body && req.body.session && req.body.session.user && req.body.session.user.accessToken &&
