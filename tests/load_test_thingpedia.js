@@ -31,7 +31,6 @@ const alexaModelsModel = require('../model/alexa_model');
 const user = require('../util/user');
 const Importer = require('../util/import_device');
 const { makeRandom } = require('../util/random');
-const TokenizerService = require('../util/tokenizer_service');
 
 const Config = require('../config');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
@@ -444,6 +443,5 @@ async function main() {
     });
 
     await db.tearDown();
-    TokenizerService.tearDown();
 }
 main();

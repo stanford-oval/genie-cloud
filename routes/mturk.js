@@ -18,8 +18,8 @@ const model = require('../model/mturk');
 const deviceModel = require('../model/device');
 const example = require('../model/example');
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
-const TokenizerService = require('../util/tokenizer_service');
 const iv = require('../util/input_validation');
+const i18n = require('../util/i18n');
 const { BadRequestError, ForbiddenError, NotFoundError } = require('../util/errors');
 
 const MTurkUtils = require('../util/mturk');
@@ -29,9 +29,10 @@ var router = express.Router();
 async function autoValidateParaphrase(dbClient, batchId, language, schemas, utterance, thingtalk) {
     // FIXME this should use Genie's ParaphraseValidator
 
+    const tokenizer = i18n.get(language).genie.getTokenizer();
     const [program, { tokens: preprocessed, entities }] = await Promise.all([
         ThingTalk.Grammar.parseAndTypecheck(thingtalk, schemas),
-        TokenizerService.tokenize(language, utterance)
+        tokenizer.tokenize(utterance)
     ]);
 
     let target_code;

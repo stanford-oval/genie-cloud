@@ -17,7 +17,7 @@ const ThingTalk = require('thingtalk');
 
 const AdminThingpediaClient = require('../../util/admin-thingpedia-client');
 const AbstractFS = require('../../util/abstract_fs');
-const TokenizerService = require('../../util/tokenizer_service');
+const i18n = require('../../util/i18n');
 
 const SEMANTIC_PARSING_TASK = 'almond';
 const NLU_TASK = 'almond_dialogue_nlu';
@@ -26,7 +26,7 @@ const NLU_TASK = 'almond_dialogue_nlu';
 class LocalParserClient {
     constructor(modeldir, locale) {
         this._locale = locale;
-        this._tokenizer = TokenizerService.getLocal();
+        this._tokenizer = i18n.get(locale).genie.getTokenizer();
         this._predictor = new Genie.Predictor('local', modeldir);
     }
 
@@ -38,7 +38,7 @@ class LocalParserClient {
     }
 
     async tokenize(utterance, contextEntities) {
-        const tokenized = await this._tokenizer.tokenize(this._locale, utterance);
+        const tokenized = await this._tokenizer.tokenize(utterance);
         Genie.Utils.renumberEntities(tokenized, contextEntities);
         return tokenized;
     }
@@ -50,7 +50,7 @@ class LocalParserClient {
             entities = Genie.Utils.makeDummyEntities(utterance);
             Object.assign(entities, contextEntities);
         } else {
-            const tokenized = await this._tokenizer.tokenize(this._locale, utterance);
+            const tokenized = await this._tokenizer.tokenize(utterance);
             Genie.Utils.renumberEntities(tokenized, contextEntities);
             tokens = tokenized.tokens;
             entities = tokenized.entities;
@@ -101,7 +101,6 @@ module.exports = async function main(task, argv) {
 
     await Promise.all([
         parser.stop(),
-        TokenizerService.tearDown(),
         AbstractFS.removeTemporary(jobdir)
     ]);
 };

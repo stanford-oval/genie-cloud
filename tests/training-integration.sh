@@ -9,9 +9,6 @@ set -o pipefail
 srcdir=`dirname $0`/..
 srcdir=`realpath $srcdir`
 
-export THINGENGINE_USE_TOKENIZER=local
-export GENIE_USE_TOKENIZER=local
-
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`
 workdir=`realpath $workdir`
 on_error() {
@@ -19,8 +16,6 @@ on_error() {
     serverpid=
     test -n "$frontendpid" && kill $frontendpid
     frontendpid=
-    test -n "$tokenizerpid" && kill $tokenizerpid
-    tokenizerpid=
     wait
 
     rm -fr $workdir
@@ -60,9 +55,6 @@ TRAINING_ACCESS_TOKEN: test-training-access-token
 TRAINING_MEMORY_USAGE: 1000
 SUPPORTED_LANGUAGES: ['en-US']
 EOF
-
-node $srcdir/tests/mock-tokenizer.js &
-tokenizerpid=$!
 
 # add missing files to the workdir
 node $srcdir/node_modules/.bin/genie compile-ppdb $srcdir/tests/data/ppdb-2.0-xs-lexical -o $workdir/ppdb-2.0-xs-lexical.bin
@@ -145,8 +137,6 @@ kill $serverpid
 serverpid=
 kill $frontendpid
 frontendpid=
-kill $tokenizerpid
-tokenizerpid=
 wait
 
 

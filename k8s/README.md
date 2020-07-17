@@ -94,8 +94,7 @@ to install an ingress controller and expose the frontend.
 ### nlp.yaml
 
 This file deploys an NLP inference server, and configures a service "nlp" forwarding
-port 8400. It also deploys a replicated tokenizer server, listening at the service
-"tokenizer", port 8888.
+port 8400.
 
 The NLP server must be enabled and configured separately in the almond-config configmap.
 Additionally, you will need to obtain a pretrained model, or obtain a dataset and

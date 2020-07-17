@@ -30,7 +30,6 @@ const { makeRandom } = require('../util/random');
 
 const Importer = require('../util/import_device');
 const { clean } = require('../util/tokenize');
-const TokenizerService = require('../util/tokenizer_service');
 const codeStorage = require('../util/code_storage');
 const execSql = require('../util/exec_sql');
 
@@ -420,7 +419,6 @@ module.exports = {
                 console.error(`Almond appears to be already bootstrapped, refusing to bootstrap again.`);
 
                 await db.tearDown();
-                TokenizerService.tearDown();
                 return;
             }
         }
@@ -447,6 +445,5 @@ module.exports = {
         });
 
         await db.tearDown();
-        TokenizerService.tearDown();
     }
 };
