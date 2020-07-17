@@ -2,7 +2,7 @@ env:
   es6: true
   node: true
 parserOptions:
-  ecmaVersion: 2017
+  ecmaVersion: 2018
 extends: 'eslint:recommended'
 rules:
   indent: off

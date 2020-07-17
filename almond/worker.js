@@ -20,11 +20,10 @@ const stream = require('stream');
 const rpc = require('transparent-rpc');
 const argparse = require('argparse');
 
-const Engine = require('thingengine-core');
 const PlatformModule = require('./platform');
 const JsonDatagramSocket = require('../util/json_datagram_socket');
-const Assistant = require('./assistant');
 const i18n = require('../util/i18n');
+const Engine = require('./engine');
 
 class ParentProcessSocket extends stream.Duplex {
     constructor() {
@@ -69,13 +68,12 @@ function runEngine(thingpediaClient, options) {
         global.platform = platform;
 
     const obj = { cloudId: options.cloudId, running: false, sockets: new Set };
-    const engine = new Engine(platform, { thingpediaUrl: PlatformModule.thingpediaUrl });
+    const engine = new Engine(platform, {
+        thingpediaUrl: PlatformModule.thingpediaUrl,
+        nluModelUrl: PlatformModule.nlServerUrl
+        // nlg will be set to the same URL
+    });
     obj.engine = engine;
-
-    const assistant = new Assistant(engine, options);
-    platform._setAssistant(assistant);
-    // for compat
-    engine.assistant = this._assistant;
 
     engine.open().then(() => {
         obj.running = true;
@@ -122,11 +120,10 @@ function handleDirectSocket(userId, replyId, socket) {
 
     const platform = obj.engine.platform;
     rpcSocket.call(replyId, 'ready', [
-        obj.engine.apps,
-        obj.engine.devices,
+        obj.engine,
         platform.getCapability('websocket-api'),
-        platform.getCapability('webhook-api'),
-        platform.getCapability('assistant')]);
+        platform.getCapability('webhook-api')
+    ]);
 
     obj.sockets.add(rpcSocket);
     rpcSocket.on('close', () => {

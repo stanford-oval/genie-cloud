@@ -587,13 +587,13 @@ async function getProfile(req, res, pw_error, profile_error) {
     try {
         const engine = await EngineManager.get().getEngine(req.user.id);
 
-        const [phoneProxy, desktopProxy] = await Promise.all([
-            engine.devices.getDevice('thingengine-own-phone'),
-            engine.devices.getDevice('thingengine-own-desktop')
+        const [hasPhone, hasDesktop] = await Promise.all([
+            engine.hasDevice('thingengine-own-phone'),
+            engine.hasDevice('thingengine-own-desktop')
         ]);
-        if (phoneProxy)
+        if (hasPhone)
             phone.isConfigured = true;
-        if (desktopProxy)
+        if (hasDesktop)
             desktop.isConfigured = true;
     } catch(e) {
         // ignore the error if the engine is down

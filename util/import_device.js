@@ -416,7 +416,7 @@ function tryUpdateDevice(primaryKind, userId) {
     // do the update asynchronously - if the update fails, the user will
     // have another chance from the status page
     EngineManager.get().getEngine(userId).then((engine) => {
-        return engine.devices.updateDevicesOfKind(primaryKind);
+        return engine.upgradeDevice(primaryKind);
     }).catch((e) => {
         console.error(`Failed to auto-update device ${primaryKind} for user ${userId}: ${e.message}`);
     });

@@ -137,11 +137,13 @@ function authenticateGoogle(req, accessToken, refreshToken, profile, done) {
         return EngineManager.get().startUser(user.id).then(() => {
             // asynchronously inject google-account device
             EngineManager.get().getEngine(user.id).then((engine) => {
-                return engine.devices.addSerialized({ kind: 'com.google',
-                                                      profileId: profile.id,
-                                                      accessToken: accessToken,
-                                                      refreshToken: refreshToken });
-            }).done();
+                return engine.createDeviceAndReturnInfo({
+                    kind: 'com.google',
+                    profileId: profile.id,
+                    accessToken: accessToken,
+                    refreshToken: refreshToken
+                });
+            });
             return user;
         });
     }).nodeify(done);
@@ -152,11 +154,13 @@ function associateGoogle(user, accessToken, refreshToken, profile, done) {
         return model.update(dbClient, user.id, { google_id: profile.id }).then(() => {
             // asynchronously inject google-account device
             EngineManager.get().getEngine(user.id).then((engine) => {
-                return engine.devices.addSerialized({ kind: 'com.google',
-                                                      profileId: profile.id,
-                                                      accessToken: accessToken,
-                                                      refreshToken: refreshToken });
-            }).done();
+                return engine.createDeviceAndReturnInfo({
+                    kind: 'com.google',
+                    profileId: profile.id,
+                    accessToken: accessToken,
+                    refreshToken: refreshToken
+                });
+            });
             return user;
         });
     }).nodeify(done);

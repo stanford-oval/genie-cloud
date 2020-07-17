@@ -43,7 +43,7 @@ function readLogs(userId, startCursor) {
 
 function getCachedModules(userId) {
     return EngineManager.get().getEngine(userId).then((engine) => {
-        return engine.devices.getCachedDeviceClasses();
+        return engine.getCachedDeviceClasses();
     }).catch((e) => {
         // ignore errors related to the communication with the engine
         // (which indicate the engine is dead/dying), but propagate
@@ -137,7 +137,7 @@ router.post('/recovery/clear-data', (req, res, next) => {
 
 router.post('/update-module/:kind', (req, res, next) => {
     return EngineManager.get().getEngine(req.user.id).then((engine) => {
-        return engine.devices.updateDevicesOfKind(req.params.kind);
+        return engine.upgradeDevice(req.params.kind);
     }).then(() => {
         res.redirect(303, '/me/status');
     }).catch(next);

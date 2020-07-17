@@ -34,27 +34,9 @@ mixin device_list(devices)
                   img(src=THINGPEDIA_URL + '/api/devices/icon/' + dev.kind, alt="Icon for " + dev.name)
               p= dev.description
 
-              if dev.isPhysical
+              if dev.class === 'physical'
                 if dev.ownerTier !== 'cloud' && dev.ownerTier !== 'global'
                   p= _("This device is owned by your %s.").format(dev.ownerTier)
-
-                if dev.available == 0
-                  p= _("The device is not available. It might be powered off or disconnected.")
-                else if dev.available == 1
-                  p= _("The device is available and working.")
-                else if dev.available == 2
-                  if dev.ownerTier === 'server'
-                    p= _("The device is not available because your server is disconnected.")
-                      = _(" Make sure that it is powered on and correctly configured.")
-                  else if dev.ownerTier === 'phone'
-                    p= _("The device is not available because your phone is disconnected.")
-                      = _(" Make sure that it is powered on and connected to the network.")
-                  else
-                    p= _("The device is not available because Cloud Almond cannot be reached.")
-                      = _(" There might be a temporary service outage.")
-                else
-                  p= _("It was not possible to verify if the device is available.")
-                    = _("Please check it is powered on and correctly configured.")
             div.panel-footer
               div.row
                 if !dev.isTransient

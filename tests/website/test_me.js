@@ -70,7 +70,7 @@ async function testMyDevices(bob, nobody) {
         const [bobInfo] = await dbQuery(`select * from users where username = ?`, ['bob']);
         assert(bobInfo);
         const engine = await EngineManagerClient.get().getEngine(bobInfo.id);
-        const device = await engine.devices.getDevice('org.thingpedia.rss-url:https://almond.stanford.edu/blog/feed.rss');
+        const device = await engine.getDeviceInfo('org.thingpedia.rss-url:https://almond.stanford.edu/blog/feed.rss');
         assert(device);
 
         await assertLoginRequired(sessionRequest('/me/devices/delete', 'POST', { id: 'foo' }, nobody));
@@ -83,7 +83,7 @@ async function testMyDevices(bob, nobody) {
 
         await sessionRequest('/me/devices/delete', 'POST', { id: 'org.thingpedia.rss-url:https://almond.stanford.edu/blog/feed.rss' }, bob);
 
-        assert(!await engine.devices.hasDevice('org.thingpedia.rss-url:https://almond.stanford.edu/blog/feed.rss'));
+        assert(!await engine.hasDevice('org.thingpedia.rss-url:https://almond.stanford.edu/blog/feed.rss'));
 
 
         await assertLoginRequired(sessionRequest('/me/devices/oauth2/com.linkedin', 'POST', { id: 'foo' }, nobody));

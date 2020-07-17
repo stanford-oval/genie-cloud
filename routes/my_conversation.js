@@ -9,8 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
-
 const user = require('../util/user');
 const EngineManager = require('../almond/enginemanagerclient');
 const { BadRequestError } = require('../util/errors');
@@ -32,9 +30,9 @@ class WebsocketApiDelegate {
         this._ws = ws;
     }
 
-    send(str) {
+    send(data) {
         try {
-            this._ws.send(str);
+            this._ws.send(JSON.stringify(data));
         } catch(e) {
             // ignore if the socket is closed
             if (e.message !== 'not opened')
@@ -47,9 +45,8 @@ WebsocketApiDelegate.prototype.$rpcMethods = ['send'];
 module.exports.results = function(ws, req, next) {
     var user = req.user;
 
-    Q.try(() => {
-        return EngineManager.get().getEngine(user.id);
-    }).then((engine) => {
+    Promise.resolve().then(async () => {
+        const engine = await EngineManager.get().getEngine(user.id);
         const onclosed = (userId) => {
             if (userId === user.id)
                 ws.close();
@@ -58,20 +55,20 @@ module.exports.results = function(ws, req, next) {
         EngineManager.get().on('socket-closed', onclosed);
 
         let delegate = new WebsocketApiDelegate(ws);
+        let wrapper;
         ws.on('error', (err) => {
             ws.close();
         });
         ws.on('close', async () => {
             try {
-                await engine.assistant.removeOutput(delegate);
+                await wrapper.destroy();
             } catch(e) {
                 // ignore errors if engine died
             }
-            delegate.$free();
         });
         ws.on('ping', (data) => ws.pong(data));
 
-        return engine.assistant.addOutput(delegate);
+        wrapper = await engine.addNotificationOutput(delegate);
     }).catch((error) => {
         console.error('Error in API websocket: ' + error.message);
 
@@ -84,50 +81,23 @@ module.exports.results = function(ws, req, next) {
 
 
 class WebsocketAssistantDelegate {
-    constructor(locale, ws) {
-        this._locale = locale;
+    constructor(ws) {
         this._ws = ws;
     }
 
-    send(text, icon) {
-        return this._ws.send(JSON.stringify({ type: 'text', text: text, icon: icon }));
+    setHypothesis() {
+        // voice doesn't go through SpeechHandler, hence hypotheses don't go through here!
     }
 
-    sendPicture(url, icon) {
-        return this._ws.send(JSON.stringify({ type: 'picture', url: url, icon: icon }));
+    setExpected(what) {
+        this._ws.send(JSON.stringify({ type: 'askSpecial', ask: what }));
     }
 
-    sendRDL(rdl, icon) {
-        return this._ws.send(JSON.stringify({ type: 'rdl', rdl: rdl, icon: icon }));
-    }
-
-    sendResult(message, icon) {
-        return this._ws.send(JSON.stringify({
-            type: 'result',
-            result: message,
-
-            fallback: message.toLocaleString(this._locale),
-            icon: icon
-        }));
-    }
-
-    sendChoice(idx, what, title, text) {
-        return this._ws.send(JSON.stringify({ type: 'choice', idx: idx, title: title, text: text }));
-    }
-
-    sendButton(title, json) {
-        return this._ws.send(JSON.stringify({ type: 'button', title: title, json: json }));
-    }
-
-    sendLink(title, url) {
-        return this._ws.send(JSON.stringify({ type: 'link', title: title, url: url }));
-    }
-
-    sendAskSpecial(what) {
-        return this._ws.send(JSON.stringify({ type: 'askSpecial', ask: what }));
+    addMessage(msg) {
+         this._ws.send(JSON.stringify(msg));
     }
 }
-WebsocketAssistantDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL', 'sendResult'];
+WebsocketAssistantDelegate.prototype.$rpcMethods = ['setHypothesis', 'setExpected', 'addMessage'];
 
 async function doConversation(user, anonymous, ws, query) {
     try {
@@ -141,39 +111,43 @@ async function doConversation(user, anonymous, ws, query) {
 
         // "isOwner" is a multi-user assistant thing, it has nothing to do with anonymous or not
         const assistantUser = { name: user.human_name || user.username, isOwner: true };
-        const options = { showWelcome: !query.hide_welcome, anonymous };
+        const options = {
+            showWelcome: !query.hide_welcome,
+            anonymous,
 
-        const delegate = new WebsocketAssistantDelegate(user.locale, ws);
+            // set a very large timeout so we don't get recycled until the socket is closed
+            inactivityTimeout: 3600 * 1000
+        };
 
-        let opened = false, earlyClose = false;
+        const delegate = new WebsocketAssistantDelegate(ws);
+
+        let wrapper;
         const id = query.id || 'web-' + makeRandom(4);
         ws.on('error', (err) => {
             ws.close();
         });
         ws.on('close', async () => {
             try {
-                if (opened)
-                    await engine.assistant.closeConversation(id);
+                if (wrapper)
+                    await wrapper.destroy();
             } catch(e) {
                 // ignore errors if engine died
             }
-            earlyClose = true;
-            opened = false;
-            delegate.$free();
+            wrapper = undefined;
         });
 
-        const conversation = await engine.assistant.openConversation(id, assistantUser, delegate, options);
-        opened = true;
+        wrapper = await engine.getOrOpenConversation(id, assistantUser, delegate, options);
         ws.on('message', (data) => {
             Promise.resolve().then(() => {
-                var parsed = JSON.parse(data);
+                const parsed = JSON.parse(data);
+                const platformData = {};
                 switch(parsed.type) {
                 case 'command':
-                    return conversation.handleCommand(parsed.text);
+                    return wrapper.handleCommand(parsed.text, platformData);
                 case 'parsed':
-                    return conversation.handleParsedCommand(parsed.json);
+                    return wrapper.handleParsedCommand(parsed.json, parsed.title, platformData);
                 case 'tt':
-                    return conversation.handleThingTalk(parsed.code);
+                    return wrapper.handleThingTalk(parsed.code, platformData);
                 default:
                     throw new BadRequestError('Invalid command type ' + parsed.type);
                 }
@@ -190,9 +164,6 @@ async function doConversation(user, anonymous, ws, query) {
                 } catch(e) {/**/}
             });
         });
-        if (earlyClose)
-            return;
-        await conversation.start();
     } catch(error) {
         console.error('Error in conversation websocket: ' + error.message);
 

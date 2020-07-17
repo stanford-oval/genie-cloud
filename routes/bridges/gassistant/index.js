@@ -168,7 +168,7 @@ app.intent('actions.intent.MAIN', async (conv) => {
     const delegate = new GoogleAssistantDelegate(locale);
 
     const engine = await EngineManager.get().getEngine(user.id);
-    await engine.assistant.getOrOpenConversation('google_assistant:' + conversationId,
+    await engine.getOrOpenConversation('google_assistant:' + conversationId,
         assistantUser, delegate, { anonymous, showWelcome: true, debug: true });
     
     if (delegate._suggestions.length)

@@ -9,7 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const express = require('express');
 const passport = require('passport');
 
@@ -77,37 +76,18 @@ router.post('/converse', user.requireScope('user-exec-command'), (req, res, next
         return;
     }
 
-    Q.try(() => {
-        return EngineManager.get().getEngine(req.user.id);
-    }).then((engine) => {
+    Promise.resolve().then(async () => {
+        const engine = await EngineManager.get().getEngine(req.user.id);
         const assistantUser = { name: user.human_name || user.username, isOwner: true };
-        return engine.assistant.converse(command, assistantUser, req.body.conversationId ? String(req.body.conversationId) : 'stateless-' + makeRandom(4));
-    }).then((result) => {
+        const result = await engine.converse(command, assistantUser, req.body.conversationId ? String(req.body.conversationId) : 'stateless-' + makeRandom(4));
         res.json(result);
     }).catch(next);
 });
 
-async function describeDevice(d, req) {
-    const [uniqueId, name, description, kind, ownerTier] = await Promise.all([
-        d.uniqueId, d.name, d.description, d.kind, d.ownerTier]);
-
-    return {
-        uniqueId: uniqueId,
-        name: name || req._("Unknown device"),
-        description: description || req._("Description not available"),
-        kind: kind,
-        ownerTier: ownerTier
-    };
-}
-
 router.get('/devices/list', user.requireScope('user-read'), (req, res, next) => {
-    Q.try(() => {
-        return EngineManager.get().getEngine(req.user.id);
-    }).then((engine) => {
-        return engine.devices.getAllDevices().then((devices) => {
-            return Promise.all(devices.map((d) => describeDevice(d, req)));
-        });
-    }).then((result) => {
+    Promise.resolve().then(async () => {
+        const engine = await EngineManager.get().getEngine(req.user.id);
+        const result = await engine.getDeviceInfos();
         // sort by name to provide a deterministic result
         result.sort((a, b) => a.name.localeCompare(b.name));
         res.json(result);
@@ -123,28 +103,15 @@ router.post('/devices/create', user.requireScope('user-exec-command'), iv.valida
     }
 
     EngineManager.get().getEngine(req.user.id).then(async (engine) => {
-        const devices = engine.devices;
-
-        const device = await devices.addSerialized(req.body);
-        res.json(await describeDevice(device, req));
+        res.json(await engine.createDeviceAndReturnInfo(req.body));
     }).catch(next);
 });
 
-function describeApp(app) {
-    return Promise.all([app.uniqueId, app.description, app.error, app.code, app.icon])
-        .then(([uniqueId, description, error, code, icon]) => ({
-            uniqueId, description, error: error, code,
-            icon: icon ? Config.CDN_HOST + '/icons/' + icon + '.png' : null
-        }));
-}
-
 router.post('/apps/create', user.requireScope('user-exec-command'),
     iv.validatePOST({ code: 'string' }, { accept: 'json', json: true }), (req, res, next) => {
-    Q.try(() => {
-        return EngineManager.get().getEngine(req.user.id);
-    }).then((engine) => {
-        return engine.assistant.createApp(req.body);
-    }).then((result) => {
+    Promise.resolve().then(async () => {
+        const engine = await EngineManager.get().getEngine(req.user.id);
+        const result = await engine.createAppAndReturnResults(req.body);
         if (result.error)
             res.status(400);
         res.json(result);
@@ -152,42 +119,36 @@ router.post('/apps/create', user.requireScope('user-exec-command'),
 });
 
 router.get('/apps/list', user.requireScope('user-read'), (req, res, next) => {
-    Q.try(() => {
-        return EngineManager.get().getEngine(req.user.id);
-    }).then((engine) => {
-        return engine.apps.getAllApps().then((apps) => {
-            return Promise.all(apps.map((a) => describeApp(a)));
-        });
-    }).then((result) => {
-        res.json(result);
+    Promise.resolve().then(async () => {
+        const engine = await EngineManager.get().getEngine(req.user.id);
+        const apps = await engine.getAppInfos();
+        for (let app of apps) {
+            if (app.icon)
+                app.icon = Config.CDN_HOST + '/icons/' + app.icon + '.png';
+        }
+        res.json(apps);
     }).catch(next);
 });
 
 router.get('/apps/get/:appId', user.requireScope('user-read'), (req, res, next) => {
-    Q.try(() => {
-        return EngineManager.get().getEngine(req.user.id);
-    }).then((engine) => {
-        return engine.apps.getApp(req.params.appId).then((app) => {
-            if (!app)
-                throw new NotFoundError();
-            return describeApp(app);
-        });
-    }).then((result) => {
-        res.json(result);
+    Promise.resolve().then(async () => {
+        const engine = await EngineManager.get().getEngine(req.user.id);
+        const app = await engine.getAppInfo(req.params.appId, false);
+        if (!app)
+            throw new NotFoundError();
+        if (app.icon)
+            app.icon = Config.CDN_HOST + '/icons/' + app.icon + '.png';
+        res.json(app);
     }).catch(next);
 });
 
 router.post('/apps/delete/:appId', user.requireScope('user-exec-command'), (req, res, next) => {
-    Q.try(() => {
-        return EngineManager.get().getEngine(req.user.id);
-    }).then((engine) => {
-        return engine.apps.getApp(req.params.appId).then((app) => {
-            if (!app)
-                throw new NotFoundError();
-            return engine.apps.removeApp(app).then(() => ({status:'ok'}));
-        });
-    }).then((result) => {
-        res.json(result);
+    Promise.resolve().then(async () => {
+        const engine = await EngineManager.get().getEngine(req.user.id);
+        const removed = await engine.deleteApp(req.params.appId);
+        if (!removed)
+            throw new NotFoundError();
+        res.json({status:'ok'});
     }).catch(next);
 });
 
