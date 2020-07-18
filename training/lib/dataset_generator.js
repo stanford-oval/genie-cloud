@@ -381,20 +381,14 @@ module.exports = class DatasetGenerator {
         let dataset;
 
         if (this._shouldDoAugmentation) {
-            const ppdb = await Genie.BinaryPPDB.mapFile(this._options.ppdbFile);
-
             const augmenter = new Genie.DatasetAugmenter(this._schemas, constProvider, this._tpClient, {
                 quotedProbability: this._options.quotedProbability,
                 untypedStringProbability: 0,
                 maxSpanLength: MAX_SPAN_LENGTH,
-                ppdbProbabilitySynthetic: this._options.ppdbProbabilitySynthetic,
-                ppdbProbabilityParaphrase: this._options.ppdbProbabilityParaphrase,
                 syntheticExpandFactor: 1,
                 paraphrasingExpandFactor: 30,
                 noQuoteExpandFactor: 10,
                 singleDeviceExpandFactor: 3,
-
-                ppdbFile: ppdb,
 
                 locale: this._locale,
                 rng: this._rng,

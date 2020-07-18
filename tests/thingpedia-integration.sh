@@ -150,10 +150,6 @@ wait
 
 mkdir -p $workdir/training/jobs/{1,2,3} $workdir/exact
 
-# first compile the PPDB
-node $srcdir/node_modules/.bin/genie compile-ppdb $srcdir/tests/data/ppdb-2.0-xs-lexical -o $workdir/ppdb-2.0-xs-lexical.bin
-export PPDB=$workdir/ppdb-2.0-xs-lexical.bin
-
 # make up a training job
 ${srcdir}/main.js execute-sql-file /proc/self/fd/0 <<<"insert into training_jobs set id = 1, job_type ='update-dataset', language = 'en', all_devices = 1, status = 'started', task_index = 0, task_name = 'update-dataset', config = '{}'"
 

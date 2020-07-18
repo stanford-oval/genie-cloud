@@ -9,20 +9,14 @@
 // See COPYING for details
 "use strict";
 
-const path = require('path');
-
 const AbstractFS = require('../../util/abstract_fs');
 const DatasetGenerator = require('../lib/dataset_generator');
-
-const PPDB = process.env.PPDB || path.resolve('./ppdb-2.0-m-lexical.bin');
 
 const DEFAULT_TRAINING_CONFIG = {
     use_approved: false,
     synthetic_depth: 7,
     synthetic_flags: [],
     target_pruning_size: 10000,
-    ppdb_probability_synthetic: 0.1,
-    ppdb_probability_paraphrase: 1.0,
     quoted_probability: 0.1,
 };
 
@@ -51,9 +45,6 @@ module.exports = async function main(task, argv) {
         targetPruningSize: config.target_pruning_size,
 
         // augmentation flags
-        ppdbFile: PPDB,
-        ppdbProbabilitySynthetic: config.ppdb_probability_synthetic,
-        ppdbProbabilityParaphrase: config.ppdb_probability_paraphrase,
         quotedProbability: config.quoted_probability,
 
         debug: argv.debug

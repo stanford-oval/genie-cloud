@@ -56,10 +56,6 @@ TRAINING_MEMORY_USAGE: 1000
 SUPPORTED_LANGUAGES: ['en-US']
 EOF
 
-# add missing files to the workdir
-node $srcdir/node_modules/.bin/genie compile-ppdb $srcdir/tests/data/ppdb-2.0-xs-lexical -o $workdir/ppdb-2.0-xs-lexical.bin
-export PPDB=$workdir/ppdb-2.0-xs-lexical.bin
-
 # set up download directories
 mkdir -p $workdir/shared/download
 for x in devices icons backgrounds blog-assets template-files/en ; do
@@ -85,8 +81,6 @@ tr -d '\n' > training-config.json <<EOF
 "synthetic_depth": 3,
 "dataset_target_pruning_size": 1000,
 "dataset_contextual_target_pruning_size": 1000,
-"dataset_ppdb_probability_synthetic": 0.1,
-"dataset_ppdb_probability_paraphrase": 1.0,
 "dataset_quoted_probability": 0.1,
 "dataset_eval_probability": 0.5,
 "dataset_split_strategy": "sentence",
