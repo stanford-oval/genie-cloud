@@ -38,8 +38,8 @@ const Config = require('../config');
 const req = { _(x) { return x; } };
 
 const DEFAULT_TRAINING_CONFIG = JSON.stringify({
-    dataset_target_pruning_size: 5000,
-    dataset_contextual_target_pruning_size: 1000,
+    dataset_target_pruning_size: 1000,
+    dataset_contextual_target_pruning_size: 100,
     dataset_quoted_probability: 0.1,
     dataset_eval_probability: 0.5,
     dataset_split_strategy: 'sentence',

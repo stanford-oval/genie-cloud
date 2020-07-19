@@ -36,7 +36,7 @@ const HAS_ABOUT_GET_INVOLVED = Config.EXTRA_ABOUT_PAGES.some((p) => p.url === 'g
 
 const DEFAULT_TRAINING_CONFIG = JSON.stringify({
     synthetic_depth: 7,
-    dataset_target_pruning_size: 5000,
+    dataset_target_pruning_size: 1000,
     dataset_quoted_probability: 0.1,
     dataset_eval_probability: 0.5,
     dataset_split_strategy: 'sentence',
