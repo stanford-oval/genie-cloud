@@ -20,16 +20,16 @@ RUN touch /var/lib/rpm/* && \
   curl -sL https://copr.fedorainfracloud.org/coprs/gcampax/bubblewrap/repo/epel-8/gcampax-bubblewrap-epel-8.repo -o /etc/yum.repos.d/gcampax-bubblewrap-epel-8.repo && \
   dnf module install -y nodejs:10 && \
   dnf -y install unzip GraphicsMagick bubblewrap sqlcipher sqlcipher-devel procps-ng \
-    python3 python3-numpy python3-scipy python3-pip && \
+    python3 python3-numpy python3-scipy python3-pip git && \
   rm -rf /var/cache/dnf
 
 # HACK: we need to download the wheel manually or docker will die
-RUN curl -sL https://files.pythonhosted.org/packages/24/19/4804aea17cd136f1705a5e98a00618cb8f6ccc375ad8bfa437408e09d058/torch-1.4.0-cp36-cp36m-manylinux1_x86_64.whl \
-  -o torch-1.4.0-cp36-cp36m-manylinux1_x86_64.whl && \
-  pip3 install torch-1.4.0-cp36-cp36m-manylinux1_x86_64.whl && \
+RUN curl -sL https://files.pythonhosted.org/packages/62/01/457b49d790b6c4b9720e6f9dbbb617692f6ce8afdaadf425c055c41a7416/torch-1.5.1-cp36-cp36m-manylinux1_x86_64.whl \
+  -o torch-1.5.1-cp36-cp36m-manylinux1_x86_64.whl && \
+  pip3 install torch-1.5.1-cp36-cp36m-manylinux1_x86_64.whl && \
   rm -fr /root/.cache && \
-  rm -fr torch-1.4.0-cp36-cp36m-manylinux1_x86_64.whl
-RUN pip3 install 'genienlp==0.3.0' awscli && rm -fr /root/.cache
+  rm -fr torch-1.5.1-cp36-cp36m-manylinux1_x86_64.whl
+RUN pip3 install 'git+https://github.com/stanford-oval/genienlp@845e4a4b03e3902babc71b3edbc61bf99a5013ac#egg=genienlp' awscli && rm -fr /root/.cache
 
 # install cvc4
 RUN curl -sL https://almond-static.stanford.edu/test-data/cvc4-1.6-x86_64-linux-opt -o /usr/local/bin/cvc4
