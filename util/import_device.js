@@ -19,6 +19,7 @@ const util = require('util');
 const model = require('../model/device');
 const schemaModel = require('../model/schema');
 const exampleModel = require('../model/example');
+const entityModel = require('../model/entity');
 
 const user = require('./user');
 
@@ -371,6 +372,17 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
     const [schemaId,] = await ensurePrimarySchema(dbClient, device.name,
                                                   classDef, req, approve);
     await ensureDataset(dbClient, schemaId, dataset, json.dataset);
+    if (classDef.entities.length > 0) {
+        await entityModel.updateMany(dbClient, classDef.entities.map((stmt) => {
+            return {
+                name: stmt.metadata.description,
+                language: 'en',
+                id: classDef.kind + ':' + stmt,
+                is_well_known: false,
+                has_ner_support: stmt.annotations.has_ner ? stmt.annotations.has_ner.toJS() : true
+            };
+        }));
+    }
     const factory = FactoryUtils.makeDeviceFactory(classDef, device);
 
     classDef.annotations.version = new ThingTalk.Ast.Value.Number(device.developer_version);
