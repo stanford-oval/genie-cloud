@@ -82,7 +82,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
         if (req.body.flags && !/^[a-zA-Z_][0-9a-zA-Z_]*(?:[ ,]+[a-zA-Z_][0-9a-zA-Z_]*)*$/.test(req.body.flags))
             throw new BadRequestError(req._("Invalid flags"));
 
-        const flags = req.body.flags ? req.body.flags.split(/[ ,]/g) : [];
+        const flags = req.body.flags ? req.body.flags.split(/[ ,]+/g) : [];
 
         // remove the turking flag if specified (it has a special meaning related to mturk)
         const turkingIdx = flags.indexOf('turking');

@@ -70,7 +70,7 @@ async function uploadTemplatePack(req) {
 
         validateTag(req.body.tag, req.user, user.Role.NLP_ADMIN);
 
-        const flags = req.body.flags ? req.body.flags.split(/[ ,]/g) : [];
+        const flags = req.body.flags ? req.body.flags.split(/[ ,]+/g) : [];
         if (flags.indexOf('turking') < 0)
             flags.unshift('turking');
 
