@@ -17,7 +17,6 @@ const logger = require('morgan');
 const bodyParser = require('body-parser');
 const cacheable = require('cacheable-middleware');
 const Prometheus = require('prom-client');
-const Genie = require('genie-toolkit');
 
 const db = require('../util/db');
 const Metrics = require('../util/metrics');
@@ -35,11 +34,6 @@ class NLPInferenceServer {
     constructor() {
         this._models = new Map;
         this._exactMatchers = new Map;
-        this._tokenizer = new Genie.LocalTokenizer(Config.NL_TOKENIZER_ADDRESS);
-    }
-
-    get tokenizer() {
-        return this._tokenizer;
     }
 
     getExact(locale) {

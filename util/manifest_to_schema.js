@@ -148,7 +148,7 @@ module.exports = {
                     doc: fnDef.annotations.doc ? fnDef.annotations.doc.toJS() : '',
                     confirmation: fnDef.metadata.confirmation,
                     confirmation_remote: fnDef.metadata.confirmation_remote || '',
-                    canonical: fnDef.metadata.canonical,
+                    canonical: Array.isArray(fnDef.metadata.canonical) ? fnDef.metadata.canonical[0] : fnDef.metadata.canonical,
                     formatted: fnDef.metadata.formatted || [],
                     is_list: fnDef.is_list,
                     is_monitorable: fnDef.is_monitorable,

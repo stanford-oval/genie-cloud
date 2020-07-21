@@ -171,7 +171,7 @@ async function testSync() {
 
 async function testCreateWriteStream() {
     const { name: tmpFile, fd: tmpFD } =
-        tmpSync.fileSync({ mode: 0o600, dir: '/var/tmp' });
+        tmpSync.fileSync({ mode: 0o600, tmpdir: '/var/tmp' });
     const tmpSyncStub = {
         fileSync: function() {
             return { name: tmpFile, fd: tmpFD };

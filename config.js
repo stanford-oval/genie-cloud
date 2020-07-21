@@ -312,15 +312,6 @@ module.exports.NL_SERVER_ADMIN_TOKEN = null;
 module.exports.NL_THINGPEDIA_DEVELOPER_KEY = null;
 
 /**
-  The address (socket path or host:port) of a running Almond Tokenizer.
-
-  This is only used if WITH_LUINET === 'embedded'. If the environment
-  variable `THINGENGINE_USE_TOKENIZER` is set, it is used by both the
-  frontend and the NLP processes; otherwise, only by the NLP process.
-*/
-module.exports.NL_TOKENIZER_ADDRESS = '127.0.0.1:8888';
-
-/**
   Deployed model directory.
 
   This is the path containing the models that should be served by the NLP inference

@@ -134,6 +134,18 @@ async function testHomepage(driver) {
     }
 }
 
+// there is some randomness in what message we pick
+const WELCOME_MESSAGES = [
+    `Hi, what can I do for you?`,
+    `Hi, how can I help you?`,
+    `Hello, what can I do for you?`,
+    `Hello, how can I help you?`,
+    `Hi! What can I do for you?`,
+    `Hi! How can I help you?`,
+    `Hello! What can I do for you?`,
+    `Hello! How can I help you?`,
+];
+
 const HAS_DATA_COLLECTION_CONFIRMATION = false;
 async function skipDataCollectionConfirmation(driver) {
     await driver.get(BASE_URL + '/me');
@@ -146,7 +158,8 @@ async function skipDataCollectionConfirmation(driver) {
     await driver.sleep(5000);
 
     let messages = await driver.findElements(WD.By.css('.message'));
-    assert.strictEqual(await messages[0].getText(), `Hello! I'm Almond, your virtual assistant.`); //'
+    // TODO: first time welcome message
+    assert(WELCOME_MESSAGES.includes(await messages[0].getText()));
 
     if (HAS_DATA_COLLECTION_CONFIRMATION) {
         // ignore the blurb about data collection, skip to the yes/no question
@@ -181,8 +194,9 @@ async function testMyConversation(driver) {
 
     let messages = await driver.findElements(WD.By.css('.message'));
     assert.strictEqual(messages.length, 1);
-    assert.strictEqual(await messages[0].getText(), `Welcome back!`);
+    assert(WELCOME_MESSAGES.includes(await messages[0].getText()));
 
+    // todo: use a better test
     await inputEntry.sendKeys('no', WD.Key.ENTER);
 
     const ourInput = await driver.wait(
@@ -193,7 +207,7 @@ async function testMyConversation(driver) {
     const response = await driver.wait(
         WD.until.elementLocated(WD.By.css('.from-almond:nth-child(3) .message')),
         60000);
-    assert.strictEqual(await response.getText(), 'No way!');
+    assert.strictEqual(await response.getText(), 'Sorry, I did not understand that. Can you rephrase it?');
 }
 
 async function assertHasClass(element, className) {

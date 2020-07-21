@@ -16,6 +16,7 @@ const fs = require('fs');
 const acceptLanguage = require('accept-language');
 const assert = require('assert');
 const ThingTalk = require('thingtalk');
+const Genie = require('genie-toolkit');
 
 const { InternalError } = require('./errors');
 const userUtils = require('./user');
@@ -70,21 +71,19 @@ const self = {
             let gt = new Gettext();
             if (locale !== 'en-US') {
                 let modir = path.resolve(path.dirname(module.filename), '../po');//'
-                loadTextdomainDirectory(gt, locale, 'thingengine-platform-cloud', modir);
+                loadTextdomainDirectory(gt, locale, 'almond-cloud', modir);
                 modir = path.resolve(path.dirname(module.filename), '../node_modules/thingtalk/po');
                 loadTextdomainDirectory(gt, locale, 'thingtalk', modir);
-                modir = path.resolve(path.dirname(module.filename), '../node_modules/almond-dialog-agent/po');
-                loadTextdomainDirectory(gt, locale, 'almond', modir);
-                loadTextdomainDirectory(gt, locale, 'almond-dialog-agent', modir);
-                modir = path.resolve(path.dirname(module.filename), '../node_modules/thingengine-core/po');
-                loadTextdomainDirectory(gt, locale, 'thingengine-core', modir);
+                modir = path.resolve(path.dirname(module.filename), '../node_modules/genie-toolkit/po');
+                loadTextdomainDirectory(gt, locale, 'genie-toolkit', modir);
             }
-            gt.textdomain('thingengine-platform-cloud');
+            gt.textdomain('almond-cloud');
             gt.setLocale(locale);
 
             // prebind the gt for ease of use, because the usual gettext API is not object-oriented
             const prebound = {
                 locale,
+                genie: Genie.I18n.get(locale),
 
                 gettext: gt.gettext.bind(gt),
                 ngettext: gt.ngettext.bind(gt),

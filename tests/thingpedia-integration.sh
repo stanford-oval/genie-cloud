@@ -150,10 +150,6 @@ wait
 
 mkdir -p $workdir/training/jobs/{1,2,3} $workdir/exact
 
-# first compile the PPDB
-node $srcdir/node_modules/.bin/genie compile-ppdb $srcdir/tests/data/ppdb-2.0-xs-lexical -o $workdir/ppdb-2.0-xs-lexical.bin
-export PPDB=$workdir/ppdb-2.0-xs-lexical.bin
-
 # make up a training job
 ${srcdir}/main.js execute-sql-file /proc/self/fd/0 <<<"insert into training_jobs set id = 1, job_type ='update-dataset', language = 'en', all_devices = 1, status = 'started', task_index = 0, task_name = 'update-dataset', config = '{}'"
 
@@ -164,15 +160,15 @@ node ${srcdir}/main.js download-dataset -l en --output exact.tsv
 
 # generate a training set
 
-${srcdir}/main.js execute-sql-file /proc/self/fd/0 <<<"insert into training_jobs set id = 2, job_type ='train', language = 'en', model_tag ='org.thingpedia.models.developer', all_devices = 1, status = 'started', task_index = 0, task_name = 'prepare-training-set', config = '{\"synthetic_depth\":3,\"dataset_target_pruning_size\":5000,\"dataset_eval_probability\":1.0}'"
+${srcdir}/main.js execute-sql-file /proc/self/fd/0 <<<"insert into training_jobs set id = 2, job_type ='train', language = 'en', model_tag ='org.thingpedia.models.developer', all_devices = 1, status = 'started', task_index = 0, task_name = 'prepare-training-set', config = '{\"synthetic_depth\":3,\"dataset_target_pruning_size\":1000,\"dataset_eval_probability\":1.0}'"
 node ${srcdir}/main.js run-training-task -t prepare-training-set --job-id 2 --job-dir $workdir/training/jobs/2 --debug
 
 sha256sum exact.tsv ./exact/en.btrie ./training/jobs/2/dataset/eval.tsv ./training/jobs/2/dataset/train.tsv
 sha256sum -c <<EOF
-2ca8c09e1495309e953c596805d586b58aaa9c424799aecad4998c084197ca72  exact.tsv
-688657cf6d434ac3bdaf536398567b59fb9c0a51b03e23843c7f41a4fb44f8a1  ./exact/en.btrie
+b78f1b8dfcb03c8589fa0d606f636c467cf0b7a8f8399864dad91354770bb383  exact.tsv
+f86fdc771fd50fa74a7c6b52acfe00a1fb94917d9e859e3968cfdd17f6c35443  ./exact/en.btrie
 3ac80766f6627704c85572340a9cf034a9b0cdb9fe5ccce8e91f6af0829e5eb9  ./training/jobs/2/dataset/eval.tsv
-bac806842c2ea79b5abc3e4ed886e0a7f8ab224a9ef98ac4b0cf381b2680e7c6  ./training/jobs/2/dataset/train.tsv
+aedb7e57e0e84f8a7fe78c4cb734e8a12133df87fd12e49860d55cbe7be9680b  ./training/jobs/2/dataset/train.tsv
 EOF
 
 rm -rf $workdir

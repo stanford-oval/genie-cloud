@@ -15,12 +15,12 @@ const ThingTalk = require('thingtalk');
 const entityModel = require('../model/entity');
 const stringModel = require('../model/strings');
 
-const { clean, splitParams, tokenize } = require('./tokenize');
-const TokenizerService = require('./tokenizer_service');
+const { clean, splitParams } = require('./tokenize');
 const ThingpediaClient = require('./thingpedia-client');
 const getExampleName = require('./example_names');
 const { ValidationError } = require('./errors');
 const userUtils = require('./user');
+const I18n = require('./i18n');
 
 assert(typeof ThingpediaClient === 'function');
 
@@ -35,8 +35,8 @@ const FORBIDDEN_NAMES = new Set(['__count__', '__noSuchMethod__', '__parent__',
 '__lookupSetter__', 'eval', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable',
 'toLocaleString', 'toSource', 'toString', 'valueOf']);
 
-const ALLOWED_ARG_METADATA = new Set(['canonical', 'prompt']);
-const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'confirmation', 'confirmation_remote', 'formatted']);
+const ALLOWED_ARG_METADATA = new Set(['canonical', 'prompt', 'question']);
+const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'confirmation', 'confirmation_remote', 'result', 'formatted']);
 const ALLOWED_CLASS_METADATA = new Set(['name', 'description', 'thingpedia_name', 'thingpedia_description', 'canonical']);
 
 function validateAnnotations(annotations) {
@@ -128,12 +128,13 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     if (missingStrings.length > 0)
         throw new ValidationError('Invalid string types: ' + missingStrings.join(', '));
 
+    const tokenizer = I18n.get('en-US').genie.getTokenizer();
     if (!classDef.metadata.name)
         classDef.metadata.name = name;
     if (!classDef.metadata.description)
         classDef.metadata.description = description;
     if (!classDef.metadata.canonical)
-        classDef.metadata.canonical = tokenize(name).join(' ');
+        classDef.metadata.canonical = tokenizer.tokenize(name).tokens.join(' ');
     await validateDataset(dataset);
 
     // delete annotations that are specific to devices uploaded with the "thingpedia" CLI tool
@@ -239,11 +240,12 @@ function validateAllInvocations(classDef, options = {}) {
     return [Array.from(entities), Array.from(stringTypes)];
 }
 
-function autogenCanonical(name, kind, deviceName) {
-    return `${clean(name)} on ${deviceName ? tokenize(deviceName).join(' ') : cleanKind(kind)}`;
+function autogenCanonical(tokenizer, name, kind, deviceName) {
+    return `${clean(name)} on ${deviceName ? tokenizer.tokenize(deviceName).tokens.join(' ') : cleanKind(kind)}`;
 }
 
 function validateInvocation(kind, where, what, entities, stringTypes, options = {}) {
+    const tokenizer = I18n.get('en-US').genie.getTokenizer();
     for (const name in where) {
         if (FORBIDDEN_NAMES.has(name))
             throw new ValidationError(`${name} is not allowed as a function name`);
@@ -251,7 +253,7 @@ function validateInvocation(kind, where, what, entities, stringTypes, options = 
         validateAnnotations(where[name].annotations);
 
         if (!where[name].metadata.canonical)
-            where[name].metadata.canonical = autogenCanonical(name, kind, options.deviceName);
+            where[name].metadata.canonical = autogenCanonical(tokenizer, name, kind, options.deviceName);
         if (where[name].metadata.canonical.indexOf('$') >= 0)
             throw new ValidationError(`Detected placeholder in canonical form for ${name}: this is incorrect, the canonical form must not contain parameters`);
         if (!where[name].metadata.confirmation)
@@ -328,7 +330,7 @@ function cleanKind(kind) {
     return kind.replace(/[_\-.]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
 }
 
-async function tokenizeOneExample(id, utterance, language) {
+function tokenizeOneExample(id, utterance, language) {
     let replaced = '';
     let params = [];
 
@@ -350,7 +352,8 @@ async function tokenizeOneExample(id, utterance, language) {
         params.push([param, opt]);
     }
 
-    const {tokens, entities} = await TokenizerService.tokenize(language, replaced);
+    const tokenizer = I18n.get(language).genie.getTokenizer();
+    const {tokens, entities} = tokenizer.tokenize(replaced);
     if (Object.keys(entities).length > 0)
         throw new ValidationError(`Error in Example ${id}: Cannot have entities in the utterance`);
 

@@ -22,7 +22,7 @@ router.get('/oauth2/callback/:kind', (req, res, next) => {
     const kind = req.params.kind;
 
     EngineManager.get().getEngine(req.user.id).then(async (engine) => {
-        await engine.devices.completeOAuth(kind, req.url, req.session);
+        await engine.completeOAuth(kind, req.url, req.session);
         if (req.session['device-redirect-to']) {
             res.redirect(303, req.session['device-redirect-to']);
             delete req.session['device-redirect-to'];

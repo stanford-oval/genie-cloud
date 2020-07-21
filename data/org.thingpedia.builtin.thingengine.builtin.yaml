@@ -1,162 +1,224 @@
 thingpedia_name: Miscellaneous Interfaces
 thingpedia_description: Commands that are always available and don't belong to any specific device or account. Mostly related to time and randomness, because the universe is chaos and those always there. Also debugging.
-repository: https://github.com/stanford-oval/thingengine-core
+repository: https://github.com/stanford-oval/genie-toolkit
 subcategory: service
 
 class: |
-  class @org.thingpedia.builtin.thingengine.builtin {
+  class @org.thingpedia.builtin.thingengine.builtin
+  #_[name="Miscellaneous Interfaces"]
+  #_[description="Commands that are always available and don't belong to any specific device or account. Mostly related to time and randomness, because the universe is chaos and those always there. Also debugging."]
+  #_[canonical="miscellaneous interfaces"]
+  {
     import loader from @org.thingpedia.builtin();
     import config from @org.thingpedia.config.builtin();
 
-    monitorable query get_gps(out location: Location #_[prompt="What location are you interested in?"] #_[canonical="location"],
-                              out altitude: Measure(m) #_[canonical="altitude"],
-                              out bearing: Number #_[canonical="bearing"],
-                              out speed: Measure(mps) #_[canonical="speed"])
-    #_[canonical="current location"]
+    monitorable query get_gps(out location: Location
+                              #_[canonical={
+                                default="preposition",
+                                base=["coordinates"],
+                                preposition=["in #", "at #", "around #"]
+                              }],
+                              out altitude: Measure(m)
+                              #_[canonical={
+                                default="base",
+                                base=["altitude"],
+                                preposition=["at # above sea level"]
+                              }]
+                              #[min_number=0m]
+                              #[max_number=15000m], // not approved for use in the ISS
+                              out bearing: Number
+                              #_[canonical={
+                                base=["bearing"],
+                                passive_verb=["facing #"] // FIXME we want to say "facing 30 degrees north" but we can't quite do that...
+                              }],
+                              out speed: Measure(mps)
+                              #_[canonical={
+                                base=["speed"],
+                                passive_verb=["going at #", "moving at #"],
+                                preposition=["at #"]
+                              }]
+                              )
+    #_[canonical=["my current location", "my current position", "my current geocoordinates"]]
     #_[confirmation="your location"]
-    #_[confirmation_remote="$__person's location"]
     #_[formatted=[{type="text",text="Current Location: ${location}"}]]
     #[poll_interval=0ms]
-    #[doc="get last known GPS location"];
+    #[doc="get last known GPS location"]
+    #[confirm=false];
 
-    query get_time(out time: Date)
-    #_[canonical="get time"]
+    query get_time(out time: Time
+                   #_[canonical=["time"]]
+                   #[filterable=false])
+    #[result=["it 's ${time}", "the current time is ${time}", "now it 's ${time}"]]
+    #_[canonical=["time", "current time", "time of day"]]
     #_[confirmation="the current time"]
     #_[formatted=[{type="text",text="Current time is ${time:time}."}]]
-    #[doc="get the current time; this is equivalent to $now() and exists mostly so that Sabrina can codegen it"];
+    #[doc="get the current time"]
+    #[confirm=false];
 
-    query get_date(out date: Date)
-    #_[canonical="get date"]
+    query get_date(out date: Date
+                   #_[canonical=["date"]]
+                   #[filterable=false])
+    #_[canonical=["date", "current date", "today 's date"]]
     #_[confirmation="today's date"]
     #_[formatted=[{type="text",text="Today is ${date:date}."}]]
-    #[doc="get the current date; this is equivalent to $now() and exists mostly so that Sabrina can codegen it; also equivalent to get_time() but the default formatting is different"];
+    #[doc="get the current date"]
+    #[confirm=false];
 
-    query get_random_between(in req low: Number #_[prompt="What should be the lower bound?"],
-                             in req high: Number #_[prompt="What should be the upper bound?"],
-                             out random: Number)
-    #_[canonical="get random integer"]
+    query get_random_between(in opt low: Number
+                             #_[canonical={
+                               base=["lower bound", "minimum number"],
+                               passive_verb=["higher than #", "more than #"] // the sentence is "give me a random number higher than X", so "higher than X" is pvp not apv
+                             }],
+                             in opt high: Number
+                             #_[canonical={
+                               base=["upper bound", "maximum number"],
+                               passive_verb=["higher than #", "more than #"] // the sentence is "give me a random number higher than X", so "higher than X" is pvp not apv
+                             }],
+                             out random: Number
+                             #_[canonical={
+                               base=["number", "result"],
+                             }]
+                             #[filterable=false])
+    #_[canonical=["random number", "random integer"]]
+    #_[result=["${random}", "your number is ${random} .", "i chose ${random} ."]]
     #_[confirmation="a random integer between $low and $high"]
     #_[formatted=[{type="text",text="${random}"}]]
-    #[doc="get a uniform random integer between `low` and `high`; this is equivalent to $random() and some rounding/mod operation"];
+    #[doc="get a uniform random integer between `low` and `high`"]
+    #[confirm=false];
 
-    list query get_commands(in req device: Entity(tt:device) #_[prompt="What device do you want help for?"],
-                            out program: Entity(tt:program))
-    #_[canonical="list commands"]
+    list query device(out id : Entity(tt:device)
+                      #_[canonical={
+                         base=["name"],
+                         passive_verb=["named #", "called #"],
+                      }],
+                      out description : String
+                      #_[canonical={
+                         base=["description"]
+                      }]
+                      #[string_values="tt:short_free_text"],
+                      out category : Enum(service, media, social_network, communication, home, health, data_management)
+                      #_[canonical={
+                         base=["category"],
+                         adjective=["#"],
+                         preposition=["in the # category"]
+                      }],
+                      out website : Entity(tt:url)
+                      #_[canonical={
+                         base=["website", "link", "url"]
+                      }]
+                      )
+    #_[canonical=["device", "skill", "thingpedia device", "supported skill"]]
+    #_[confirmation="Thingpedia devices"]
+    #_[formatted=[{type="text",text="${random}"}]]
+    #[doc="list supported Thingpedia devices"]
+    #[confirm=false];
+
+    list query commands(out id : Entity(tt:command_id),
+                        out device: Entity(tt:device)
+                        #_[canonical={
+                          base=["device", "account", "skill"],
+                          adjective=["# 's"],
+                          preposition=["of #", "in #"]
+                        }]
+                        #_[prompt=["what device do you want help for", "for what device"]],
+                        out program: Entity(tt:program)
+                        #_[canonical=["program", "command"]]
+                        #[filterable=false])
+    #_[canonical="supported command"]
     #_[confirmation="the list of commands of $device"]
     #_[formatted=[{type="text",text="${program}"}]]
-    #[doc="retrieve the list of supported commands for the given device"];
-
-    query canned_reply(in req intent: Enum(hello,cool,sorry,thank_you),
-                     out text : String)
-    #_[canonical="get canned reply"]
-    #_[confirmation="a reply to ${intent}"]
-    #_[formatted=["${text}"]]
-    #[doc="provide a canned reply to some common intents"];
-
-    action debug_log(in req message: String #_[prompt="What should I write in the logs?"])
-    #_[canonical="log"]
-    #_[confirmation="write $message in the developer logs"]
-    #_[confirmation_remote="write $message in the developer logs on $__person's phone"]
-    #[doc="log a message in the developer logs"]
+    #[doc="retrieve the list of supported commands for the given device"]
     #[confirm=false];
 
-    action configure(in req device: Entity(tt:device) #_[prompt="What device do you want to configure?"])
-    #_[canonical="configure"]
-    #_[confirmation="configure a new $device"]
-    #_[confirmation_remote="configure a new $device on $__person's Almond"]
-    #[doc="configure a specific device by type"]
-    #[confirm=false];
-
-    action say(in req message: String #_[prompt="What do you want me to say?"])
-    #_[canonical="say"]
-    #_[confirmation="send me a message $message"]
-    #_[confirmation_remote="send $__person message $message"]
-    #[doc="makes Almond say something; this is the codegennable version of @$notify"]
-    #[confirm=false];
-
-    action discover()
-    #_[canonical="discover"]
-    #_[confirmation="search for new devices"]
-    #_[confirmation_remote="search for new devices on $__person's Almond"]
-    #[doc="start interactive discovery for new devices"]
-    #[confirm=false];
-
-    action open_url(in req url: Entity(tt:url) #_[prompt="What URL do you want to open?"])
-    #_[canonical="open url on builtin"]
+    action open_url(in req url: Entity(tt:url)
+                    #_[prompt=["what url do you want to open", "what do you want to open"]]
+                    #_[canonical={
+                      base=["url", "link", "page"],
+                      preposition=["to #"]
+                    }])
+    #_[canonical=["open a url", "open a link"]]
     #_[confirmation="open $url"]
-    #_[confirmation_remote="open $url in $__person's PC"]
     #[doc="open a file/link"]
     #[confirm=false];
+
+    action say(in req message: String
+               #_[prompt="what do you want me to say"]
+               #[string_values="tt:long_free_text"]
+               #_[canonical="message"],
+               out message_output: String
+               #_[canonical="message"])
+    #_[result="${message_output}"]
+    #_[canonical="say"]
+    #_[confirmation="send me a message $message"]
+    #[doc="makes Almond say something"]
+    #[confirm=false];
+
+    action debug_log(in req message: String
+                     #_[prompt=["what should i write in the logs", "what do you want me to write"]]
+                     #[string_values="tt:long_free_text"]
+                     #_[canonical="message"])
+    #_[canonical=["log a message", "record a message", "write a message in the logs"]]
+    #_[confirmation="write $message in the developer logs"]
+    #[doc="log a message in the developer logs"]
+    #[confirm=false];
   }
+
 
 dataset: |
   dataset @org.thingpedia.builtin.thingengine.builtin language "en" {
-      stream  := monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps())
-      #_[utterances=["when my location changes","when i move"]]
-      #[name="MonitorCurrentLocation"];
+      stream := monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps())
+      #_[utterances=["when my location changes",
+                     "when i move",
+                     "when i move around",
+                     "when i change location",
+                     "when my position changes"]]
+      #[name="MonitorGetCurrentLocation"];
 
-      stream (p_location :Location)  := edge (monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps())) on location == p_location
-      #_[utterances=["when my location changes to $p_location","when i reach $p_location"]];
+      stream (p_location :Location) := edge (monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps())) on location == p_location
+      #_[utterances=["when my location changes to $p_location",
+                     "when i reach $p_location",
+                     "when i get to $p_location",
+                     "when i arrive at $p_location"]]
+      #[name="MonitorGetCurrentLocationByLocation"];
 
-      query  := @org.thingpedia.builtin.thingengine.builtin.get_gps()
-      #_[utterances=["my current location"]];
+      stream (p_location :Location) := edge (monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps())) on !(location == p_location)
+      #_[utterances=["when i move away from $p_location",
+                     "when my location changes away from $p_location",
+                     "when i leave $p_location"]]
+      #[name="MonitorGetCurrentLocationNotByLocation"];
 
-      stream (p_location :Location)  := edge (monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps())) on !(location == p_location)
-      #_[utterances=["when i move away from $p_location","when i leave $p_location"]];
+      program := now => @org.thingpedia.builtin.thingengine.builtin.get_time() => notify
+      #_[utterances=["what time is it"]]
+      #[name="GetTime"];
 
-      query  := @org.thingpedia.builtin.thingengine.builtin.get_time()
-      #_[utterances=["the current time","what time is it"]];
+      program := now => @org.thingpedia.builtin.thingengine.builtin.get_date() => notify
+      #_[utterances=["what day is today",
+                     "what day is it"]]
+      #[name="GetDate"];
 
-      query  := @org.thingpedia.builtin.thingengine.builtin.get_date()
-      #_[utterances=["the current date","what day is today","what day is it","today 's date"]];
+      query := @org.thingpedia.builtin.thingengine.builtin.get_random_between()
+      #_[utterances=[", choose a random number",
+                     ", throw a dice"]]
+      #[name="GetRandomInteger"];
 
-      query  := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=$?, high=$?)
-      #_[utterances=["a random number",", choose a random number"]];
+      query (p_low :Number, p_high :Number) := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=p_low, high=p_high)
+      #_[utterances=["a random number between ${p_low:const} and ${p_high:const}",
+                     "a random integer between ${p_low:const} and ${p_high:const}",
+                     ", throw a dice between ${p_low:const} and ${p_high:const}",
+                     ", generate a random number between ${p_low:const} and ${p_high:const}",
+                     ", choose a number between ${p_low:const} and ${p_high:const}"]]
+      #[name="GetRandomIntegerWithLowWithHigh"];
 
-      query (p_low :Number, p_high :Number)  := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=p_low, high=p_high)
-      #_[utterances=["a random number between ${p_low:const} and ${p_high:const}","a random integer between ${p_low:const} and ${p_high:const}",", throw a dice between ${p_low:const} and ${p_high:const}",", generate a random number between ${p_low:const} and ${p_high:const}",", choose a number between ${p_low:const} and ${p_high:const}"]];
+      action (p_message :String) := @org.thingpedia.builtin.thingengine.builtin.say(message=p_message)
+      #_[utterances=["send me a message ${p_message:const}",
+                     "tell me $p_message",
+                     "say $p_message"]]
+      #[name="SayWithMessage"];
 
-      action  := @org.thingpedia.builtin.thingengine.builtin.discover()
-      #_[utterances=["discover new devices","search devices nearby"]];
-
-      action (p_device :Entity(tt:device))  := @org.thingpedia.builtin.thingengine.builtin.configure(device=p_device)
-      #_[utterances=["configure $p_device","setup $p_device","enable $p_device","install $p_device"]];
-
-      action (p_message :String)  := @org.thingpedia.builtin.thingengine.builtin.say(message=p_message)
-      #_[utterances=["send me a message ${p_message:const}","tell me $p_message","say $p_message"]];
-
-      query  := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=0, high=1)
-      #_[utterances=["a random coin"]];
-
-      query (p_device :Entity(tt:device))  := @org.thingpedia.builtin.thingengine.builtin.get_commands(device=p_device)
-      #_[utterances=["the commands in $p_device",", help $p_device","commands that $p_device supports","commands supported by $p_device","what $p_device can do"]];
-
-      action (p_url :Entity(tt:url))  := @org.thingpedia.builtin.thingengine.builtin.open_url(url=p_url)
-      #_[utterances=["open $p_url","open the file at $p_url","open $p_url in the browser","browse to $p_url"]]
-      #[name="OpenUrl"];
-
-      program  := {
-    now => @org.thingpedia.builtin.thingengine.builtin.canned_reply(intent=enum(hello)) => notify;
-  }
-      #_[utterances=["hello","hello!","hi","hi!","howdy","good morning","good afternoon","good evening"]]
-      #[name="Hello"];
-
-      program  := {
-    now => @org.thingpedia.builtin.thingengine.builtin.canned_reply(intent=enum(cool)) => notify;
-  }
-      #_[utterances=["cool","awesome","you're cool","i like you","i like this"]]
-      #[name="Cool"];
-
-      program  := {
-    now => @org.thingpedia.builtin.thingengine.builtin.canned_reply(intent=enum(thank_you)) => notify;
-  }
-      #_[utterances=["thank you","thanks","good job"]]
-      #[name="ThankYou"];
-
-      program  := {
-    now => @org.thingpedia.builtin.thingengine.builtin.canned_reply(intent=enum(sorry)) => notify;
-  }
-      #_[utterances=["sorry","i'm sorry","my bad","my mistake"]]
-      #[name="Sorry"];
-
+      action (p_url :Entity(tt:url)) := @org.thingpedia.builtin.thingengine.builtin.open_url(url=p_url)
+      #_[utterances=["open $p_url",
+                     "open the file at $p_url",
+                     "open $p_url in the browser",
+                     "browse to $p_url"]]
+      #[name="OpenUrlOnBuiltinWithUrl"];
   }

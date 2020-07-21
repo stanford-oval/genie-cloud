@@ -1,6 +1,6 @@
 thingpedia_name: Almond Configuration
 thingpedia_description: A placeholder for configuration parameters of Almond. This device is created and loaded automatically by the system.
-repository: https://github.com/stanford-oval/thingengine-core
+repository: https://github.com/stanford-oval/genie-toolkit
 subcategory: service
 
 class: |

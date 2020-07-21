@@ -30,7 +30,6 @@ const { makeRandom } = require('../util/random');
 
 const Importer = require('../util/import_device');
 const { clean } = require('../util/tokenize');
-const TokenizerService = require('../util/tokenizer_service');
 const codeStorage = require('../util/code_storage');
 const execSql = require('../util/exec_sql');
 
@@ -39,10 +38,8 @@ const Config = require('../config');
 const req = { _(x) { return x; } };
 
 const DEFAULT_TRAINING_CONFIG = JSON.stringify({
-    dataset_target_pruning_size: 5000,
-    dataset_contextual_target_pruning_size: 1000,
-    dataset_ppdb_probability_synthetic: 0.1,
-    dataset_ppdb_probability_paraphrase: 1.0,
+    dataset_target_pruning_size: 1000,
+    dataset_contextual_target_pruning_size: 100,
     dataset_quoted_probability: 0.1,
     dataset_eval_probability: 0.5,
     dataset_split_strategy: 'sentence',
@@ -128,13 +125,19 @@ async function importStandardEntities(dbClient) {
         };
     }));
 
-    // this entity type is required by Almond GNOME, but is not a well known entity
+    // this entity types are not a well known entity
     // you must import the values separately
     await entityModel.create(dbClient, {
         id: 'org.freedesktop:app_id',
         name: 'Freedesktop App Identifier',
         is_well_known: false,
         has_ner_support: true
+    });
+    await entityModel.create(dbClient, {
+        id: 'tt:command_id',
+        name: 'Thingpedia Command ID',
+        is_well_known: false,
+        has_ner_support: false
     });
 }
 
@@ -208,11 +211,9 @@ async function importBuiltinDevices(dbClient, rootOrg) {
         'org.thingpedia.builtin.thingengine.builtin',
         'org.thingpedia.builtin.thingengine.gnome',
         'org.thingpedia.builtin.thingengine.phone',
-        'org.thingpedia.builtin.thingengine.remote',
         'org.thingpedia.builtin.test',
         'org.thingpedia.builtin.bluetooth.generic',
         'messaging',
-        'org.thingpedia.builtin.matrix',
     ];
 
     for (let primaryKind of BUILTIN_DEVICES) {
@@ -420,7 +421,6 @@ module.exports = {
                 console.error(`Almond appears to be already bootstrapped, refusing to bootstrap again.`);
 
                 await db.tearDown();
-                TokenizerService.tearDown();
                 return;
             }
         }
@@ -447,6 +447,5 @@ module.exports = {
         });
 
         await db.tearDown();
-        TokenizerService.tearDown();
     }
 };

@@ -34,7 +34,7 @@ const _backends = {
                 // use /var/tmp as the parent directory, to ensure it's on disk and not in a tmpfs
                 const { path: dir } = await tmp.dir({
                     mode: 0o700,
-                    dir: '/var/tmp',
+                    tmpdir: '/var/tmp',
                     unsafeCleanup: true,
                     prefix: path.basename(url.pathname) + '.'
                 });
@@ -46,7 +46,7 @@ const _backends = {
                 const { path: file } = await tmp.file({
                     mode: 0o600,
                     discardDescriptor: true,
-                    dir: '/var/tmp',
+                    tmpdir: '/var/tmp',
                     prefix: path.basename(url.pathname) + '.'
                 });
                 await cmd.exec('aws', ['s3', 'cp',  's3://' + url.hostname + url.pathname, file]);
@@ -80,7 +80,7 @@ const _backends = {
 
         createLocalWriteStream(url) {
             const { name: tmpFile, fd: tmpFD } =
-                tmpSync.fileSync({ mode: 0o600, dir: '/var/tmp' });
+                tmpSync.fileSync({ mode: 0o600, tmpdir: '/var/tmp' });
             const stream = fs.createWriteStream(tmpFile, { fd: tmpFD });
             stream.on('finish', async () => {
                 await this.upload(tmpFile, url);

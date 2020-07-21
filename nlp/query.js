@@ -10,26 +10,27 @@
 "use strict";
 
 const express = require('express');
-const Genie = require('genie-toolkit');
 
 const iv = require('../util/input_validation');
 const I18n = require('../util/i18n');
 
 const runNLU = require('./nlu');
 
-
 var router = express.Router();
 
 async function tokenize(params, data, res) {
-    if (!I18n.get(params.locale, false)) {
+    const langPack = I18n.get(params.locale, false);
+    if (!langPack) {
         res.status(404).json({ error: 'Unsupported language' });
         return;
     }
 
-    const languageTag = I18n.localeToLanguage(params.locale);
-    const tokenized = await res.app.service.tokenizer.tokenize(languageTag, data.q, data.expect || null);
-    if (data.entities)
-        Genie.Utils.renumberEntities(tokenized, data.entities);
+    const tokenizer = langPack.genie.getTokenizer();
+    const tokenized = await tokenizer.tokenize(data.q);
+
+    // adjust the API to be what it used to be before we got rid of almond-tokenizer
+    tokenized.raw_tokens = tokenized.rawTokens;
+    delete tokenized.rawTokens;
 
     tokenized.result = 'ok';
     res.cacheFor(3600);
@@ -69,7 +70,7 @@ router.get('/@:model_tag/:locale/query', iv.validateGET(QUERY_PARAMS, { json: tr
     query(req.params, req.query, res).catch(next);
 });
 
-router.get('/@:model_tag/:locale/tokenize', iv.validateGET({ q: 'string', entities: '?object' }, { json: true }), (req, res, next) => {
+router.get('/@:model_tag/:locale/tokenize', iv.validateGET({ q: 'string' }, { json: true }), (req, res, next) => {
     tokenize(req.params, req.query, res).catch(next);
 });
 
@@ -77,7 +78,7 @@ router.get('/:locale/query', iv.validateGET(QUERY_PARAMS, { json: true }), (req,
     query(req.params, req.query, res).catch(next);
 });
 
-router.get('/:locale/tokenize', iv.validateGET({ q: 'string', expect: '?string', entities: '?object' }, { json: true }), (req, res, next) => {
+router.get('/:locale/tokenize', iv.validateGET({ q: 'string' }, { json: true }), (req, res, next) => {
     tokenize(req.params, req.query, res).catch(next);
 });
 
@@ -85,7 +86,7 @@ router.post('/@:model_tag/:locale/query', iv.validatePOST(QUERY_PARAMS, { json: 
     query(req.params, req.body, res).catch(next);
 });
 
-router.post('/@:model_tag/:locale/tokenize', iv.validatePOST({ q: 'string', expect: '?string', entities: '?object' }, { json: true }), (req, res, next) => {
+router.post('/@:model_tag/:locale/tokenize', iv.validatePOST({ q: 'string' }, { json: true }), (req, res, next) => {
     tokenize(req.params, req.body, res).catch(next);
 });
 
@@ -93,7 +94,7 @@ router.post('/:locale/query', iv.validatePOST(QUERY_PARAMS, { json: true }), (re
     query(req.params, req.body, res).catch(next);
 });
 
-router.post('/:locale/tokenize', iv.validatePOST({ q: 'string', entities: '?object' }, { json: true }), (req, res, next) => {
+router.post('/:locale/tokenize', iv.validatePOST({ q: 'string' }, { json: true }), (req, res, next) => {
     tokenize(req.params, req.body, res).catch(next);
 });
 

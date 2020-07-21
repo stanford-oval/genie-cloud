@@ -268,7 +268,7 @@ async function testStringCreate(nobody, bob, root) {
                 weight: 1.0
             },
             {
-                preprocessed: 'cccc ???',
+                preprocessed: 'cccc ? ? ?',
                 value: 'Cccc???',
                 weight: 1.0
             },
@@ -308,7 +308,7 @@ async function testStringCreate(nobody, bob, root) {
                 weight: 1.0
             },
             {
-                preprocessed: 'cccc ???',
+                preprocessed: 'cccc ? ? ?',
                 value: 'Cccc???',
                 weight: 1.0
             },

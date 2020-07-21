@@ -36,9 +36,7 @@ const HAS_ABOUT_GET_INVOLVED = Config.EXTRA_ABOUT_PAGES.some((p) => p.url === 'g
 
 const DEFAULT_TRAINING_CONFIG = JSON.stringify({
     synthetic_depth: 7,
-    dataset_target_pruning_size: 5000,
-    dataset_ppdb_probability_synthetic: 0.1,
-    dataset_ppdb_probability_paraphrase: 1.0,
+    dataset_target_pruning_size: 1000,
     dataset_quoted_probability: 0.1,
     dataset_eval_probability: 0.5,
     dataset_split_strategy: 'sentence',
@@ -62,8 +60,6 @@ const DEFAULT_TRAINING_CONFIG = JSON.stringify({
 const DEFAULT_CUSTOM_DATASET_CONFIG = JSON.stringify({
     synthetic_depth: 7,
     target_pruning_size: 10000,
-    ppdb_probability_synthetic: 0.1,
-    ppdb_probability_paraphrase: 1.0,
 }, undefined, 2);
 
 router.get('/', (req, res, next) => {

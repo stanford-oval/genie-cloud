@@ -9,19 +9,13 @@
 // See COPYING for details
 "use strict";
 
-const path = require('path');
-
 const AbstractFS = require('../../util/abstract_fs');
 const DatasetGenerator = require('../lib/dataset_generator');
-
-const PPDB = process.env.PPDB || path.resolve('./ppdb-2.0-m-lexical.bin');
 
 const DEFAULT_TRAINING_CONFIG = {
     synthetic_depth: 7,
     dataset_target_pruning_size: 5000,
     dataset_contextual_target_pruning_size: 1000,
-    dataset_ppdb_probability_synthetic: 0.1,
-    dataset_ppdb_probability_paraphrase: 1.0,
     dataset_quoted_probability: 0.1,
     dataset_eval_probability: 0.5,
     dataset_split_strategy: 'sentence'
@@ -56,9 +50,6 @@ module.exports = async function main(task, argv) {
         templatePack: modelInfo.template_file_name,
 
         // augmentation flags
-        ppdbFile: PPDB,
-        ppdbProbabilitySynthetic: config.dataset_ppdb_probability_synthetic,
-        ppdbProbabilityParaphrase: config.dataset_ppdb_probability_paraphrase,
         quotedProbability: config.dataset_quoted_probability,
 
         // train/eval split flags

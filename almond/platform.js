@@ -155,8 +155,6 @@ class Platform extends Tp.BasePlatform {
 
         this._webhookApi = new WebhookApi(this._cloudId);
         this._websocketApi = new WebSocketApi();
-
-        this._assistant = null;
     }
 
     get type() {
@@ -169,10 +167,6 @@ class Platform extends Tp.BasePlatform {
 
     get timezone() {
         return this._timezone;
-    }
-
-    _setAssistant(assistant) {
-        this._assistant = assistant;
     }
 
     // Return the platform device for this platform, accessing platform-specific
@@ -221,11 +215,6 @@ class Platform extends Tp.BasePlatform {
             // this platform
             return true;
 
-        case 'assistant':
-            // If we can create a full AssistantManager (because the platform
-            // will back with a Almond account)
-            return true;
-
         case 'thingpedia-client':
             return module.exports.thingpediaUrl === '/thingpedia';
 
@@ -266,9 +255,6 @@ class Platform extends Tp.BasePlatform {
 
         case 'websocket-api':
             return this._websocketApi;
-
-        case 'assistant':
-            return this._assistant;
 
         case 'gettext':
             return this._gettext;

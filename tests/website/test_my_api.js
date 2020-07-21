@@ -46,20 +46,6 @@ async function testMyApiInvalid(auth) {
     await assertHttpError(request('/me/api/invalid', 'GET', null, { auth }), 404);
 }
 
-async function testMyApiParse(auth) {
-    const result = JSON.parse(await request('/me/api/parse?q=what+time+is+it', 'GET', null, { auth }));
-
-    assert.deepStrictEqual(result.tokens, ['what', 'time', 'is', 'it']);
-    assert.deepStrictEqual(result.entities, {});
-    assert(result.candidates.length > 0);
-
-    assert(!isNaN(parseFloat(result.candidates[0].score)));
-    ThingTalk.Grammar.parse(result.candidates[0].code);
-    assert.strictEqual(result.candidates[0].commandClass, 'query');
-    assert.strictEqual(typeof result.candidates[0].devices, 'object');
-    assert.strictEqual(typeof result.candidates[0].locations, 'object');
-}
-
 async function testMyApiCreateGetApp(auth) {
     const result = JSON.parse(await request('/me/api/apps/create', 'POST', JSON.stringify({
         code: `now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(count=2, size=10byte) => notify;`
@@ -154,21 +140,27 @@ async function testMyApiListApps(auth, uniqueId) {
     const listResult = JSON.parse(await request('/me/api/apps/list', 'GET', null, { auth }));
     assert.deepStrictEqual(listResult, [{
         uniqueId,
+        name: 'Test',
         description: 'notify you when generate 10 byte of fake data change',
         error: null,
         code:
          'monitor (@org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(size=10byte)) => notify;',
-        icon: '/download/icons/org.thingpedia.builtin.test.png'
+        icon: '/download/icons/org.thingpedia.builtin.test.png',
+        isEnabled: true,
+        isRunning: true,
     }]);
 
     const getResult = JSON.parse(await request('/me/api/apps/get/' + uniqueId, 'GET', null, { auth }));
     assert.deepStrictEqual(getResult, {
         uniqueId,
+        name: 'Test',
         description: 'notify you when generate 10 byte of fake data change',
         error: null,
         code:
          'monitor (@org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(size=10byte)) => notify;',
-        icon: '/download/icons/org.thingpedia.builtin.test.png'
+        icon: '/download/icons/org.thingpedia.builtin.test.png',
+        isEnabled: true,
+        isRunning: true,
     });
 
     await assertHttpError(request('/me/api/apps/get/uuid-invalid', 'GET', null, { auth }), 404);
@@ -192,23 +184,26 @@ async function testMyApiDevices(auth) {
         name: 'Almond cloud ()',
         description: 'This is one of your own Almond apps.',
         kind: 'org.thingpedia.builtin.thingengine',
-        ownerTier: 'cloud' },
+        version: 0,
+        ownerTier: 'cloud',
+        class: 'system',
+        isTransient: false },
       { uniqueId: 'thingengine-own-global',
         name: 'Miscellaneous Interfaces',
         description: 'Time, randomness and other non-device specific things.',
         kind: 'org.thingpedia.builtin.thingengine.builtin',
-        ownerTier: 'global' },
-      { uniqueId: 'org.thingpedia.builtin.thingengine.remote',
-        name: 'Remote Almond',
-        description:
-         'A proxy device for a Almond owned by a different user. This device is created and managed automatically by the system.',
-        kind: 'org.thingpedia.builtin.thingengine.remote',
-        ownerTier: 'global' },
+        version: 0,
+        ownerTier: 'global',
+        class: 'data',
+        isTransient: true },
       { uniqueId: 'org.thingpedia.builtin.test',
         name: 'Test Device',
         description: 'Test Almond in various ways',
         kind: 'org.thingpedia.builtin.test',
-        ownerTier: 'global' },
+        version: 0,
+        ownerTier: 'global',
+        class: 'system',
+        isTransient: true },
     ]);
 
     if (Config.WITH_THINGPEDIA === 'embedded')
@@ -217,43 +212,53 @@ async function testMyApiDevices(auth) {
     const createResult = JSON.parse(await request('/me/api/devices/create', 'POST', JSON.stringify({
         kind: 'com.xkcd',
     }), { auth, dataContentType: 'application/json' }));
+    delete createResult.version;
 
     assert.deepStrictEqual(createResult, {
         uniqueId: 'com.xkcd',
         name: 'XKCD',
         description: 'A webcomic of romance, sarcasm, math, and language.',
         kind: 'com.xkcd',
-        ownerTier: 'global'
+        ownerTier: 'global',
+        class: 'data',
+        isTransient: false
     });
 
     const listResult2 = JSON.parse(await request('/me/api/devices/list', 'GET', null, { auth }));
+    listResult2[listResult2.length-1].version = 0;
     assert.deepStrictEqual(listResult2, [
       { uniqueId: 'thingengine-own-cloud',
         name: 'Almond cloud ()',
         description: 'This is one of your own Almond apps.',
         kind: 'org.thingpedia.builtin.thingengine',
-        ownerTier: 'cloud' },
+        version: 0,
+        ownerTier: 'cloud',
+        class: 'system',
+        isTransient: false },
       { uniqueId: 'thingengine-own-global',
         name: 'Miscellaneous Interfaces',
         description: 'Time, randomness and other non-device specific things.',
         kind: 'org.thingpedia.builtin.thingengine.builtin',
-        ownerTier: 'global' },
-      { uniqueId: 'org.thingpedia.builtin.thingengine.remote',
-        name: 'Remote Almond',
-        description:
-         'A proxy device for a Almond owned by a different user. This device is created and managed automatically by the system.',
-        kind: 'org.thingpedia.builtin.thingengine.remote',
-        ownerTier: 'global' },
+        version: 0,
+        ownerTier: 'global',
+        class: 'data',
+        isTransient: true },
       { uniqueId: 'org.thingpedia.builtin.test',
         name: 'Test Device',
         description: 'Test Almond in various ways',
         kind: 'org.thingpedia.builtin.test',
-        ownerTier: 'global' },
+        version: 0,
+        ownerTier: 'global',
+        class: 'system',
+        isTransient: true },
       { uniqueId: 'com.xkcd',
         name: 'XKCD',
         description: 'A webcomic of romance, sarcasm, math, and language.',
         kind: 'com.xkcd',
-        ownerTier: 'global' }
+        version: 0,
+        ownerTier: 'global',
+        class: 'data',
+        isTransient: false }
     ]);
 }
 
@@ -282,8 +287,13 @@ async function testMyApiConverse(auth) {
     assert.deepStrictEqual(result1, {
         askSpecial: null,
         messages: [{
+            id: 0,
+            type: 'command',
+            command: '\\t now => @org.thingpedia.builtin.test.dup_data(data_in="foo") => notify;',
+        }, {
+            id: 1,
             type: 'text',
-            text: 'foofoo',
+            text: 'The answer is foofoo.',
             icon: 'org.thingpedia.builtin.test'
         }]
     });
@@ -298,9 +308,14 @@ async function testMyApiConverse(auth) {
     assert.deepStrictEqual(result2, {
         askSpecial: null,
         messages: [{
+            id: 2,
+            type: 'command',
+            command: 'no',
+        }, {
+            id: 3,
             type: 'text',
-            text: 'No way!',
-            icon: null
+            text: 'Sorry, I did not understand that. Can you rephrase it?',
+            icon: 'org.thingpedia.builtin.test'
         }],
         conversationId: conversationId1
     });
@@ -311,7 +326,6 @@ async function testMyApiOAuth(accessToken) {
 
     // /profile
     await testMyApiProfileOAuth(auth);
-    await testMyApiParse(auth);
     await testMyApiCreateGetApp(auth);
     const uniqueId = await testMyApiCreateWhenApp(auth);
     await testMyApiListApps(auth, uniqueId);

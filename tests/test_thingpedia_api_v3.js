@@ -573,7 +573,7 @@ const TEST_EXAMPLES = { result: 'ok', data: require('./data/test-examples-v3.jso
 
 async function testGetExamplesByDevice() {
     const BING_EXAMPLES = 18;
-    const BUILTIN_EXAMPLES = 59;
+    const BUILTIN_EXAMPLES = 29;
     const INVISIBLE_EXAMPLES = 1;
 
     checkExamples(await request('/examples/by-kinds/com.bing'), BING_EXAMPLES);
@@ -692,7 +692,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 131,
+      "id": 101,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me images from bing matching ____ larger than ____ x ____",
@@ -708,7 +708,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 37,
+      "id": 27,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open the file at ____",
@@ -724,7 +724,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 106,
+      "id": 76,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me texts i received in the last hour",
@@ -740,7 +740,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 113,
+      "id": 83,
       "language": "en",
       "type": "thingpedia",
       "utterance": "call somebody",
@@ -756,7 +756,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 18,
+      "id": 20,
       "language": "en",
       "type": "thingpedia",
       "utterance": "throw a dice between ____ and ____",
@@ -772,7 +772,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 80,
+      "id": 50,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me a screenshot of my laptop",
@@ -788,23 +788,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 44,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "howdy",
-      "preprocessed": "howdy",
-      "target_code": "program := {\n  now => @org.thingpedia.builtin.thingengine.builtin.canned_reply(intent=enum(hello)) => notify;\n};\n",
-      "click_count": 1,
-      "like_count": 0,
-      "liked": false,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.builtin"
-      ]
-    },
-    {
-      "id": 19  ,
+      "id": 21  ,
       "language": "en",
       "type": "thingpedia",
       "utterance": "generate a random number between ____ and ____",
@@ -818,6 +802,22 @@ async function testGetCommands() {
       "devices": [
         "org.thingpedia.builtin.thingengine.builtin"
       ]
+    },
+    {
+       click_count: 1,
+       devices: [
+         'org.thingpedia.builtin.thingengine.phone'
+       ],
+       id: 64,
+       is_base: 1,
+       language: 'en',
+       like_count: 0,
+       liked: false,
+       owner_name: 'Site Administration',
+       preprocessed: 'phone ${p_number}',
+       target_code: 'action (p_number :Entity(tt:phone_number)) := @org.thingpedia.builtin.thingengine.phone.call(number=p_number);\n',
+       type: 'thingpedia',
+       utterance: 'phone ____'
     }
   ];
 
@@ -863,7 +863,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 80,
+      "id": 50,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me a screenshot of my laptop",
@@ -878,7 +878,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 72,
+      "id": 42,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop",
@@ -893,7 +893,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 71,
+      "id": 41,
       "language": "en",
       "type": "thingpedia",
       "utterance": "turn ____ my laptop",
@@ -908,7 +908,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 79,
+      "id": 49,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete a file from my laptop",
@@ -923,7 +923,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 78,
+      "id": 48,
       "language": "en",
       "type": "thingpedia",
       "utterance": "use ____ as the background of my laptop",
@@ -938,7 +938,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 82,
+      "id": 52,
       "language": "en",
       "type": "thingpedia",
       "utterance": "save a screenshot of my laptop",
@@ -953,7 +953,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 68,
+      "id": 38,
       "language": "en",
       "type": "thingpedia",
       "utterance": "lock my laptop",
@@ -968,7 +968,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 77,
+      "id": 47,
       "language": "en",
       "type": "thingpedia",
       "utterance": "set the background of my laptop to ____",
@@ -983,7 +983,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 76,
+      "id": 46,
       "language": "en",
       "type": "thingpedia",
       "utterance": "change the background on my laptop",
@@ -998,7 +998,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 73,
+      "id": 43,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop containing ____",
@@ -1013,7 +1013,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 61,
+      "id": 31,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open ____ on my laptop",
@@ -1028,7 +1028,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 75,
+      "id": 45,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete the file named ____ from my laptop",
@@ -1043,7 +1043,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 81,
+      "id": 51,
       "language": "en",
       "type": "thingpedia",
       "utterance": "take a screenshot of my laptop",
@@ -1058,7 +1058,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 65,
+      "id": 35,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open ____ with ____ on my laptop",
@@ -1073,7 +1073,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 74,
+      "id": 44,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete ____ from my laptop",
@@ -1088,7 +1088,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 69,
+      "id": 39,
       "language": "en",
       "type": "thingpedia",
       "utterance": "activate the lock screen on my laptop",
@@ -1278,24 +1278,6 @@ async function testGetDeviceSetup() {
         }
     });
 
-    assert.deepStrictEqual(await request('/devices/setup/messaging'), {
-        result: 'ok',
-        data: {
-            'messaging': {
-                type: 'interactive',
-                text: "Matrix",
-                category: 'online',
-                kind: 'org.thingpedia.builtin.matrix'
-            },
-            'org.thingpedia.builtin.matrix': {
-                type: 'interactive',
-                text: "Matrix",
-                category: 'online',
-                kind: 'org.thingpedia.builtin.matrix'
-            },
-        }
-    });
-
     /*    'com.bing': {
             text: "Bing Search",
             category: 'data',
@@ -1311,7 +1293,7 @@ function assertNonEmptyString(what) {
 
 async function testGetDeviceSetupList(_class) {
     const EXPECTED = {
-        'online': ['org.thingpedia.builtin.matrix'],
+        'online': [],
         'physical': ['org.thingpedia.builtin.bluetooth.generic'],
         'data': ['com.bing'],
     };
@@ -1338,7 +1320,7 @@ async function testGetDeviceSetupList(_class) {
 
 async function testGetDeviceList(_class) {
     const EXPECTED = {
-        'online': ['org.thingpedia.builtin.matrix'],
+        'online': [],
         'physical': ['org.thingpedia.builtin.thingengine.phone',
                      'org.thingpedia.builtin.thingengine.home',
                      'org.thingpedia.builtin.thingengine.gnome',
@@ -1347,7 +1329,6 @@ async function testGetDeviceList(_class) {
                  'org.thingpedia.builtin.thingengine.builtin'],
         'system': ['org.thingpedia.builtin.test',
                    'org.thingpedia.builtin.thingengine',
-                   'org.thingpedia.builtin.thingengine.remote',
                    'messaging']
     };
 
@@ -1512,6 +1493,11 @@ async function testGetEntityList() {
             "name":"Freedesktop App Identifier",
             "is_well_known":0,
             "has_ner_support":1
+        },{
+            "type":"tt:command_id",
+            "name":"Thingpedia Command ID",
+            "is_well_known":0,
+            "has_ner_support":0
         },{
             "type":"tt:stock_id",
             "name":"Company Stock ID",

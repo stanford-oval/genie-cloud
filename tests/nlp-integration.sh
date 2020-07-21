@@ -18,15 +18,11 @@ export JWT_SIGNING_KEY
 SECRET_KEY="not so secret key"
 export SECRET_KEY
 
-export THINGENGINE_USE_TOKENIZER=local
-
 workdir=`mktemp -t -d almond-nlp-integration-XXXXXX`
 workdir=`realpath $workdir`
 on_error() {
     test -n "$inferpid" && kill $inferpid
     inferpid=
-    test -n "$tokenizerpid" && kill $tokenizerpid
-    tokenizerpid=
     wait
 
     cd $oldpwd
@@ -58,9 +54,6 @@ PROMETHEUS_ACCESS_TOKEN: my-prometheus-access-token
 MS_SPEECH_SUBSCRIPTION_KEY: "${MS_SPEECH_SUBSCRIPTION_KEY}"
 MS_SPEECH_SERVICE_REGION: westus2
 EOF
-
-node $srcdir/tests/mock-tokenizer.js &
-tokenizerpid=$!
 
 # set up download directories
 mkdir -p $workdir/shared/download
@@ -114,8 +107,6 @@ fi
 
 kill $inferpid
 inferpid=
-kill $tokenizerpid
-tokenizerpid=
 wait
 
 cd $oldpwd

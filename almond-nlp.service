@@ -1,7 +1,5 @@
 [Unit]
 Description=Almond Semantic Parser Service
-Requires=almond-tokenizer.service
-After=almond-tokenizer.service
 
 [Service]
 EnvironmentFile=/etc/sysconfig/almond-cloud

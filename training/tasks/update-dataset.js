@@ -153,7 +153,7 @@ class DatasetUpdater {
 
             const toUpdate = [];
             await Promise.all(batch.map(async (ex) => {
-                const entities = Genie.Utils.makeDummyEntities(ex.preprocessed);
+                const entities = Genie.EntityUtils.makeDummyEntities(ex.preprocessed);
                 const program = ThingTalk.NNSyntax.fromNN(ex.target_code.split(' '), entities);
 
                 try {

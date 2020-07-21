@@ -31,10 +31,11 @@ const alexaModelsModel = require('../model/alexa_model');
 const user = require('../util/user');
 const Importer = require('../util/import_device');
 const { makeRandom } = require('../util/random');
-const TokenizerService = require('../util/tokenizer_service');
+const I18n = require('../util/i18n');
 
 const Config = require('../config');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
+I18n.init(Config.SUPPORTED_LANGUAGES);
 
 const req = { _(x) { return x; } };
 
@@ -444,6 +445,5 @@ async function main() {
     });
 
     await db.tearDown();
-    TokenizerService.tearDown();
 }
 main();

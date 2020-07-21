@@ -7,9 +7,7 @@ const Stream = require('stream');
 
 const db = require('./db');
 const user = require('./user');
-const tokenizer = require('./tokenize');
 const I18n = require('./i18n');
-const TokenizerService = require('./tokenizer_service');
 const { BadRequestError, ForbiddenError } = require('./errors');
 
 const schemaModel = require('../model/schema');
@@ -25,6 +23,7 @@ class StreamTokenizer extends Stream.Transform {
         this._language = options.language;
         this._preprocessed = options.preprocessed;
         this._typeId = options.typeId;
+        this._tokenizer = I18n.get(options.language).genie.getTokenizer();
     }
 
     _transform(row, encoding, callback) {
@@ -63,19 +62,18 @@ class StreamTokenizer extends Stream.Transform {
                 value, preprocessed, weight
             });
         } else {
-            TokenizerService.tokenize(this._language, value).then((result) => {
-                // ignore lines with uppercase (entity) tokens
-                if (result.tokens.some((t) => /[A-Z]/.test(t))) {
-                    callback(null);
-                } else {
-                    callback(null, {
-                        type_id: this._typeId,
-                        value,
-                        preprocessed: result.tokens.join(' '),
-                        weight
-                    });
-                }
-            }, (err) => callback(err));
+            const result = this._tokenizer.tokenize(value);
+            // ignore lines with uppercase (entity) tokens
+            if (result.tokens.some((t) => /[A-Z]/.test(t))) {
+                callback(null);
+            } else {
+                callback(null, {
+                    type_id: this._typeId,
+                    value,
+                    preprocessed: result.tokens.join(' '),
+                    weight
+                });
+            }
         }
     }
 
@@ -87,6 +85,7 @@ class StreamTokenizer extends Stream.Transform {
 module.exports = {
     uploadEntities: async function(req) {
         const language = I18n.localeToLanguage(req.locale);
+        const tokenizer = I18n.get(req.locale).genie.getTokenizer();
 
         try {
             await db.withTransaction(async (dbClient) => {
@@ -143,7 +142,7 @@ module.exports = {
                         const value = row[0].trim();
                         const name = row[1];
 
-                        const tokens = tokenizer.tokenize(name);
+                        const { tokens } = tokenizer.tokenize(name);
                         const canonical = tokens.join(' ');
                         callback(null, {
                             language,
