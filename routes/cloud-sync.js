@@ -21,7 +21,8 @@ class CloudSyncWebsocketDelegate {
             ws.close();
         });
         ws.on('close', async () => {
-            this.$free();
+            if (this.$free)
+                this.$free();
         });
         ws.on('message', async (data) => {
             if (this._remote !== null) {
