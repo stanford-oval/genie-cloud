@@ -173,7 +173,7 @@ block content
         span.query= _("GET: ")
       else
         span.action= _("DO: ")
-      = inv.canonical
+      = Array.isArray(inv.canonical) ? inv.canonical[0] : inv.canonical
     p= inv.annotations.doc ? inv.annotations.doc.toJS() : ''
 
     if inv.args.filter((argname) => inv.isArgInput(argname)).length > 0
@@ -185,11 +185,10 @@ block content
             - if (!a.is_input) continue;
             li
               if a.metadata.prompt
-                = _("%s [%s]: %s").format(a.canonical, a.metadata.human_readable_type, a.metadata.prompt)
+                = _("%s [%s]: %s").format(a.canonical, a.metadata.human_readable_type, Array.isArray(a.metadata.prompt) ? a.metadata.prompt[0] : a.metadata.prompt)
               else
                 = _("%s [%s]").format(a.canonical, a.metadata.human_readable_type)
 
-    if inv_type === 'query'
       section
         h4= _("Results:")
         ul
@@ -199,6 +198,7 @@ block content
             li
               = _("%s [%s]").format(a.canonical, a.metadata.human_readable_type)
 
+    if inv_type === 'query'
       p
       if inv.is_list
         = _("This operation returns a list of results.")

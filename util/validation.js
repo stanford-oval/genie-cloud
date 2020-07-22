@@ -35,7 +35,7 @@ const FORBIDDEN_NAMES = new Set(['__count__', '__noSuchMethod__', '__parent__',
 '__lookupSetter__', 'eval', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable',
 'toLocaleString', 'toSource', 'toString', 'valueOf']);
 
-const ALLOWED_ARG_METADATA = new Set(['canonical', 'prompt', 'question']);
+const ALLOWED_ARG_METADATA = new Set(['canonical', 'prompt', 'question', 'counted_object']);
 const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'confirmation', 'confirmation_remote', 'result', 'formatted']);
 const ALLOWED_CLASS_METADATA = new Set(['name', 'description', 'thingpedia_name', 'thingpedia_description', 'canonical']);
 
@@ -107,7 +107,7 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
 
     if (!classDef.is_abstract) {
         if (!classDef.loader)
-            throw new ValidationError("loader mixin missing from class declaration");
+            throw new ValidationError(req._("Loader mixin missing from class declaration"));
         if (!classDef.config)
             classDef.imports.push(new ThingTalk.Ast.ImportStmt.Mixin(null, ['config'], 'org.thingpedia.config.none', []));
     }
@@ -115,11 +115,19 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     const moduleType = classDef.is_abstract ? null : classDef.loader.module;
     const fullcode = !classDef.is_abstract && !JAVASCRIPT_MODULE_TYPES.has(moduleType);
 
-    const [entities, stringTypes] = await validateAllInvocations(classDef, {
+    for (let stmt of classDef.entities) {
+        if (typeof stmt.metadata.description !== 'string' ||
+            !stmt.metadata.description)
+            throw new ValidationError(req._("A description is required for entity %s").format(stmt.name));
+    }
+
+    let [entities, stringTypes] = await validateAllInvocations(classDef, {
         checkPollInterval: !classDef.is_abstract,
         checkUrl: fullcode,
         deviceName: name
     });
+    // remove from entities those that are declared in this class
+    entities = entities.filter((e) => classDef.entities.find((stmt) => classDef.kind + ':' + stmt.name === e));
     const missingEntities = await entityModel.findNonExisting(dbClient, entities);
     if (missingEntities.length > 0)
         throw new ValidationError('Invalid entity types: ' + missingEntities.join(', '));

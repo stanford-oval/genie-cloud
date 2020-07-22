@@ -24,6 +24,11 @@ module.exports = {
     async update(client, id, entity) {
         await db.query(client, `update entity_names set ? where id = ?`, [entity, id]);
     },
+    async updateMany(client, entities) {
+        return db.query(client, `insert into entity_names(id, language, name, is_well_known, has_ner_support) values ?
+            on duplicate key update name=values(name), is_well_known=values(is_well_known), has_ner_support=values(has_ner_support)`,
+            [entities.map((e) => [e.id, e.language, e.name, e.is_well_known, e.has_ner_support])]);
+    },
 
     get(client, id, language = 'en') {
         return db.selectOne(client, "select * from entity_names where id = ? and language = ?",
