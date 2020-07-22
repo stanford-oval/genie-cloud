@@ -59,7 +59,8 @@ async function runNLU(query, params, data, service, res) {
         other: 0
     };
 
-    const { tokens, candidates, entities } = await model.predictor.sendUtterance(query, data.context, data.entities, data);
+    const { tokens, candidates, entities } = await model.predictor.sendUtterance(query,
+        data.context ? data.context.split(' ') : undefined, data.context ? data.entities : undefined, data);
 
     if (store !== 'no' && expect !== 'MultipleChoice' && tokens.length > 0) {
         await db.withClient((dbClient) => {

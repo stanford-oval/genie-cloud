@@ -116,8 +116,8 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     const fullcode = !classDef.is_abstract && !JAVASCRIPT_MODULE_TYPES.has(moduleType);
 
     for (let stmt of classDef.entities) {
-        if (typeof stmt.metadata.description !== 'string' ||
-            !stmt.metadata.description)
+        if (typeof stmt.nl_annotations.description !== 'string' ||
+            !stmt.nl_annotations.description)
             throw new ValidationError(req._("A description is required for entity %s").format(stmt.name));
     }
 
@@ -127,7 +127,7 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
         deviceName: name
     });
     // remove from entities those that are declared in this class
-    entities = entities.filter((e) => classDef.entities.find((stmt) => classDef.kind + ':' + stmt.name === e));
+    entities = entities.filter((e) => !classDef.entities.find((stmt) => classDef.kind + ':' + stmt.name === e));
     const missingEntities = await entityModel.findNonExisting(dbClient, entities);
     if (missingEntities.length > 0)
         throw new ValidationError('Invalid entity types: ' + missingEntities.join(', '));

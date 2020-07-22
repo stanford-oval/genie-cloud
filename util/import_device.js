@@ -375,11 +375,11 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
     if (classDef.entities.length > 0) {
         await entityModel.updateMany(dbClient, classDef.entities.map((stmt) => {
             return {
-                name: stmt.metadata.description,
+                name: stmt.nl_annotations.description,
                 language: 'en',
                 id: classDef.kind + ':' + stmt,
                 is_well_known: false,
-                has_ner_support: stmt.annotations.has_ner ? stmt.annotations.has_ner.toJS() : true
+                has_ner_support: stmt.impl_annotations.has_ner ? stmt.impl_annotations.has_ner.toJS() : true
             };
         }));
     }

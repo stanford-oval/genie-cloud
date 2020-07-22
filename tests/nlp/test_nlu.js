@@ -115,50 +115,36 @@ async function testTokenize() {
 async function testContextual() {
     const parser = Genie.ParserClient.get(Config.NL_SERVER_URL, 'en-US');
 
-    const q1 = await parser.sendUtterance('another one',
-        'now => @com.thecatapi.get => notify', {});
+    const q1 = await parser.sendUtterance("i'm looking for a restaurant that serves chinese",
+        'null'.split(' '), {}, {});
     delete q1.intent;
     assert.deepStrictEqual(q1, {
         result: 'ok',
-        tokens: ['another', 'one'],
+        tokens: ['i', '\'m', 'looking', 'for', 'a', 'restaurant', 'that', 'serves', 'chinese'],
         entities: {},
         candidates: [{
-            code: [ 'now', '=>', '@com.thecatapi.get', '=>', 'notify' ],
+            code: [
+            '$dialogue', '@org.thingpedia.dialogue.transaction.execute', ';',
+            'now', '=>', '(', '@com.yelp.restaurant', ')', 'filter', 'param:cuisines', 'contains', '"', 'chinese', '"', '^^com.yelp:restaurant_cuisine', '=>', 'notify', ';' ],
             score: 1
         }]
     });
 
-    const q2 = await parser.sendUtterance('another one', {
-        code: 'now => @uk.co.thedogapi.get => notify',
-        entities: {}
-    });
+    const q2 = await parser.sendUtterance('how about something that serves italian food?',
+        '$dialogue @org.thingpedia.dialogue.transaction.execute ; now => ( @com.yelp.restaurant ) filter param:cuisines contains GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 => notify #[ results = [ ] ] ;'.split(' '), {
+            'GENERIC_ENTITY_com.yelp:restaurant_cuisine_0': { display: "Chinese", value: 'chinese' }
+        });
     delete q2.intent;
     assert.deepStrictEqual(q2, {
         result: 'ok',
-        tokens: ['another', 'one'],
-        entities: {},
-        candidates: [{
-            code: [ 'now', '=>', '@uk.co.thedogapi.get', '=>', 'notify' ],
-            score: 1
-        }]
-    });
-
-    const q3 = await parser.sendUtterance('another one', {
-        code: 'now => @com.thecatapi.get param:count:Number = NUMBER_0 => notify',
+        tokens: 'how about something that serves italian food ?'.split(' '),
         entities: {
-            NUMBER_0: 2
-        }
-    });
-    delete q3.intent;
-    assert.deepStrictEqual(q3, {
-        result: 'ok',
-        tokens: ['another', 'one'],
-        entities: {
-            NUMBER_0: 2
+            'GENERIC_ENTITY_com.yelp:restaurant_cuisine_0': { display: "Chinese", value: 'chinese' }
         },
         candidates: [{
-            // this is actually not the right answer, but this is what the model says, and the server code is correct this way
-            code: [ 'now', '=>', '@com.thecatapi.get', 'param:count:Number', '=', '1', '=>', 'notify' ],
+            code: [
+            '$dialogue', '@org.thingpedia.dialogue.transaction.execute', ';',
+            'now', '=>', '(', '@com.yelp.restaurant', ')', 'filter', 'param:cuisines', 'contains', '"', 'italian', '"', '^^com.yelp:restaurant_cuisine', '=>', 'notify', ';' ],
             score: 1
         }]
     });
@@ -272,9 +258,7 @@ async function testAdmin() {
 }
 
 async function main() {
-    // TODO: train a full contextual model so we can enable this
-    //await testContextual();
-
+    await testContextual();
     await testEverything();
     await testTokenize();
     await testExpect();
