@@ -7572,10 +7572,10 @@ thingpedia-discovery@^1.0.0:
   dependencies:
     node-ssdp "^2.7.2"
 
-thingpedia@~2.8.0-beta.1:
-  version "2.8.0-beta.1"
-  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.8.0-beta.1.tgz#80a14d09b50cf2375cc7f48d0ae005808301b230"
-  integrity sha512-NAcYsvFffuPSnxAVlb7HzY9HdGTuW5m6NJnBlCDDSoyVAJD87iHiZwdLim7oFNwJJlCijEB4DaLpcF1V9G+qMQ==
+thingpedia@~2.8.0-beta.1, thingpedia@~2.8.0-beta.2:
+  version "2.8.0-beta.2"
+  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.8.0-beta.2.tgz#94c35f7ea83075e6ee3bd426dfbedd70c58e4043"
+  integrity sha512-5mQHI77/cdBZ3o0E88wdapGaJrPkOfmVsiK5RWb8w5Y2jtoDrdOBqrrfrWcE/ple+6YsuxGTQIcXPQn1vrDgSw==
   dependencies:
     feedparser "^2.2.9"
     gettext-parser "^4.0.2"
