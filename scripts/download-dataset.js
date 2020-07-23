@@ -59,21 +59,35 @@ module.exports = {
             const regexp = ' @(' + forDevices.map((d) => d.replace(/[.\\]/g, '\\$&')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';
 
             query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                where language = ? and find_in_set('training',flags) and not
+                where language = ? and find_in_set('training',flags) and not find_in_set('synthetic',flags) and not
                 find_in_set('obsolete',flags) and not find_in_set('template',flags)
                 and target_code<>'' and preprocessed<>'' and target_code rlike ?
                 order by id asc`,
                 [language, regexp]);
-        } else if (types.length > 0) {
+        } else if (types.length === 1 && types[0] === 'generated') {
             query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
                 where language = ? and find_in_set('training',flags) and not
+                find_in_set('obsolete',flags) and not find_in_set('template',flags)
+                and target_code<>'' and preprocessed<>'' and type like ?
+                order by id asc`,
+                [language, types[0]]);
+        } else if (types.length === 1) {
+            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
+                where language = ? and find_in_set('training',flags)  and not find_in_set('synthetic',flags) and not
+                find_in_set('obsolete',flags) and not find_in_set('template',flags)
+                and target_code<>'' and preprocessed<>'' and type like ?
+                order by id asc`,
+                [language, types[0]]);
+        } else if (types.length > 0) {
+            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
+                where language = ? and find_in_set('training',flags)  and not find_in_set('synthetic',flags)  and not
                 find_in_set('obsolete',flags) and not find_in_set('template',flags)
                 and target_code<>'' and preprocessed<>'' and type in (?)
                 order by id asc`,
                 [language, types]);
         } else {
             query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                where language = ? and find_in_set('training',flags) and not
+                where language = ? and find_in_set('training',flags)  and not find_in_set('synthetic',flags) and not
                 find_in_set('obsolete',flags) and not find_in_set('template',flags)
                 and target_code<>'' and preprocessed<>''
                 order by id asc`,
@@ -88,6 +102,7 @@ module.exports = {
         query.on('result', (row) => {
             row.flags = parseFlags(row.flags);
             row.flags.replaced = false;
+            row.flags.eval = row.flags.exact;
             writer.write(row);
         });
         query.on('end', () => {
