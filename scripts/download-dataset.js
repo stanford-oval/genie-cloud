@@ -45,6 +45,11 @@ module.exports = {
             help: 'Restrict download to commands in the given dataset type.',
             dest: 'types',
         });
+        parser.addArgument(['--include-obsolete'], {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Include obsolete sentences (sentences that no longer typecheck).',
+        });
     },
 
     async main(argv) {
@@ -55,44 +60,32 @@ module.exports = {
         const [dbClient, dbDone] = await db.connect();
 
         let query;
+        let args = [language];
+        let includeSyntheticClause = `and not find_in_set('synthetic',flags)`;
+        let includeObsoleteClause = argv.include_obsolete ? '' : `and not find_in_set('obsolete',flags)`;
+        let filterClause = '';
         if (forDevices.length > 0) {
             const regexp = ' @(' + forDevices.map((d) => d.replace(/[.\\]/g, '\\$&')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';
-
-            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                where language = ? and find_in_set('training',flags) and not find_in_set('synthetic',flags) and not
-                find_in_set('obsolete',flags) and not find_in_set('template',flags)
-                and target_code<>'' and preprocessed<>'' and target_code rlike ?
-                order by id asc`,
-                [language, regexp]);
-        } else if (types.length === 1 && types[0] === 'generated') {
-            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                where language = ? and find_in_set('training',flags) and not
-                find_in_set('obsolete',flags) and not find_in_set('template',flags)
-                and target_code<>'' and preprocessed<>'' and type like ?
-                order by id asc`,
-                [language, types[0]]);
+            filterClause = 'and target_code rlike ?';
+            args.push(regexp);
         } else if (types.length === 1) {
-            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                where language = ? and find_in_set('training',flags)  and not find_in_set('synthetic',flags) and not
-                find_in_set('obsolete',flags) and not find_in_set('template',flags)
-                and target_code<>'' and preprocessed<>'' and type like ?
-                order by id asc`,
-                [language, types[0]]);
+            if (types[0] === 'generated')
+                includeSyntheticClause ='';
+            filterClause = 'and type like ?';
+            args.push(types[0]);
         } else if (types.length > 0) {
-            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                where language = ? and find_in_set('training',flags)  and not find_in_set('synthetic',flags)  and not
-                find_in_set('obsolete',flags) and not find_in_set('template',flags)
-                and target_code<>'' and preprocessed<>'' and type in (?)
-                order by id asc`,
-                [language, types]);
+            filterClause = 'and type in (?)';
+            args.push(types);
         } else {
-            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                where language = ? and find_in_set('training',flags)  and not find_in_set('synthetic',flags) and not
-                find_in_set('obsolete',flags) and not find_in_set('template',flags)
-                and target_code<>'' and preprocessed<>''
-                order by id asc`,
-                [language]);
+            includeSyntheticClause = '';
         }
+
+        query = `select id,flags,preprocessed,target_code from example_utterances
+                where language = ? and find_in_set('training',flags) and not find_in_set('template',flags)
+                ${includeSyntheticClause} ${includeObsoleteClause} ${filterClause}
+                and target_code<>'' and preprocessed<>''
+                order by id asc`;
+        query = dbClient.query(query, args);
         if (argv.test)
             argv.eval_prob *= 2;
 
@@ -109,6 +102,7 @@ module.exports = {
             writer.end();
             dbDone();
         });
+        query.on('error', (e) => { throw e; });
 
         await StreamUtils.waitFinish(argv.output);
         await db.tearDown();
