@@ -75,6 +75,12 @@ module.exports = {
             dest: 'training',
             help: 'Do not use this dataset for training.'
         });
+        parser.addArgument(['--preserve-id'], {
+            nargs: 0,
+            action: 'storeTrue',
+            defaultValue: false,
+            help: 'Preserve IDs of uploaded sentences (and update the existing sentence if they already exist)'
+        });
         parser.addArgument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
@@ -93,6 +99,7 @@ module.exports = {
                         ex.flags.training = argv.training;
                         ex.flags.exact = argv.exact;
                         callback(null, {
+                            id: argv.preserve_id ? ex.id : undefined,
                             language: argv.language,
                             utterance: ex.preprocessed,
                             preprocessed: ex.preprocessed,
@@ -109,7 +116,7 @@ module.exports = {
                         process.nextTick(callback);
                     }
                 }))
-                .pipe(exampleModel.insertStream(dbClient));
+                .pipe(exampleModel.insertStream(dbClient, argv.preserve_id));
 
             await StreamUtils.waitFinish(output);
         });
