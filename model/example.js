@@ -14,7 +14,7 @@ const stream = require('stream');
 const db = require('../util/db');
 const { tokenize, stripUnsafeTokens } = require('../util/tokenize');
 
-function createMany(client, examples) {
+function createMany(client, examples, updateExisting) {
     if (examples.length === 0)
         return Promise.resolve();
 
@@ -38,17 +38,33 @@ function createMany(client, examples) {
         arrays.push(vals);
     });
 
-    return db.insertOne(client, 'insert into example_utterances(' + KEYS.join(',') + ') '
-                        + 'values ?', [arrays]);
+
+    if (updateExisting) {
+        return db.insertOne(client, 'insert into example_utterances(' + KEYS.join(',') + ') '
+                            + `values ? on duplicate key update
+                               utterance=values(utterance), preprocessed=values(preprocessed), context=values(context),
+                               target_code=values(target_code), type=values(type), flags=values(flags), is_base=values(is_base)`,
+                               [arrays]);
+    } else {
+        return db.insertOne(client, 'insert into example_utterances(' + KEYS.join(',') + ') '
+                            + 'values ?', [arrays]);
+    }
 }
 
-function create(client, ex) {
+function create(client, ex, updateExisting) {
     if (!ex.type)
         ex.type = 'thingpedia';
     if (ex.click_count === undefined)
         ex.click_count = 1;
 
-    return db.insertOne(client, 'insert into example_utterances set ?', [ex]);
+    if (updateExisting) {
+        return db.insertOne(client, `insert into example_utterances set ? on duplicate key update
+                                     utterance=values(utterance), preprocessed=values(preprocessed), context=values(context),
+                                     target_code=values(target_code), type=values(type), flags=values(flags), is_base=values(is_base)`,
+                                     [ex]);
+    } else {
+        return db.insertOne(client, 'insert into example_utterances set ?', [ex]);
+    }
 }
 
 module.exports = {
@@ -314,16 +330,16 @@ module.exports = {
 
     createMany,
     create,
-    insertStream(client) {
+    insertStream(client, updateExisting) {
         return new stream.Writable({
             objectMode: true,
             highWaterMark: 200,
 
             write(obj, encoding, callback) {
-                create(client, obj).then(() => callback(), callback);
+                create(client, obj, updateExisting).then(() => callback(), callback);
             },
             writev(objs, callback) {
-                createMany(client, objs.map((o) => o.chunk)).then(() => callback(), callback);
+                createMany(client, objs.map((o) => o.chunk), updateExisting).then(() => callback(), callback);
             }
         });
     },
