@@ -3,7 +3,7 @@
   "version": "1.8.0",
   "description": "Cloud Almond",
   "author": "Stanford University Mobile and Social Computing Lab",
-  "license": "GPL-3.0+",
+  "license": "Apache-2.0",
   "repository": "https://github.com/stanford-oval/almond-cloud",
   "contributors": [
     {
