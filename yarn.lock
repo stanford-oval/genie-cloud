@@ -5189,10 +5189,10 @@ micromatch@^3.0.4:
     snapdragon "^0.8.1"
     to-regex "^3.0.2"
 
-microsoft-cognitiveservices-speech-sdk@^1.12.1:
-  version "1.13.0"
-  resolved "https://registry.yarnpkg.com/microsoft-cognitiveservices-speech-sdk/-/microsoft-cognitiveservices-speech-sdk-1.13.0.tgz#c9b800888204851e9518a75fc5bcc084f8ce5e4f"
-  integrity sha512-kcw91q0OXj500IEjZPPqhVgxRwP3z+AUJEXmPwaXjb2ouO5/L9SsAM3fCAb9mr00k0/Cze31YA1F60hHreiRaA==
+microsoft-cognitiveservices-speech-sdk@^1.13.1:
+  version "1.13.1"
+  resolved "https://registry.yarnpkg.com/microsoft-cognitiveservices-speech-sdk/-/microsoft-cognitiveservices-speech-sdk-1.13.1.tgz#9555bb00bea0d7b92697667c1af811b8d1bce5f5"
+  integrity sha512-8Jis9HFYwWxaEpxwnFF6kEBZmEvGxfl3VUUdBXObJ0/WzkbvdTsyORRnHxztdSehiuS1BCq+XpmdpzI67KgZ9g==
   dependencies:
     agent-base "^6.0.0"
     asn1.js-rfc2560 "^5.0.0"
