@@ -29,7 +29,7 @@ RUN curl -sL https://files.pythonhosted.org/packages/62/01/457b49d790b6c4b9720e6
   pip3 install torch-1.5.1-cp36-cp36m-manylinux1_x86_64.whl && \
   rm -fr /root/.cache && \
   rm -fr torch-1.5.1-cp36-cp36m-manylinux1_x86_64.whl
-RUN pip3 install 'git+https://github.com/stanford-oval/genienlp@74915155fa683fed4345674c3e4d7df79cc98580#egg=genienlp' awscli && rm -fr /root/.cache
+RUN pip3 install 'git+https://github.com/stanford-oval/genienlp@5139c716558d59a4b05af9a2c27fa9569bf92d1d#egg=genienlp' awscli && rm -fr /root/.cache
 
 # install cvc4
 RUN curl -sL https://almond-static.stanford.edu/test-data/cvc4-1.6-x86_64-linux-opt -o /usr/local/bin/cvc4
