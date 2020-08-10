@@ -43,7 +43,7 @@
     "cookie-parser": "^1.4.3",
     "csurf": "^1.9.0",
     "csv-parse": "^4.11.1",
-    "csv-stringify": "^5.5.0",
+    "csv-stringify": "^5.5.1",
     "deep-equal": "^2.0.3",
     "discourse-sso": "^1.0.3",
     "escape-html": "^1.0.3",
