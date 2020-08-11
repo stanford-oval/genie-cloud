@@ -35,24 +35,51 @@ async function runNLU(query, params, data, service, res) {
     const expect = data.expect || null;
 
     let modelTag = params.model_tag;
-    if (!modelTag) {
-        if (isValidDeveloperKey(data.developer_key)) {
-            if (data.context)
-                modelTag = 'org.thingpedia.models.developer.contextual';
-            else
-                modelTag = 'org.thingpedia.models.developer';
-        } else {
-            if (data.context)
-                modelTag = 'org.thingpedia.models.contextual';
-            else
-                modelTag = 'org.thingpedia.models.default';
+    let model;
+    if (modelTag) {
+        model = service.getModel(modelTag, params.locale);
+        if (!model || !model.trained) {
+            res.status(404).json({ error: 'No such model' });
+            return undefined;
         }
-    }
+    } else {
+        let fallbacks;
+        if (isValidDeveloperKey(data.developer_key)) {
+            if (data.context) {
+                fallbacks = ['org.thingpedia.models.developer.contextual', 'org.thingpedia.models.contextual',
+                             'org.thingpedia.models.developer', 'org.thingpedia.models.default'];
+            } else {
+                fallbacks = ['org.thingpedia.models.developer', 'org.thingpedia.models.default',
+                             'org.thingpedia.models.developer.contextual', 'org.thingpedia.models.contextual'];
+            }
+        } else {
+            if (data.context) {
+                fallbacks = ['org.thingpedia.models.contextual', 'org.thingpedia.models.developer.contextual',
+                             'org.thingpedia.models.default', 'org.thingpedia.models.developer'];
+            } else {
+                fallbacks = ['org.thingpedia.models.default', 'org.thingpedia.models.developer',
+                             'org.thingpedia.models.contextual', 'org.thingpedia.models.developer.contextual'];
+            }
+        }
 
-    const model = service.getModel(modelTag, params.locale);
-    if (!model || !model.trained) {
-        res.status(404).json({ error: 'No such model' });
-        return undefined;
+        for (const candidate of fallbacks) {
+            model = service.getModel(candidate, params.locale);
+            if (model && model.trained) {
+                const isContextual = candidate.endsWith('.contextual');
+                if (isContextual && !data.context) {
+                    data.context = 'null';
+                    data.entities = {};
+                } else if (!isContextual) {
+                    data.context = undefined;
+                    data.entities = undefined;
+                }
+                break;
+            }
+        }
+        if (!model) {
+            res.status(500).json({ error: 'No default model' });
+            return undefined;
+        }
     }
 
     if (model.accessToken !== null && model.accessToken !== data.access_token) {
