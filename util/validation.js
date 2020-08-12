@@ -46,7 +46,7 @@ const FORBIDDEN_NAMES = new Set(['__count__', '__noSuchMethod__', '__parent__',
 'toLocaleString', 'toSource', 'toString', 'valueOf']);
 
 const ALLOWED_ARG_METADATA = new Set(['canonical', 'prompt', 'question', 'counted_object']);
-const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'confirmation', 'confirmation_remote', 'result', 'formatted']);
+const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'confirmation', 'confirmation_remote', 'result', 'formatted', 'on_error']);
 const ALLOWED_CLASS_METADATA = new Set(['name', 'description', 'thingpedia_name', 'thingpedia_description', 'canonical']);
 
 function validateAnnotations(annotations) {
@@ -267,42 +267,50 @@ function validateInvocation(kind, where, what, entities, stringTypes, options = 
     for (const name in where) {
         if (FORBIDDEN_NAMES.has(name))
             throw new ValidationError(`${name} is not allowed as a function name`);
-        validateMetadata(where[name].metadata, ALLOWED_FUNCTION_METADATA);
-        validateAnnotations(where[name].annotations);
 
-        if (!where[name].metadata.canonical)
-            where[name].metadata.canonical = autogenCanonical(tokenizer, name, kind, options.deviceName);
-        if (where[name].metadata.canonical.indexOf('$') >= 0)
+        const fndef = where[name];
+        validateMetadata(fndef.metadata, ALLOWED_FUNCTION_METADATA);
+        validateAnnotations(fndef.annotations);
+
+        if (!fndef.metadata.canonical)
+            fndef.metadata.canonical = autogenCanonical(tokenizer, name, kind, options.deviceName);
+        if (typeof fndef.metadata.canonical === 'string' &&
+            fndef.metadata.canonical.indexOf('$') >= 0)
             throw new ValidationError(`Detected placeholder in canonical form for ${name}: this is incorrect, the canonical form must not contain parameters`);
-        if (!where[name].metadata.confirmation)
+        if (!fndef.metadata.confirmation)
             throw new ValidationError(`Missing confirmation for ${name}`);
-        if (where[name].annotations.confirm) {
-            if (!where[name].annotations.confirm.isBoolean)
+
+        if (fndef.annotations.confirm) {
+            if (fndef.annotations.confirm.isEnum) {
+                if (!['confirm', 'auto', 'display_result'].includes(fndef.annotations.confirm.toJS()))
+                    throw new ValidationError(`Invalid #[confirm] annotation for ${name}, must be a an enum "confirm", "auto", "display_result"`);
+            } else if (!fndef.annotations.confirm.isBoolean) {
                 throw new ValidationError(`Invalid #[confirm] annotation for ${name}, must be a Boolean`);
+            }
         } else {
             if (what === 'query')
-                where[name].annotations.confirm = new ThingTalk.Ast.Value.Boolean(false);
+                fndef.annotations.confirm = new ThingTalk.Ast.Value.Boolean(false);
             else
-                where[name].annotations.confirm = new ThingTalk.Ast.Value.Boolean(true);
+                fndef.annotations.confirm = new ThingTalk.Ast.Value.Boolean(true);
         }
-        if (options.checkPollInterval && what === 'query' && where[name].is_monitorable) {
-            if (!where[name].annotations.poll_interval)
+        if (options.checkPollInterval && what === 'query' && fndef.is_monitorable) {
+            if (!fndef.annotations.poll_interval)
                 throw new ValidationError(`Missing poll interval for monitorable query ${name}`);
-            if (where[name].annotations.poll_interval.toJS() < 0)
+            if (fndef.annotations.poll_interval.toJS() < 0)
                 throw new ValidationError(`Invalid negative poll interval for monitorable query ${name}`);
         }
         if (options.checkUrl) {
-            if (!where[name].annotations.url)
+            if (!fndef.annotations.url)
                 throw new ValidationError(`Missing ${what} url for ${name}`);
         }
 
-        for (const argname of where[name].args) {
+        for (const argname of fndef.args) {
             if (FORBIDDEN_NAMES.has(argname))
                 throw new ValidationError(`${argname} is not allowed as argument name in ${name}`);
-            let type = where[name].getArgType(argname);
+            let type = fndef.getArgType(argname);
             while (type.isArray)
                 type = type.elem;
-            const arg = where[name].getArgument(argname);
+            const arg = fndef.getArgument(argname);
             validateMetadata(arg.metadata, ALLOWED_ARG_METADATA);
             validateAnnotations(arg.annotations);
 
