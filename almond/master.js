@@ -20,7 +20,6 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Q = require('q');
 const assert = require('assert');
 const events = require('events');
 const rpc = require('transparent-rpc');
@@ -114,7 +113,14 @@ class ControlSocketServer {
     }
 
     start() {
-        return Q.ninvoke(this._server, 'listen', this._address);
+        return new Promise((resolve, reject) => {
+            this._server.listen(this._address, (err) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve();
+            });
+        });
     }
 
     stop() {

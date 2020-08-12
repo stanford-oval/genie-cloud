@@ -23,9 +23,6 @@
 // load thingpedia to initialize the polyfill
 require('thingpedia');
 
-const Q = require('q');
-Q.longStackSupport = true;
-
 const stream = require('stream');
 const rpc = require('transparent-rpc');
 const argparse = require('argparse');

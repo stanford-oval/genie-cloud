@@ -48,7 +48,7 @@ var router = express.Router();
 
 function N_(x) { return x; }
 
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
     res.redirect(301, '/thingpedia');
 });
 

@@ -21,8 +21,8 @@
 
 // Cloud platform
 
-const Q = require('q');
 const fs = require('fs');
+const util = require('util');
 const os = require('os');
 const events = require('events');
 const child_process = require('child_process');
@@ -36,10 +36,8 @@ const i18n = require('../util/i18n');
 var _unzipApi = {
     unzip(zipPath, dir) {
         var args = ['-uo', zipPath, '-d', dir];
-        return Q.nfcall(child_process.execFile, '/usr/bin/unzip', args, {
-            maxBuffer: 10 * 1024 * 1024 }).then((zipResult) => {
-            var stdout = zipResult[0];
-            var stderr = zipResult[1];
+        return util.promisify(child_process.execFile)('/usr/bin/unzip', args, {
+            maxBuffer: 10 * 1024 * 1024 }).then(({ stdout, stderr }) => {
             console.log('stdout', stdout);
             console.log('stderr', stderr);
         });

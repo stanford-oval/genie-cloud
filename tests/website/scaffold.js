@@ -19,8 +19,6 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Q = require('q');
-Q.longStackSupport = true;
 require('../polyfill');
 
 const assert = require('assert');
