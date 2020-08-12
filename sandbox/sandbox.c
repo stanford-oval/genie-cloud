@@ -165,6 +165,7 @@ add_thingengine_dirs (struct strv *strv)
   char *pwd;
   char *thingengine_prefix;
   char *p, *q;
+  bool in_ci;
 
   pwd = getcwd (NULL, 0);
 
@@ -177,13 +178,17 @@ add_thingengine_dirs (struct strv *strv)
   if (thingengine_prefix == NULL)
     die_with_error ("Failed to copy prefix environment variable");
 
+  in_ci = getenv ("CI") != NULL;
   for (p = thingengine_prefix; ;) {
     bool last;
     q = strchrnul (p, ':');
     last = *q == 0;
     *q = 0;
 
-    strv_add (strv, "--ro-bind", p, p, NULL);
+    if (in_ci)
+      strv_add (strv, "--bind", p, p, NULL);
+    else
+      strv_add (strv, "--ro-bind", p, p, NULL);
     if (last)
       break;
     else
