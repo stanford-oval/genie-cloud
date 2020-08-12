@@ -24,10 +24,10 @@ const db = require('../util/db');
 
 module.exports = {
     create(client, entity) {
-        return db.insertOne(client, `insert into entity_names set language = 'en', ?`, [entity]);
+        return db.insertOne(client, `replace into entity_names set language = 'en', ?`, [entity]);
     },
     createMany(client, entities) {
-        return db.insertOne(client, `insert into entity_names(id, language, name, is_well_known, has_ner_support) values ?`,
+        return db.insertOne(client, `replace into entity_names(id, language, name, is_well_known, has_ner_support) values ?`,
             [entities.map((e) => [e.id, e.language, e.name, e.is_well_known, e.has_ner_support])]);
     },
 
@@ -60,9 +60,13 @@ module.exports = {
     getValues(client, id) {
         return db.selectAll(client, "select distinct entity_value, entity_name, entity_canonical from entity_lexicon where entity_id = ? and language = 'en'", [id]);
     },
+    deleteValues(client, id) {
+        return db.query(client, `delete from entity_lexicon where entity_id = ? and language = 'en'`, [id]);
+    },
     insertValueStream(client) {
         return new stream.Writable({
             objectMode: true,
+            highWaterMark: 100,
             write(obj, encoding, callback) {
                 client.query(`insert into entity_lexicon set ?`, [obj], callback);
             },

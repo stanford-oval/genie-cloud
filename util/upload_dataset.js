@@ -133,9 +133,14 @@ module.exports = {
                 };
 
                 try {
-                    await entityModel.get(dbClient, req.body.entity_id);
-                    await entityModel.update(dbClient, req.body.entity_id, entity);
+                    const existing = await entityModel.get(dbClient, req.body.entity_id);
+                    if (entity.name === entity.id)
+                        entity.name = existing.name;
+
+                    await entityModel.update(dbClient, existing.id, entity);
+                    await entityModel.deleteValues(dbClient, existing.id);
                 } catch (e) {
+                    if (e.code !== 'ENOENT') throw e;
                     await entityModel.create(dbClient, entity);
                 }
 
@@ -247,7 +252,14 @@ module.exports = {
 
                 try {
                     stringType = await stringModel.getByTypeName(dbClient, req.body.type_name, language);
+                    if (string.license === 'public-domain')
+                        string.license = stringType.license;
+                    string.attribution = string.attribution || stringType.attribution;
+                    if (string.name === string.type_name)
+                        string.name = stringType.name;
+
                     await stringModel.update(dbClient, stringType.id, string);
+                    await stringModel.deleteValues(dbClient, stringType.id);
                 } catch (e) {
                     stringType = await stringModel.create(dbClient, string);
                 }
