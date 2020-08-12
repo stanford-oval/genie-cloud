@@ -387,7 +387,7 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
             return {
                 name: stmt.nl_annotations.description,
                 language: 'en',
-                id: classDef.kind + ':' + stmt,
+                id: classDef.kind + ':' + stmt.name,
                 is_well_known: false,
                 has_ner_support: stmt.impl_annotations.has_ner ? stmt.impl_annotations.has_ner.toJS() : true
             };
@@ -481,6 +481,17 @@ async function uploadDevice(req) {
             const [schemaId, schemaChanged] = await ensurePrimarySchema(dbClient, req.body.name,
                                                                         classDef, req, approve);
             const datasetChanged = await ensureDataset(dbClient, schemaId, dataset, req.body.dataset);
+            if (classDef.entities.length > 0) {
+                await entityModel.updateMany(dbClient, classDef.entities.map((stmt) => {
+                    return {
+                        name: stmt.nl_annotations.description,
+                        language: 'en',
+                        id: classDef.kind + ':' + stmt.name,
+                        is_well_known: false,
+                        has_ner_support: stmt.impl_annotations.has_ner ? stmt.impl_annotations.has_ner.toJS() : true
+                    };
+                }));
+            }
 
             const extraKinds = classDef.extends || [];
             const extraChildKinds = classDef.annotations.child_types ?

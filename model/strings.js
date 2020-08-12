@@ -37,9 +37,13 @@ module.exports = {
         await db.query(client, `update string_types set ? where id = ?`, [stringType, id]);
     },
 
+    async deleteValues(client, id) {
+        await db.query(client, `delete from string_values where type_id = ?`, [id]);
+    },
     insertValueStream(client) {
         return new stream.Writable({
             objectMode: true,
+            highWaterMark: 500,
             write(obj, encoding, callback) {
                 client.query(`insert into string_values set ?`, [obj], callback);
             },

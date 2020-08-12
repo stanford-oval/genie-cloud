@@ -72,13 +72,16 @@ module.exports = class ParserClient {
     sendUtterance(utterance, limit = -1) {
         let url = this._baseUrl + '/query';
         return Promise.resolve($.ajax(url, {
-            data: {
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
                 q: utterance,
-                limit: limit,
                 store:'yes',
                 thingtalk_version: ThingTalk.version,
-                developer_key: this._developerKey
-            }
+                developer_key: this._developerKey,
+                context: 'null',
+                entities: {}
+            })
         })).then((parsed) => {
             if (parsed.error)
                 throw new Error('Error received from Almond natural language server: ' + parsed.error);

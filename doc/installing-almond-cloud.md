@@ -46,7 +46,6 @@ is also suitable for developing Thingpedia itself.
 Cloud Almond depends on:
 
 - nodejs (>= 8.0)
-- cvc4 (any version, although >= 1.5 is recommended; only the binary is needed, not the library)
 - gm (provided by GraphicsMagic)
 
 Optionally, it depends on:
@@ -60,11 +59,11 @@ A working MySQL server is also required. We recommend MariaDB >= 10.2 for best c
 
 For example, on Ubuntu (>= 18.04):
 ```
-sudo apt install nodejs cvc4 graphicsmagick libsystemd-dev bubblewrap -y
+sudo apt install nodejs graphicsmagick libsystemd-dev bubblewrap -y
 ```
 On Fedora:
 ```
-sudo dnf install nodejs cvc4 GraphicsMagick systemd-devel bubblewrap -y
+sudo dnf install nodejs GraphicsMagick systemd-devel bubblewrap -y
 ```
 
 If you would like to run the MySQL server locally:

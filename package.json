@@ -52,7 +52,7 @@
     "express-session": "^1.14.0",
     "express-ws": "^4.0.0",
     "express-xml-bodyparser": "^0.3.0",
-    "genie-toolkit": "~0.7.0-beta.5",
+    "genie-toolkit": "git+https://github.com/stanford-oval/genie-toolkit#master",
     "gettext-parser": "^4.0.4",
     "gm": "^1.23.1",
     "highlight.js": "^10.1.2",

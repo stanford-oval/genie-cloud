@@ -36,7 +36,7 @@ two,The Second Entity
 three,The Third Entity
 `;
 
-const ENTITY_FILE_APPEND = `four,The Fourth Entity
+const ENTITY_FILE_REPLACE = `four,The Fourth Entity
 five,The Fifth Entity`;
 
 const BAD_ENTITY_FILE = `one,The First Entity
@@ -57,7 +57,7 @@ bbbb\t5.0
 cccc\t
 dddd\t1.0`;
 
-const STRING_FILE_APPEND = `Xxxx
+const STRING_FILE_REPLACE = `Xxxx
 Yyyy
 Zzzz`;
 
@@ -133,9 +133,9 @@ async function testEntityCreate(nobody, bob, root) {
         ]);
     });
 
-    const fd3_append = createUpload(ENTITY_FILE_APPEND, {
+    const fd3_append = createUpload(ENTITY_FILE_REPLACE, {
         entity_id: 'org.thingpedia.test:entity_test1',
-        entity_name: 'Test Entity Appended',
+        entity_name: 'Test Entity Replaced',
         no_ner_support: ''
     });
 
@@ -147,7 +147,7 @@ async function testEntityCreate(nobody, bob, root) {
             id: 'org.thingpedia.test:entity_test1',
             is_well_known: 0,
             language: 'en',
-            name: 'Test Entity Appended'
+            name: 'Test Entity Replaced'
         });
 
         const entityValues = toObject(await entityModel.getValues(dbClient, 'org.thingpedia.test:entity_test1'));
@@ -162,21 +162,6 @@ async function testEntityCreate(nobody, bob, root) {
                 entity_name: 'The Fourth Entity',
                 entity_value: 'four'
             },
-            {
-                entity_canonical: 'the first entity',
-                entity_name: 'The First Entity',
-                entity_value: 'one'
-            },
-            {
-                entity_canonical: 'the third entity',
-                entity_name: 'The Third Entity',
-                entity_value: 'three'
-            },
-            {
-                entity_canonical: 'the second entity',
-                entity_name: 'The Second Entity',
-                entity_value: 'two'
-            }
         ]);
     });
 
@@ -290,9 +275,9 @@ async function testStringCreate(nobody, bob, root) {
         ]);
     });
 
-    const fd4_append = createUpload(STRING_FILE_APPEND, {
+    const fd4_append = createUpload(STRING_FILE_REPLACE, {
         type_name: 'org.thingpedia.test:string_test1',
-        name: 'Test String One Appended',
+        name: 'Test String One Replaced',
         license: 'public-domain',
     });
 
@@ -301,32 +286,12 @@ async function testStringCreate(nobody, bob, root) {
         const stringType = await stringModel.getByTypeName(dbClient, 'org.thingpedia.test:string_test1');
         assert.strictEqual(stringType.type_name, 'org.thingpedia.test:string_test1');
         assert.strictEqual(stringType.language, 'en');
-        assert.strictEqual(stringType.name, 'Test String One Appended');
+        assert.strictEqual(stringType.name, 'Test String One Replaced');
         assert.strictEqual(stringType.license, 'public-domain');
 
         const values = toObject(await stringModel.getValues(dbClient, 'org.thingpedia.test:string_test1'));
         values.sort((a, b) => a.preprocessed.localeCompare(b.preprocessed));
         assert.deepStrictEqual(values, [
-            {
-                preprocessed: 'aaaa',
-                value: 'Aaaa',
-                weight: 1.0
-            },
-            {
-                preprocessed: 'bbbb .',
-                value: 'Bbbb.',
-                weight: 1.0
-            },
-            {
-                preprocessed: 'cccc ? ? ?',
-                value: 'Cccc???',
-                weight: 1.0
-            },
-            {
-                preprocessed: 'dddd',
-                value: 'Dddd',
-                weight: 1.0
-            },
             {
                 preprocessed: 'xxxx',
                 value: 'Xxxx',

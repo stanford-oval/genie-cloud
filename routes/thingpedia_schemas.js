@@ -68,7 +68,7 @@ router.get('/by-id/:kind', (req, res, next) => {
         const config = classDef.config;
         if (config) {
             config.in_params.forEach((p) => {
-                if ((p.name.endsWith('_secret') || p.name.endsWith('_key')) && p.value.isString)
+                if ((p.name.endsWith('_secret') || p.name.endsWith('_key') || p.name === 'client_id') && p.value.isString)
                     p.value.value = '<hidden>';
             });
         }

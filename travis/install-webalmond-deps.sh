@@ -3,10 +3,6 @@
 set -e
 set -x
 
-mkdir cvc4/
-wget https://almond-static.stanford.edu/test-data/cvc4-1.6-x86_64-linux-opt -O cvc4/cvc4
-chmod +x cvc4/cvc4
-
 mkdir geckodriver/
 wget https://github.com/mozilla/geckodriver/releases/download/v0.22.0/geckodriver-v0.22.0-linux64.tar.gz
 tar xvf geckodriver-v0.22.0-linux64.tar.gz -C geckodriver/
