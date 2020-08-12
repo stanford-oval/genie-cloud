@@ -3195,10 +3195,9 @@ gcp-metadata@^1.0.0:
     gaxios "^1.0.2"
     json-bigint "^0.3.0"
 
-genie-toolkit@~0.7.0-beta.5:
+"genie-toolkit@git+https://github.com/stanford-oval/genie-toolkit#master":
   version "0.7.0-beta.5"
-  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.7.0-beta.5.tgz#bf7e35ba95e8132d0931907ad744d1db7a44919b"
-  integrity sha512-X0sIRQlTfDov8tyW2gFRbtFD4OmGSsT1zswsjHeu44bF4JOgAcLjKEz6yHsKiD+XNPO/H5DOfokbTwj/MRB12g==
+  resolved "git+https://github.com/stanford-oval/genie-toolkit#dcff20d13e52bfe3bc9043095bd98e967375ca10"
   dependencies:
     JSONStream "^1.3.5"
     adt "^0.7.2"
