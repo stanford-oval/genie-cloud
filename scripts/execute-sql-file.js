@@ -23,10 +23,10 @@ const execSql = require('../util/exec_sql');
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('execute-sql-file', {
+        const parser = subparsers.add_parser('execute-sql-file', {
             description: 'Execute a SQL script against the configured Almond Cloud database'
         });
-        parser.addArgument('filename', {
+        parser.add_argument('filename', {
             help: "The file to execute"
         });
     },

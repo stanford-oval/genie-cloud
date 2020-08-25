@@ -43,54 +43,48 @@ function readAllLines(files, separator = '') {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('upload-dataset', {
-            addHelp: true,
+        const parser = subparsers.add_parser('upload-dataset', {
+            add_help: true,
             description: 'Upload Thingpedia Dataset'
         });
-        parser.addArgument(['-l', '--language'], {
+        parser.add_argument('-l', '--language', {
             required: true,
         });
-        parser.addArgument(['-t', '--type'], {
+        parser.add_argument('-t', '--type', {
             required: true,
             help: 'The type to assign to this dataset.',
         });
-        parser.addArgument(['--contextual'], {
-            nargs: 0,
-            action: 'storeTrue',
-            defaultValue: false,
+        parser.add_argument('--contextual', {
+            action: 'store_true',
+            default: false,
             help: 'Process a contextual dataset.'
         });
-        parser.addArgument(['--exact'], {
-            nargs: 0,
-            action: 'storeTrue',
-            defaultValue: false,
+        parser.add_argument('--exact', {
+            action: 'store_true',
+            default: false,
             help: 'Include this dataset in the exact match.'
         });
-        parser.addArgument(['--no-exact'], {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-exact', {
+            action: 'store_false',
             dest: 'exact',
             help: 'Do not include this dataset in the exact match.'
         });
-        parser.addArgument(['--training'], {
-            nargs: 0,
-            action: 'storeTrue',
-            defaultValue: true,
+        parser.add_argument('--training', {
+            action: 'store_true',
+            default: true,
             help: 'Use this dataset for training.'
         });
-        parser.addArgument(['--no-training'], {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-training', {
+            action: 'store_false',
             dest: 'training',
             help: 'Do not use this dataset for training.'
         });
-        parser.addArgument(['--preserve-id'], {
-            nargs: 0,
-            action: 'storeTrue',
-            defaultValue: false,
+        parser.add_argument('--preserve-id', {
+            action: 'store_true',
+            default: false,
             help: 'Preserve IDs of uploaded sentences (and update the existing sentence if they already exist)'
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
             help: 'Input datasets to import (in TSV format); use - for standard input'

@@ -30,11 +30,11 @@ const Config = require('../config');
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('sync-discourse-sso', {
+        const parser = subparsers.add_parser('sync-discourse-sso', {
             description: 'Create a Discourse user for an existing Almond user'
         });
 
-        parser.addArgument(['username'], {
+        parser.add_argument('username', {
             help: 'The Almond user for which a new Discourse user will be created'
         });
     },

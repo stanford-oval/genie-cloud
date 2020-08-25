@@ -22,10 +22,9 @@
 const argparse = require('argparse');
 
 module.exports =  class ActionSetFlag extends argparse.Action {
-    call(parser, namespace, values) {
+    call(parser, namespace, value) {
         if (!namespace.flags)
-            namespace.set('flags', {});
-        for (let value of values)
-            namespace.flags[value] = this.constant;
+            namespace.flags = {};
+        namespace.flags[value] = this.const;
     }
 };

@@ -137,19 +137,18 @@ class ControlSocketServer {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('run-almond', {
+        const parser = subparsers.add_parser('run-almond', {
             description: 'Run the master Web Almond process'
         });
-        parser.addArgument(['-s', '--shard'], {
+        parser.add_argument('-s', '--shard', {
             required: false,
             type: Number,
             help: 'Shard number for this process',
-            defaultValue: 0
+            default: 0
         });
-        parser.addArgument(['--k8s'], {
-            nargs: 0,
-            action: 'storeTrue',
-            defaultValue: false,
+        parser.add_argument('--k8s', {
+            action: 'store_true',
+            default: false,
             help: 'Enable running in kubernetes. The shard number will be inferred from the hostname.'
         });
     },

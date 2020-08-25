@@ -140,38 +140,37 @@ function handleDirectSocket(userId, replyId, socket) {
 
 function main() {
     const parser = new argparse.ArgumentParser({
-        addHelp: true,
+        add_help: true,
         description: 'Worker Almond process'
     });
-    parser.addArgument('--shared', {
-        nargs: 0,
-        action: 'storeTrue',
+    parser.add_argument('--shared', {
+        action: 'store_true',
         help: 'Run as a shared (multi-user) process',
-        defaultValue: false,
+        default: false,
     });
-    parser.addArgument(['-l', '--locale'], {
+    parser.add_argument('-l', '--locale', {
         action: 'append',
-        defaultValue: [],
+        default: [],
         help: 'Enable this language',
     });
-    parser.addArgument('--thingpedia-url', {
+    parser.add_argument('--thingpedia-url', {
         required: true,
         help: 'Thingpedia URL',
     });
-    parser.addArgument('--oauth-redirect-origin', {
+    parser.add_argument('--oauth-redirect-origin', {
         required: true,
         help: 'OAuth Redirect Origin',
     });
-    parser.addArgument('--nl-server-url', {
+    parser.add_argument('--nl-server-url', {
         required: true,
         help: 'NLP Server URL',
     });
-    parser.addArgument('--cdn-host', {
+    parser.add_argument('--cdn-host', {
         required: true,
         help: 'CDN Host',
     });
 
-    const argv = parser.parseArgs();
+    const argv = parser.parse_args();
     i18n.init(argv.locale);
 
     // for compat with platform.getOrigin()

@@ -26,7 +26,7 @@ const Config = require('../config');
 
 module.exports = {
     initArgparse(subparsers) {
-        subparsers.addParser('get-user-shards', {
+        subparsers.add_parser('get-user-shards', {
             description: 'Print the shard assigned to each user'
         });
     },

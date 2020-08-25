@@ -154,14 +154,14 @@ class NLPInferenceServer {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('run-nlp', {
+        const parser = subparsers.add_parser('run-nlp', {
             description: 'Run the Voice & NLP inference process'
         });
-        parser.addArgument(['-p', '--port'], {
+        parser.add_argument('-p', '--port', {
             required: false,
             type: Number,
             help: 'Listen on the given port',
-            defaultValue: 8400
+            default: 8400
         });
     },
 

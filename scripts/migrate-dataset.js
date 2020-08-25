@@ -71,7 +71,7 @@ function replaceWithSlots(program) {
 
 module.exports = {
     initArgparse(subparsers) {
-        subparsers.addParser('migrate-dataset', {
+        subparsers.add_parser('migrate-dataset', {
             description: 'Migrate the dataset to the latest version of ThingTalk'
         });
     },

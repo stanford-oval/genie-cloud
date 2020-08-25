@@ -23,10 +23,10 @@ const Config = require('../config');
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('get-config', {
+        const parser = subparsers.add_parser('get-config', {
             description: 'Print a configuration value'
         });
-        parser.addArgument(['key'], {
+        parser.add_argument('key', {
             help: 'The configuration key to print',
         });
     },
