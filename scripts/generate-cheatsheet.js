@@ -193,44 +193,44 @@ async function execCommand(command, argv, options) {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('generate-cheatsheet', {
+        const parser = subparsers.add_parser('generate-cheatsheet', {
             description: 'Generate a cheatsheet in pdf format.'
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en',
+            default: 'en',
             help: 'The language to generate (defaults to \'en\', English)'
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: false,
-            defaultValue: './cheatsheet',
+            default: './cheatsheet',
             help: 'The output directory for the tex file.'
         });
-        parser.addArgument(['--thingpedia'], {
+        parser.add_argument('--thingpedia', {
             required: false,
             help: 'Path to JSON file containing signature, type and mixin definitions.'
         });
-        parser.addArgument(['--dataset'], {
+        parser.add_argument('--dataset', {
             required: false,
             help: 'Path to file containing primitive templates, in ThingTalk syntax.'
         });
-        parser.addArgument(['--count'], {
+        parser.add_argument('--count', {
             required: false,
-            defaultValue: 1,
+            default: 1,
             type: 'int',
             help: 'The number of cheatsheet to generate (when generating from files, the ' +
                 'cheatsheet will randomly pick an utterance for each example).'
         });
-        parser.addArgument(['--sample'], {
+        parser.add_argument('--sample', {
             required: false,
             type: 'int',
             help: 'The number of devices on the cheatsheet.'
         });
-        parser.addArgument('--random-seed', {
-            defaultValue: 'almond is awesome',
+        parser.add_argument('--random-seed', {
+            default: 'almond is awesome',
             help: 'Random seed'
         });
-        parser.addArgument('--suffix', {
+        parser.add_argument('--suffix', {
             required: false,
             help: 'The suffix of generated files (for generating domain-specific cheatsheet).'
         });

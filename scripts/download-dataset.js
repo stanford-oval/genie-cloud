@@ -30,33 +30,32 @@ const StreamUtils = require('../util/stream-utils');
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('download-dataset', {
-            addHelp: true,
+        const parser = subparsers.add_parser('download-dataset', {
+            add_help: true,
             description: 'Download Thingpedia Dataset'
         });
-        parser.addArgument(['-l', '--language'], {
+        parser.add_argument('-l', '--language', {
             required: true,
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream,
             help: 'Output path',
         });
-        parser.addArgument(['-d', '--device'], {
+        parser.add_argument('-d', '--device', {
             action: 'append',
             metavar: 'DEVICE',
             help: 'Restrict download to commands of the given device. This option can be passed multiple times to specify multiple devices',
             dest: 'forDevices',
         });
-        parser.addArgument(['-t', '--type'], {
+        parser.add_argument('-t', '--type', {
             action: 'append',
             metavar: 'TYPE',
             help: 'Restrict download to commands in the given dataset type.',
             dest: 'types',
         });
-        parser.addArgument(['--include-obsolete'], {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--include-obsolete', {
+            action: 'store_true',
             help: 'Include obsolete sentences (sentences that no longer typecheck).',
         });
     },

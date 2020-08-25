@@ -143,35 +143,33 @@ class Task extends events.EventEmitter {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('run-training-task', {
+        const parser = subparsers.add_parser('run-training-task', {
             help: 'Run a training task',
         });
 
-        parser.addArgument(['-t', '--task-name'], {
+        parser.add_argument('-t', '--task-name', {
             help: 'The name of the task to run',
             choices: Object.keys(Tasks),
             required: true
         });
 
-        parser.addArgument('--job-id', {
+        parser.add_argument('--job-id', {
             help: 'The ID of the job to run',
             type: Number,
             required: true
         });
-        parser.addArgument('--job-directory', {
+        parser.add_argument('--job-directory', {
             help: 'The directory where to save job specific files',
             required: true
         });
 
-        parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--debug', {
+            action: 'store_true',
             help: 'Enable debugging.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-debug', {
+            action: 'store_false',
             dest: 'debug',
             help: 'Disable debugging.',
         });

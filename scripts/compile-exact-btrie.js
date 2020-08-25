@@ -43,15 +43,15 @@ function readAllLines(files, separator = '') {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('compile-exact-btrie', {
-            addHelp: true,
+        const parser = subparsers.add_parser('compile-exact-btrie', {
+            add_help: true,
             description: 'Compile an exact match dataset'
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream,
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
             help: 'Input datasets to import (in TSV format); use - for standard input'

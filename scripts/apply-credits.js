@@ -28,7 +28,7 @@ const db = require('../util/db');
 
 module.exports = {
     initArgparse(subparsers) {
-        subparsers.addParser('apply-credits', {
+        subparsers.add_parser('apply-credits', {
             description: 'Apply weekly credit update'
         });
     },

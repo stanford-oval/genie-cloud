@@ -357,14 +357,14 @@ class Frontend {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('run-frontend', {
+        const parser = subparsers.add_parser('run-frontend', {
             description: 'Run a Web Almond frontend'
         });
-        parser.addArgument(['-p', '--port'], {
+        parser.add_argument('-p', '--port', {
             required: false,
             type: Number,
             help: 'Listen on the given port',
-            defaultValue: 8080
+            default: 8080
         });
     },
 

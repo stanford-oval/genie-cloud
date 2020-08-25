@@ -62,13 +62,17 @@ const commands = {
 };
 
 const parser = new argparse.ArgumentParser({
-    addHelp: true,
+    add_help: true,
     description: "The Almond Virtual Assistant - Cloud Edition"
 });
 
-const subparsers = parser.addSubparsers({ title: 'Available sub-commands', dest: 'subcommand' });
+const subparsers = parser.add_subparsers({
+    title: 'Available sub-commands',
+    dest: 'subcommand',
+    required: true
+});
 for (let subcommand in commands)
     commands[subcommand].initArgparse(subparsers);
 
-const args = parser.parseArgs();
+const args = parser.parse_args();
 commands[args.subcommand].main(args);

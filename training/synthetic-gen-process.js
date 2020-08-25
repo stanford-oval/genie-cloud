@@ -113,41 +113,39 @@ async function genContextual(args) {
 
 async function main() {
     const parser = new argparse.ArgumentParser({
-        addHelp: true,
+        add_help: true,
         description: 'Generate synthetic set inside sandbox'
     });
 
-    parser.addArgument(['-l', '--locale'], {
+    parser.add_argument('-l', '--locale', {
         required: true,
         help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
     });
-    parser.addArgument('--set-flag', {
+    parser.add_argument('--set-flag', {
         required: false,
-        nargs: 1,
         action: ActionSetFlag,
-        constant: true,
+        const: true,
         metavar: 'FLAG',
         help: 'Set a flag for the construct template file.',
     });
-    parser.addArgument('--maxdepth', {
+    parser.add_argument('--maxdepth', {
         required: true,
         type: Number,
         help: 'Maximum depth of sentence generation',
     });
-    parser.addArgument('--contextual', {
+    parser.add_argument('--contextual', {
         required: false,
-        nargs: 0,
-        action: 'storeTrue',
-        defaultValue: false,
+        action: 'store_true',
+        default: false,
         help: 'Generate a contextual dataset',
     });
-    parser.addArgument('--target-pruning-size', {
+    parser.add_argument('--target-pruning-size', {
         required: true,
         type: Number,
         help: 'Target pruning size hyperparameter'
     });
 
-    const args = parser.parseArgs();
+    const args = parser.parse_args();
 
     if (args.contextual)
         await genContextual(args);

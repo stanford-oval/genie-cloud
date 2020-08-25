@@ -414,13 +414,12 @@ async function isAlreadyBootstrapped() {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('bootstrap', {
+        const parser = subparsers.add_parser('bootstrap', {
             description: 'Bootstrap an installation of Almond Cloud'
         });
-        parser.addArgument(['--force'], {
-            nargs: 0,
-            action: 'storeTrue',
-            defaultValue: false,
+        parser.add_argument('--force', {
+            action: 'store_true',
+            default: false,
             help: 'Force bootstrapping even if it appears to have occurred already.'
         });
     },

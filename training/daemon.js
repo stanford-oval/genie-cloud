@@ -331,14 +331,14 @@ Check the logs for further information.`
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('run-training', {
+        const parser = subparsers.add_parser('run-training', {
             description: 'Run the training controller process'
         });
-        parser.addArgument(['-p', '--port'], {
+        parser.add_argument('-p', '--port', {
             required: false,
             type: Number,
             help: 'Listen on the given port',
-            defaultValue: 8090
+            default: 8090
         });
     },
 
