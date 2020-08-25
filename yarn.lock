@@ -3194,8 +3194,8 @@ gcp-metadata@^1.0.0:
 
 "genie-toolkit@git+https://github.com/stanford-oval/genie-toolkit#master":
   version "0.7.0-beta.5"
-  uid "0897d0e76dd81f8acfaef0b979f1b32ef3223ce8"
-  resolved "git+https://github.com/stanford-oval/genie-toolkit#0897d0e76dd81f8acfaef0b979f1b32ef3223ce8"
+  uid "2be1d27870203b4d4ded425d48fbd53c2b517f00"
+  resolved "git+https://github.com/stanford-oval/genie-toolkit#2be1d27870203b4d4ded425d48fbd53c2b517f00"
   dependencies:
     JSONStream "^1.3.5"
     adt "^0.7.2"
