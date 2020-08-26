@@ -27,8 +27,16 @@ const EngineManager = require('../almond/enginemanagerclient');
 var router = express.Router();
 
 router.get('/oauth2/callback/:kind', (req, res, next) => {
-    if (!req.session.redirect) {
-        router.use(user.requireLogIn);
+    if (req.session.redirect) {
+        next();
+        return;
+    }
+    user.requireLogIn(req, res, next);
+}, (req, res, next) => {
+    if (req.session.redirect) {
+        const server_redirect = req.session.redirect + '/devices' + req.url;
+        res.redirect(303, server_redirect);
+    } else {
         const kind = req.params.kind;
 
         EngineManager.get().getEngine(req.user.id).then(async (engine) => {
@@ -40,9 +48,6 @@ router.get('/oauth2/callback/:kind', (req, res, next) => {
                 res.redirect(303, '/me');
             }
         }).catch(next);
-    } else {
-        const server_redirect = req.session.redirect + "/devices" + req.url;
-        res.redirect(303, server_redirect);
     }
 });
 
