@@ -1,30 +1,36 @@
 #!/usr/bin/env node
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Almond
 //
-// Copyright 2015 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2017-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 // load thingpedia to initialize the polyfill
 require('thingpedia');
 
-const Q = require('q');
-Q.longStackSupport = true;
-
 const stream = require('stream');
 const rpc = require('transparent-rpc');
 const argparse = require('argparse');
 
-const Engine = require('thingengine-core');
 const PlatformModule = require('./platform');
 const JsonDatagramSocket = require('../util/json_datagram_socket');
-const Assistant = require('./assistant');
 const i18n = require('../util/i18n');
+const Engine = require('./engine');
 
 class ParentProcessSocket extends stream.Duplex {
     constructor() {
@@ -69,13 +75,12 @@ function runEngine(thingpediaClient, options) {
         global.platform = platform;
 
     const obj = { cloudId: options.cloudId, running: false, sockets: new Set };
-    const engine = new Engine(platform, { thingpediaUrl: PlatformModule.thingpediaUrl });
+    const engine = new Engine(platform, {
+        thingpediaUrl: PlatformModule.thingpediaUrl,
+        nluModelUrl: PlatformModule.nlServerUrl
+        // nlg will be set to the same URL
+    });
     obj.engine = engine;
-
-    const assistant = new Assistant(engine, options);
-    platform._setAssistant(assistant);
-    // for compat
-    engine.assistant = this._assistant;
 
     engine.open().then(() => {
         obj.running = true;
@@ -122,11 +127,10 @@ function handleDirectSocket(userId, replyId, socket) {
 
     const platform = obj.engine.platform;
     rpcSocket.call(replyId, 'ready', [
-        obj.engine.apps,
-        obj.engine.devices,
+        obj.engine,
         platform.getCapability('websocket-api'),
-        platform.getCapability('webhook-api'),
-        platform.getCapability('assistant')]);
+        platform.getCapability('webhook-api')
+    ]);
 
     obj.sockets.add(rpcSocket);
     rpcSocket.on('close', () => {
@@ -136,38 +140,37 @@ function handleDirectSocket(userId, replyId, socket) {
 
 function main() {
     const parser = new argparse.ArgumentParser({
-        addHelp: true,
+        add_help: true,
         description: 'Worker Almond process'
     });
-    parser.addArgument('--shared', {
-        nargs: 0,
-        action: 'storeTrue',
+    parser.add_argument('--shared', {
+        action: 'store_true',
         help: 'Run as a shared (multi-user) process',
-        defaultValue: false,
+        default: false,
     });
-    parser.addArgument(['-l', '--locale'], {
+    parser.add_argument('-l', '--locale', {
         action: 'append',
-        defaultValue: [],
+        default: [],
         help: 'Enable this language',
     });
-    parser.addArgument('--thingpedia-url', {
+    parser.add_argument('--thingpedia-url', {
         required: true,
         help: 'Thingpedia URL',
     });
-    parser.addArgument('--oauth-redirect-origin', {
+    parser.add_argument('--oauth-redirect-origin', {
         required: true,
         help: 'OAuth Redirect Origin',
     });
-    parser.addArgument('--nl-server-url', {
+    parser.add_argument('--nl-server-url', {
         required: true,
         help: 'NLP Server URL',
     });
-    parser.addArgument('--cdn-host', {
+    parser.add_argument('--cdn-host', {
         required: true,
         help: 'CDN Host',
     });
 
-    const argv = parser.parseArgs();
+    const argv = parser.parse_args();
     i18n.init(argv.locale);
 
     // for compat with platform.getOrigin()

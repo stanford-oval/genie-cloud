@@ -1,12 +1,22 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Almond
 //
-// Copyright 2017-2019 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Swee Kiat Lim <sweekiat@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 const express = require('express');
@@ -35,88 +45,87 @@ class GoogleAssistantDelegate {
         this._suggestions = [];
     }
 
-    send(text, icon) {
-        if (typeof this._buffer[this._buffer.length - 1] === 'string')
-            // If there is already a text reply immediately before, we merge text replies
-            // because Google Assistant limits at most 2 chat bubbles per turn
-            this._buffer[this._buffer.length - 1] += '\n' + text;
-        else
-            this._buffer.push(text);
+    setHypothesis() {}
+
+    setExpected(what) {
+        this._askSpecial = what;
     }
 
-    sendPicture(url, icon) {
-        if (typeof this._buffer[this._buffer.length - 1] !== 'string')
-            // If there is no text reply immediately before, we add the URL
-            // because Google Assistant requires a chat bubble to accompany an Image
-            this._buffer.push(url);
-        this._buffer.push(new Image({
-            url: url,
-            alt: url,
-        }));
-    }
+    addMessage(msg) {
+        switch (msg.type) {
+        case 'text':
+        case 'result':
+            if (typeof this._buffer[this._buffer.length - 1] === 'string')
+                // If there is already a text reply immediately before, we merge text replies
+                // because Google Assistant limits at most 2 chat bubbles per turn
+                this._buffer[this._buffer.length - 1] += '\n' + msg.text;
+            else
+                this._buffer.push(msg.text);
+            break;
 
-    sendRDL(rdl, icon) {
-        let card = {
-            title: rdl.displayTitle,
-            buttons: new Button({
-                title: rdl.displayTitle,
-                url: rdl.webCallback,
-            }),
-            display: 'CROPPED',
-        };
-        if (rdl.displayText)
-            card.text = rdl.displayText;
-        if (rdl.pictureUrl) {
-            card.image = new Image({
-                url: rdl.pictureUrl,
-                alt: rdl.pictureUrl
-            });
-        }
-        this._buffer.push(new BasicCard(card));
-    }
-
-    sendChoice(idx, what, title, text) {
-        // Output choice options as regular text
-        if (typeof this._buffer[this._buffer.length - 1] === 'string')
-            // If there is already a text reply immediately before, we merge text replies
-            // because Google Assistant limits at most 2 chat bubbles per turn
-            this._buffer[this._buffer.length - 1] += '\n' + text;
-        else
-            this._buffer.push(text);
-    }
-
-    sendButton(title, json) {
-        // Filter out buttons more than 25 characters long since
-        // Google Assistant has a cap of 25 characters for Suggestions
-        if (title.length <= 25)
-            this._suggestions.push(title.substring(0, 25));
-    }
-
-    sendLink(title, url) {
-        if (url === '/user/register') {
-            this._requestSignin = true;
-        } else {
-            this._buffer.push(new Button({
-                title: title,
-                url: Config.SERVER_ORIGIN + url,
+        case 'picture':
+            if (typeof this._buffer[this._buffer.length - 1] !== 'string')
+                // If there is no text reply immediately before, we add the URL
+                // because Google Assistant requires a chat bubble to accompany an Image
+                this._buffer.push(msg.url);
+            this._buffer.push(new Image({
+                url: msg.url,
+                alt: msg.url,
             }));
+            break;
+
+        case 'choice':
+            // Output choice options as regular text
+            if (typeof this._buffer[this._buffer.length - 1] === 'string')
+                // If there is already a text reply immediately before, we merge text replies
+                // because Google Assistant limits at most 2 chat bubbles per turn
+                this._buffer[this._buffer.length - 1] += '\n' + msg.title;
+            else
+                this._buffer.push(msg.title);
+            break;
+
+        case 'rdl': {
+            let card = {
+                title: msg.rdl.displayTitle,
+                buttons: new Button({
+                    title: msg.rdl.displayTitle,
+                    url: msg.rdl.webCallback,
+                }),
+                display: 'CROPPED',
+            };
+            if (msg.rdl.displayText)
+                card.text = msg.rdl.displayText;
+            if (msg.rdl.pictureUrl) {
+                card.image = new Image({
+                    url: msg.rdl.pictureUrl,
+                    alt: msg.rdl.pictureUrl
+                });
+            }
+            this._buffer.push(new BasicCard(card));
+            break;
         }
-    }
 
-    sendResult(message, icon) {
-        if (typeof this._buffer[this._buffer.length - 1] === 'string')
-            // If there is already a text reply immediately before, we merge text replies
-            // because Google Assistant limits at most 2 chat bubbles per turn
-            this._buffer[this._buffer.length - 1] += '\n' + message.toLocaleString(this._locale);
-        else
-            this._buffer.push(message.toLocaleString(this._locale));
-    }
+        case 'link':
+            if (msg.url === '/user/register') {
+                this._requestSignin = true;
+            } else {
+                this._buffer.push(new Button({
+                    title: msg.title,
+                    url: Config.SERVER_ORIGIN + msg.url,
+                }));
+            }
+            break;
 
-    sendAskSpecial(what) {
-        // TODO
+        case 'button':
+            // Filter out buttons more than 25 characters long since
+            // Google Assistant has a cap of 25 characters for Suggestions
+            if (msg.title.length <= 25)
+                this._suggestions.push(msg.title.substring(0, 25));
+            break;
+        }
     }
 }
-GoogleAssistantDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL', 'sendResult'];
+GoogleAssistantDelegate.prototype.$rpcMethods = ['setExpected', 'setHypothesis', 'addMessage'];
 
 function authenticate(req, res, next) {
     console.log(req.body.user);
@@ -168,7 +177,7 @@ app.intent('actions.intent.MAIN', async (conv) => {
     const delegate = new GoogleAssistantDelegate(locale);
 
     const engine = await EngineManager.get().getEngine(user.id);
-    await engine.assistant.getOrOpenConversation('google_assistant:' + conversationId,
+    await engine.getOrOpenConversation('google_assistant:' + conversationId,
         assistantUser, delegate, { anonymous, showWelcome: true, debug: true });
     
     if (delegate._suggestions.length)

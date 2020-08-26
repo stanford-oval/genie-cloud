@@ -1,18 +1,28 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Almond
 //
-// Copyright 2015 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2017-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 // Cloud platform
 
-const Q = require('q');
 const fs = require('fs');
+const util = require('util');
 const os = require('os');
 const events = require('events');
 const child_process = require('child_process');
@@ -26,10 +36,8 @@ const i18n = require('../util/i18n');
 var _unzipApi = {
     unzip(zipPath, dir) {
         var args = ['-uo', zipPath, '-d', dir];
-        return Q.nfcall(child_process.execFile, '/usr/bin/unzip', args, {
-            maxBuffer: 10 * 1024 * 1024 }).then((zipResult) => {
-            var stdout = zipResult[0];
-            var stderr = zipResult[1];
+        return util.promisify(child_process.execFile)('/usr/bin/unzip', args, {
+            maxBuffer: 10 * 1024 * 1024 }).then(({ stdout, stderr }) => {
             console.log('stdout', stdout);
             console.log('stderr', stderr);
         });
@@ -155,8 +163,6 @@ class Platform extends Tp.BasePlatform {
 
         this._webhookApi = new WebhookApi(this._cloudId);
         this._websocketApi = new WebSocketApi();
-
-        this._assistant = null;
     }
 
     get type() {
@@ -169,10 +175,6 @@ class Platform extends Tp.BasePlatform {
 
     get timezone() {
         return this._timezone;
-    }
-
-    _setAssistant(assistant) {
-        this._assistant = assistant;
     }
 
     // Return the platform device for this platform, accessing platform-specific
@@ -221,11 +223,6 @@ class Platform extends Tp.BasePlatform {
             // this platform
             return true;
 
-        case 'assistant':
-            // If we can create a full AssistantManager (because the platform
-            // will back with a Almond account)
-            return true;
-
         case 'thingpedia-client':
             return module.exports.thingpediaUrl === '/thingpedia';
 
@@ -266,9 +263,6 @@ class Platform extends Tp.BasePlatform {
 
         case 'websocket-api':
             return this._websocketApi;
-
-        case 'assistant':
-            return this._assistant;
 
         case 'gettext':
             return this._gettext;

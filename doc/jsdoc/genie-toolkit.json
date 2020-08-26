@@ -19,7 +19,7 @@
         "useLongnameInNav": true,
         "showAccessFilter": false,
         "systemColor": "#6d1010",
-        "systemName": "thingengine-core",
-        "systemSummary": "A Modular, Powerful Virtual Assistant Engine"
+        "systemName": "genie-toolkit",
+        "systemSummary": "The Toolkit To Build Virtual Assistants"
     }
 }

@@ -1,28 +1,32 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Almond
 //
 // Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
 //
-// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// See COPYING for details
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
-
-const path = require('path');
 
 const AbstractFS = require('../../util/abstract_fs');
 const DatasetGenerator = require('../lib/dataset_generator');
-
-const PPDB = process.env.PPDB || path.resolve('./ppdb-2.0-m-lexical.bin');
 
 const DEFAULT_TRAINING_CONFIG = {
     use_approved: false,
     synthetic_depth: 7,
     synthetic_flags: [],
     target_pruning_size: 10000,
-    ppdb_probability_synthetic: 0.1,
-    ppdb_probability_paraphrase: 1.0,
     quoted_probability: 0.1,
 };
 
@@ -51,9 +55,6 @@ module.exports = async function main(task, argv) {
         targetPruningSize: config.target_pruning_size,
 
         // augmentation flags
-        ppdbFile: PPDB,
-        ppdbProbabilitySynthetic: config.ppdb_probability_synthetic,
-        ppdbProbabilityParaphrase: config.ppdb_probability_paraphrase,
         quotedProbability: config.quoted_probability,
 
         debug: argv.debug

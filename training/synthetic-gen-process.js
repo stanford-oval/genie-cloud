@@ -1,13 +1,23 @@
 #!/usr/bin/env node
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Almond
 //
-// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 // load thingpedia to initialize the polyfill
@@ -103,41 +113,39 @@ async function genContextual(args) {
 
 async function main() {
     const parser = new argparse.ArgumentParser({
-        addHelp: true,
+        add_help: true,
         description: 'Generate synthetic set inside sandbox'
     });
 
-    parser.addArgument(['-l', '--locale'], {
+    parser.add_argument('-l', '--locale', {
         required: true,
         help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
     });
-    parser.addArgument('--set-flag', {
+    parser.add_argument('--set-flag', {
         required: false,
-        nargs: 1,
         action: ActionSetFlag,
-        constant: true,
+        const: true,
         metavar: 'FLAG',
         help: 'Set a flag for the construct template file.',
     });
-    parser.addArgument('--maxdepth', {
+    parser.add_argument('--maxdepth', {
         required: true,
         type: Number,
         help: 'Maximum depth of sentence generation',
     });
-    parser.addArgument('--contextual', {
+    parser.add_argument('--contextual', {
         required: false,
-        nargs: 0,
-        action: 'storeTrue',
-        defaultValue: false,
+        action: 'store_true',
+        default: false,
         help: 'Generate a contextual dataset',
     });
-    parser.addArgument('--target-pruning-size', {
+    parser.add_argument('--target-pruning-size', {
         required: true,
         type: Number,
         help: 'Target pruning size hyperparameter'
     });
 
-    const args = parser.parseArgs();
+    const args = parser.parse_args();
 
     if (args.contextual)
         await genContextual(args);

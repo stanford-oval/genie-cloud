@@ -1,21 +1,28 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Almond
 //
-// Copyright 2018-2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 const assert = require('assert');
 const path = require('path');
 const Stream = require('stream');
 const seedrandom = require('seedrandom');
-const tmp = require('tmp-promise');
-const fs = require('fs');
-const byline = require('byline');
 const csvstringify = require('csv-stringify');
 
 const ThingTalk = require('thingtalk');
@@ -80,7 +87,7 @@ class TypecheckStream extends Stream.Transform {
         }
 
         try {
-            const entities = Genie.Utils.makeDummyEntities(ex.preprocessed);
+            const entities = Genie.EntityUtils.makeDummyEntities(ex.preprocessed);
             const program = ThingTalk.NNSyntax.fromNN(ex.target_code.split(' '), entities);
             await program.typecheck(this._schemas);
             this.push(ex);
@@ -274,7 +281,7 @@ module.exports = class DatasetGenerator {
         if (this._contextual)
             basicFlags.push('no_contextual_bookkeeping');
 
-        const basicSynthetic = genSynthetic.generate(tmpDir, {
+        const synthetic = genSynthetic.generate(tmpDir, {
             contextual: false,
             language: this._language,
             flags: basicFlags,
@@ -283,120 +290,41 @@ module.exports = class DatasetGenerator {
             debug: this._options.debug,
         });
 
-        let basicParaphrase;
+        let paraphrase;
         if (this._shouldDownloadParaphrase) {
-            basicParaphrase = this._downloadParaphrase(false)
+            paraphrase = this._downloadParaphrase(false)
                 .pipe(new TypecheckStream(this._schemas));
         }
         let source;
-
-        if (this._contextual) {
-            let contextualParaphrase;
-            if (this._shouldDownloadParaphrase) {
-                contextualParaphrase = this._downloadParaphrase(true)
-                    .pipe(new TypecheckStream(this._schemas));
-            }
-
-            let basicSource;
-            if (this._shouldDownloadParaphrase)
-                basicSource = StreamUtils.chain([basicParaphrase, basicSynthetic], { objectMode: true });
-            else
-                basicSource = basicSynthetic;
-
-            // Spool the basic (non-contextual, not augmented) dataset to disk
-            // We need to do this because:
-            // 1) We don't want to run to many generation/processing steps as a pipeline, because that
-            //    would use too much memory
-            // 2) We need to do multiple passes over the basic dataset for different reasons, and
-            //    we can't cache it in memory
-            const { path: basicDataset, fd: basicDatasetFD } =
-                await tmp.file({ mode: 0o600, dir: '/var/tmp' });
-
-            await StreamUtils.waitFinish(basicSource
-                .pipe(new Genie.DatasetStringifier())
-                .pipe(fs.createWriteStream(basicDataset, { fd: basicDatasetFD })));
-            // basicDatasetFD is closed here
-
-            let contexts = await
-                fs.createReadStream(basicDataset, { encoding: 'utf8' })
-                .pipe(byline())
-                .pipe(new Genie.DatasetParser({ contextual: false }))
-                .pipe(new Genie.ContextExtractor(this._schemas))
-                .read();
-
-            const contextualized =
-                fs.createReadStream(basicDataset, { encoding: 'utf8' })
-                .pipe(byline())
-                .pipe(new Genie.DatasetParser({ contextual: false }))
-                .pipe(new Genie.Contextualizer(contexts, {
-                    locale: this._language,
-                    numSamples: 20,
-                    nullOnly: false,
-                }));
-
-            const contextualSynthetic = genSynthetic.generate(tmpDir, {
-                contextual: true,
-                contexts,
-
-                language: this._language,
-                flags: this._options.flags,
-                maxDepth: this._options.maxDepth,
-                targetPruningSize: this._options.contextualTargetPruningSize,
-                debug: this._options.debug,
+        // assume that the progress of synthetic generation is the overall progress, because
+        // synthetic generation is the biggest part of the process, and augmentation happens in parallel
+        synthetic.on('progress', (value) => {
+            // synthetic generation can complete before the last minibatch of augmentation is done
+            // but we don't want to show 100% progress in that case, so cap the progress at 99%
+            value *= 0.99;
+            this._task.setProgress(value).catch((e) => {
+                console.error(`Failed to update task progress: ${e.message}`);
             });
+        });
 
-            // free memory
-            contexts = null;
-
-            // chain them in order of quality, from best to worst, because
-            // dataset splitter will discard later examples if they look similar
-            // to earlier ones
-            // (same sentence or same program, depending on the options)
-
-            if (this._shouldDownloadParaphrase) {
-                source = StreamUtils.chain([contextualParaphrase, contextualized, contextualSynthetic],
-                    { objectMode: true });
-            } else {
-                source = StreamUtils.chain([contextualized, contextualSynthetic],
-                    { objectMode: true });
-            }
-        } else {
-            // assume that the progress of synthetic generation is the overall progress, because
-            // synthetic generation is the biggest part of the process, and augmentation happens in parallel
-            basicSynthetic.on('progress', (value) => {
-                // synthetic generation can complete before the last minibatch of augmentation is done
-                // but we don't want to show 100% progress in that case, so cap the progress at 99%
-                value *= 0.99;
-                this._task.setProgress(value).catch((e) => {
-                    console.error(`Failed to update task progress: ${e.message}`);
-                });
-            });
-
-            if (this._shouldDownloadParaphrase)
-                source = StreamUtils.chain([basicParaphrase, basicSynthetic], { objectMode: true });
-            else
-                source = basicSynthetic;
-        }
+        if (this._shouldDownloadParaphrase)
+            source = StreamUtils.chain([paraphrase, synthetic], { objectMode: true });
+        else
+            source = synthetic;
 
         let dataset;
-
         if (this._shouldDoAugmentation) {
-            const ppdb = await Genie.BinaryPPDB.mapFile(this._options.ppdbFile);
-
             const augmenter = new Genie.DatasetAugmenter(this._schemas, constProvider, this._tpClient, {
                 quotedProbability: this._options.quotedProbability,
                 untypedStringProbability: 0,
                 maxSpanLength: MAX_SPAN_LENGTH,
-                ppdbProbabilitySynthetic: this._options.ppdbProbabilitySynthetic,
-                ppdbProbabilityParaphrase: this._options.ppdbProbabilityParaphrase,
                 syntheticExpandFactor: 1,
                 paraphrasingExpandFactor: 30,
                 noQuoteExpandFactor: 10,
                 singleDeviceExpandFactor: 3,
 
-                ppdbFile: ppdb,
-
                 locale: this._locale,
+                paramLocale: this._locale,
                 rng: this._rng,
                 debug: this._options.debug,
             });
@@ -436,7 +364,7 @@ module.exports = class DatasetGenerator {
 
             await Promise.all(promises);
         } else if (this._shouldSampleForTurking) {
-            const sampler = new Genie.SentenceSampler(this._schemas, constants, {
+            const sampler = new Genie.MTurk.SentenceSampler(this._schemas, constants, {
                 rng: this._rng,
                 locale: this._language,
 

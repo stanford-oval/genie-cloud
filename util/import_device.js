@@ -1,12 +1,22 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of Thingpedia
+// This file is part of Almond
 //
-// Copyright 2018 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2018-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 const fs = require('fs');
@@ -19,6 +29,7 @@ const util = require('util');
 const model = require('../model/device');
 const schemaModel = require('../model/schema');
 const exampleModel = require('../model/example');
+const entityModel = require('../model/entity');
 
 const user = require('./user');
 
@@ -310,7 +321,7 @@ async function uploadIcon(primary_kind, iconPath, deleteAfterwards = true) {
     try {
         var image = graphics.createImageFromPath(iconPath);
         image.resizeFit(512, 512);
-        const [stdout,] = await image.stream('png');
+        const stdout = await image.stream('png');
 
         // we need to consume the stream twice: once
         // to upload to S3 / store on reliable file system
@@ -371,6 +382,17 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
     const [schemaId,] = await ensurePrimarySchema(dbClient, device.name,
                                                   classDef, req, approve);
     await ensureDataset(dbClient, schemaId, dataset, json.dataset);
+    if (classDef.entities.length > 0) {
+        await entityModel.updateMany(dbClient, classDef.entities.map((stmt) => {
+            return {
+                name: stmt.nl_annotations.description,
+                language: 'en',
+                id: classDef.kind + ':' + stmt.name,
+                is_well_known: false,
+                has_ner_support: stmt.impl_annotations.has_ner ? stmt.impl_annotations.has_ner.toJS() : true
+            };
+        }));
+    }
     const factory = FactoryUtils.makeDeviceFactory(classDef, device);
 
     classDef.annotations.version = new ThingTalk.Ast.Value.Number(device.developer_version);
@@ -416,7 +438,7 @@ function tryUpdateDevice(primaryKind, userId) {
     // do the update asynchronously - if the update fails, the user will
     // have another chance from the status page
     EngineManager.get().getEngine(userId).then((engine) => {
-        return engine.devices.updateDevicesOfKind(primaryKind);
+        return engine.upgradeDevice(primaryKind);
     }).catch((e) => {
         console.error(`Failed to auto-update device ${primaryKind} for user ${userId}: ${e.message}`);
     });
@@ -459,6 +481,17 @@ async function uploadDevice(req) {
             const [schemaId, schemaChanged] = await ensurePrimarySchema(dbClient, req.body.name,
                                                                         classDef, req, approve);
             const datasetChanged = await ensureDataset(dbClient, schemaId, dataset, req.body.dataset);
+            if (classDef.entities.length > 0) {
+                await entityModel.updateMany(dbClient, classDef.entities.map((stmt) => {
+                    return {
+                        name: stmt.nl_annotations.description,
+                        language: 'en',
+                        id: classDef.kind + ':' + stmt.name,
+                        is_well_known: false,
+                        has_ner_support: stmt.impl_annotations.has_ner ? stmt.impl_annotations.has_ner.toJS() : true
+                    };
+                }));
+            }
 
             const extraKinds = classDef.extends || [];
             const extraChildKinds = classDef.annotations.child_types ?

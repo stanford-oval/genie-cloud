@@ -2,11 +2,21 @@
 //
 // This file is part of Almond
 //
-// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 const express = require('express');
@@ -36,7 +46,8 @@ async function learn(req, res) {
         return;
     }
 
-    if (!I18n.get(req.params.locale, false)) {
+    const langPack = I18n.get(req.params.locale, false);
+    if (!langPack) {
         res.status(404).json({ error: 'Unsupported language' });
         return;
     }
@@ -55,7 +66,8 @@ async function learn(req, res) {
 
     const languageTag = I18n.localeToLanguage(req.params.locale);
     const utterance = req.body.q;
-    const tokenized = await service.tokenizer.tokenize(languageTag, utterance);
+    const tokenizer = langPack.genie.getTokenizer();
+    const tokenized = await tokenizer.tokenize(utterance);
     if (tokenized.tokens.length === 0) {
         res.status(400).json({ error: 'Refusing to learn an empty sentence' });
         return;

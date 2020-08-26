@@ -1,13 +1,22 @@
-#!/usr/bin/env node
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
-// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 const express = require('express');
@@ -17,7 +26,6 @@ const logger = require('morgan');
 const bodyParser = require('body-parser');
 const cacheable = require('cacheable-middleware');
 const Prometheus = require('prom-client');
-const Genie = require('genie-toolkit');
 
 const db = require('../util/db');
 const Metrics = require('../util/metrics');
@@ -35,11 +43,6 @@ class NLPInferenceServer {
     constructor() {
         this._models = new Map;
         this._exactMatchers = new Map;
-        this._tokenizer = new Genie.LocalTokenizer(Config.NL_TOKENIZER_ADDRESS);
-    }
-
-    get tokenizer() {
-        return this._tokenizer;
     }
 
     getExact(locale) {
@@ -151,14 +154,14 @@ class NLPInferenceServer {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('run-nlp', {
+        const parser = subparsers.add_parser('run-nlp', {
             description: 'Run the Voice & NLP inference process'
         });
-        parser.addArgument(['-p', '--port'], {
+        parser.add_argument('-p', '--port', {
             required: false,
             type: Number,
             help: 'Listen on the given port',
-            defaultValue: 8400
+            default: 8400
         });
     },
 

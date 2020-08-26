@@ -1,12 +1,22 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Almond
 //
-// Copyright 2015 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2016-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 const express = require('express');
@@ -37,9 +47,7 @@ router.post('/create', iv.validatePOST({ kind: 'string' }), (req, res, next) => 
     }
     
     EngineManager.get().getEngine(req.user.id).then((engine) => {
-        const devices = engine.devices;
-
-        return devices.addSerialized(req.body);
+        return engine.createDeviceAndReturnInfo(req.body);
     }).then(() => {
         if (req.session['device-redirect-to']) {
             res.redirect(303, req.session['device-redirect-to']);
@@ -56,15 +64,11 @@ router.post('/create', iv.validatePOST({ kind: 'string' }), (req, res, next) => 
 router.post('/delete', iv.validatePOST({ id: 'string' }), (req, res, next) => {
     EngineManager.get().getEngine(req.user.id).then(async (engine) => {
         const id = req.body.id;
-        if (!await engine.devices.hasDevice(id)) {
+        const removed = await engine.deleteDevice(id);
+        if (!removed) {
             res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
                                               message: req._("Not found.") });
-            return;
-        }
-
-        const device = await engine.devices.getDevice(id);
-        await engine.devices.removeDevice(device);
-        if (req.session['device-redirect-to']) {
+        } else if (req.session['device-redirect-to']) {
             res.redirect(303, req.session['device-redirect-to']);
             delete req.session['device-redirect-to'];
         } else {
@@ -87,7 +91,7 @@ router.get('/oauth2/:kind', (req, res, next) => {
     const kind = req.params.kind;
 
     EngineManager.get().getEngine(req.user.id).then(async (engine) => {
-        const result = await engine.devices.addFromOAuth(kind);
+        const result = await engine.startOAuth(kind);
         if (result !== null) {
             const redirect = result[0];
             const session = result[1];

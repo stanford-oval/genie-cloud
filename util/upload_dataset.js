@@ -1,15 +1,31 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Almond
+//
+// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
 "use strict";
 
-const Q = require('q');
 const fs = require('fs');
 const csvparse = require('csv-parse');
+const util = require('util');
 const Stream = require('stream');
 
 const db = require('./db');
 const user = require('./user');
-const tokenizer = require('./tokenize');
 const I18n = require('./i18n');
-const TokenizerService = require('./tokenizer_service');
 const { BadRequestError, ForbiddenError } = require('./errors');
 
 const schemaModel = require('../model/schema');
@@ -25,6 +41,7 @@ class StreamTokenizer extends Stream.Transform {
         this._language = options.language;
         this._preprocessed = options.preprocessed;
         this._typeId = options.typeId;
+        this._tokenizer = I18n.get(options.language).genie.getTokenizer();
     }
 
     _transform(row, encoding, callback) {
@@ -63,19 +80,18 @@ class StreamTokenizer extends Stream.Transform {
                 value, preprocessed, weight
             });
         } else {
-            TokenizerService.tokenize(this._language, value).then((result) => {
-                // ignore lines with uppercase (entity) tokens
-                if (result.tokens.some((t) => /[A-Z]/.test(t))) {
-                    callback(null);
-                } else {
-                    callback(null, {
-                        type_id: this._typeId,
-                        value,
-                        preprocessed: result.tokens.join(' '),
-                        weight
-                    });
-                }
-            }, (err) => callback(err));
+            const result = this._tokenizer.tokenize(value);
+            // ignore lines with uppercase (entity) tokens
+            if (result.tokens.some((t) => /[A-Z]/.test(t))) {
+                callback(null);
+            } else {
+                callback(null, {
+                    type_id: this._typeId,
+                    value,
+                    preprocessed: result.tokens.join(' '),
+                    weight
+                });
+            }
         }
     }
 
@@ -87,6 +103,7 @@ class StreamTokenizer extends Stream.Transform {
 module.exports = {
     uploadEntities: async function(req) {
         const language = I18n.localeToLanguage(req.locale);
+        const tokenizer = I18n.get(req.locale).genie.getTokenizer();
 
         try {
             await db.withTransaction(async (dbClient) => {
@@ -116,9 +133,14 @@ module.exports = {
                 };
 
                 try {
-                    await entityModel.get(dbClient, req.body.entity_id);
-                    await entityModel.update(dbClient, req.body.entity_id, entity);
+                    const existing = await entityModel.get(dbClient, req.body.entity_id);
+                    if (entity.name === entity.id)
+                        entity.name = existing.name;
+
+                    await entityModel.update(dbClient, existing.id, entity);
+                    await entityModel.deleteValues(dbClient, existing.id);
                 } catch (e) {
+                    if (e.code !== 'ENOENT') throw e;
                     await entityModel.create(dbClient, entity);
                 }
 
@@ -143,7 +165,7 @@ module.exports = {
                         const value = row[0].trim();
                         const name = row[1];
 
-                        const tokens = tokenizer.tokenize(name);
+                        const { tokens } = tokenizer.tokenize(name);
                         const canonical = tokens.join(' ');
                         callback(null, {
                             language,
@@ -187,7 +209,7 @@ module.exports = {
             });
         } finally {
             if (req.files.upload && req.files.upload.length)
-                await Q.nfcall(fs.unlink, req.files.upload[0].path);
+                await util.promisify(fs.unlink)(req.files.upload[0].path);
         }
     },
 
@@ -230,7 +252,14 @@ module.exports = {
 
                 try {
                     stringType = await stringModel.getByTypeName(dbClient, req.body.type_name, language);
+                    if (string.license === 'public-domain')
+                        string.license = stringType.license;
+                    string.attribution = string.attribution || stringType.attribution;
+                    if (string.name === string.type_name)
+                        string.name = stringType.name;
+
                     await stringModel.update(dbClient, stringType.id, string);
+                    await stringModel.deleteValues(dbClient, stringType.id);
                 } catch (e) {
                     stringType = await stringModel.create(dbClient, string);
                 }
@@ -271,7 +300,7 @@ module.exports = {
             });
         } finally {
             if (req.files.upload && req.files.upload.length)
-                await Q.nfcall(fs.unlink, req.files.upload[0].path);
+                await util.promisify(fs.unlink)(req.files.upload[0].path);
         }
     }
 };

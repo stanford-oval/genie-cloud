@@ -1,15 +1,24 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Almond
 //
-// Copyright 2015 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2016-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
-const Q = require('q');
 const crypto = require('crypto');
 const util = require('util');
 const jwt = require('jsonwebtoken');
@@ -36,7 +45,7 @@ const { OAUTH_REDIRECT_ORIGIN, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GITHUB_CL
 const TOTP_PERIOD = 30; // duration in second of TOTP code
 
 function hashPassword(salt, password) {
-    return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32, 'sha1')
+    return util.promisify(crypto.pbkdf2)(password, salt, 10000, 32, 'sha1')
         .then((buffer) => buffer.toString('hex'));
 }
 
@@ -137,14 +146,16 @@ function authenticateGoogle(req, accessToken, refreshToken, profile, done) {
         return EngineManager.get().startUser(user.id).then(() => {
             // asynchronously inject google-account device
             EngineManager.get().getEngine(user.id).then((engine) => {
-                return engine.devices.addSerialized({ kind: 'com.google',
-                                                      profileId: profile.id,
-                                                      accessToken: accessToken,
-                                                      refreshToken: refreshToken });
-            }).done();
+                return engine.createDeviceAndReturnInfo({
+                    kind: 'com.google',
+                    profileId: profile.id,
+                    accessToken: accessToken,
+                    refreshToken: refreshToken
+                });
+            });
             return user;
         });
-    }).nodeify(done);
+    }).then((user) => done(null, user), done);
 }
 
 function associateGoogle(user, accessToken, refreshToken, profile, done) {
@@ -152,14 +163,16 @@ function associateGoogle(user, accessToken, refreshToken, profile, done) {
         return model.update(dbClient, user.id, { google_id: profile.id }).then(() => {
             // asynchronously inject google-account device
             EngineManager.get().getEngine(user.id).then((engine) => {
-                return engine.devices.addSerialized({ kind: 'com.google',
-                                                      profileId: profile.id,
-                                                      accessToken: accessToken,
-                                                      refreshToken: refreshToken });
-            }).done();
+                return engine.createDeviceAndReturnInfo({
+                    kind: 'com.google',
+                    profileId: profile.id,
+                    accessToken: accessToken,
+                    refreshToken: refreshToken
+                });
+            });
             return user;
         });
-    }).nodeify(done);
+    }).then((user) => done(null, user), done);
 }
 
 function authenticateGithub(req, accessToken, refreshToken, profile, done) {
@@ -211,7 +224,7 @@ exports.initialize = function() {
     });
 
     passport.deserializeUser((id, done) => {
-        db.withClient((client) => model.get(client, id)).nodeify(done);
+        db.withClient((client) => model.get(client, id)).then((user) => done(null, user), done);
     });
 
     passport.use(new BearerStrategy(async (accessToken, done) => {
@@ -244,7 +257,7 @@ exports.initialize = function() {
 
                 return model.recordLogin(dbClient, rows[0].id).then(() => rows[0]);
             });
-        }).nodeify(done);
+        }).then((res) => done(null, res), (err) => done(err));
     }
 
     passport.use(new BasicStrategy(verifyCloudIdAuthToken));
@@ -268,7 +281,7 @@ exports.initialize = function() {
             done(null, result[0], { message: result[1] });
         }, (err) => {
             done(err);
-        }).done();
+        });
     }));
 
     if (GOOGLE_CLIENT_ID) {

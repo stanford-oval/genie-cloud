@@ -1,12 +1,22 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Almond
 //
-// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 const express = require('express');
@@ -53,7 +63,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
     validateTag(req.body.tag, req.user, user.Role.NLP_ADMIN);
 
     db.withTransaction(async (dbClient) => {
-        let trained = false, version = 0, trained_config = null;
+        let trained = false, version = 0, trained_config = null, metrics = null;
         try {
             const existing = await nlpModelsModel.getByTagForUpdate(dbClient, language, req.body.tag);
             if (existing && existing.owner !== req.user.developer_org)
@@ -61,6 +71,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
             trained = existing.trained;
             version = existing.version;
             trained_config = existing.trained_config;
+            metrics = existing.metrics;
         } catch(e) {
             if (e.code !== 'ENOENT')
                 throw e;
@@ -81,7 +92,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
         if (req.body.flags && !/^[a-zA-Z_][0-9a-zA-Z_]*(?:[ ,]+[a-zA-Z_][0-9a-zA-Z_]*)*$/.test(req.body.flags))
             throw new BadRequestError(req._("Invalid flags"));
 
-        const flags = req.body.flags ? req.body.flags.split(/[ ,]/g) : [];
+        const flags = req.body.flags ? req.body.flags.split(/[ ,]+/g) : [];
 
         // remove the turking flag if specified (it has a special meaning related to mturk)
         const turkingIdx = flags.indexOf('turking');
@@ -116,6 +127,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
             all_devices: devices.length === 0,
             use_approved: !!req.body.use_approved,
             use_exact: !!req.body.use_exact,
+            metrics: metrics,
             trained: trained,
             trained_config: trained_config,
             version: version

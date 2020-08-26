@@ -1,15 +1,24 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Almond
 //
-// Copyright 2015 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2017-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
-const Q = require('q');
 const net = require('net');
 const events = require('events');
 const rpc = require('transparent-rpc');
@@ -65,7 +74,7 @@ class EngineManagerClient extends events.EventEmitter {
         const jsonSocket = connectToMaster(userToShardId(userId));
         const rpcSocket = new rpc.Socket(jsonSocket);
 
-        var deleted = false;
+        let deleted = false;
         rpcSocket.on('close', () => {
             if (this._expectClose)
                 return;
@@ -78,46 +87,40 @@ class EngineManagerClient extends events.EventEmitter {
             deleted = true;
         });
 
-        var defer = Q.defer();
-        rpcSocket.on('error', (err) => {
+        const promise = new Promise((resolve, reject) => {
             // if we still can, catch the error early and fail the request
-            defer.reject(err);
+            rpcSocket.on('error', reject);
+            const initError = (msg) => {
+                if (msg.error) {
+                    const err = new Error(msg.error);
+                    err.code = msg.code;
+                    reject(err);
+                }
+            };
+            jsonSocket.on('data', initError);
+
+            const stub = {
+                ready(engine, websocket, webhook) {
+                    jsonSocket.removeListener('data', initError);
+                    engine.websocket = websocket;
+                    engine.webhook = webhook;
+
+                    resolve(engine);
+                },
+                error(message) {
+                    reject(new Error(message));
+                },
+
+                $rpcMethods: ['ready', 'error']
+            };
+            const replyId = rpcSocket.addStub(stub);
+            jsonSocket.write({ control:'direct', target: userId, replyId: replyId });
         });
-        var initError = (msg) => {
-            if (msg.error) {
-                const err = new Error(msg.error);
-                err.code = msg.code;
-                defer.reject(err);
-            }
-        };
-        jsonSocket.on('data', initError);
-
-        var stub = {
-            ready(apps, devices, websocket, webhook, assistant) {
-                jsonSocket.removeListener('data', initError);
-
-                defer.resolve({
-                    apps,
-                    devices,
-                    websocket,
-                    webhook,
-                    assistant
-                });
-            },
-            error(message) {
-                defer.reject(new Error(message));
-            },
-
-            $rpcMethods: ['ready', 'error']
-        };
-        var replyId = rpcSocket.addStub(stub);
-        jsonSocket.write({ control:'direct', target: userId, replyId: replyId });
-
         this._cachedEngines.set(userId, {
-            engine: defer.promise,
+            engine: promise,
             socket: rpcSocket
         });
-        return defer.promise;
+        return promise;
     }
 
     dispatchWebhook(userId, req, res) {
@@ -206,64 +209,64 @@ class EngineManagerClient extends events.EventEmitter {
         return ok;
     }
 
-    isRunning(userId) {
+    async isRunning(userId) {
         const shardId = userToShardId(userId);
         if (!this._rpcControls[shardId])
-             return Q(false);
+             return false;
         return this._rpcControls[shardId].isRunning(userId);
     }
 
-    getProcessId(userId) {
+    async getProcessId(userId) {
         const shardId = userToShardId(userId);
         if (!this._rpcControls[shardId])
-            return Q(-1);
+            return -1;
         return this._rpcControls[shardId].getProcessId(userId);
     }
 
-    startUser(userId) {
+    async startUser(userId) {
         const shardId = userToShardId(userId);
         if (!this._rpcControls[shardId])
-            return Q.reject(new Error('EngineManager died'));
+            throw new Error('EngineManager died');
         return this._rpcControls[shardId].startUser(userId);
     }
 
-    killUser(userId) {
+    async killUser(userId) {
         this._cachedEngines.delete(userId);
         const shardId = userToShardId(userId);
         if (!this._rpcControls[shardId])
-            return Q.reject(new Error('EngineManager died'));
+            throw new Error('EngineManager died');
         return this._rpcControls[shardId].killUser(userId);
     }
 
-    deleteUser(userId) {
+    async deleteUser(userId) {
         this._cachedEngines.delete(userId);
         const shardId = userToShardId(userId);
         if (!this._rpcControls[shardId])
-            return Q.reject(new Error('EngineManager died'));
+            throw new Error('EngineManager died');
         return this._rpcControls[shardId].deleteUser(userId);
     }
 
-    clearCache(userId) {
+    async clearCache(userId) {
         this._cachedEngines.delete(userId);
         const shardId = userToShardId(userId);
         if (!this._rpcControls[shardId])
-            return Q.reject(new Error('EngineManager died'));
+            throw new Error('EngineManager died');
         return this._rpcControls[shardId].clearCache(userId);
     }
 
-    restartUser(userId) {
+    async restartUser(userId) {
         this._cachedEngines.delete(userId);
         const shardId = userToShardId(userId);
         if (!this._rpcControls[shardId])
-            return Q.reject(new Error('EngineManager died'));
+            throw new Error('EngineManager died');
         return this._rpcControls[shardId].restartUser(userId);
     }
 
-    restartUserWithoutCache(userId) {
+    async restartUserWithoutCache(userId) {
         this._cachedEngines.delete(userId);
         const shardId = userToShardId(userId);
         if (!this._rpcControls[shardId])
-            return Q.reject(new Error('EngineManager died'));
+            throw new Error('EngineManager died');
         return this._rpcControls[shardId].restartUserWithoutCache(userId);
     }
 }

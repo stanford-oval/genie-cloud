@@ -2,34 +2,45 @@
 //
 // This file is part of Almond
 //
-// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 const express = require('express');
-const Genie = require('genie-toolkit');
 
 const iv = require('../util/input_validation');
 const I18n = require('../util/i18n');
 
 const runNLU = require('./nlu');
 
-
 var router = express.Router();
 
 async function tokenize(params, data, res) {
-    if (!I18n.get(params.locale, false)) {
+    const langPack = I18n.get(params.locale, false);
+    if (!langPack) {
         res.status(404).json({ error: 'Unsupported language' });
         return;
     }
 
-    const languageTag = I18n.localeToLanguage(params.locale);
-    const tokenized = await res.app.service.tokenizer.tokenize(languageTag, data.q, data.expect || null);
-    if (data.entities)
-        Genie.Utils.renumberEntities(tokenized, data.entities);
+    const tokenizer = langPack.genie.getTokenizer();
+    const tokenized = await tokenizer.tokenize(data.q);
+
+    // adjust the API to be what it used to be before we got rid of almond-tokenizer
+    tokenized.raw_tokens = tokenized.rawTokens;
+    delete tokenized.rawTokens;
 
     tokenized.result = 'ok';
     res.cacheFor(3600);
@@ -69,7 +80,7 @@ router.get('/@:model_tag/:locale/query', iv.validateGET(QUERY_PARAMS, { json: tr
     query(req.params, req.query, res).catch(next);
 });
 
-router.get('/@:model_tag/:locale/tokenize', iv.validateGET({ q: 'string', entities: '?object' }, { json: true }), (req, res, next) => {
+router.get('/@:model_tag/:locale/tokenize', iv.validateGET({ q: 'string' }, { json: true }), (req, res, next) => {
     tokenize(req.params, req.query, res).catch(next);
 });
 
@@ -77,7 +88,7 @@ router.get('/:locale/query', iv.validateGET(QUERY_PARAMS, { json: true }), (req,
     query(req.params, req.query, res).catch(next);
 });
 
-router.get('/:locale/tokenize', iv.validateGET({ q: 'string', expect: '?string', entities: '?object' }, { json: true }), (req, res, next) => {
+router.get('/:locale/tokenize', iv.validateGET({ q: 'string' }, { json: true }), (req, res, next) => {
     tokenize(req.params, req.query, res).catch(next);
 });
 
@@ -85,7 +96,7 @@ router.post('/@:model_tag/:locale/query', iv.validatePOST(QUERY_PARAMS, { json: 
     query(req.params, req.body, res).catch(next);
 });
 
-router.post('/@:model_tag/:locale/tokenize', iv.validatePOST({ q: 'string', expect: '?string', entities: '?object' }, { json: true }), (req, res, next) => {
+router.post('/@:model_tag/:locale/tokenize', iv.validatePOST({ q: 'string' }, { json: true }), (req, res, next) => {
     tokenize(req.params, req.body, res).catch(next);
 });
 
@@ -93,7 +104,7 @@ router.post('/:locale/query', iv.validatePOST(QUERY_PARAMS, { json: true }), (re
     query(req.params, req.body, res).catch(next);
 });
 
-router.post('/:locale/tokenize', iv.validatePOST({ q: 'string', entities: '?object' }, { json: true }), (req, res, next) => {
+router.post('/:locale/tokenize', iv.validatePOST({ q: 'string' }, { json: true }), (req, res, next) => {
     tokenize(req.params, req.body, res).catch(next);
 });
 

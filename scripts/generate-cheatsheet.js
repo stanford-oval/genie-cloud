@@ -1,12 +1,22 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Almond
 //
-// Copyright 2018 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 require('../util/config_init');
@@ -183,44 +193,44 @@ async function execCommand(command, argv, options) {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('generate-cheatsheet', {
+        const parser = subparsers.add_parser('generate-cheatsheet', {
             description: 'Generate a cheatsheet in pdf format.'
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en',
+            default: 'en',
             help: 'The language to generate (defaults to \'en\', English)'
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: false,
-            defaultValue: './cheatsheet',
+            default: './cheatsheet',
             help: 'The output directory for the tex file.'
         });
-        parser.addArgument(['--thingpedia'], {
+        parser.add_argument('--thingpedia', {
             required: false,
             help: 'Path to JSON file containing signature, type and mixin definitions.'
         });
-        parser.addArgument(['--dataset'], {
+        parser.add_argument('--dataset', {
             required: false,
             help: 'Path to file containing primitive templates, in ThingTalk syntax.'
         });
-        parser.addArgument(['--count'], {
+        parser.add_argument('--count', {
             required: false,
-            defaultValue: 1,
+            default: 1,
             type: 'int',
             help: 'The number of cheatsheet to generate (when generating from files, the ' +
                 'cheatsheet will randomly pick an utterance for each example).'
         });
-        parser.addArgument(['--sample'], {
+        parser.add_argument('--sample', {
             required: false,
             type: 'int',
             help: 'The number of devices on the cheatsheet.'
         });
-        parser.addArgument('--random-seed', {
-            defaultValue: 'almond is awesome',
+        parser.add_argument('--random-seed', {
+            default: 'almond is awesome',
             help: 'Random seed'
         });
-        parser.addArgument('--suffix', {
+        parser.add_argument('--suffix', {
             required: false,
             help: 'The suffix of generated files (for generating domain-specific cheatsheet).'
         });

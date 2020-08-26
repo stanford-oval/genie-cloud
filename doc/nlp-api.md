@@ -207,7 +207,7 @@ Host: nlp.almond.stanford.edu
 Content-Type: application/json
 
 {
-  "q": "wake me up at 7 am with 3 cat pictures"
+  "q": "wake me up at 7 am with 30 cat pictures"
 }
 
 HTTP/1.1 200 Ok
@@ -218,11 +218,9 @@ Content-Type: application/json
   "tokens": ["wake", "me", "up", "at", "TIME_0", "with", "NUMBER_0", "cat", "pictures"],
   "entities": {
     "TIME_0": { "hour": 7, "minute": 0, "second": 0 },
-    "NUMBER_0": 3
+    "NUMBER_0": 30
   },
-  "raw_tokens": ["wake", "me", "up", "at", "7", "am", "with", "3", "cat", "pictures"],
-  "pos_tags": ["VB", "PRP", "RP", "IN", "CD", "VBP", "IN", "CD", "NN", "NNS"],
-  "sentiment": "neutral"
+  "raw_tokens": ["wake", "me", "up", "at", "7:00", "with", "30", "cat", "pictures"],
 }
 ```
 
@@ -232,7 +230,6 @@ All parameters are optional except for `q`.
 
 - `q` : the input from the user
 - `expect`: what type the client is expecting; the values are the same as the `/query` API
-- `entities`: other entities already present in the context
 
 ### Response fields
 
@@ -240,8 +237,6 @@ All parameters are optional except for `q`.
 - `tokens`: the tokenization of the input sentence
 - `entities`: entities extracted from the sentence; this is an object with one key for each upper-case token in `tokens`
 - `raw_tokens`: the tokenization of the input sentence, before recognizing entities
-- `pos_tags`: part-of-speech tagging of the input sentence; this is an array with the same length as `raw_tokens`; the tagset is locale-dependent (Penn Treebank for English)
-- `sentiment`: sentiment classification of the sentence; one of `very_negative`, `negative`, `neutral`, `positive`, `very_positive`; not all locales support this, in which case the sentiment will always be `neutral`
 
 ## Online Learning: /learn
 

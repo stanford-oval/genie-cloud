@@ -1,16 +1,25 @@
 #!/usr/bin/env node
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Almond
 //
-// Copyright 2017 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2017-2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
-const Q = require('q');
 const assert = require('assert');
 const events = require('events');
 const rpc = require('transparent-rpc');
@@ -104,7 +113,14 @@ class ControlSocketServer {
     }
 
     start() {
-        return Q.ninvoke(this._server, 'listen', this._address);
+        return new Promise((resolve, reject) => {
+            this._server.listen(this._address, (err) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve();
+            });
+        });
     }
 
     stop() {
@@ -121,19 +137,18 @@ class ControlSocketServer {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('run-almond', {
+        const parser = subparsers.add_parser('run-almond', {
             description: 'Run the master Web Almond process'
         });
-        parser.addArgument(['-s', '--shard'], {
+        parser.add_argument('-s', '--shard', {
             required: false,
             type: Number,
             help: 'Shard number for this process',
-            defaultValue: 0
+            default: 0
         });
-        parser.addArgument(['--k8s'], {
-            nargs: 0,
-            action: 'storeTrue',
-            defaultValue: false,
+        parser.add_argument('--k8s', {
+            action: 'store_true',
+            default: false,
             help: 'Enable running in kubernetes. The shard number will be inferred from the hostname.'
         });
     },

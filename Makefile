@@ -31,7 +31,7 @@ comma = ,
 alldocs := $(foreach w,$(wildcard doc/*.md),$(basename $(notdir $(w))))
 alldocpug := $(foreach d,$(alldocs),views/doc_$(d).pug)
 
-jsdocmodules = thingtalk thingpedia thingengine-core
+jsdocmodules = thingtalk thingpedia genie-toolkit
 alljsdocs = $(foreach m,$(jsdocmodules),doc/jsdoc/$(m))
 
 doc/doc-list.json: doc/

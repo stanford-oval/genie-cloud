@@ -2,11 +2,21 @@
 //
 // This file is part of Almond
 //
-// Copyright 2016-2019 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 require('../polyfill');
@@ -122,7 +132,7 @@ async function testBasic() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_ppdb_probability_synthetic": 0.1,"dataset_ppdb_probability_paraphrase": 1.0,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 0,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
+            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 0,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
             metrics: null,
             for_devices: []
         }, {
@@ -141,7 +151,7 @@ async function testBasic() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_ppdb_probability_synthetic": 0.1,"dataset_ppdb_probability_paraphrase": 1.0,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 0,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
+            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 0,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
             metrics: null,
             for_devices: []
         }
@@ -203,7 +213,7 @@ async function testForDevice() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_ppdb_probability_synthetic": 0.1,"dataset_ppdb_probability_paraphrase": 1.0,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 0,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
+            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 0,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
             metrics: null,
             for_devices: ['org.thingpedia.builtin.test.adminonly']
         }
@@ -254,7 +264,7 @@ async function testForDevice() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_ppdb_probability_synthetic": 0.1,"dataset_ppdb_probability_paraphrase": 1.0,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 0,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
+            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 0,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
             metrics: null,
         }
     ]);

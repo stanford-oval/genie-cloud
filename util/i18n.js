@@ -1,12 +1,22 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Almond
 //
-// Copyright 2017 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2017-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 const path = require('path');
@@ -16,6 +26,7 @@ const fs = require('fs');
 const acceptLanguage = require('accept-language');
 const assert = require('assert');
 const ThingTalk = require('thingtalk');
+const Genie = require('genie-toolkit');
 
 const { InternalError } = require('./errors');
 const userUtils = require('./user');
@@ -70,21 +81,19 @@ const self = {
             let gt = new Gettext();
             if (locale !== 'en-US') {
                 let modir = path.resolve(path.dirname(module.filename), '../po');//'
-                loadTextdomainDirectory(gt, locale, 'thingengine-platform-cloud', modir);
+                loadTextdomainDirectory(gt, locale, 'almond-cloud', modir);
                 modir = path.resolve(path.dirname(module.filename), '../node_modules/thingtalk/po');
                 loadTextdomainDirectory(gt, locale, 'thingtalk', modir);
-                modir = path.resolve(path.dirname(module.filename), '../node_modules/almond-dialog-agent/po');
-                loadTextdomainDirectory(gt, locale, 'almond', modir);
-                loadTextdomainDirectory(gt, locale, 'almond-dialog-agent', modir);
-                modir = path.resolve(path.dirname(module.filename), '../node_modules/thingengine-core/po');
-                loadTextdomainDirectory(gt, locale, 'thingengine-core', modir);
+                modir = path.resolve(path.dirname(module.filename), '../node_modules/genie-toolkit/po');
+                loadTextdomainDirectory(gt, locale, 'genie-toolkit', modir);
             }
-            gt.textdomain('thingengine-platform-cloud');
+            gt.textdomain('almond-cloud');
             gt.setLocale(locale);
 
             // prebind the gt for ease of use, because the usual gettext API is not object-oriented
             const prebound = {
                 locale,
+                genie: Genie.I18n.get(locale),
 
                 gettext: gt.gettext.bind(gt),
                 ngettext: gt.ngettext.bind(gt),

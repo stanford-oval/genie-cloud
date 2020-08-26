@@ -42,34 +42,6 @@ spec:
         secret:
           secretName: aws-config
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: "tokenizer"
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: "tokenizer"
-  template:
-    metadata:
-      labels:
-        app: "tokenizer"
-    spec:
-      containers:
-      # main container
-      - name: "nlp"
-        image: stanfordoval/almond-tokenizer:latest
-        imagePullPolicy: Always
-        resources:
-          requests:
-            memory: 5G
-        readinessProbe:
-          tcpSocket:
-            port: 8888
-          initialDelaySeconds: 10
-          periodSeconds: 20
----
 apiVersion: v1
 kind: Service
 metadata:
@@ -80,14 +52,3 @@ spec:
     protocol: TCP
   selector:
     app: "nlp"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: "tokenizer"
-spec:
-  ports:
-  - port: 8888
-    protocol: TCP
-  selector:
-    app: "tokenizer"

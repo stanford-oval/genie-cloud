@@ -1,12 +1,22 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Almond
 //
-// Copyright 2018 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 const byline = require('byline');
@@ -17,61 +27,6 @@ const ThingTalk = require('thingtalk');
 
 const AdminThingpediaClient = require('../../util/admin-thingpedia-client');
 const AbstractFS = require('../../util/abstract_fs');
-const TokenizerService = require('../../util/tokenizer_service');
-
-const SEMANTIC_PARSING_TASK = 'almond';
-const NLU_TASK = 'almond_dialogue_nlu';
-
-
-class LocalParserClient {
-    constructor(modeldir, locale) {
-        this._locale = locale;
-        this._tokenizer = TokenizerService.getLocal();
-        this._predictor = new Genie.Predictor('local', modeldir);
-    }
-
-    async start() {
-        await this._predictor.start();
-    }
-    async stop() {
-        await this._predictor.stop();
-    }
-
-    async tokenize(utterance, contextEntities) {
-        const tokenized = await this._tokenizer.tokenize(this._locale, utterance);
-        Genie.Utils.renumberEntities(tokenized, contextEntities);
-        return tokenized;
-    }
-
-    async sendUtterance(utterance, tokenized, contextCode, contextEntities) {
-        let tokens, entities;
-        if (tokenized) {
-            tokens = utterance.split(' ');
-            entities = Genie.Utils.makeDummyEntities(utterance);
-            Object.assign(entities, contextEntities);
-        } else {
-            const tokenized = await this._tokenizer.tokenize(this._locale, utterance);
-            Genie.Utils.renumberEntities(tokenized, contextEntities);
-            tokens = tokenized.tokens;
-            entities = tokenized.entities;
-        }
-
-        let candidates;
-        if (contextCode)
-            candidates = await this._predictor.predict(contextCode.join(' '), tokens.join(' '), NLU_TASK);
-        else
-            candidates = await this._predictor.predict(tokens.join(' '), undefined, SEMANTIC_PARSING_TASK);
-
-        candidates = candidates.map((cand) => {
-            return {
-                code: cand.answer.split(' '),
-                score: cand.score
-            };
-        });
-        return { tokens, candidates, entities };
-    }
-}
-
 
 module.exports = async function main(task, argv) {
     task.handleKill();
@@ -82,7 +37,7 @@ module.exports = async function main(task, argv) {
 
     const tpClient = new AdminThingpediaClient(task.language);
     const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
-    const parser = new LocalParserClient(outputdir, task.language);
+    const parser = Genie.ParserClient.get('file://' + outputdir, task.language);
     await parser.start();
 
     const output = fs.createReadStream(path.resolve(datadir, 'eval.tsv'))
@@ -93,15 +48,14 @@ module.exports = async function main(task, argv) {
             preserveId: true,
             parseMultiplePrograms: true
         }))
-        .pipe(new Genie.SentenceEvaluatorStream(parser, schemas, true /* tokenized */, argv.debug))
-        .pipe(new Genie.CollectSentenceStatistics());
+        .pipe(new Genie.Evaluation.SentenceEvaluatorStream(task.language, parser, schemas, true /* tokenized */, argv.debug))
+        .pipe(new Genie.Evaluation.CollectSentenceStatistics());
 
     const result = await output.read();
     await task.setMetrics(result);
 
     await Promise.all([
         parser.stop(),
-        TokenizerService.tearDown(),
         AbstractFS.removeTemporary(jobdir)
     ]);
 };

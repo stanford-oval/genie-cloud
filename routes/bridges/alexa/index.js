@@ -1,12 +1,22 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Almond
 //
-// Copyright 2017-2019 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 const express = require('express');
@@ -55,44 +65,44 @@ class AlexaDelegate {
         });
     }
 
-    send(text, icon) {
-        this._buffer += text + '\n';
-    }
+    setHypothesis() {}
 
-    sendPicture(url, icon) {
-        // FIXME
-    }
-
-    sendRDL(rdl, icon) {
-        this._buffer += rdl.displayTitle + '\n';
-    }
-
-    sendChoice(idx, what, title, text) {
-        this._buffer += title + '\n';
-    }
-
-    sendButton(title, json) {
-        // FIXME
-    }
-
-    sendLink(title, url) {
-        if (url === '/user/register') {
-            this._card = {
-                type: 'LinkAccount'
-            };
-        }
-        // FIXME handle other URL types
-    }
-
-    sendResult(message, icon) {
-        this._buffer += message.toLocaleString(this._locale) + '\n';
-    }
-
-    sendAskSpecial(what) {
+    setExpected(what) {
         this._askSpecial = what;
     }
+
+    addMessage(msg) {
+        switch (msg.type) {
+        case 'text':
+        case 'result':
+            this._buffer += msg.text + '\n';
+            break;
+
+        case 'rdl':
+            this._buffer += msg.rdl.displayTitle + '\n';
+            break;
+
+        case 'choice':
+            this._buffer += msg.title + '\n';
+            break;
+
+        case 'link':
+            if (msg.url === '/user/register') {
+                this._card = {
+                    type: 'LinkAccount'
+                };
+            }
+            // FIXME handle other URL types
+            break;
+
+        case 'picture':
+        case 'button':
+            // FIXME
+            break;
+        }
+    }
 }
-AlexaDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL', 'sendResult'];
+AlexaDelegate.prototype.$rpcMethods = ['setExpected', 'setHypothesis', 'addMessage'];
 
 function authenticate(req, res, next) {
     if (req.body && req.body.session && req.body.session.user && req.body.session.user.accessToken &&
@@ -139,7 +149,7 @@ async function handle(modelTag, req, res) {
      // "isOwner" is a multi-user assistant thing, it has nothing to do with anonymous or not
     const assistantUser = { name: user.human_name || user.username, isOwner: true };
     const engine = await EngineManager.get().getEngine(user.id);
-    const conversation = await engine.assistant.getOrOpenConversation('alexa:' + req.body.session.sessionId,
+    const conversation = await engine.getOrOpenConversation('alexa:' + req.body.session.sessionId,
         assistantUser, delegate, { anonymous, showWelcome: false, debug: true });
 
     if (input.program)

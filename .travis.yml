@@ -21,7 +21,7 @@ cache:
 stages:
   - test
   - name: deploy
-    if: branch = staging AND repo = stanford-oval/almond-cloud
+    if: type = push AND branch = master AND repo = stanford-oval/almond-cloud
 
 env:
   global:
@@ -36,7 +36,6 @@ jobs:
       - sudo apt-get update -q -y
       - sudo apt-get install -y realpath
       - travis_retry yarn
-      - (cd node_modules/genie-toolkit ; yarn ; rm -fr node_modules)
       script:
       - yarn lint
       - ./tests/check-migrations.sh
@@ -47,8 +46,7 @@ jobs:
       install:
       - ./travis/install-webalmond-deps.sh
       - travis_retry yarn
-      - (cd node_modules/genie-toolkit ; yarn ; rm -fr node_modules)
-      - export PATH="`pwd`/cvc4:`pwd`/geckodriver:$PATH"
+      - export PATH="`pwd`/geckodriver:$PATH"
       script: yarn run nyc ./tests/webalmond-integration.sh
       after_success: yarn run coverage
     -
@@ -56,8 +54,7 @@ jobs:
       install:
       - ./travis/install-webalmond-deps.sh
       - travis_retry yarn
-      - (cd node_modules/genie-toolkit ; yarn ; rm -fr node_modules)
-      - export PATH="`pwd`/cvc4:`pwd`/geckodriver:$PATH"
+      - export PATH="`pwd`/geckodriver:$PATH"
       script: yarn run nyc ./tests/thingpedia-integration.sh
       after_success: yarn run coverage
     -
@@ -65,11 +62,10 @@ jobs:
       install:
       - ./travis/install-webalmond-deps.sh
       - travis_retry yarn
-      - (cd node_modules/genie-toolkit ; yarn ; rm -fr node_modules)
       - pyenv global 3.6.7
       - ./tests/install-nlp-deps.sh
       - export GENIENLP_EMBEDDINGS=`pwd`/tests/embeddings
-      - export PATH="`pwd`/cvc4:`pwd`/geckodriver:$PATH"
+      - export PATH="`pwd`/geckodriver:$PATH"
       script: yarn run nyc ./tests/nlp-integration.sh
       after_success: yarn run coverage
     -
@@ -77,11 +73,10 @@ jobs:
       install:
       - ./travis/install-webalmond-deps.sh
       - travis_retry yarn
-      - (cd node_modules/genie-toolkit ; yarn ; rm -fr node_modules)
       - pyenv global 3.6.7
       - ./tests/install-nlp-deps.sh
       - export GENIENLP_EMBEDDINGS=`pwd`/tests/embeddings
-      - export PATH="`pwd`/cvc4:`pwd`/geckodriver:$PATH"
+      - export PATH="`pwd`/geckodriver:$PATH"
       script: yarn run nyc ./tests/training-integration.sh
       after_success: yarn run coverage
     -

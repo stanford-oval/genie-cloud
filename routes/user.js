@@ -1,15 +1,24 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Almond
 //
-// Copyright 2015 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2016-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
-const Q = require('q');
 const Url = require('url');
 const Tp = require('thingpedia');
 const express = require('express');
@@ -268,7 +277,16 @@ const registerArguments = {
     locale: 'string'
 };
 
-
+function login(req, user) {
+    return new Promise((resolve, reject) => {
+        req.login(user, (err) => {
+            if (err)
+                reject(err);
+            else
+                resolve();
+        });
+    });
+}
 
 router.post('/register', iv.validatePOST(registerArguments), (req, res, next) => {
     var options = {};
@@ -320,7 +338,7 @@ router.post('/register', iv.validatePOST(registerArguments), (req, res, next) =>
                 });
                 return null;
             }
-            await Q.ninvoke(req, 'login', user);
+            await login(req, user);
             return user;
         });
         if (!user)
@@ -560,7 +578,7 @@ router.post('/recovery/continue', iv.validatePOST({ token: 'string', password: '
         }
 
         await userUtils.resetPassword(dbClient, user, req.body.password);
-        await Q.ninvoke(req, 'login', user);
+        await login(req, user);
         await model.recordLogin(dbClient, user.id);
 
         // we have completed 2fa above
@@ -587,13 +605,13 @@ async function getProfile(req, res, pw_error, profile_error) {
     try {
         const engine = await EngineManager.get().getEngine(req.user.id);
 
-        const [phoneProxy, desktopProxy] = await Promise.all([
-            engine.devices.getDevice('thingengine-own-phone'),
-            engine.devices.getDevice('thingengine-own-desktop')
+        const [hasPhone, hasDesktop] = await Promise.all([
+            engine.hasDevice('thingengine-own-phone'),
+            engine.hasDevice('thingengine-own-desktop')
         ]);
-        if (phoneProxy)
+        if (hasPhone)
             phone.isConfigured = true;
-        if (desktopProxy)
+        if (hasDesktop)
             desktop.isConfigured = true;
     } catch(e) {
         // ignore the error if the engine is down

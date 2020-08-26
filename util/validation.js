@@ -1,12 +1,22 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Almond
 //
-// Copyright 2016 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2016-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 const assert = require('assert');
@@ -15,12 +25,12 @@ const ThingTalk = require('thingtalk');
 const entityModel = require('../model/entity');
 const stringModel = require('../model/strings');
 
-const { clean, splitParams, tokenize } = require('./tokenize');
-const TokenizerService = require('./tokenizer_service');
+const { clean, splitParams } = require('./tokenize');
 const ThingpediaClient = require('./thingpedia-client');
 const getExampleName = require('./example_names');
 const { ValidationError } = require('./errors');
 const userUtils = require('./user');
+const I18n = require('./i18n');
 
 assert(typeof ThingpediaClient === 'function');
 
@@ -35,8 +45,8 @@ const FORBIDDEN_NAMES = new Set(['__count__', '__noSuchMethod__', '__parent__',
 '__lookupSetter__', 'eval', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable',
 'toLocaleString', 'toSource', 'toString', 'valueOf']);
 
-const ALLOWED_ARG_METADATA = new Set(['canonical', 'prompt']);
-const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'confirmation', 'confirmation_remote', 'formatted']);
+const ALLOWED_ARG_METADATA = new Set(['canonical', 'prompt', 'question', 'counted_object']);
+const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'confirmation', 'confirmation_remote', 'result', 'formatted', 'on_error']);
 const ALLOWED_CLASS_METADATA = new Set(['name', 'description', 'thingpedia_name', 'thingpedia_description', 'canonical']);
 
 function validateAnnotations(annotations) {
@@ -107,7 +117,7 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
 
     if (!classDef.is_abstract) {
         if (!classDef.loader)
-            throw new ValidationError("loader mixin missing from class declaration");
+            throw new ValidationError(req._("Loader mixin missing from class declaration"));
         if (!classDef.config)
             classDef.imports.push(new ThingTalk.Ast.ImportStmt.Mixin(null, ['config'], 'org.thingpedia.config.none', []));
     }
@@ -115,11 +125,19 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     const moduleType = classDef.is_abstract ? null : classDef.loader.module;
     const fullcode = !classDef.is_abstract && !JAVASCRIPT_MODULE_TYPES.has(moduleType);
 
-    const [entities, stringTypes] = await validateAllInvocations(classDef, {
+    for (let stmt of classDef.entities) {
+        if (typeof stmt.nl_annotations.description !== 'string' ||
+            !stmt.nl_annotations.description)
+            throw new ValidationError(req._("A description is required for entity %s").format(stmt.name));
+    }
+
+    let [entities, stringTypes] = await validateAllInvocations(classDef, {
         checkPollInterval: !classDef.is_abstract,
         checkUrl: fullcode,
         deviceName: name
     });
+    // remove from entities those that are declared in this class
+    entities = entities.filter((e) => !classDef.entities.find((stmt) => classDef.kind + ':' + stmt.name === e));
     const missingEntities = await entityModel.findNonExisting(dbClient, entities);
     if (missingEntities.length > 0)
         throw new ValidationError('Invalid entity types: ' + missingEntities.join(', '));
@@ -128,12 +146,13 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     if (missingStrings.length > 0)
         throw new ValidationError('Invalid string types: ' + missingStrings.join(', '));
 
+    const tokenizer = I18n.get('en-US').genie.getTokenizer();
     if (!classDef.metadata.name)
         classDef.metadata.name = name;
     if (!classDef.metadata.description)
         classDef.metadata.description = description;
     if (!classDef.metadata.canonical)
-        classDef.metadata.canonical = tokenize(name).join(' ');
+        classDef.metadata.canonical = tokenizer.tokenize(name).tokens.join(' ');
     await validateDataset(dataset);
 
     // delete annotations that are specific to devices uploaded with the "thingpedia" CLI tool
@@ -239,50 +258,59 @@ function validateAllInvocations(classDef, options = {}) {
     return [Array.from(entities), Array.from(stringTypes)];
 }
 
-function autogenCanonical(name, kind, deviceName) {
-    return `${clean(name)} on ${deviceName ? tokenize(deviceName).join(' ') : cleanKind(kind)}`;
+function autogenCanonical(tokenizer, name, kind, deviceName) {
+    return `${clean(name)} on ${deviceName ? tokenizer.tokenize(deviceName).tokens.join(' ') : cleanKind(kind)}`;
 }
 
 function validateInvocation(kind, where, what, entities, stringTypes, options = {}) {
+    const tokenizer = I18n.get('en-US').genie.getTokenizer();
     for (const name in where) {
         if (FORBIDDEN_NAMES.has(name))
             throw new ValidationError(`${name} is not allowed as a function name`);
-        validateMetadata(where[name].metadata, ALLOWED_FUNCTION_METADATA);
-        validateAnnotations(where[name].annotations);
 
-        if (!where[name].metadata.canonical)
-            where[name].metadata.canonical = autogenCanonical(name, kind, options.deviceName);
-        if (where[name].metadata.canonical.indexOf('$') >= 0)
+        const fndef = where[name];
+        validateMetadata(fndef.metadata, ALLOWED_FUNCTION_METADATA);
+        validateAnnotations(fndef.annotations);
+
+        if (!fndef.metadata.canonical)
+            fndef.metadata.canonical = autogenCanonical(tokenizer, name, kind, options.deviceName);
+        if (typeof fndef.metadata.canonical === 'string' &&
+            fndef.metadata.canonical.indexOf('$') >= 0)
             throw new ValidationError(`Detected placeholder in canonical form for ${name}: this is incorrect, the canonical form must not contain parameters`);
-        if (!where[name].metadata.confirmation)
+        if (!fndef.metadata.confirmation)
             throw new ValidationError(`Missing confirmation for ${name}`);
-        if (where[name].annotations.confirm) {
-            if (!where[name].annotations.confirm.isBoolean)
+
+        if (fndef.annotations.confirm) {
+            if (fndef.annotations.confirm.isEnum) {
+                if (!['confirm', 'auto', 'display_result'].includes(fndef.annotations.confirm.toJS()))
+                    throw new ValidationError(`Invalid #[confirm] annotation for ${name}, must be a an enum "confirm", "auto", "display_result"`);
+            } else if (!fndef.annotations.confirm.isBoolean) {
                 throw new ValidationError(`Invalid #[confirm] annotation for ${name}, must be a Boolean`);
+            }
         } else {
             if (what === 'query')
-                where[name].annotations.confirm = new ThingTalk.Ast.Value.Boolean(false);
+                fndef.annotations.confirm = new ThingTalk.Ast.Value.Boolean(false);
             else
-                where[name].annotations.confirm = new ThingTalk.Ast.Value.Boolean(true);
+                fndef.annotations.confirm = new ThingTalk.Ast.Value.Boolean(true);
         }
-        if (options.checkPollInterval && what === 'query' && where[name].is_monitorable) {
-            if (!where[name].annotations.poll_interval)
+        if (options.checkPollInterval && what === 'query' && fndef.is_monitorable) {
+            if (!fndef.annotations.poll_interval)
                 throw new ValidationError(`Missing poll interval for monitorable query ${name}`);
-            if (where[name].annotations.poll_interval.toJS() < 0)
+            if (fndef.annotations.poll_interval.toJS() < 0)
                 throw new ValidationError(`Invalid negative poll interval for monitorable query ${name}`);
         }
         if (options.checkUrl) {
-            if (!where[name].annotations.url)
+            if (!fndef.annotations.url)
                 throw new ValidationError(`Missing ${what} url for ${name}`);
         }
 
-        for (const argname of where[name].args) {
+        for (const argname of fndef.args) {
             if (FORBIDDEN_NAMES.has(argname))
                 throw new ValidationError(`${argname} is not allowed as argument name in ${name}`);
-            let type = where[name].getArgType(argname);
+            let type = fndef.getArgType(argname);
             while (type.isArray)
                 type = type.elem;
-            const arg = where[name].getArgument(argname);
+            const arg = fndef.getArgument(argname);
             validateMetadata(arg.metadata, ALLOWED_ARG_METADATA);
             validateAnnotations(arg.annotations);
 
@@ -328,7 +356,7 @@ function cleanKind(kind) {
     return kind.replace(/[_\-.]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
 }
 
-async function tokenizeOneExample(id, utterance, language) {
+function tokenizeOneExample(id, utterance, language) {
     let replaced = '';
     let params = [];
 
@@ -350,7 +378,8 @@ async function tokenizeOneExample(id, utterance, language) {
         params.push([param, opt]);
     }
 
-    const {tokens, entities} = await TokenizerService.tokenize(language, replaced);
+    const tokenizer = I18n.get(language).genie.getTokenizer();
+    const {tokens, entities} = tokenizer.tokenize(replaced);
     if (Object.keys(entities).length > 0)
         throw new ValidationError(`Error in Example ${id}: Cannot have entities in the utterance`);
 

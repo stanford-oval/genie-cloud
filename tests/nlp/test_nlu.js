@@ -2,26 +2,37 @@
 //
 // This file is part of Almond
 //
-// Copyright 2016-2018 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 const assert = require('assert');
 const ThingTalk = require('thingtalk');
 const Gettext = require('node-gettext');
 const Tp = require('thingpedia');
-
-const ParserClient = require('./parserclient');
+const Genie = require('genie-toolkit');
 
 const db = require('../../util/db');
 const Config = require('../../config');
+const localfs = require('../../util/local_fs');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'external');
 
 const gettext = new Gettext();
 gettext.setLocale('en-US');
+localfs.init();
 
 class DummyPreferences {
     keys() {
@@ -44,15 +55,24 @@ const schemas = new ThingTalk.SchemaRetriever(new Tp.HttpClient({
         return null;
     },
     locale: 'en-US',
+    getTmpDir() {
+        return localfs.getTmpDir();
+    },
+    getCacheDir() {
+        return localfs.getCacheDir();
+    },
+    getWritableDir() {
+        return localfs.getWritableDir();
+    }
 }, Config.THINGPEDIA_URL), null, true);
 
 async function testEverything() {
     const TEST_CASES = require('./parser_test_cases');
-    const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US');
+    const parser = Genie.ParserClient.get(Config.NL_SERVER_URL, 'en-US');
 
     for (let i = 0; i < TEST_CASES.length; i++) {
         const test = TEST_CASES[i];
-        const analyzed = await parser.sendUtterance(test);
+        const analyzed = await parser.sendUtterance(test, undefined, undefined);
 
         assert.strictEqual(typeof analyzed.intent, 'object');
         assert.strictEqual(typeof analyzed.intent.question, 'number');
@@ -68,120 +88,80 @@ async function testEverything() {
             await program.typecheck(schemas, false);
             return program;
         }));
-        assert(candidates.length > 0, `Failed parsing ${test}`);
+        assert (candidates.length > 0, `Failed parsing ${test}`);
         console.log(`${i+1}: ${test} => ${candidates[0].prettyprint()}`);
     }
 }
 
-async function testTokenize() {
-    const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US');
+async function tokenize(utterance) {
+    const data = {
+        q: utterance,
+    };
 
-    const tok1 = await parser.tokenize('1234');
+    const response = await Tp.Helpers.Http.post(`${Config.NL_SERVER_URL}/en-US/tokenize`, JSON.stringify(data), {
+        dataContentType: 'application/json' //'
+    });
+
+    const tokenized = JSON.parse(response);
+
+    if (tokenized.error)
+        throw new Error('Error received from NLP server: ' + tokenized.error);
+
+    return tokenized;
+}
+
+async function testTokenize() {
+    const tok1 = await tokenize('1234');
     assert.deepStrictEqual(tok1, {
         result: 'ok',
         tokens: ['NUMBER_0'],
-        pos_tags: ['NN'],
         raw_tokens: ['1234'],
-        sentiment: 'neutral',
         entities: {
             NUMBER_0: 1234
-        }
-    });
-
-    const tok2 = await parser.tokenize('1234', { NUMBER_0: 1234 });
-    assert.deepStrictEqual(tok2, {
-        result: 'ok',
-        tokens: ['NUMBER_0'],
-        pos_tags: ['NN'],
-        raw_tokens: ['1234'],
-        sentiment: 'neutral',
-        entities: {
-            NUMBER_0: 1234
-        }
-    });
-
-    const tok3 = await parser.tokenize('1235', { NUMBER_0: 1234 });
-    assert.deepStrictEqual(tok3, {
-        result: 'ok',
-        tokens: ['NUMBER_1'],
-        pos_tags: ['NN'],
-        raw_tokens: ['1235'],
-        sentiment: 'neutral',
-        entities: {
-            NUMBER_0: 1234,
-            NUMBER_1: 1235
-        }
-    });
-
-    const tok4 = await parser.tokenize('foo', { NUMBER_0: 1234 });
-    assert.deepStrictEqual(tok4, {
-        result: 'ok',
-        tokens: ['foo'],
-        pos_tags: ['NN'],
-        raw_tokens: ['foo'],
-        sentiment: 'neutral',
-        entities: {
-            NUMBER_0: 1234,
         }
     });
 }
 
 async function testContextual() {
-    const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US');
+    const parser = Genie.ParserClient.get(Config.NL_SERVER_URL, 'en-US');
 
-    const q1 = await parser.sendUtterance('another one', {
-        code: 'now => @com.thecatapi.get => notify',
-        entities: {}
-    });
+    const q1 = await parser.sendUtterance("i'm looking for a restaurant that serves chinese",
+        'null'.split(' '), {}, {});
     delete q1.intent;
     assert.deepStrictEqual(q1, {
         result: 'ok',
-        tokens: ['another', 'one'],
+        tokens: ['i', '\'m', 'looking', 'for', 'a', 'restaurant', 'that', 'serves', 'chinese'],
         entities: {},
         candidates: [{
-            code: [ 'now', '=>', '@com.thecatapi.get', '=>', 'notify' ],
+            code: [
+            '$dialogue', '@org.thingpedia.dialogue.transaction.execute', ';',
+            'now', '=>', '(', '@com.yelp.restaurant', ')', 'filter', 'param:cuisines', 'contains', '"', 'chinese', '"', '^^com.yelp:restaurant_cuisine', '=>', 'notify', ';' ],
             score: 1
         }]
     });
 
-    const q2 = await parser.sendUtterance('another one', {
-        code: 'now => @uk.co.thedogapi.get => notify',
-        entities: {}
-    });
+    const q2 = await parser.sendUtterance('how about something that serves italian food?',
+        '$dialogue @org.thingpedia.dialogue.transaction.execute ; now => ( @com.yelp.restaurant ) filter param:cuisines contains GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 => notify #[ results = [ ] ] ;'.split(' '), {
+            'GENERIC_ENTITY_com.yelp:restaurant_cuisine_0': { display: "Chinese", value: 'chinese' }
+        });
     delete q2.intent;
     assert.deepStrictEqual(q2, {
         result: 'ok',
-        tokens: ['another', 'one'],
-        entities: {},
-        candidates: [{
-            code: [ 'now', '=>', '@uk.co.thedogapi.get', '=>', 'notify' ],
-            score: 1
-        }]
-    });
-
-    const q3 = await parser.sendUtterance('another one', {
-        code: 'now => @com.thecatapi.get param:count:Number = NUMBER_0 => notify',
+        tokens: 'how about something that serves italian food ?'.split(' '),
         entities: {
-            NUMBER_0: 2
-        }
-    });
-    delete q3.intent;
-    assert.deepStrictEqual(q3, {
-        result: 'ok',
-        tokens: ['another', 'one'],
-        entities: {
-            NUMBER_0: 2
+            'GENERIC_ENTITY_com.yelp:restaurant_cuisine_0': { display: "Chinese", value: 'chinese' }
         },
         candidates: [{
-            // this is actually not the right answer, but this is what the model says, and the server code is correct this way
-            code: [ 'now', '=>', '@com.thecatapi.get', 'param:count:Number', '=', '1', '=>', 'notify' ],
+            code: [
+            '$dialogue', '@org.thingpedia.dialogue.transaction.execute', ';',
+            'now', '=>', '(', '@com.yelp.restaurant', ')', 'filter', 'param:cuisines', 'contains', '"', 'italian', '"', '^^com.yelp:restaurant_cuisine', '=>', 'notify', ';' ],
             score: 1
         }]
     });
 }
 
 async function expectAnswer(parser, input, expecting, expectedCode, expectedEntities) {
-    const analyzed = await parser.sendUtterance(input, '', expecting);
+    const analyzed = await parser.sendUtterance(input, undefined, undefined, { expect: expecting });
 
     assert(Array.isArray(analyzed.candidates));
     assert(analyzed.candidates.length > 0);
@@ -191,38 +171,42 @@ async function expectAnswer(parser, input, expecting, expectedCode, expectedEnti
 }
 
 function testExpect() {
-    const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US');
+    const parser = Genie.ParserClient.get(Config.NL_SERVER_URL, 'en-US');
 
     return Promise.all([
         expectAnswer(parser, '42', 'Number', 'bookkeeping answer NUMBER_0', { NUMBER_0: 42 }),
-        parser.sendUtterance('yes',  '','YesNo'),
-        parser.sendUtterance('21 C', '', 'Measure(C)'),
-        parser.sendUtterance('69 F', '', 'Measure(C)'),
+        parser.sendUtterance('yes', undefined, undefined, { expect: 'YesNo' }),
+        parser.sendUtterance('21 C', undefined, undefined, { expect: 'Measure(C)' }),
+        parser.sendUtterance('69 F', undefined, undefined, { expect: 'Measure(C)' }),
     ]);
 }
 
 async function testMultipleChoice(text, expected) {
-    const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US');
+    const parser = Genie.ParserClient.get(Config.NL_SERVER_URL, 'en-US');
 
-    const analyzed = await parser.sendUtterance(text, '', 'MultipleChoice',
-        [{ title: 'choice number one' }, { title: 'choice number two' }]);
+    const analyzed = await parser.sendUtterance(text, undefined, undefined, {
+        expect: 'MultipleChoice',
+        choices: ['choice number one', 'choice number two']
+    });
 
     assert.deepStrictEqual(analyzed.entities, {});
     assert.deepStrictEqual(analyzed.candidates[0].code, ['bookkeeping', 'choice', expected]);
 
-    const analyzed2 = await parser.sendUtterance(text, '', 'MultipleChoice',
-        [{ title: 'CHOICE NUMBER ONE' }, { title: 'Choice Number Two' }]);
+    const analyzed2 = await parser.sendUtterance(text, undefined, undefined, {
+        expect: 'MultipleChoice',
+        choices: ['CHOICE NUMBER ONE', 'Choice Number Two']
+    });
 
     assert.deepStrictEqual(analyzed2.entities, {});
     assert.deepStrictEqual(analyzed2.candidates[0].code, ['bookkeeping', 'choice', expected]);
 }
 
 async function testOnlineLearn() {
-    const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US');
+    const parser = Genie.ParserClient.get(Config.NL_SERVER_URL, 'en-US');
 
-    await parser.onlineLearn('send sms', ['now', '=>', '@org.thingpedia.builtin.thingengine.phone.send_sms'], 'no');
+    console.log(await parser.onlineLearn('send sms', ['now', '=>', '@org.thingpedia.builtin.thingengine.phone.send_sms'], 'no'));
 
-    await parser.onlineLearn('abcdef', ['now', '=>', '@org.thingpedia.builtin.thingengine.phone.send_sms'], 'online');
+    console.log(await parser.onlineLearn('abcdef', ['now', '=>', '@org.thingpedia.builtin.thingengine.phone.send_sms'], 'online'));
     const analyzed = await parser.sendUtterance('abcdef');
 
     assert.deepStrictEqual(analyzed.candidates[0], {
@@ -284,9 +268,7 @@ async function testAdmin() {
 }
 
 async function main() {
-    // TODO: train a full contextual model so we can enable this
-    //await testContextual();
-
+    await testContextual();
     await testEverything();
     await testTokenize();
     await testExpect();

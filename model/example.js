@@ -1,12 +1,22 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of Thingpedia
+// This file is part of Almond
 //
-// Copyright 2015 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2016-2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
 const stream = require('stream');
@@ -14,7 +24,7 @@ const stream = require('stream');
 const db = require('../util/db');
 const { tokenize, stripUnsafeTokens } = require('../util/tokenize');
 
-function createMany(client, examples) {
+function createMany(client, examples, updateExisting) {
     if (examples.length === 0)
         return Promise.resolve();
 
@@ -38,17 +48,33 @@ function createMany(client, examples) {
         arrays.push(vals);
     });
 
-    return db.insertOne(client, 'insert into example_utterances(' + KEYS.join(',') + ') '
-                        + 'values ?', [arrays]);
+
+    if (updateExisting) {
+        return db.insertOne(client, 'insert into example_utterances(' + KEYS.join(',') + ') '
+                            + `values ? on duplicate key update
+                               utterance=values(utterance), preprocessed=values(preprocessed), context=values(context),
+                               target_code=values(target_code), type=values(type), flags=values(flags), is_base=values(is_base)`,
+                               [arrays]);
+    } else {
+        return db.insertOne(client, 'insert into example_utterances(' + KEYS.join(',') + ') '
+                            + 'values ?', [arrays]);
+    }
 }
 
-function create(client, ex) {
+function create(client, ex, updateExisting) {
     if (!ex.type)
         ex.type = 'thingpedia';
     if (ex.click_count === undefined)
         ex.click_count = 1;
 
-    return db.insertOne(client, 'insert into example_utterances set ?', [ex]);
+    if (updateExisting) {
+        return db.insertOne(client, `insert into example_utterances set ? on duplicate key update
+                                     utterance=values(utterance), preprocessed=values(preprocessed), context=values(context),
+                                     target_code=values(target_code), type=values(type), flags=values(flags), is_base=values(is_base)`,
+                                     [ex]);
+    } else {
+        return db.insertOne(client, 'insert into example_utterances set ?', [ex]);
+    }
 }
 
 module.exports = {
@@ -314,16 +340,16 @@ module.exports = {
 
     createMany,
     create,
-    insertStream(client) {
+    insertStream(client, updateExisting) {
         return new stream.Writable({
             objectMode: true,
             highWaterMark: 200,
 
             write(obj, encoding, callback) {
-                create(client, obj).then(() => callback(), callback);
+                create(client, obj, updateExisting).then(() => callback(), callback);
             },
             writev(objs, callback) {
-                createMany(client, objs.map((o) => o.chunk)).then(() => callback(), callback);
+                createMany(client, objs.map((o) => o.chunk), updateExisting).then(() => callback(), callback);
             }
         });
     },

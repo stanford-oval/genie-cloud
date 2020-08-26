@@ -2,69 +2,28 @@
 //
 // This file is part of Almond
 //
-// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// See COPYING for details
 "use strict";
 
-const ThingTalk = require('thingtalk');
-const Genie = require('genie-toolkit');
-
 const db = require('../util/db');
-const I18n = require('../util/i18n');
 const exampleModel = require('../model/example');
-const editDistance = require('../util/edit_distance');
-
-const applyCompatibility = require('./compat');
-// thingtalk version from before we started passing it to the API
-const DEFAULT_THINGTALK_VERSION = '1.0.0';
-
-const SEMANTIC_PARSING_TASK = 'almond';
-const NLU_TASK = 'almond_dialogue_nlu';
 
 function isValidDeveloperKey(developerKey) {
     return developerKey && developerKey !== 'null' && developerKey !== 'undefined';
-}
-
-async function runPrediction(model, tokens, entities, context, limit, skipTypechecking) {
-    const schemas = new ThingTalk.SchemaRetriever(model.tpClient, null, true);
-
-    let candidates;
-    if (context)
-        candidates = await model.predictor.predict(context, tokens.join(' '), NLU_TASK);
-    else
-        candidates = await model.predictor.predict(tokens.join(' '), undefined, SEMANTIC_PARSING_TASK);
-
-    if (skipTypechecking) {
-        return candidates.map((c) => {
-            return {
-                code: c.answer.split(' '),
-                score: c.score
-            };
-       }).slice(0, limit);
-    }
-
-    candidates = await Promise.all(candidates.map(async (c) => {
-        try {
-            const parsed = ThingTalk.NNSyntax.fromNN(c.answer.split(' '), entities);
-            await parsed.typecheck(schemas);
-            return {
-                code: c.answer.split(' '),
-                score: c.score
-            };
-        } catch(e) {
-            return null;
-        }
-    }));
-
-    candidates = candidates.filter((c) => c !== null);
-
-    if (limit >= 0)
-        return candidates.slice(0, limit);
-    else
-        return candidates;
 }
 
 async function runNLU(query, params, data, service, res) {
@@ -73,37 +32,60 @@ async function runNLU(query, params, data, service, res) {
         res.status(400).json({ error: 'Invalid store parameter' });
         return undefined;
     }
-    const thingtalk_version = data.thingtalk_version || DEFAULT_THINGTALK_VERSION;
     const expect = data.expect || null;
-    const isTokenized = !!data.tokenized;
 
     let modelTag = params.model_tag;
-    if (!modelTag) {
-        if (isValidDeveloperKey(data.developer_key)) {
-            if (data.context)
-                modelTag = 'org.thingpedia.models.developer.contextual';
-            else
-                modelTag = 'org.thingpedia.models.developer';
-        } else {
-            if (data.context)
-                modelTag = 'org.thingpedia.models.contextual';
-            else
-                modelTag = 'org.thingpedia.models.default';
+    let model;
+    if (modelTag) {
+        model = service.getModel(modelTag, params.locale);
+        if (!model || !model.trained) {
+            res.status(404).json({ error: 'No such model' });
+            return undefined;
         }
-    }
+    } else {
+        let fallbacks;
+        if (isValidDeveloperKey(data.developer_key)) {
+            if (data.context) {
+                fallbacks = ['org.thingpedia.models.developer.contextual', 'org.thingpedia.models.contextual',
+                             'org.thingpedia.models.developer', 'org.thingpedia.models.default'];
+            } else {
+                fallbacks = ['org.thingpedia.models.developer', 'org.thingpedia.models.default',
+                             'org.thingpedia.models.developer.contextual', 'org.thingpedia.models.contextual'];
+            }
+        } else {
+            if (data.context) {
+                fallbacks = ['org.thingpedia.models.contextual', 'org.thingpedia.models.developer.contextual',
+                             'org.thingpedia.models.default', 'org.thingpedia.models.developer'];
+            } else {
+                fallbacks = ['org.thingpedia.models.default', 'org.thingpedia.models.developer',
+                             'org.thingpedia.models.contextual', 'org.thingpedia.models.developer.contextual'];
+            }
+        }
 
-    const model = service.getModel(modelTag, params.locale);
-    if (!model || !model.trained) {
-        res.status(404).json({ error: 'No such model' });
-        return undefined;
+        for (const candidate of fallbacks) {
+            model = service.getModel(candidate, params.locale);
+            if (model && model.trained) {
+                const isContextual = candidate.endsWith('.contextual');
+                if (isContextual && !data.context) {
+                    data.context = 'null';
+                    data.entities = {};
+                } else if (!isContextual) {
+                    data.context = undefined;
+                    data.entities = undefined;
+                }
+                break;
+            }
+        }
+        if (!model) {
+            res.status(500).json({ error: 'No default model' });
+            return undefined;
+        }
     }
 
     if (model.accessToken !== null && model.accessToken !== data.access_token) {
         res.status(404).json({ error: 'No such model' });
         return undefined;
     }
-
-    const languageTag = I18n.localeToLanguage(params.locale);
 
     // this exists for API compatibility only (until we restore the frontend classifier)
     // for now, all commands are well, commands
@@ -114,90 +96,23 @@ async function runNLU(query, params, data, service, res) {
         other: 0
     };
 
-    let tokenized;
-    if (isTokenized) {
-        tokenized = {
-            tokens: query.split(' '),
-            entities: {},
-        };
-        if (data.entities) {
-            // safety against weird properties
-            for (let key of Object.getOwnPropertyNames(data.entities)) {
-                if (/^(.+)_([0-9]+)$/.test(key))
-                    tokenized[key] = data.entities[key];
-            }
-        }
-    } else {
-        tokenized = await service.tokenizer.tokenize(languageTag, query, expect);
-        if (data.entities)
-            Genie.Utils.renumberEntities(tokenized, data.entities);
-    }
-
-    let result = null;
-    let exact = null;
-
-    const tokens = tokenized.tokens;
-    if (tokens.length === 0) {
-        result = [{
-            code: ['bookkeeping', 'special', 'special:failed'],
-            score: 'Infinity'
-        }];
-    } else if (tokens.length === 1 && (/^[A-Z]/.test(tokens[0]) || tokens[0] === '1' || tokens[0] === '0')) {
-        // if the whole input is just an entity, return that as an answer
-        result = [{
-            code: ['bookkeeping', 'answer', tokens[0]],
-            score: 'Infinity'
-        }];
-    } else if (expect === 'MultipleChoice') {
-        const choices = await Promise.all((data.choices || []).map((choice) => service.tokenizer.tokenize(languageTag, choice, expect)));
-        result = choices.map((choice, i) => {
-            return {
-                code: ['bookkeeping', 'choice', String(i)],
-                score: -editDistance(tokens, choice.tokens)
-            };
-        });
-        result.sort((a, b) => b.score - a.score);
-    } else {
-        exact = model.exact.get(tokens);
-    }
-
-    if (result === null) {
-        if (expect === 'Location') {
-            result = [{
-                code: ['bookkeeping', 'answer', 'location:', '"', ...tokens, '"'],
-                score: 1
-            }];
-        } else {
-            result = await runPrediction(model, tokens, tokenized.entities,
-                                         data.context,
-                                         data.limit ? parseInt(data.limit) : 5,
-                                         !!data.skip_typechecking);
-        }
-    }
+    const { tokens, candidates, entities } = await model.predictor.sendUtterance(query,
+        data.context ? data.context.split(' ') : undefined, data.context ? data.entities : undefined, data);
 
     if (store !== 'no' && expect !== 'MultipleChoice' && tokens.length > 0) {
         await db.withClient((dbClient) => {
             return exampleModel.logUtterance(dbClient, {
                 language: model.locale,
                 preprocessed: tokens.join(' '),
-                target_code: result.length > 0 ? (result[0]['code'].join(' ')) : ''
+                target_code: candidates.length > 0 ? (candidates[0]['code'].join(' ')) : ''
             });
         });
     }
 
-    if (exact !== null)
-        result = exact.map((code) => ({ code, score: 'Infinity' })).concat(result);
-
-    if (!data.skip_typechecking)
-        await applyCompatibility(params.locale, result, tokenized.entities, thingtalk_version);
-
     res.set("Cache-Control", "no-store,must-revalidate");
     return {
         result: 'ok',
-        candidates: result,
-        tokens: tokens,
-        entities: tokenized.entities,
-        intent
+        candidates, tokens, entities, intent
     };
 }
 
