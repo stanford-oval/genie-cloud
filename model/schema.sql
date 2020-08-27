@@ -797,6 +797,7 @@ CREATE TABLE `utterance_log` (
   `language` char(15) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL DEFAULT 'en',
   `preprocessed` text NOT NULL,
   `target_code` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+  `time` datetime DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
