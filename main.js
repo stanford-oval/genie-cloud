@@ -57,6 +57,7 @@ const commands = {
     'generate-cheatsheet': require('./scripts/generate-cheatsheet'),
     'sync-discourse-sso': require('./scripts/sync-discourse-sso'),
     'download-dataset': require('./scripts/download-dataset'),
+    'download-log': require('./scripts/download-log'),
     'upload-dataset': require('./scripts/upload-dataset'),
     'compile-exact-btrie': require('./scripts/compile-exact-btrie'),
 };
