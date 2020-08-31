@@ -3226,7 +3226,8 @@ gcp-metadata@^1.0.0:
 
 "genie-toolkit@git+https://github.com/stanford-oval/genie-toolkit#master":
   version "0.7.0-beta.5"
-  resolved "git+https://github.com/stanford-oval/genie-toolkit#0b2c7291668483b0ccc1af845a97e41d71f0e16a"
+  uid "82e8ef0794f6857fa4c210922a8dc77285fe0c7a"
+  resolved "git+https://github.com/stanford-oval/genie-toolkit#82e8ef0794f6857fa4c210922a8dc77285fe0c7a"
   dependencies:
     JSONStream "^1.3.5"
     adt "^0.7.2"
@@ -3254,8 +3255,8 @@ gcp-metadata@^1.0.0:
     sqlite3 "^5.0.0"
     stemmer "^1.0.5"
     string-interp "^0.3.1"
-    thingpedia "~2.8.0-beta.1"
-    thingtalk "~1.11.0-beta.3"
+    thingpedia "~2.8.0-beta.4"
+    thingtalk "~1.11.0-beta.4"
     thingtalk-units "^0.1.0"
     uuid "^8.2.0"
     ws "^7.3.0"
@@ -7662,15 +7663,16 @@ thingpedia-discovery@^1.0.0:
   dependencies:
     node-ssdp "^2.7.2"
 
-thingpedia@~2.8.0-beta.1, thingpedia@~2.8.0-beta.2:
-  version "2.8.0-beta.3"
-  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.8.0-beta.3.tgz#29fb5049e9410fe235416c3decd6657a04b0f869"
-  integrity sha512-Fzuvubuc7oWA4N8k8i8zcTJ5zpPZMZD6KEoSlrKkaqJTLzuyf/+pTyHarZTSgN3qYY9IXCcpiLbq2ZYRlmb42Q==
+thingpedia@~2.8.0-beta.2, thingpedia@~2.8.0-beta.4:
+  version "2.8.0-beta.4"
+  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.8.0-beta.4.tgz#ec3ea74df3fd0354943f807936b1cba827d34596"
+  integrity sha512-WKHNpWsadbOUodOV0/1PYH3aRIJDVAWW4vt7sSDJRao8cYHVa55PR2NWCZuNOiAKEw81zv27OiA1X48Cy3UrJg==
   dependencies:
     feedparser "^2.2.9"
     gettext-parser "^4.0.2"
     ip "^1.1.0"
     oauth "^0.9.14"
+    qs "^6.7.0"
     string-interp "^0.3.1"
     thingtalk "~1.11.0-beta.2"
     tmp "^0.2.1"
@@ -7681,10 +7683,10 @@ thingtalk-units@^0.1.0:
   resolved "https://registry.yarnpkg.com/thingtalk-units/-/thingtalk-units-0.1.0.tgz#c3b69bc0c7d0a3ba5bfad3ccf02dc1c291d1abc8"
   integrity sha512-rV5/jZw9fBk3OgYi/HrA1LsTmD5w0gYDlsc1US3/ePR5szaUxwMUtN8UAPYaUorOiW0Qcjm1plvssOC97EkedQ==
 
-thingtalk@~1.11.0-beta.2, thingtalk@~1.11.0-beta.3:
-  version "1.11.0-beta.3"
-  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.11.0-beta.3.tgz#f9f4c0c77cdff52c1a0c82ab1e8601ffa4b3a528"
-  integrity sha512-kl3wk2B91dr6jEkWZLZipQs760Qanu9SP3b+NYK8bhWtIrHnZApyo45t9glmvjWlLdtvNjYMOa0V/6J5H/iQbQ==
+thingtalk@~1.11.0-beta.2, thingtalk@~1.11.0-beta.3, thingtalk@~1.11.0-beta.4:
+  version "1.11.0-beta.5"
+  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.11.0-beta.5.tgz#0cbc2a90827af30d6807e9f8a3cf2f528144b622"
+  integrity sha512-tf2I+mRNEjKlH8LnD+CwESTvMuj6A0JlKv5KdQfJGg/cu7Q+rlKVA9DLkWtGjDE/LA/KsIVGlbCvC7OROgJL8Q==
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
