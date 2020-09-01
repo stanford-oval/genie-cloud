@@ -40,7 +40,7 @@ const db = require('../../util/db');
 const Config = require('../../config');
 
 const SYNTHETIC_DEPTH = 8;
-const TARGET_PRUNING_SIZE = 500000;
+const TARGET_PRUNING_SIZE = 1000;
 
 class ForDevicesFilter extends Stream.Transform {
     constructor(pattern) {
@@ -193,10 +193,11 @@ class DatasetUpdater {
             locale: this._language,
             flags: {
                 bookkeeping: true,
+                unbalanced: true,
             },
             maxDepth: SYNTHETIC_DEPTH,
             targetPruningSize: TARGET_PRUNING_SIZE,
-            debug: this._options.debug,
+            debug: this._options.debug ? 3 : 0,
         };
 
         let generator = new Genie.BasicSentenceGenerator(options);

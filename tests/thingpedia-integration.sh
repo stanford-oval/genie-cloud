@@ -165,10 +165,10 @@ node ${srcdir}/main.js run-training-task -t prepare-training-set --job-id 2 --jo
 
 sha256sum exact.tsv ./exact/en.btrie ./training/jobs/2/dataset/eval.tsv ./training/jobs/2/dataset/train.tsv
 sha256sum -c <<EOF
-05d893440d3366aab016cb89888d024d1755c0d9d4b268b2d1bbf9da7d8785fc  exact.tsv
-ba9597268ac1fc994f3bd8948854da7788f7be7c80f83757081cd97ea445d3b5  ./exact/en.btrie
+e393140f49f4155ef41bafcd09bebb97c07fc5c2cc77a689b1c5e5241651473e  exact.tsv
+c9b5d628cd9455396f492fd84e8a3dfd0dce9098e5f3d1da138c6863367f80c1  ./exact/en.btrie
 3ac80766f6627704c85572340a9cf034a9b0cdb9fe5ccce8e91f6af0829e5eb9  ./training/jobs/2/dataset/eval.tsv
-33f1b6fa7b3641dfdad65fa5ebc5f5b5a481ab57c95ad310d4635235a2c053cf  ./training/jobs/2/dataset/train.tsv
+c05c7d8c0bbaacd5e32c6b8757e0d3cbbc43a6474105e085addd8f67c44cc6dd  ./training/jobs/2/dataset/train.tsv
 EOF
 
 rm -rf $workdir
