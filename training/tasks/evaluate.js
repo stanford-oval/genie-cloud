@@ -48,7 +48,15 @@ module.exports = async function main(task, argv) {
             preserveId: true,
             parseMultiplePrograms: true
         }))
-        .pipe(new Genie.Evaluation.SentenceEvaluatorStream(task.language, parser, schemas, true /* tokenized */, argv.debug))
+        .pipe(new Genie.Evaluation.SentenceEvaluatorStream(parser, {
+            locale: task.language,
+            targetLanguage: 'thingtalk',
+            tokenized: true,
+            thingpediaClient: tpClient,
+            schemaRetriever: schemas,
+            debug: argv.debug,
+            oracle: false
+        }))
         .pipe(new Genie.Evaluation.CollectSentenceStatistics());
 
     const result = await output.read();

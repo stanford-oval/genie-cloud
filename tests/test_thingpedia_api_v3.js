@@ -176,12 +176,14 @@ const BING_CLASS = `class @com.bing {
                                       out picture_url: Entity(tt:picture),
                                       out link: Entity(tt:url),
                                       out width: Number,
-                                      out height: Number);
+                                      out height: Number)
+  #[minimal_projection=[]];
 
   monitorable list query web_search(in req query: String,
                                     out title: String,
                                     out description: String,
-                                    out link: Entity(tt:url));
+                                    out link: Entity(tt:url))
+  #[minimal_projection=[]];
 }
 `;
 const BING_CLASS_WITH_METADATA = `class @com.bing
@@ -195,7 +197,8 @@ const BING_CLASS_WITH_METADATA = `class @com.bing
   #_[canonical="image search on bing"]
   #_[confirmation="images matching $query from Bing"]
   #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}]]
-  #[confirm=false];
+  #[confirm=false]
+  #[minimal_projection=[]];
 
   monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
                                     out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
@@ -204,7 +207,8 @@ const BING_CLASS_WITH_METADATA = `class @com.bing
   #_[canonical="web search on bing"]
   #_[confirmation="websites matching $query on Bing"]
   #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}",displayText="${'${description}'}"}]]
-  #[confirm=false];
+  #[confirm=false]
+  #[minimal_projection=[]];
 }
 `;
 const BING_CLASS_FULL = `class @com.bing
@@ -225,6 +229,7 @@ const BING_CLASS_FULL = `class @com.bing
   #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}",displayText="${'${description}'}"}]]
   #[poll_interval=3600000ms]
   #[doc="search for ${'`query`'} on Bing"]
+  #[minimal_projection=[]]
   #[confirm=false];
 
   monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
@@ -238,16 +243,19 @@ const BING_CLASS_FULL = `class @com.bing
   #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}]]
   #[poll_interval=3600000ms]
   #[doc="search for ${'`query`'} on Bing Images"]
+  #[minimal_projection=[]]
   #[confirm=false];
 }
 `;
 
 const INVISIBLE_CLASS = `class @org.thingpedia.builtin.test.invisible {
-  action eat_data(in req data: String);
+  action eat_data(in req data: String)
+  #[minimal_projection=[]];
 }
 `;
 const ADMINONLY_CLASS = `class @org.thingpedia.builtin.test.adminonly {
-  action eat_data(in req data: String);
+  action eat_data(in req data: String)
+  #[minimal_projection=[]];
 }
 `;
 const INVISIBLE_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.invisible
@@ -255,7 +263,8 @@ const INVISIBLE_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.invisi
   action eat_data(in req data: String #_[prompt="What do you want me to consume?"] #_[canonical="data"])
   #_[canonical="eat data on test"]
   #_[confirmation="consume $data"]
-  #[confirm=true];
+  #[confirm=true]
+  #[minimal_projection=[]];
 }
 `;
 const ADMINONLY_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.adminonly
@@ -263,7 +272,8 @@ const ADMINONLY_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.admino
   action eat_data(in req data: String #_[prompt="What do you want me to consume?"] #_[canonical="data"])
   #_[canonical="eat data on test"]
   #_[confirmation="consume $data"]
-  #[confirm=true];
+  #[confirm=true]
+  #[minimal_projection=[]];
 }
 `;
 
@@ -2088,6 +2098,7 @@ const BANG_CLASS_FULL = `class @com.bing
   #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}",displayText="${'${description}'}"}]]
   #[poll_interval=3600000ms]
   #[doc="search for ${'`query`'} on Bing"]
+  #[minimal_projection=[]]
   #[confirm=false];
 
   monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
@@ -2101,6 +2112,7 @@ const BANG_CLASS_FULL = `class @com.bing
   #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}]]
   #[poll_interval=3600000ms]
   #[doc="search for ${'`query`'} on Bing Images"]
+  #[minimal_projection=[]]
   #[confirm=false];
 }
 `;
@@ -2200,6 +2212,7 @@ async function testCreateDevice() {
   query foo(out text: String #_[canonical="text"])
   #_[confirmation="the foos"]
   #_[canonical="foo on new test device"]
+  #[minimal_projection=[]]
   #[confirm=false];
 }
 `);
