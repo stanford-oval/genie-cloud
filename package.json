@@ -140,14 +140,5 @@
       "tests/**",
       "secret_config.js"
     ]
-  },
-  "greenkeeper": {
-    "ignore": [
-      "almond-dialog-agent",
-      "thingengine-core",
-      "thingtalk",
-      "thingpedia",
-      "genie-toolkit"
-    ]
   }
 }
