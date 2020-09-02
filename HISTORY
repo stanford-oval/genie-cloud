@@ -1,3 +1,38 @@
+1.99.0-beta.1
+=============
+
+This is the first release to use the new Genie Toolkit as the core dialogue
+system, replacing both the Almond dialogue agent and the ThingEngine. Genie
+supports multi-turn interactions.
+
+You can learn more about this release at
+<https://wiki.almond.stanford.edu/en/release-planning/one-point-ninetynine>.
+
+Additional changes:
+
+* The whole package was relicensed to Apache 2.0 [#786].
+* The /me/api/parse API endpoint was removed. Clients should use the NLP
+  API directly [#766].
+* Added a new endpoint to proxy OAuth requests from Almond Server [#808].
+* PPDB augmentation was removed, as it was removed from Genie [#766].
+* Thingpedia now supports entity statements in class definitions, so classes
+  that define their custom entity types no longer need to add a definition
+  separately [#769, #770, #796].
+* Training was made more robust and more debuggable [#693].
+* The scripts to download the datasets and the utterance logs were expanded.
+  Utterance logs now track the time of the utterance too [#781, #809].
+* The default NLP models now have a fallback system, so only one model is
+  needed at minimum [#796].
+* Uploading a string or entity datasets with the API now will replace the
+  existing dataset instead of appending to it [#796]
+* Misc bug fixes and code cleanups [#150, #769, #796].
+* Updated dependencies [#697, #701, #702, #703, #705, #706, #713, #714, #715,
+  #716, #717, #718, #719, #720, #721, #722, #723, #725, #726, #727, #729, #732,
+  #735, #736, #737, #738, #739, #740, #741, #742, #745, #746, #747, #750, #751,
+  #752, #755, #757, #758, #759, #761, #763, #764, #765, #768, #767, #770, #780,
+  #785, #787, #778, #790, #797, #798, #799, #800, #801, #802, #803, #804, #805,
+  #806, #807, #817, #819, #820].
+
 1.8.0
 =====
 
