@@ -28,22 +28,13 @@ router.get('/', (req, res, next) => {
 });
 
 router.post('/oauth2', (req, res, next) => {
-  
     const kind = req.body.device_type;
     user.getAnonymousUser().then((new_user) => {
         EngineManager.get().getEngine(new_user.id).then(async (engine) => {
-            const result = await engine.devices.addFromOAuth(kind);
-            if (result !== null) {
-
-                const redirect = result[0];
-                const session = result[1];
-                for (var key in session)
-                    req.session[key] = session[key];
-
-                res.redirect(303, redirect);
-            } else {
-                res.redirect(303, '/me');
-            }
+            const [redirect, session] = await engine.startOAuth(kind);
+            for (const key in session)
+                 req.session[key] = session[key];
+            res.redirect(303, redirect);
         }).catch((e) => {
             res.status(400).render('error', {
                 page_title: req._("Thingpedia - Error"),
