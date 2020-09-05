@@ -1,3 +1,9 @@
+1.99.0-rc.1
+===========
+
+* Misc bug fixes [#821].
+* Updated dependencies, fixing a number of issues in Genie [#823].
+
 1.99.0-beta.1
 =============
 
