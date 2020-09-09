@@ -20,7 +20,7 @@ RUN touch /var/lib/rpm/* && \
   curl -sL https://copr.fedorainfracloud.org/coprs/gcampax/bubblewrap/repo/epel-8/gcampax-bubblewrap-epel-8.repo -o /etc/yum.repos.d/gcampax-bubblewrap-epel-8.repo && \
   dnf module install -y nodejs:10 && \
   dnf -y install unzip GraphicsMagick bubblewrap sqlcipher sqlcipher-devel procps-ng \
-    python3 python3-numpy python3-scipy python3-pip git && \
+    python3 python3-pip git && \
   rm -rf /var/cache/dnf
 
 # HACK: we need to download the wheel manually or docker will die
