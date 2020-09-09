@@ -24,11 +24,11 @@ RUN touch /var/lib/rpm/* && \
   rm -rf /var/cache/dnf
 
 # HACK: we need to download the wheel manually or docker will die
-RUN curl -sL https://files.pythonhosted.org/packages/62/01/457b49d790b6c4b9720e6f9dbbb617692f6ce8afdaadf425c055c41a7416/torch-1.5.1-cp36-cp36m-manylinux1_x86_64.whl \
-  -o torch-1.5.1-cp36-cp36m-manylinux1_x86_64.whl && \
-  pip3 install torch-1.5.1-cp36-cp36m-manylinux1_x86_64.whl && \
+RUN curl -sL https://files.pythonhosted.org/packages/38/53/914885a93a44b96c0dd1c36f36ff10afe341f091230aad68f7228d61db1e/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl \
+  -o torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl && \
+  pip3 install torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl && \
   rm -fr /root/.cache && \
-  rm -fr torch-1.5.1-cp36-cp36m-manylinux1_x86_64.whl
+  rm -fr torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl
 RUN pip3 install genienlp==0.4.0b1 awscli && rm -fr /root/.cache
 
 # ensures python sys.std* encoding is always utf-8
