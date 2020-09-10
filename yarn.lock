@@ -832,9 +832,9 @@ available-typed-arrays@^1.0.0, available-typed-arrays@^1.0.2:
     array-filter "^1.0.0"
 
 aws-sdk@^2.744.0:
-  version "2.748.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.748.0.tgz#660d9d8202b1e48820ae9e018abad8d7b51af0b1"
-  integrity sha512-H+DCioQ4AChoBxGMtagcJ3a0mM0lOh3ta/dWIrfPTECAlRIuxlrBDp78cRhPgvdYYUxW54kB/IaHGR2xPP8JXw==
+  version "2.749.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.749.0.tgz#76bbdeb8b3332d8492784bf9c37a2e8d6ba97664"
+  integrity sha512-dG7jbOfSrZpdhCniQpe3hXmRNjmlKX7DyZuLDJ5tDl/4+jmXUEjXpM1IhMi0wWXriO/AnHBKlKGsePx8vBMqcw==
   dependencies:
     buffer "4.9.2"
     events "1.1.1"
@@ -3244,7 +3244,7 @@ gcp-metadata@^1.0.0:
 
 "genie-toolkit@git+https://github.com/stanford-oval/genie-toolkit#master":
   version "0.7.0-rc.1"
-  resolved "git+https://github.com/stanford-oval/genie-toolkit#62077c97778b98bebb4046553a878f4eb77e554e"
+  resolved "git+https://github.com/stanford-oval/genie-toolkit#fb12aa5353556451bd80503c76a1d03592b5e8a0"
   dependencies:
     JSONStream "^1.3.5"
     adt "^0.7.2"
@@ -4165,9 +4165,9 @@ is-buffer@^2.0.2:
   integrity sha512-Kq1rokWXOPXWuaMAqZiJW4XxsmD9zGx9q4aePabbn3qCRGedtH7Cm+zV8WETitMfu1wdh+Rvd6w5egwSngUX2A==
 
 is-callable@^1.1.4, is-callable@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/is-callable/-/is-callable-1.2.0.tgz#83336560b54a38e35e3a2df7afd0454d691468bb"
-  integrity sha512-pyVD9AaGLxtg6srb2Ng6ynWJqkHU9bEM087AKck0w8QwDarTfNcpIYoU8x8Hv2Icm8u6kFJM18Dag8lyqGkviw==
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/is-callable/-/is-callable-1.2.1.tgz#4d1e21a4f437509d25ce55f8184350771421c96d"
+  integrity sha512-wliAfSzx6V+6WfMOmus1xy0XvSgf/dlStkvTfq7F0g4bOIW0PSUbnyse3NhDwdyYS1ozfUtAAySqTws3z9Eqgg==
 
 is-ci@^2.0.0:
   version "2.0.0"
