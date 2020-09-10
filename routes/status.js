@@ -77,7 +77,7 @@ router.get('/', (req, res, next) => {
     }).catch(next);
 });
 
-router.get('/logs', user.requireDeveloper(), iv.validateGET({ startCursor: '?string' }), (req, res) => {
+router.get('/logs', user.requireDeveloper(user.DeveloperStatus.USER), iv.validateGET({ startCursor: '?string' }), (req, res) => {
     var child = readLogs(req.user.id, req.query.startCursor);
     var stdout = child.stdout;
     res.set('Content-Type', 'text/event-stream');
