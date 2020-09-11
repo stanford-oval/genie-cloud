@@ -3243,8 +3243,8 @@ gcp-metadata@^1.0.0:
     json-bigint "^0.3.0"
 
 "genie-toolkit@git+https://github.com/stanford-oval/genie-toolkit#master":
-  version "0.7.0-rc.1"
-  resolved "git+https://github.com/stanford-oval/genie-toolkit#cf17f3169264b94d208b9fde5409d29738cb96df"
+  version "0.7.0-rc.2"
+  resolved "git+https://github.com/stanford-oval/genie-toolkit#0a2d643106464439e5b182a8d443ae626d16c0ae"
   dependencies:
     JSONStream "^1.3.5"
     adt "^0.7.2"
