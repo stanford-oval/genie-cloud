@@ -21,7 +21,6 @@
 
 const assert = require('assert');
 const WebSocket = require('ws');
-const ThingTalk = require('thingtalk');
 const { assertHttpError, request, sessionRequest, dbQuery } = require('./scaffold');
 const { login, } = require('../login');
 
@@ -316,7 +315,7 @@ async function testMyApiConverse(auth) {
         conversationId: conversationId1
     }), { auth, dataContentType: 'application/json' }));
     assert.deepStrictEqual(result2, {
-        askSpecial: null,
+        askSpecial: 'command',
         messages: [{
             id: 2,
             type: 'command',
@@ -324,7 +323,7 @@ async function testMyApiConverse(auth) {
         }, {
             id: 3,
             type: 'text',
-            text: 'Sorry, I did not understand that. Can you rephrase it?',
+            text: 'Is there anything else I can help you with?',
             icon: 'org.thingpedia.builtin.test'
         }],
         conversationId: conversationId1
