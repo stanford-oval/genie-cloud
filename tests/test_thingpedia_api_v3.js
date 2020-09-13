@@ -188,25 +188,44 @@ const BING_CLASS = `class @com.bing {
 `;
 const BING_CLASS_WITH_METADATA = `class @com.bing
 #_[canonical="bing search"] {
-  monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
-                                      out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
-                                      out picture_url: Entity(tt:picture) #_[canonical="picture url"],
-                                      out link: Entity(tt:url) #_[canonical="link"],
-                                      out width: Number #_[prompt="What width are you looking for (in pixels)?"] #_[canonical="width"],
-                                      out height: Number #_[prompt="What height are you looking for (in pixels)?"] #_[canonical="height"])
+  monitorable list query image_search(in req query: String
+                                      #_[prompt="What do you want to search?"]
+                                      #_[canonical="query"]
+                                      #[string_values="tt:search_query"],
+                                      out title: String
+                                      #_[canonical="title"]
+                                      #[string_values="tt:short_free_text"],
+                                      out picture_url: Entity(tt:picture)
+                                      #_[canonical="picture url"],
+                                      out link: Entity(tt:url)
+                                      #_[canonical="link"],
+                                      out width: Number
+                                      #_[prompt="What width are you looking for (in pixels)?"]
+                                      #_[canonical="width"],
+                                      out height: Number
+                                      #_[prompt="What height are you looking for (in pixels)?"]
+                                      #_[canonical="height"])
   #_[canonical="image search on bing"]
   #_[confirmation="images matching $query from Bing"]
-  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}]]
+  #_[formatted=[{type="rdl", webCallback="${'${link}'}", displayTitle="${'${title}'}"}, {type="picture", url="${'${picture_url}'}"}]]
   #[confirm=false]
   #[minimal_projection=[]];
 
-  monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
-                                    out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
-                                    out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
-                                    out link: Entity(tt:url) #_[canonical="link"])
+  monitorable list query web_search(in req query: String
+                                    #_[prompt="What do you want to search?"]
+                                    #_[canonical="query"]
+                                    #[string_values="tt:search_query"],
+                                    out title: String
+                                    #_[canonical="title"]
+                                    #[string_values="tt:short_free_text"],
+                                    out description: String
+                                    #_[canonical="description"]
+                                    #[string_values="tt:long_free_text"],
+                                    out link: Entity(tt:url)
+                                    #_[canonical="link"])
   #_[canonical="web search on bing"]
   #_[confirmation="websites matching $query on Bing"]
-  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}",displayText="${'${description}'}"}]]
+  #_[formatted=[{type="rdl", webCallback="${'${link}'}", displayTitle="${'${title}'}", displayText="${'${description}'}"}]]
   #[confirm=false]
   #[minimal_projection=[]];
 }
@@ -220,27 +239,46 @@ const BING_CLASS_FULL = `class @com.bing
   import loader from @org.thingpedia.v2();
   import config from @org.thingpedia.config.none(subscription_key="12345");
 
-  monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
-                                    out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
-                                    out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
-                                    out link: Entity(tt:url) #_[canonical="link"])
+  monitorable list query web_search(in req query: String
+                                    #_[prompt="What do you want to search?"]
+                                    #_[canonical="query"]
+                                    #[string_values="tt:search_query"],
+                                    out title: String
+                                    #_[canonical="title"]
+                                    #[string_values="tt:short_free_text"],
+                                    out description: String
+                                    #_[canonical="description"]
+                                    #[string_values="tt:long_free_text"],
+                                    out link: Entity(tt:url)
+                                    #_[canonical="link"])
   #_[canonical="web search on bing"]
   #_[confirmation="websites matching $query on Bing"]
-  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}",displayText="${'${description}'}"}]]
+  #_[formatted=[{type="rdl", webCallback="${'${link}'}", displayTitle="${'${title}'}", displayText="${'${description}'}"}]]
   #[poll_interval=3600000ms]
   #[doc="search for ${'`query`'} on Bing"]
   #[minimal_projection=[]]
   #[confirm=false];
 
-  monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
-                                      out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
-                                      out picture_url: Entity(tt:picture) #_[canonical="picture url"],
-                                      out link: Entity(tt:url) #_[canonical="link"],
-                                      out width: Number #_[prompt="What width are you looking for (in pixels)?"] #_[canonical="width"],
-                                      out height: Number #_[prompt="What height are you looking for (in pixels)?"] #_[canonical="height"])
+  monitorable list query image_search(in req query: String
+                                      #_[prompt="What do you want to search?"]
+                                      #_[canonical="query"]
+                                      #[string_values="tt:search_query"],
+                                      out title: String
+                                      #_[canonical="title"]
+                                      #[string_values="tt:short_free_text"],
+                                      out picture_url: Entity(tt:picture)
+                                      #_[canonical="picture url"],
+                                      out link: Entity(tt:url)
+                                      #_[canonical="link"],
+                                      out width: Number
+                                      #_[prompt="What width are you looking for (in pixels)?"]
+                                      #_[canonical="width"],
+                                      out height: Number
+                                      #_[prompt="What height are you looking for (in pixels)?"]
+                                      #_[canonical="height"])
   #_[canonical="image search on bing"]
   #_[confirmation="images matching $query from Bing"]
-  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}]]
+  #_[formatted=[{type="rdl", webCallback="${'${link}'}", displayTitle="${'${title}'}"}, {type="picture", url="${'${picture_url}'}"}]]
   #[poll_interval=3600000ms]
   #[doc="search for ${'`query`'} on Bing Images"]
   #[minimal_projection=[]]
@@ -260,7 +298,9 @@ const ADMINONLY_CLASS = `class @org.thingpedia.builtin.test.adminonly {
 `;
 const INVISIBLE_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.invisible
 #_[canonical="invisible device"] {
-  action eat_data(in req data: String #_[prompt="What do you want me to consume?"] #_[canonical="data"])
+  action eat_data(in req data: String
+                  #_[prompt="What do you want me to consume?"]
+                  #_[canonical="data"])
   #_[canonical="eat data on test"]
   #_[confirmation="consume $data"]
   #[confirm=true]
@@ -269,7 +309,9 @@ const INVISIBLE_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.invisi
 `;
 const ADMINONLY_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.adminonly
 #_[canonical="admin-only device"] {
-  action eat_data(in req data: String #_[prompt="What do you want me to consume?"] #_[canonical="data"])
+  action eat_data(in req data: String
+                  #_[prompt="What do you want me to consume?"]
+                  #_[canonical="data"])
   #_[canonical="eat data on test"]
   #_[confirmation="consume $data"]
   #[confirm=true]
@@ -2083,33 +2125,52 @@ module.exports = class TestDevice extends Tp.BaseDevice {
 const BANG_CLASS_FULL = `class @com.bing
 #_[name="Bang Search"]
 #_[description="Search the web with Bang"]
-#_[canonical="bang search"]
+#_[canonical="bing search"]
 #[version=1]
 #[package_version=1] {
   import loader from @org.thingpedia.v2();
   import config from @org.thingpedia.config.none(subscription_key="12345");
 
-  monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
-                                    out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
-                                    out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
-                                    out link: Entity(tt:url) #_[canonical="link"])
+  monitorable list query web_search(in req query: String
+                                    #_[prompt="What do you want to search?"]
+                                    #_[canonical="query"]
+                                    #[string_values="tt:search_query"],
+                                    out title: String
+                                    #_[canonical="title"]
+                                    #[string_values="tt:short_free_text"],
+                                    out description: String
+                                    #_[canonical="description"]
+                                    #[string_values="tt:long_free_text"],
+                                    out link: Entity(tt:url)
+                                    #_[canonical="link"])
   #_[canonical="web search on bing"]
   #_[confirmation="websites matching $query on Bing"]
-  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}",displayText="${'${description}'}"}]]
+  #_[formatted=[{type="rdl", webCallback="${'${link}'}", displayTitle="${'${title}'}", displayText="${'${description}'}"}]]
   #[poll_interval=3600000ms]
   #[doc="search for ${'`query`'} on Bing"]
   #[minimal_projection=[]]
   #[confirm=false];
 
-  monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
-                                      out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
-                                      out picture_url: Entity(tt:picture) #_[canonical="picture url"],
-                                      out link: Entity(tt:url) #_[canonical="link"],
-                                      out width: Number #_[prompt="What width are you looking for (in pixels)?"] #_[canonical="width"],
-                                      out height: Number #_[prompt="What height are you looking for (in pixels)?"] #_[canonical="height"])
+  monitorable list query image_search(in req query: String
+                                      #_[prompt="What do you want to search?"]
+                                      #_[canonical="query"]
+                                      #[string_values="tt:search_query"],
+                                      out title: String
+                                      #_[canonical="title"]
+                                      #[string_values="tt:short_free_text"],
+                                      out picture_url: Entity(tt:picture)
+                                      #_[canonical="picture url"],
+                                      out link: Entity(tt:url)
+                                      #_[canonical="link"],
+                                      out width: Number
+                                      #_[prompt="What width are you looking for (in pixels)?"]
+                                      #_[canonical="width"],
+                                      out height: Number
+                                      #_[prompt="What height are you looking for (in pixels)?"]
+                                      #_[canonical="height"])
   #_[canonical="image search on bing"]
   #_[confirmation="images matching $query from Bing"]
-  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}]]
+  #_[formatted=[{type="rdl", webCallback="${'${link}'}", displayTitle="${'${title}'}"}, {type="picture", url="${'${picture_url}'}"}]]
   #[poll_interval=3600000ms]
   #[doc="search for ${'`query`'} on Bing Images"]
   #[minimal_projection=[]]
@@ -2209,7 +2270,8 @@ async function testCreateDevice() {
   import loader from @org.thingpedia.v2();
   import config from @org.thingpedia.config.none();
 
-  query foo(out text: String #_[canonical="text"])
+  query foo(out text: String
+            #_[canonical="text"])
   #_[confirmation="the foos"]
   #_[canonical="foo on new test device"]
   #[minimal_projection=[]]
