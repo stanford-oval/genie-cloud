@@ -135,7 +135,7 @@ async function testHomepage(driver) {
 
     if (Config.WITH_THINGPEDIA === 'embedded') {
         await driver.wait(WD.until.elementLocated(WD.By.css('#command-container .command-utterance')),
-            30000);
+            45000);
 
         const commands = await driver.findElements(WD.By.css('#command-container .command-utterance'));
         assert.strictEqual(commands.length, 18);
