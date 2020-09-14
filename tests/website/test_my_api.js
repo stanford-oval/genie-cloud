@@ -310,20 +310,20 @@ async function testMyApiConverse(auth) {
     const result2 = JSON.parse(await request('/me/api/converse', 'POST', JSON.stringify({
         command: {
             type: 'command',
-            text: 'no',
+            text: 'yes',
         },
         conversationId: conversationId1
     }), { auth, dataContentType: 'application/json' }));
     assert.deepStrictEqual(result2, {
-        askSpecial: 'command',
+        askSpecial: null,
         messages: [{
             id: 2,
             type: 'command',
-            command: 'no',
+            command: 'yes',
         }, {
             id: 3,
             type: 'text',
-            text: 'Is there anything else I can help you with?',
+            text: 'Sorry, I did not understand that. Can you rephrase it?',
             icon: 'org.thingpedia.builtin.test'
         }],
         conversationId: conversationId1
