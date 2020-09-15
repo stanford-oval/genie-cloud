@@ -1736,9 +1736,9 @@ constants-browserify@~1.0.0:
   integrity sha1-wguW2MYXdIqvHBYCF2DNJ/y4y3U=
 
 consumer-queue@^1.0.0:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/consumer-queue/-/consumer-queue-1.0.1.tgz#be0a8efcf9e3aa7e1ab0248d5c07f817c45b5276"
-  integrity sha1-vgqO/Pnjqn4asCSNXAf4F8RbUnY=
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/consumer-queue/-/consumer-queue-1.0.2.tgz#935c73771d8b71f0711e2b495ada152f8be8f3d6"
+  integrity sha512-wTvHKMdxSrl3nIODcFVMV5OrLyaWTYgBBsGlu+bUkaj8TyCKhb1d0F/Ahr8/rGr/cwYD1MjSrDMl1wRREuO+wg==
 
 content-disposition@0.5.3:
   version "0.5.3"
@@ -3242,9 +3242,10 @@ gcp-metadata@^1.0.0:
     gaxios "^1.0.2"
     json-bigint "^0.3.0"
 
-"genie-toolkit@git+https://github.com/stanford-oval/genie-toolkit#master":
-  version "0.7.0-rc.2"
-  resolved "git+https://github.com/stanford-oval/genie-toolkit#dffdb1ca0f1de53d4d67d20fb8f00e2975b283dc"
+genie-toolkit@~0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.7.0.tgz#fe366f67422aaf45e7e563cde20d05ed9a6f6d83"
+  integrity sha512-Oc4YUqWC0pDN7eZaye/iqVmTUWbRJQajc3kJavszY2LOa6eyJcAjbC9vy+fRI3PekGeX2STQT91UOegvrniXjQ==
   dependencies:
     JSONStream "^1.3.5"
     adt "^0.7.2"
@@ -3272,8 +3273,8 @@ gcp-metadata@^1.0.0:
     sqlite3 "^5.0.0"
     stemmer "^1.0.5"
     string-interp "^0.3.1"
-    thingpedia "~2.8.0-beta.4"
-    thingtalk "~1.11.0-beta.4"
+    thingpedia "~2.8.0"
+    thingtalk "~1.11.0"
     thingtalk-units "^0.2.0"
     uuid "^8.2.0"
     ws "^7.3.0"
@@ -7680,10 +7681,10 @@ thingpedia-discovery@^1.0.0:
   dependencies:
     node-ssdp "^2.7.2"
 
-thingpedia@~2.8.0-beta.2, thingpedia@~2.8.0-beta.4:
-  version "2.8.0-beta.5"
-  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.8.0-beta.5.tgz#59d15fd40368eef5b754ec4bfcab4b61eb17c5d0"
-  integrity sha512-IVjvpNBDtPcf2FBwC/MGltBe4O0g44Q3xzQX7tUmrkK4psn/bdTcEwqYJGtsUIlcZR+MycelPuzfxA7RS8fXhA==
+thingpedia@~2.8.0:
+  version "2.8.0"
+  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.8.0.tgz#c9288b43655a61652c6704d7529d68f4a9bb15e0"
+  integrity sha512-SCf6jyUSLiSoMWcfPITwmP52Odrjf/ZsBj5wcGC8ZhSpynmoCAOinKw/m+9JhEUBex5hZ/yEYGaVuWI1X57MAw==
   dependencies:
     feedparser "^2.2.9"
     gettext-parser "^4.0.2"
@@ -7691,7 +7692,7 @@ thingpedia@~2.8.0-beta.2, thingpedia@~2.8.0-beta.4:
     oauth "^0.9.14"
     qs "^6.7.0"
     string-interp "^0.3.1"
-    thingtalk "~1.11.0-beta.2"
+    thingtalk "~1.11.0"
     tmp "^0.2.1"
     xml2js "^0.4.17"
 
@@ -7700,10 +7701,10 @@ thingtalk-units@^0.2.0:
   resolved "https://registry.yarnpkg.com/thingtalk-units/-/thingtalk-units-0.2.0.tgz#b14cd56d5a2178b24c81d42c7174c8d10f1110b9"
   integrity sha512-t2KE6EVVOxiD6qKREMxkB+sU0xb1elRWrxwyiJwA/a9LHurU5chZSGjkFdjDrtTypyfIV36yvhXQBQLrmwhFgQ==
 
-thingtalk@~1.11.0-beta.2, thingtalk@~1.11.0-beta.3, thingtalk@~1.11.0-beta.4:
-  version "1.11.0-rc.1"
-  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.11.0-rc.1.tgz#30761ed9abccbf57fdb71d62ad5a6073a37545d2"
-  integrity sha512-cWoNoscEhOFijS9EwfI2TGAsH6sarp7pyuF7v9Wv/9o+e19WbVLY5kEMA4il6m2PG+yh/gmXKVBBSx7GNlCFnQ==
+thingtalk@~1.11.0:
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.11.0.tgz#c8811d7d0b1a3fc640014ec03fbef1d2ce12df51"
+  integrity sha512-diCtRRnPgYdyW5iMXpfhqhfn7QYVcVbwxw6rF9z17ZmTmZc3jehJt2sFMzwu8npAqpVXT5xJCbLgeZZ56x37cQ==
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
