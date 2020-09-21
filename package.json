@@ -113,7 +113,7 @@
     "byline": "^5.0.0",
     "chart.js": "^2.7.3",
     "cli-table": "^0.3.1",
-    "codemirror": "^5.57.0",
+    "codemirror": "^5.58.0",
     "coveralls": "^3.1.0",
     "eslint": "^7.7.0",
     "foodoc": "^0.0.9",
