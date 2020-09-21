@@ -120,7 +120,7 @@
     "form-data": "^3.0.0",
     "infinite-scroll": "^3.0.5",
     "inline-worker": "^1.1.0",
-    "jsdoc": "^3.6.3",
+    "jsdoc": "^3.6.6",
     "jsxgettext": "^0.11.0",
     "nyc": "^15.1.0",
     "parse5": "^6.0.0",
