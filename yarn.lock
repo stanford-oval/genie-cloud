@@ -3799,15 +3799,10 @@ heimdalljs@^0.2.3:
   dependencies:
     rsvp "~3.2.1"
 
-highlight.js@^10.1.2:
+highlight.js@^10.1.2, highlight.js@^10.2.0:
   version "10.2.0"
   resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-10.2.0.tgz#367151bcf813adebc54822f1cb51d2e1e599619f"
   integrity sha512-OryzPiqqNCfO/wtFo619W+nPYALM6u7iCQkum4bqRmmlcTikOkmlL06i009QelynBPAlNByTQU6cBB2cOBQtCw==
-
-highlight.js@^9.18.1:
-  version "9.18.3"
-  resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-9.18.3.tgz#a1a0a2028d5e3149e2380f8a865ee8516703d634"
-  integrity sha512-zBZAmhSupHIl5sITeMqIJnYCDfAEc3Gdkqj65wC1lpI468MMQeeQkhcIAvk+RylAkxrCcI9xy9piHiXeQ1BdzQ==
 
 hmac-drbg@^1.0.0:
   version "1.0.1"
@@ -5138,12 +5133,12 @@ markdown-it-footnote@^3.0.1:
   resolved "https://registry.yarnpkg.com/markdown-it-footnote/-/markdown-it-footnote-3.0.2.tgz#1575ee7a093648d4e096aa33386b058d92ac8bc1"
   integrity sha512-JVW6fCmZWjvMdDQSbOT3nnOQtd9iAXmw7hTSh26+v42BnvXeVyGMDBm5b/EZocMed2MbCAHiTX632vY0FyGB8A==
 
-markdown-it-highlightjs@^3.2.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/markdown-it-highlightjs/-/markdown-it-highlightjs-3.2.0.tgz#20a31fc64b1b4f02ea692f877b1dd71f63168814"
-  integrity sha512-QaSD7zCjAuB1Qa6GLfxcv7uB7svTvXGAiJ2LJShQRaJIWEjkQUAIDv+vsANe4F5J2lPJuOdXf7oIRXe0JFJg2g==
+markdown-it-highlightjs@^3.3.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/markdown-it-highlightjs/-/markdown-it-highlightjs-3.3.0.tgz#7995ff7a35384e71231547490587654b925e2486"
+  integrity sha512-DTWpDXCEib9+Ap98Zw6N5HNxctlQh3hKHOPVvt6HJHl3XDDsRIogabnrCi29wa4U7PfKerO5wtva8H6eSI2tzw==
   dependencies:
-    highlight.js "^9.18.1"
+    highlight.js "^10.2.0"
     lodash.flow "^3.5.0"
 
 markdown-it-table-of-contents@^0.4.3:
