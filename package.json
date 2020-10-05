@@ -63,7 +63,7 @@
     "lunr": "^2.3.9",
     "lunr-languages": "^1.0.0",
     "markdown-it": "^11.0.1",
-    "markdown-it-anchor": "^5.3.0",
+    "markdown-it-anchor": "^6.0.0",
     "markdown-it-container-pandoc": "^1.0.0",
     "markdown-it-footnote": "^3.0.1",
     "markdown-it-highlightjs": "^3.3.0",
