@@ -94,7 +94,7 @@
     "sanitize-filename": "^1.6.2",
     "seedrandom": "^3.0.0",
     "serve-favicon": "^2.3.0",
-    "smtlib": "^0.1.1",
+    "smtlib": "^1.0.0",
     "sockaddr": "^1.0.0",
     "tar": "^6.0.5",
     "thingpedia": "~2.8.0",

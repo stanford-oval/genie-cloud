@@ -299,6 +299,13 @@
     "@types/connect" "*"
     "@types/node" "*"
 
+"@types/byline@^4.2.32":
+  version "4.2.32"
+  resolved "https://registry.yarnpkg.com/@types/byline/-/byline-4.2.32.tgz#9d35ec15968056118548412ee24c2c3026c997dc"
+  integrity sha512-qtlm/J6XOO9p+Ep/ZB5+mCFEDhzWDDHWU4a1eReN7lkPZXW9rkloq2jcAhvKKmlO5tL2GSvKROb+PTsNVhBiyQ==
+  dependencies:
+    "@types/node" "*"
+
 "@types/cacheable-request@^6.0.1":
   version "6.0.1"
   resolved "https://registry.yarnpkg.com/@types/cacheable-request/-/cacheable-request-6.0.1.tgz#5d22f3dded1fd3a84c0bbeb5039a7419c2c91976"
@@ -7208,6 +7215,14 @@ smtlib@^0.1.1:
   resolved "https://registry.yarnpkg.com/smtlib/-/smtlib-0.1.1.tgz#7aae56f12d14e3e370ffc8d1c5c8e4fe01bae950"
   integrity sha1-eq5W8S0U4+Nw/8jRxcjk/gG66VA=
   dependencies:
+    byline "^5.0.0"
+
+smtlib@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/smtlib/-/smtlib-1.0.0.tgz#a3071b490be7b711859170f3bec9101b7b9b511c"
+  integrity sha512-0gIun6ucwFsUzwLsoLKiTPgElcUQUtqVgfwwRn0zjHBiwAP9mrpzLLiekwJitZiACDGLOOVcy607SxKhYmm0+Q==
+  dependencies:
+    "@types/byline" "^4.2.32"
     byline "^5.0.0"
 
 snapdragon-node@^2.0.1:
