@@ -111,7 +111,7 @@
     "apidoc": "^0.25.0",
     "browserify": "^17.0.0",
     "byline": "^5.0.0",
-    "chart.js": "^2.7.3",
+    "chart.js": "^2.9.4",
     "cli-table": "^0.3.1",
     "codemirror": "^5.58.1",
     "coveralls": "^3.1.0",
