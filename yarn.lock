@@ -5287,10 +5287,10 @@ micromatch@^3.0.4:
     snapdragon "^0.8.1"
     to-regex "^3.0.2"
 
-microsoft-cognitiveservices-speech-sdk@^1.12.1:
-  version "1.13.1"
-  resolved "https://registry.yarnpkg.com/microsoft-cognitiveservices-speech-sdk/-/microsoft-cognitiveservices-speech-sdk-1.13.1.tgz#9555bb00bea0d7b92697667c1af811b8d1bce5f5"
-  integrity sha512-8Jis9HFYwWxaEpxwnFF6kEBZmEvGxfl3VUUdBXObJ0/WzkbvdTsyORRnHxztdSehiuS1BCq+XpmdpzI67KgZ9g==
+microsoft-cognitiveservices-speech-sdk@^1.14.0:
+  version "1.14.0"
+  resolved "https://registry.yarnpkg.com/microsoft-cognitiveservices-speech-sdk/-/microsoft-cognitiveservices-speech-sdk-1.14.0.tgz#c51eb4ede8c06624c147f9cf75114bdbab2ea66a"
+  integrity sha512-j78LElJrVXpc0WztDO1Y92x/0TnFQShU81SMvNgw1Jc7cbAFvs8R+ZH61cfAGyRddFPMTElDvNneNvvL1jOfOQ==
   dependencies:
     agent-base "^6.0.0"
     asn1.js-rfc2560 "^5.0.0"
@@ -5298,6 +5298,7 @@ microsoft-cognitiveservices-speech-sdk@^1.12.1:
     async-disk-cache "^2.1.0"
     https-proxy-agent "^3.0.1"
     simple-lru-cache "0.0.2"
+    uuid "^8.3.1"
     ws "^7.2.0"
     xmlhttprequest-ts "^1.0.1"
 
@@ -8162,10 +8163,10 @@ uuid@^3.2.1, uuid@^3.3.2, uuid@^3.3.3:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.4.0.tgz#b23e4358afa8a202fe7a100af1f5f883f02007ee"
   integrity sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==
 
-uuid@^8.2.0:
-  version "8.3.0"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.0.tgz#ab738085ca22dc9a8c92725e459b1d507df5d6ea"
-  integrity sha512-fX6Z5o4m6XsXBdli9g7DtWgAx+osMsRRZFKma1mIUsLCz6vRvv+pz5VNbyu9UEDzpMWulZfvpgb/cmDXVulYFQ==
+uuid@^8.2.0, uuid@^8.3.1:
+  version "8.3.1"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.1.tgz#2ba2e6ca000da60fce5a196954ab241131e05a31"
+  integrity sha512-FOmRr+FmWEIG8uhZv6C2bTgEVXsHk08kE7mPlrBbEe+c3r9pjceVPgupIfNIhc4yx55H69OXANrUaSuu9eInKg==
 
 v8-compile-cache@^2.0.3:
   version "2.1.1"
