@@ -217,10 +217,10 @@
   resolved "https://registry.yarnpkg.com/@istanbuljs/schema/-/schema-0.1.2.tgz#26520bf09abe4a5644cd5414e37125a8954241dd"
   integrity sha512-tsAQNx32a8CoFhjhijUIhI4kccIAgmGhy8LZMZgGfmXcpMbPRUqn5LWmgRttILi6yeGmBJd2xsPkFMs0PzgPCw==
 
-"@kubernetes/client-node@^0.12.3":
-  version "0.12.3"
-  resolved "https://registry.yarnpkg.com/@kubernetes/client-node/-/client-node-0.12.3.tgz#5a6bdde428f3a4be306c6db2bdae27688a2c60b6"
-  integrity sha512-+Qq/WRbHIqL791JO6d3l/aupU922sriknCOsB63YjW9KVykX6/RTuPFDptfbWBVfPB3lRmhbjur95DIej1bAqA==
+"@kubernetes/client-node@^0.13.0":
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/@kubernetes/client-node/-/client-node-0.13.0.tgz#fb8e5559dacbfbb12f51ae2f3bfea166a0a60aee"
+  integrity sha512-gtsf/YG/mdi8BhIFbNA9BXxgwi3X6zYP0TKwqYaMm3hAlv320Awx8SpS1+ZjBVb6P8vRbDgzwApNVH22nDiB+A==
   dependencies:
     "@types/js-yaml" "^3.12.1"
     "@types/node" "^10.12.0"
