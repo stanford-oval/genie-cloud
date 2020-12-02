@@ -1,6 +1,7 @@
 branches:
   except:
   - "/^wip/"
+  - "/^dependabot/"
 language: node_js
 sudo: true
 dist: xenial
