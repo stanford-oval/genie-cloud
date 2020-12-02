@@ -5175,10 +5175,10 @@ markdown-it-highlightjs@^3.3.1:
     highlight.js "^10.2.0"
     lodash.flow "^3.5.0"
 
-markdown-it-table-of-contents@^0.4.3:
-  version "0.4.4"
-  resolved "https://registry.yarnpkg.com/markdown-it-table-of-contents/-/markdown-it-table-of-contents-0.4.4.tgz#3dc7ce8b8fc17e5981c77cc398d1782319f37fbc"
-  integrity sha512-TAIHTHPwa9+ltKvKPWulm/beozQU41Ab+FIefRaQV1NRnpzwcV9QOe6wXQS5WLivm5Q/nlo0rl6laGkMDZE7Gw==
+markdown-it-table-of-contents@^0.5.1:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/markdown-it-table-of-contents/-/markdown-it-table-of-contents-0.5.1.tgz#e9ca6b1cca9b69660a1b12222372d78b8c9f5a5b"
+  integrity sha512-OrDXtByZpkW7sXlB6PhlTnrqPsNdHffaOGZ2r2jEOWVgKzjK0U+1pHSiknhoqOxrjREtvpxNKROUe5X9QFzi5A==
 
 markdown-it@^10.0.0:
   version "10.0.0"
