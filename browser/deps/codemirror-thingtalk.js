@@ -73,7 +73,7 @@ CodeMirror.defineSimpleMode('thingtalk', {
 CodeMirror.registerHelper("lint", "thingtalk", (text) => {
     const found = [];
     try {
-        ThingTalk.Grammar.parse(text);
+        ThingTalk.Syntax.parse(text);
     } catch(e) {
         if (e.name !== 'SyntaxError')
             throw e;

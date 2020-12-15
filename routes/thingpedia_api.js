@@ -24,6 +24,7 @@ const accepts = require('accepts');
 const passport = require('passport');
 const multer = require('multer');
 const os = require('os');
+const ThingTalk = require('thingtalk');
 
 const db = require('../util/db');
 const entityModel = require('../model/entity');
@@ -111,7 +112,7 @@ v3.get('/schema/:schemas', (req, res, next) => {
     const schemas = req.params.schemas.split(',');
     const withMetadata = req.query.meta === '1';
 
-    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getSchemas(schemas, withMetadata, accept).then((obj) => {
         res.set('Vary', 'Accept');
 
@@ -154,7 +155,7 @@ v3.get('/devices/code/:kind', (req, res, next) => {
         return;
     }
 
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getDeviceCode(req.params.kind, accept).then((code) => {
         res.set('Vary', 'Accept');
         if (typeof code === 'string') {
@@ -232,7 +233,7 @@ v3.get('/devices/code/:kind', (req, res, next) => {
  */
 v3.get('/devices/setup/:kinds', (req, res, next) => {
     var kinds = req.params.kinds.split(',');
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getDeviceSetup(kinds).then((result) => {
         res.cacheFor(86400000);
         res.status(200).json({ result: 'ok', data: result });
@@ -275,7 +276,7 @@ v3.get('/devices/icon/:kind', (req, res) => {
  */
 v3.get('/devices/package/:kind', (req, res, next) => {
     const kind = req.params.kind;
-    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getModuleLocation(kind, req.query.version).then((location) => {
         res.cacheFor(60000);
         res.redirect(302, location);
@@ -342,7 +343,7 @@ function isValidDeviceClass(req, res) {
 v3.get('/devices/setup', (req, res, next) => {
     if (!isValidDeviceClass(req, res))
         return;
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getDeviceFactories(req.query.class).then((obj) => {
         res.cacheFor(86400000);
         res.json({ result: 'ok', data: obj });
@@ -396,7 +397,7 @@ v3.get('/devices/all', (req, res, next) => {
     if (!isValidDeviceClass(req, res))
         return;
 
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getDeviceList(req.query.class || null, page, page_size).then((devices) => {
         res.cacheFor(86400000);
         res.json({ result: 'ok', data: devices });
@@ -444,7 +445,7 @@ v3.get('/devices/search', (req, res, next) => {
         return;
     }
 
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getDeviceSearch(q).then((devices) => {
         res.cacheFor(86400000);
         res.json({ result: 'ok', data: devices });
@@ -597,7 +598,7 @@ v3.get('/commands/search', (req, res, next) => {
  */
 // the /discovery endpoint was moved to /devices/discovery in v3
 v3.post('/devices/discovery', (req, res, next) => {
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
 
     client.getKindByDiscovery(req.body).then((result) => {
         if (result === null) {
@@ -664,10 +665,10 @@ v3.post('/devices/discovery', (req, res, next) => {
  */
 v3.get('/examples/by-kinds/:kinds', (req, res, next) => {
     var kinds = req.params.kinds.split(',');
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/x-thingtalk;editMode=1', 'application/json', 'text/html']);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/x-thingtalk;editMode=1', 'text/plain']);
     if (!accept) {
-        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        res.status(405).json({ error: 'must accept application/x-thingtalk' });
         return;
     }
 
@@ -675,7 +676,7 @@ v3.get('/examples/by-kinds/:kinds', (req, res, next) => {
         res.set('Vary', 'Accept');
         res.cacheFor(300000);
         res.status(200);
-        res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept);
+        res.set('Content-Type', accept);
         if (typeof result === 'string')
             res.send(result);
         else
@@ -730,10 +731,10 @@ v3.get('/examples/by-kinds/:kinds', (req, res, next) => {
  *
  */
 v3.get('/examples/all', (req, res, next) => {
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/json', 'text/html']);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/x-thingtalk;editMode=1', 'text/plain']);
     if (!accept) {
-        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        res.status(405).json({ error: 'must accept application/x-thingtalk' });
         return;
     }
 
@@ -741,7 +742,7 @@ v3.get('/examples/all', (req, res, next) => {
         res.set('Vary', 'Accept');
         res.cacheFor(300000);
         res.status(200);
-        res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept);
+        res.set('Content-Type', accept);
         if (typeof result === 'string')
             res.send(result);
         else
@@ -801,17 +802,17 @@ v3.get('/examples/search', (req, res, next) => {
         res.status(400).json({ error: "missing query" });
         return;
     }
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/json', 'text/html']);
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/x-thingtalk;editMode=1', 'text/plain']);
     if (!accept) {
-        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        res.status(405).json({ error: 'must accept application/x-thingtalk' });
         return;
     }
 
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getExamplesByKey(req.query.q, accept).then((result) => {
         res.cacheFor(300000);
         res.status(200);
-        res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept);
+        res.set('Content-Type', accept);
         if (typeof result === 'string')
             res.send(result);
         else
@@ -838,7 +839,7 @@ v3.get('/examples/search', (req, res, next) => {
  *
  */
 v3.post('/examples/click/:id', (req, res, next) => {
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
 
     client.clickExample(req.params.id).then(() => {
         res.cacheFor(300000);
@@ -855,7 +856,7 @@ function getAllEntities(req, res, next) {
         return;
     }
 
-    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
 
     client.getAllEntityTypes(snapshotId).then((data) => {
         if (data.length > 0 && snapshotId >= 0) {
@@ -1082,7 +1083,7 @@ v3.get('/entities/list/:type', (req, res, next) => {
 });
 
 function getAllStrings(req, res, next) {
-    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
 
     client.getAllStrings().then((data) => {
         if (data.length > 0)
@@ -1241,7 +1242,7 @@ v3.get('/locations/lookup', (req, res, next) => {
         return;
     }
 
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
 
     client.lookupLocation(searchKey, req.query.latitude && req.query.longitude ? { latitude: req.query.latitude, longitude: req.query.longitude } : undefined).then((data) => {
         res.cacheFor(300000);
@@ -1303,7 +1304,7 @@ function getSnapshot(req, res, next, accept) {
         return;
     }
 
-    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
 
     client.getThingpediaSnapshot(getMeta, snapshotId).then((rows) => {
         if (rows.length > 0 && snapshotId >= 0) {
@@ -1313,19 +1314,17 @@ function getSnapshot(req, res, next, accept) {
             res.cacheFor(3600000);
         }
 
-        if (accept === 'application/json') {
-            res.json({ result: 'ok', data: rows });
-        } else {
-            res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept);
-            res.send(SchemaUtils.schemaListToClassDefs(rows, getMeta).prettyprint());
-        }
+        res.set('Content-Type', accept);
+        res.send(ThingTalk.Syntax.serialize(SchemaUtils.schemaListToClassDefs(rows, getMeta), ThingTalk.Syntax.SyntaxType.Normal, undefined, {
+            compatibility: req.query.thingtalk_version
+        }));
     }).catch(next);
 }
 
 v3.get('/snapshot/:id', (req, res, next) => {
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/json', 'text/html']);
+    const accept = accepts(req).types(['application/x-thingtalk', 'text/plain']);
     if (!accept) {
-        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        res.status(405).json({ error: 'must accept application/x-thingtalk' });
         return;
     }
     res.set('Vary', 'Accept');

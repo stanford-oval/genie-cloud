@@ -361,7 +361,6 @@ module.exports = {
         _shared = options.shared;
         this._thingpediaUrl = options.thingpedia_url;
         this._nlServerUrl = options.nl_server_url;
-        this._cdnHost = options.cdn_host;
         this._oauthRedirectOrigin = options.oauth_redirect_origin;
     },
 
@@ -370,9 +369,6 @@ module.exports = {
     },
     get nlServerUrl() {
         return this._nlServerUrl;
-    },
-    get cdnHost() {
-        return this._cdnHost;
     },
 
     get shared() {

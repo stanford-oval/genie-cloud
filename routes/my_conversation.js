@@ -24,6 +24,8 @@ const EngineManager = require('../almond/enginemanagerclient');
 const { BadRequestError } = require('../util/errors');
 const { makeRandom } = require('../util/random');
 
+const Config = require('../config');
+
 module.exports.anonymous = function(ws, req) {
     if (req.user) {
         ws.close();
@@ -41,6 +43,11 @@ class WebsocketApiDelegate {
     }
 
     send(data) {
+        if (data.result && data.result.icon)
+            data.result.icon = Config.CDN_HOST + '/icons/' + data.result.icon + '.png';
+        else if (data.error && data.error.icon)
+            data.error.icon = Config.CDN_HOST + '/icons/' + data.error.icon + '.png';
+
         try {
             this._ws.send(JSON.stringify(data));
         } catch(e) {

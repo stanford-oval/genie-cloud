@@ -121,7 +121,9 @@ router.post('/apps/create', user.requireScope('user-exec-command'),
     iv.validatePOST({ code: 'string' }, { accept: 'json', json: true }), (req, res, next) => {
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine(req.user.id);
-        const result = await engine.createAppAndReturnResults(req.body);
+        const result = await engine.createAppAndReturnResults(req.body.code, req.body);
+        if (result.icon)
+            result.icon = Config.CDN_HOST + '/icons/' + result.icon + '.png';
         if (result.error)
             res.status(400);
         res.json(result);

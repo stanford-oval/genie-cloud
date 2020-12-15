@@ -43,6 +43,15 @@ module.exports = class DatabaseParameterProvider {
         });
     }
 
+    async getEntity(entityType) {
+        const rows = await entityModel.getValues(this._dbClient, entityType, this._language);
+        return rows.map((r) => ({
+            value: r.entity_value,
+            name: r.entity_name,
+            canonical: r.entity_canonical
+        }));
+    }
+
     get(valueListType, valueListName) {
         switch (valueListType) {
         case 'string':

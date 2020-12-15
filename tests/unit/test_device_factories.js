@@ -41,7 +41,7 @@ const TEST_CASES = [
 
     [`class @com.bodytrace.scale {
         import loader from @org.thingpedia.v2();
-        import config from @org.thingpedia.config.basic_auth(extra_params=makeArgMap(serial_number : String));
+        import config from @org.thingpedia.config.basic_auth(extra_params=new ArgMap(serial_number : String));
     }`, {
         primary_kind: "com.bodytrace.scale",
         name: "BodyTrace Scale",
@@ -60,7 +60,7 @@ const TEST_CASES = [
 
     [`class @org.thingpedia.rss {
         import loader from @org.thingpedia.rss();
-        import config from @org.thingpedia.config.form(params=makeArgMap(url : Entity(tt:url)));
+        import config from @org.thingpedia.config.form(params=new ArgMap(url : Entity(tt:url)));
     }`, {
         primary_kind: "org.thingpedia.rss",
         name: "RSS Feed",
@@ -138,7 +138,7 @@ async function testCase(i) {
     console.log(`Test Case #${i+1}`);
     const [classCode, device, expectedFactory] = TEST_CASES[i];
 
-    const classDef = ThingTalk.Grammar.parse(classCode).classes[0];
+    const classDef = ThingTalk.Syntax.parse(classCode).classes[0];
     const generatedFactory = DeviceFactoryUtils.makeDeviceFactory(classDef, device);
 
     try {

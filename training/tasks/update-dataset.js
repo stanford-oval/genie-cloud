@@ -164,10 +164,11 @@ class DatasetUpdater {
             const toUpdate = [];
             await Promise.all(batch.map(async (ex) => {
                 const entities = Genie.EntityUtils.makeDummyEntities(ex.preprocessed);
-                const program = ThingTalk.NNSyntax.fromNN(ex.target_code.split(' '), entities);
-
                 try {
-                    await program.typecheck(this._schemas);
+                    await Genie.ThingTalkUtils.parsePrediction(ex.target_code.split(' '), entities, {
+                        thingpediaClient: this._tpClient,
+                        schemaRetriever: this._schemas,
+                    }, true);
                 } catch(e) {
                     toUpdate.push(ex.id);
                 }
@@ -181,12 +182,13 @@ class DatasetUpdater {
     }
 
     async _generateNewSynthetic() {
-        const templateFile = require.resolve('genie-toolkit/languages/thingtalk/' + this._language + '/basic.genie');
+        const templateFile = require.resolve('genie-toolkit/languages-dist/thingtalk/' + this._language + '/basic.genie.js');
         const options = {
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas,
 
-            templateFiles: [templateFile],
+            // remove the .js at the end so we refer to the genie file
+            templateFiles: [templateFile.replace(/\.js$/, '')],
             targetLanguage: 'thingtalk',
 
             rng: this._rng,

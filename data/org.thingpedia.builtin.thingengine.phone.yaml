@@ -46,7 +46,7 @@ class: |
   }
 
 dataset: |
-  dataset @org.thingpedia.builtin.thingengine.phone language "en" {
+  dataset @org.thingpedia.builtin.thingengine.phone #[language="en"] {
 
     stream  := monitor (@org.thingpedia.builtin.thingengine.phone.sms())
     #_[utterances=["when i receive a sms"]];
@@ -75,10 +75,10 @@ dataset: |
     query (p_sender :Entity(tt:phone_number))  := (@org.thingpedia.builtin.thingengine.phone.sms()), sender == p_sender
     #_[utterances=["texts from $p_sender"]];
 
-    query  := (@org.thingpedia.builtin.thingengine.phone.sms()), date >= start_of(day)
+    query  := (@org.thingpedia.builtin.thingengine.phone.sms()), date >= $start_of(day)
     #_[utterances=["texts i received today"]];
 
-    query  := (@org.thingpedia.builtin.thingengine.phone.sms()), date >= start_of(h)
+    query  := (@org.thingpedia.builtin.thingengine.phone.sms()), date >= $start_of(h)
     #_[utterances=["texts i received in the last hour"]];
 
     action  := @org.thingpedia.builtin.thingengine.phone.set_ringer(mode=enum(vibrate))

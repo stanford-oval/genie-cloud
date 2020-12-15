@@ -23,8 +23,6 @@ const express = require('express');
 const highlightjs = require('highlight.js');
 highlightjs.registerLanguage('tt', require('../util/highlightjs-thingtalk'));
 
-const ThingTalk = require('thingtalk');
-
 const db = require('../util/db');
 const user = require('../util/user');
 const deviceModel = require('../model/device');
@@ -33,8 +31,8 @@ const exampleModel = require('../model/example');
 
 const SchemaUtils = require('../util/manifest_to_schema');
 const DatasetUtils = require('../util/dataset');
-const Importer = require('../util/import_device');
 const I18n = require('../util/i18n');
+const { parseOldOrNewSyntax } = require('../util/compat');
 
 var router = express.Router();
 
@@ -46,6 +44,7 @@ function getOrgId(req) {
     else
         return req.user.developer_org;
 }
+
 
 router.get('/by-id/:kind', (req, res, next) => {
     const language = I18n.localeToLanguage(req.locale);
@@ -61,7 +60,7 @@ router.get('/by-id/:kind', (req, res, next) => {
                                               message: req._("Not Found.") });
             return;
         }
-        const parsed = ThingTalk.Grammar.parse(Importer.migrateManifest(devices[0].code, devices[0]));
+        const parsed = parseOldOrNewSyntax(devices[0].code);
         const classDef = parsed.classes[0];
         const schema = schemas[0];
         const translated = SchemaUtils.mergeClassDefAndSchema(classDef, schema);

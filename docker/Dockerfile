@@ -30,7 +30,7 @@ RUN curl -sL https://files.pythonhosted.org/packages/38/53/914885a93a44b96c0dd1c
   rm -fr /root/.cache && \
   rm -fr torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl
 RUN dnf -y install cmake gcc gcc-c++ python3-devel && \
-   pip3 install genienlp==0.4.0b1 awscli && \
+   pip3 install 'genienlp==0.6.0a1' awscli && \
    dnf -y remove cmake gcc gcc-c++ python3-devel && \
    rm -fr /var/cache/dnf && \
    rm -fr /root/.cache

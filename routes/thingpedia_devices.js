@@ -22,8 +22,6 @@
 const assert = require('assert');
 const express = require('express');
 
-const ThingTalk = require('thingtalk');
-
 const db = require('../util/db');
 const model = require('../model/device');
 const user = require('../util/user');
@@ -41,6 +39,7 @@ const Importer = require('../util/import_device');
 const codeStorage = require('../util/code_storage');
 const iv = require('../util/input_validation');
 const { NotFoundError } = require('../util/errors');
+const { parseOldOrNewSyntax } = require('../util/compat');
 const stringModel = require('../model/strings');
 const entityModel = require('../model/entity');
 
@@ -193,15 +192,8 @@ function getDetails(fn, param, req, res) {
 
         device.version = version;
 
-        let code;
-        if (version !== null)
-            code = model.getCodeByVersion(client, device.id, version);
-        else
-            code = `class @${device.primary_kind} {}`;
-
-        let examples, current_jobs;
-        [code, examples, current_jobs] = await Promise.all([
-            code,
+        let [code, examples, current_jobs] = await Promise.all([
+            version !== null ? model.getCodeByVersion(client, device.id, version) : `class @${device.primary_kind} {}`,
             exampleModel.getByKinds(client, [device.primary_kind], getOrgId(req), language),
             trainingJobModel.getForDevice(client, language, device.primary_kind)
         ]);
@@ -214,23 +206,8 @@ function getDetails(fn, param, req, res) {
                 current_job_queues[job.job_type] = [job];
         }
 
-        let migrated;
-        try {
-            migrated = Importer.migrateManifest(code, device);
-        } catch(e) {
-            // migrations can fail for a number of reasons on old versions,
-            // we don't want an Internal Server Error every time
-            // OTOH, we definitely want the error on the latest version, or
-            // any approved version
-
-            if (version === device.developer_version ||
-                (device.approved_version !== null && version >= device.approved_version))
-                throw e;
-            console.log(`Failed to migrate ${device.primary_kind} at version ${version}: ${e}`);
-            migrated = `class @${device.primary_kind} {}`;
-        }
-        const parsed = ThingTalk.Grammar.parse(migrated);
-        assert(parsed.isMeta && parsed.classes.length > 0);
+        const parsed = parseOldOrNewSyntax(code);
+        assert(parsed.classes.length > 0);
         const classDef = parsed.classes[0];
 
         let translated;

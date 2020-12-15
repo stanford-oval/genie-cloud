@@ -179,7 +179,7 @@ async function validateDataset(req, dbClient) {
     const tpClient = new ThingpediaClient(req.user.developer_key, req.user.locale, dbClient);
     const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
-    const parsed = await ThingTalk.Grammar.parseAndTypecheck(req.body.dataset, schemaRetriever, false);
+    const parsed = await ThingTalk.Syntax.parse(req.body.dataset).typecheck(schemaRetriever, false);
 
     if (parsed.datasets.length !== 1 ||
         parsed.datasets[0].name !== '@' + req.params.kind ||

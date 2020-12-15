@@ -34,7 +34,7 @@ const TEST_CASES = [
             }
         }
     },
-    `now => (@com.twitter.search()), text =~ "hello world" => notify;`,
+    `@com.twitter.search() filter text =~ "hello world";`,
     ],
 
     [
@@ -49,7 +49,7 @@ const TEST_CASES = [
             }
         }
     },
-    `now => (@com.twitter.search()), contains(hashtags, "funny"^^tt:hashtag) => notify;`,
+    `@com.twitter.search() filter contains(hashtags, "funny"^^tt:hashtag);`,
     ],
 
     [
@@ -64,7 +64,7 @@ const TEST_CASES = [
             }
         }
     },
-    `now => @org.thingpedia.weather.current(location=new Location("palo alto california")) => notify;`,
+    `@org.thingpedia.weather.current(location=new Location("palo alto california"));`,
     ],
 
     [
@@ -90,7 +90,7 @@ const TEST_CASES = [
             }
         }
     },
-    `now => (@security-camera.current_event()), has_motion == true => notify;`,
+    `@security-camera.current_event() filter has_motion == true;`,
     ],
 
     [
@@ -116,7 +116,7 @@ const TEST_CASES = [
             }
         }
     },
-    `now => (@security-camera.current_event()), has_motion == false => notify;`,
+    `@security-camera.current_event() filter has_motion == false;`,
     ],
 
     [
@@ -142,7 +142,7 @@ const TEST_CASES = [
             }
         }
     },
-    `now => @light-bulb.set_power(power=enum(off));`,
+    `@light-bulb.set_power(power=enum off);`,
     ],
 
     [
@@ -156,7 +156,7 @@ const TEST_CASES = [
             }
         }
     },
-    `now => @org.thingpedia.weather.sunrise(date=new Date("2019-07-31T07:00:00.000Z")) => notify;`,
+    `@org.thingpedia.weather.sunrise(date=new Date("2019-07-31T07:00:00.000Z"));`,
     ],
 
     [
@@ -170,7 +170,7 @@ const TEST_CASES = [
             }
         }
     },
-    `now => @org.thingpedia.weather.sunrise(date=new Date("2019-08-01T07:00:00.000Z")) => notify;`,
+    `@org.thingpedia.weather.sunrise(date=new Date("2019-08-01T07:00:00.000Z"));`,
     ],
 
     [
@@ -184,7 +184,7 @@ const TEST_CASES = [
             }
         }
     },
-    `now => @org.thingpedia.weather.sunrise(date=new Date("2019-01-01T08:00:00.000Z")) => notify;`,
+    `@org.thingpedia.weather.sunrise(date=new Date("2019-01-01T08:00:00.000Z"));`,
     ],
 
     [
@@ -198,7 +198,7 @@ const TEST_CASES = [
             }
         }
     },
-    `now => @com.spotify.play_seek_seconds(seconds=1day);`,
+    `@com.spotify.play_seek_seconds(seconds=1day);`,
     ],
 
     [
@@ -212,7 +212,7 @@ const TEST_CASES = [
             }
         }
     },
-    `now => @com.spotify.play_seek_seconds(seconds=1day + 1hour);`,
+    `@com.spotify.play_seek_seconds(seconds=1day + 1hour);`,
     ],
 
     [
@@ -226,7 +226,7 @@ const TEST_CASES = [
             }
         }
     },
-    `now => @com.yandex.translate.translate(target_language=null^^tt:iso_lang_code("italian")) => notify;`,
+    `@com.yandex.translate.translate(target_language=null^^tt:iso_lang_code("italian"));`,
     ],
 ];
 

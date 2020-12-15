@@ -165,10 +165,6 @@ function main() {
         required: true,
         help: 'NLP Server URL',
     });
-    parser.add_argument('--cdn-host', {
-        required: true,
-        help: 'CDN Host',
-    });
 
     const argv = parser.parse_args();
     i18n.init(argv.locale);

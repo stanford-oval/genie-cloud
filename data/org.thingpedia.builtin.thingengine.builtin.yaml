@@ -165,7 +165,7 @@ class: |
 
 
 dataset: |
-  dataset @org.thingpedia.builtin.thingengine.builtin language "en" {
+  dataset @org.thingpedia.builtin.thingengine.builtin #[language="en"] {
       stream := monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps())
       #_[utterances=["when my location changes",
                      "when i move",
@@ -174,24 +174,24 @@ dataset: |
                      "when my position changes"]]
       #[name="MonitorGetCurrentLocation"];
 
-      stream (p_location :Location) := edge (monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps())) on location == p_location
+      stream (p_location :Location) := monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps()), location == p_location
       #_[utterances=["when my location changes to $p_location",
                      "when i reach $p_location",
                      "when i get to $p_location",
                      "when i arrive at $p_location"]]
       #[name="MonitorGetCurrentLocationByLocation"];
 
-      stream (p_location :Location) := edge (monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps())) on !(location == p_location)
+      stream (p_location :Location) := monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps()), !(location == p_location)
       #_[utterances=["when i move away from $p_location",
                      "when my location changes away from $p_location",
                      "when i leave $p_location"]]
       #[name="MonitorGetCurrentLocationNotByLocation"];
 
-      program := now => @org.thingpedia.builtin.thingengine.builtin.get_time() => notify
+      program := @org.thingpedia.builtin.thingengine.builtin.get_time()
       #_[utterances=["what time is it"]]
       #[name="GetTime"];
 
-      program := now => @org.thingpedia.builtin.thingengine.builtin.get_date() => notify
+      program := @org.thingpedia.builtin.thingengine.builtin.get_date()
       #_[utterances=["what day is today",
                      "what day is it"]]
       #[name="GetDate"];

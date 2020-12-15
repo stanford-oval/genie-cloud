@@ -191,7 +191,7 @@ function exampleToCode(example) {
 
 function intentsToInteractionModel(model, rows, req) {
     const dataset = DatasetUtils.examplesToDataset(model.tag, model.language, rows);
-    const parsed = ThingTalk.Grammar.parse(dataset).datasets[0];
+    const parsed = ThingTalk.Syntax.parse(dataset).datasets[0];
 
     const alexaIntents = [];
     const enums = new Map;

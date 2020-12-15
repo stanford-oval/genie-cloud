@@ -19,14 +19,13 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
+const { Ast } = require('thingtalk');
 
 function camelCase(string) {
     return string.split(/[\s,."'!?_()]+/g).map((t) => t ? (t[0].toUpperCase() + t.substring(1)) : '').join('');
 }
 
 function getExampleNameInvocation(invocation) {
-    if (invocation.selector.isBuiltin)
-        return camelCase(invocation.channel);
     let name = camelCase(invocation.channel);
     for (let in_param of invocation.in_params) {
         if (in_param.value.isUndefined && in_param.name in invocation.schema.inReq)
@@ -53,7 +52,10 @@ function getExampleNameFilter(filter) {
     if (filter.isExternal)
         return `With` + getExampleNameInvocation(filter);
 
-    let name = `By` + camelCase(filter.name);
+    let lhs = filter.isAtom ? filter.name : getScalarExpressionName(filter.lhs);
+    let rhs = filter.rhs || filter.value;
+
+    let name = `By` + camelCase(lhs);
     switch (filter.operator) {
     case '>=':
         name += 'GreaterThan';
@@ -66,81 +68,51 @@ function getExampleNameFilter(filter) {
         name += camelCase(filter.operator);
     }
 
-    if (filter.value.isEnum)
-        return name + camelCase(filter.value.value);
+    if (rhs.isEnum)
+        return name + camelCase(rhs.value);
     return name;
 }
 
-function getExampleNameTable(table) {
-    if (table.isVarRef)
-        return camelCase(table.name);
-    else if (table.isInvocation)
-        return getExampleNameInvocation(table.invocation);
-    else if (table.isFilter)
-        return getExampleNameTable(table.table) + getExampleNameFilter(table.filter);
-    else if (table.isProjection)
-        return table.args.map(camelCase).join('') + `Of` + getExampleNameTable(table.table);
-    else if (table.isAggregation)
-        return camelCase(table.operator) + (table.field === '*' ? '' : camelCase(table.field)) + `Of` + getExampleNameTable(table.table);
-    else if (table.isSort)
-        return `Sort` + camelCase(table.field) + camelCase(table.direction) + getExampleNameTable(table.table);
-    else if (table.isIndex || table.isSlice || table.isHistory || table.isSequence || table.isCompute || table.isAlias)
-        return getExampleNameTable(table.table);
-    else if (table.isWindow || table.isTimeSeries)
-        return getExampleNameStream(table.stream);
-    else if (table.isJoin)
-        return getExampleNameTable(table.lhs) + 'And' + getExampleNameTable(table.rhs);
+function getScalarExpressionName(ast) {
+    if (ast instanceof Ast.VarRefValue)
+        return ast.name;
+    if (ast instanceof Ast.ComputationValue && /^[a-zA-Z0-9]+$/.test(ast.op))
+        return ast.op;
+    else if (ast instanceof Ast.FilterValue || ast instanceof Ast.ArrayFieldValue)
+        return getScalarExpressionName(ast.value);
     else
+        return 'result';
+}
+
+function getExampleNameExpression(expression) {
+    if (expression instanceof Ast.FunctionCallExpression) {
+        return camelCase(expression.name);
+    } else if (expression instanceof Ast.InvocationExpression) {
+        return getExampleNameInvocation(expression.invocation);
+    } else if (expression instanceof Ast.FilterExpression) {
+        return getExampleNameExpression(expression.expression) + getExampleNameFilter(expression.filter);
+    } else if (expression instanceof Ast.ProjectionExpression) {
+        return expression.args.map(camelCase).join('') +
+            expression.computations.map((c) => camelCase(getScalarExpressionName)).join('')
+             + `Of` + getExampleNameExpression(expression.expression);
+    } else if (expression instanceof Ast.AggregationExpression) {
+        return camelCase(expression.operator) + (expression.field === '*' ? '' : camelCase(expression.field)) + `Of` + getExampleNameExpression(expression.expression);
+    } else if (expression instanceof Ast.SortExpression) {
+        return `Sort` + camelCase(getScalarExpressionName(expression.field)) +
+            camelCase(expression.direction) + getExampleNameExpression(expression.expression);
+    } else if (expression instanceof Ast.MonitorExpression) {
+        return `Monitor` + getExampleNameExpression(expression.expression);
+    } else if (expression instanceof Ast.IndexExpression ||
+               expression instanceof Ast.SliceExpression ||
+               expression instanceof Ast.AliasExpression) {
+        return getExampleNameExpression(expression.expression);
+    } else if (expression instanceof Ast.ChainExpression) {
+        return expression.expressions.map(getExampleNameExpression).join('And');
+    } else {
         throw new TypeError();
-}
-function getExampleNameStream(stream) {
-    if (stream.isVarRef)
-        return camelCase(stream.name);
-    else if (stream.isTimer || stream.isAtTimer)
-        return `Timer`;
-    else if (stream.isMonitor)
-        return `Monitor` + getExampleNameTable(stream.table);
-    else if (stream.isEdgeFilter || stream.isFilter)
-        return getExampleNameStream(stream.stream) + getExampleNameFilter(stream.filter);
-    else if (stream.isProjection)
-        return stream.args.map(camelCase).join('') + `Of` + getExampleNameStream(stream.stream);
-    else if (stream.isEdgeNew || stream.isCompute || stream.isAlias)
-        return getExampleNameStream(stream.stream);
-    else if (stream.isJoin)
-        return getExampleNameStream(stream.stream) + 'Then' + getExampleNameTable(stream.table);
-    else
-        throw new TypeError();
-}
-function getExampleNameAction(action) {
-    if (action.isVarRef)
-        return camelCase(action.name);
-    else
-        return getExampleNameInvocation(action.invocation);
-}
-function getExampleNameProgram(program) {
-    return program.rules.map((r) => {
-        if (r.isAssignment)
-            return getExampleNameTable(r.value);
-        else if (r.stream)
-            return getExampleNameStream(r.stream) + 'Then' + r.actions.map(getExampleNameAction).join('And');
-        else if (r.table)
-            return getExampleNameTable(r.table) + 'Then' + r.actions.map(getExampleNameAction).join('And');
-        else
-            return r.actions.map(getExampleNameAction).join('And');
-    }).join('And');
+    }
 }
 
 module.exports = function getExampleName(ex) {
-    switch (ex.type) {
-    case 'query':
-        return getExampleNameTable(ex.value);
-    case 'stream':
-        return getExampleNameStream(ex.value);
-    case 'action':
-        return getExampleNameAction(ex.value);
-    case 'program':
-        return getExampleNameProgram(ex.value);
-    default:
-        throw new TypeError(`Invalid example type ${ex.type}`);
-    }
+    return getExampleNameExpression(ex.value);
 };

@@ -200,42 +200,42 @@ async function testSubmitToMTurk(batchIdHash, nobody) {
         type: 'turking1',
         flags: '',
         utterance: 'paraphrase a first',
-        target_code: 'now => @com.bing.web_search => notify'
+        target_code: '@com.bing . web_search ( ) ;'
     }, {
         type: 'turking1',
         flags: '',
         utterance: 'paraphrase a second',
-        target_code: 'now => @com.bing.web_search => notify'
+        target_code: '@com.bing . web_search ( ) ;'
     }, {
         type: 'turking1',
         flags: '',
         utterance: 'paraphrase b first',
-        target_code: 'now => @com.bing.web_search => notify'
+        target_code: '@com.bing . web_search ( ) ;'
     }, {
         type: 'turking1',
         flags: '',
         utterance: 'paraphrase b second',
-        target_code: 'now => @com.bing.web_search => notify'
+        target_code: '@com.bing . web_search ( ) ;'
     }, {
         type: 'turking1',
         flags: '',
         utterance: 'paraphrase c first',
-        target_code: 'now => @com.bing.web_search => notify'
+        target_code: '@com.bing . web_search ( ) ;'
     }, {
         type: 'turking1',
         flags: '',
         utterance: 'paraphrase c second',
-        target_code: 'now => @com.bing.web_search => notify'
+        target_code: '@com.bing . web_search ( ) ;'
     }, {
         type: 'turking1',
         flags: '',
         utterance: 'paraphrase d first',
-        target_code: 'now => @com.bing.web_search => notify'
+        target_code: '@com.bing . web_search ( ) ;'
     }, {
         type: 'turking1',
         flags: '',
         utterance: 'paraphrase d second',
-        target_code: 'now => @com.bing.web_search => notify'
+        target_code: '@com.bing . web_search ( ) ;'
     }]);
 
 
