@@ -265,7 +265,9 @@ const registerArguments = {
     password: 'string',
     'confirm-password': 'string',
     timezone: '?string',
-    locale: 'string'
+    locale: 'string',
+    agree_terms: 'boolean',
+    agree_consent: 'boolean',
 };
 
 
@@ -326,7 +328,10 @@ router.post('/register', iv.validatePOST(registerArguments), (req, res, next) =>
         if (!user)
             return;
         await Promise.all([
-            EngineManager.get().startUser(user.id).catch((e) => {
+            EngineManager.get().startUser(user.id).then(async () => {
+                const engine = await EngineManager.get().getEngine(req.user.id);
+                await engine.assistant.setConsent(!!req.body.agree_consent);
+            }).catch((e) => {
                 console.error(`Failed to start engine of newly registered user: ${e.message}`);
             }),
             sendValidationEmail(user.cloud_id, user.username, user.email)
@@ -584,9 +589,11 @@ async function getProfile(req, res, pw_error, profile_error) {
     const desktop = {
         isConfigured: false,
     };
+    let dataConsent = false;
     try {
         const engine = await EngineManager.get().getEngine(req.user.id);
 
+        dataConsent = await engine.assistant.getConsent();
         const [phoneProxy, desktopProxy] = await Promise.all([
             engine.devices.getDevice('thingengine-own-phone'),
             engine.devices.getDevice('thingengine-own-desktop')
@@ -612,6 +619,7 @@ async function getProfile(req, res, pw_error, profile_error) {
                                  profile_error,
                                  oauth_permissions,
                                  org_invitations,
+                                 data_collection: dataConsent,
                                  phone,
                                  desktop });
 }
@@ -627,7 +635,8 @@ const profileArguments = {
     locale: 'string',
     visible_organization_profile: 'boolean',
     show_human_name: 'boolean',
-    show_profile_picture: 'boolean'
+    show_profile_picture: 'boolean',
+    data_collection: 'boolean',
 };
 router.post('/profile', userUtils.requireLogIn, iv.validatePOST(profileArguments), (req, res, next) => {
     let mustRestartEngine = false;
@@ -665,6 +674,14 @@ router.post('/profile', userUtils.requireLogIn, iv.validatePOST(profileArguments
         req.user.profile_flags = profile_flags;
         if (mustSendEmail)
             await sendValidationEmail(req.user.cloud_id, req.body.username, req.body.email);
+
+        try {
+            const engine = await EngineManager.get().getEngine(req.user.id);
+            await engine.assistant.setConsent(!!req.body.data_collection);
+        } catch(e) {
+            // ignore if the engine is down
+            console.error(`Ignored error setting user consent preference: ${e.message}`);
+        }
 
         return getProfile(req, res, undefined,
             mustSendEmail ?

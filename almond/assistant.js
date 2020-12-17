@@ -98,6 +98,16 @@ module.exports = class Assistant extends events.EventEmitter {
         this._conversations.set('api', this._api, null);
     }
 
+    setConsent(consent) {
+        const prefs = this._platform.getSharedPreferences();
+        prefs.set('sabrina-store-log', consent ? 'yes' : 'no');
+    }
+
+    getConsent() {
+        const prefs = this._platform.getSharedPreferences();
+        return prefs.get('sabrina-store-log') !== 'no';
+    }
+
     parse(sentence, targetJson) {
         return this._api.parse(sentence, targetJson);
     }
@@ -205,4 +215,4 @@ module.exports = class Assistant extends events.EventEmitter {
         this._conversations.delete(id);
     }
 };
-module.exports.prototype.$rpcMethods = ['openConversation', 'closeConversation', 'getConversation', 'getOrOpenConversation', 'parse', 'createApp', 'addOutput', 'removeOutput', 'converse'];
+module.exports.prototype.$rpcMethods = ['openConversation', 'closeConversation', 'getConversation', 'getOrOpenConversation', 'parse', 'createApp', 'addOutput', 'removeOutput', 'converse', 'getConsent', 'setConsent'];
