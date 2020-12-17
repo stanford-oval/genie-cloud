@@ -63,6 +63,14 @@ block content
               = _("Show my profile picture in my public profile.")
           span.help-block!=_("Your profile picture is automatically retrieved from <a href='https://en.gravatar.com'>Gravatar</a> using a secure hash of your email.</a>")
 
+        div.form-group
+          div.checkbox
+            label(for='setting-data-collection').control-label
+              input(type='checkbox',name='data_collection',value='1',checked=data_collection)#setting-data-collection
+              = _("Send anonymized commands to the authors of Almond for training.")
+            span.help-block
+              != _("Almond is a research project from Stanford University. If you would like to participate to help us, you can allow us to collect the commands that you type. We only collect what you type, not your data, or what Almond replies. Please review the <a href='https://oval.cs.stanford.edu/almond-consent-form.html'>Consent Form</a> and keep it for your records before agreeing.")
+
         if Config.SUPPORTED_LANGUAGES.length > 1
           div.form-group
             label(for='locale').control-label= _("Language")
