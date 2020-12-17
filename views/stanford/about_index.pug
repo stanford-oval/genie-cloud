@@ -76,6 +76,11 @@ block content
                 div.col-xs-12.col-sm-6.col-md-4
                   a(href='https://community.almond.stanford.edu')= _("Join Our Community")
 
+            div(style='margin-top:1em;font-size:24px').text-center
+              p You can also try the bleeding edge, development version
+                br
+                | of Almond at #[a(href='https://almond-dev.stanford.edu') almond-dev.stanford.edu].
+
             p(style='margin-top:1em;font-size:24px').text-center!= _("Brought to you by the <a href='https://oval.cs.stanford.edu'>Stanford Open Virtual Assistant Lab</a>.")
 
 
@@ -179,6 +184,8 @@ block content
                   | Hackaday
                 a(href='https://techhq.com/2019/12/can-an-open-source-virtual-assistant-take-on-alexa/').aligned-grid-item#news-link-techhq
                   img(src=Config.ASSET_CDN + '/images/news-logo-techhq.svg', width=64, height=64, alt='TechHQ')
+                a(href='https://www.hostingadvice.com/blog/stanfords-almond-is-an-open-and-privacy-centric-assistant/').aligned-grid-item#news-link-hostingadvice
+                  img(src=Config.ASSET_CDN + '/images/news-logo-hostingadvice.png', alt='Hosting Advice')
 
       include ../blog_home_page.pug
 
