@@ -289,6 +289,10 @@ async function testRegister(driver) {
 
     // no more error
     await driver.wait(WD.until.elementIsNotVisible(confirmPasswordText), 30000);
+
+    // click the checkbox for the terms
+    await (await driver.findElement(WD.By.css('input[type=checkbox][name=agree_terms]'))).click();
+
     // and we can submit
     await assertDoesNotHaveClass(submit, 'disabled');
 
