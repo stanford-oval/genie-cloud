@@ -101,6 +101,16 @@ class Engine extends Genie.AssistantEngine {
         this._formatter = new ThingTalk.Formatter(platform.locale, platform.timezone, this.schemas);
     }
 
+    setConsent(consent) {
+        const prefs = this.platform.getSharedPreferences();
+        prefs.set('sabrina-store-log', consent ? 'yes' : 'no');
+    }
+
+    getConsent() {
+        const prefs = this.platform.getSharedPreferences();
+        return prefs.get('sabrina-store-log') !== 'no';
+    }
+
     async converse(...args) {
         return this.assistant.converse(...args);
     }
@@ -145,6 +155,9 @@ class Engine extends Genie.AssistantEngine {
     }
 }
 Engine.prototype.$rpcMethods = [
+    'getConsent',
+    'setConsent',
+
     'getOrOpenConversation',
     'addNotificationOutput',
     'removeNotificationOutput',
