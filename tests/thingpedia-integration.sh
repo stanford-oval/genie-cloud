@@ -87,8 +87,6 @@ else
     # sleep until the process is settled
     sleep 30
 
-    node $srcdir/tests/test_thingpedia_api_v1_v2.js
-
     # login as bob
     bob_cookie=$(node $srcdir/tests/login.js bob 12345678)
 

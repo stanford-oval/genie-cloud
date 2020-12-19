@@ -64,112 +64,6 @@ async function ttRequest(url) {
     return result;
 }
 
-const BING_SCHEMA = {
-    kind_type: 'primary',
-    triggers: {},
-    actions: {},
-    queries: {
-        image_search: {
-            extends: null,
-            types: ["String", "String", "Entity(tt:picture)", "Entity(tt:url)", "Number", "Number"],
-            args: ["query", "title", "picture_url", "link", "width", "height"],
-            required: [true, false, false, false, false, false],
-            is_input: [true, false, false, false, false, false],
-            is_list: true,
-            is_monitorable: true
-        },
-        web_search: {
-            extends: null,
-            types: ["String", "String", "String", "Entity(tt:url)"],
-            args: ["query", "title", "description", "link"],
-            required: [true, false, false, false],
-            is_input: [true, false, false, false],
-            is_list: true,
-            is_monitorable: true
-        }
-    }
-};
-
-const BING_METADATA = {
-    kind_type: 'primary',
-    triggers: {},
-    actions: {},
-    queries: {
-        image_search: {
-            extends: null,
-            types: ["String", "String", "Entity(tt:picture)", "Entity(tt:url)", "Number", "Number"],
-            args: ["query", "title", "picture_url", "link", "width", "height"],
-            required: [true, false, false, false, false, false],
-            is_input: [true, false, false, false, false, false],
-            is_list: true,
-            is_monitorable: true,
-            confirmation: "images matching $query from Bing",
-            confirmation_remote: "images matching $query from Bing",
-            doc: "search for `query` on Bing Images",
-            canonical: "image search on bing",
-            argcanonicals: ["query", "title", "picture url", "link", "width", "height"],
-            formatted: [{
-                type: "rdl",
-                webCallback: "${link}",
-                displayTitle: "${title}",
-            }, {
-                type: "picture",
-                url: "${picture_url}"
-            }],
-            questions: [
-              "What do you want to search?",
-              "",
-              "",
-              "",
-              "What width are you looking for (in pixels)?",
-              "What height are you looking for (in pixels)?"
-            ],
-            string_values: [
-              "tt:search_query",
-              "tt:short_free_text",
-              null,
-              null,
-              null,
-              null
-            ],
-            confirm: false
-        },
-        web_search: {
-            extends: null,
-            types: ["String", "String", "String", "Entity(tt:url)"],
-            args: ["query", "title", "description", "link"],
-            required: [true, false, false, false],
-            is_input: [true, false, false, false],
-            is_list: true,
-            is_monitorable: true,
-            confirmation: "websites matching $query on Bing",
-            confirmation_remote: "websites matching $query on Bing",
-            doc: "search for `query` on Bing",
-            canonical: "web search on bing",
-            argcanonicals: ["query", "title", "description", "link"],
-            formatted: [{
-                type: "rdl",
-                webCallback: "${link}",
-                displayTitle: "${title}",
-                displayText: "${description}"
-            }],
-            questions: [
-              "What do you want to search?",
-              "",
-              "",
-              ""
-            ],
-            string_values: [
-              "tt:search_query",
-              "tt:short_free_text",
-              "tt:long_free_text",
-              null,
-            ],
-            confirm: false
-        }
-    }
-};
-
 const BING_CLASS = `class @com.bing {
   monitorable list query image_search(in req query: String,
                                       out title: String,
@@ -320,268 +214,49 @@ const ADMINONLY_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.admino
 `;
 
 async function testGetSchemas() {
-    assert.deepStrictEqual(await request('/schema/com.bing'), {
-        result: 'ok',
-        data: {
-            'com.bing': BING_SCHEMA
-        }
-    });
     assert.deepStrictEqual(await ttRequest('/schema/com.bing'), BING_CLASS);
 
-    assert.deepStrictEqual(await request('/schema/com.bing,org.thingpedia.builtin.test.nonexistent'), {
-        result: 'ok',
-        data: {
-            'com.bing': BING_SCHEMA
-        }
-    });
     assert.deepStrictEqual(await ttRequest('/schema/com.bing,org.thingpedia.builtin.test.nonexistent'), BING_CLASS);
 
-    assert.deepStrictEqual(await request('/schema/com.bing,org.thingpedia.builtin.test.invisible'), {
-        result: 'ok',
-        data: {
-            'com.bing': BING_SCHEMA
-        }
-    });
     assert.deepStrictEqual(await ttRequest('/schema/com.bing,org.thingpedia.builtin.test.invisible'), BING_CLASS);
 
-    assert.deepStrictEqual(await request(
-        `/schema/com.bing,org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`), {
-        result: 'ok',
-        data: {
-            'com.bing': BING_SCHEMA,
-            'org.thingpedia.builtin.test.invisible': {
-                kind_type: 'primary',
-                triggers: {},
-                queries: {},
-                actions: {
-                    "eat_data": {
-                        extends: null,
-                        types: ["String"],
-                        args: ["data"],
-                        is_input: [true],
-                        required: [true],
-                        is_monitorable: false,
-                        is_list: false
-                    },
-                }
-            }
-        }
-    });
     assert.deepStrictEqual(await ttRequest(
         `/schema/com.bing,org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`),
         BING_CLASS + INVISIBLE_CLASS);
 
-    assert.deepStrictEqual(await request(
-        `/schema/com.bing,org.thingpedia.builtin.test.invisible?developer_key=${process.env.ROOT_DEVELOPER_KEY}`), {
-        result: 'ok',
-        data: {
-            'com.bing': BING_SCHEMA,
-            'org.thingpedia.builtin.test.invisible': {
-                kind_type: 'primary',
-                triggers: {},
-                queries: {},
-                actions: {
-                    "eat_data": {
-                        extends: null,
-                        types: ["String"],
-                        args: ["data"],
-                        is_input: [true],
-                        required: [true],
-                        is_monitorable: false,
-                        is_list: false
-                    },
-                }
-            }
-        }
-    });
     assert.deepStrictEqual(await ttRequest(
         `/schema/com.bing,org.thingpedia.builtin.test.invisible?developer_key=${process.env.ROOT_DEVELOPER_KEY}`),
         BING_CLASS + INVISIBLE_CLASS);
 
-    assert.deepStrictEqual(await request(
-        `/schema/com.bing,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`), {
-        result: 'ok',
-        data: {
-            'com.bing': BING_SCHEMA
-        }
-    });
     assert.deepStrictEqual(await ttRequest(
         `/schema/com.bing,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`),
         BING_CLASS);
 
-    assert.deepStrictEqual(await request(
-        `/schema/com.bing,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.ROOT_DEVELOPER_KEY}`), {
-        result: 'ok',
-        data: {
-            'com.bing': BING_SCHEMA,
-            'org.thingpedia.builtin.test.adminonly': {
-                kind_type: 'primary',
-                triggers: {},
-                queries: {},
-                actions: {
-                    "eat_data": {
-                        extends: null,
-                        types: ["String"],
-                        args: ["data"],
-                        is_input: [true],
-                        required: [true],
-                        is_monitorable: false,
-                        is_list: false
-                    },
-                }
-            }
-        }
-    });
     assert.deepStrictEqual(await ttRequest(
         `/schema/com.bing,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.ROOT_DEVELOPER_KEY}`),
         BING_CLASS + ADMINONLY_CLASS);
 }
 
 async function testGetMetadata() {
-    assert.deepStrictEqual(await request('/schema/com.bing?meta=1'), {
-        result: 'ok',
-        data: {
-            'com.bing': BING_METADATA
-        }
-    });
     assert.deepStrictEqual(await ttRequest('/schema/com.bing?meta=1'), BING_CLASS_WITH_METADATA);
 
-    assert.deepStrictEqual(await request('/schema/com.bing,org.thingpedia.builtin.test.nonexistent?meta=1'), {
-        result: 'ok',
-        data: {
-            'com.bing': BING_METADATA
-        }
-    });
     assert.deepStrictEqual(await ttRequest('/schema/com.bing,org.thingpedia.builtin.test.nonexistent?meta=1'),
         BING_CLASS_WITH_METADATA);
 
-    assert.deepStrictEqual(await request('/schema/com.bing,org.thingpedia.builtin.test.invisible?meta=1'), {
-        result: 'ok',
-        data: {
-            'com.bing': BING_METADATA
-        }
-    });
     assert.deepStrictEqual(await ttRequest('/schema/com.bing,org.thingpedia.builtin.test.invisible?meta=1'),
         BING_CLASS_WITH_METADATA);
-
-    assert.deepStrictEqual(await request(
-        `/schema/com.bing,org.thingpedia.builtin.test.invisible?meta=1&developer_key=${process.env.DEVELOPER_KEY}`), {
-        result: 'ok',
-        data: {
-            'com.bing': BING_METADATA,
-            'org.thingpedia.builtin.test.invisible': {
-                kind_type: "primary",
-                triggers: {},
-                queries: {},
-                actions: {
-                    "eat_data": {
-                        extends: null,
-                        types: ["String"],
-                        args: ["data"],
-                        is_input: [true],
-                        required: [true],
-                        questions: ["What do you want me to consume?"],
-                        argcanonicals: ["data"],
-                        doc: "consume some data, do nothing",
-                        confirmation: "consume $data",
-                        confirmation_remote: "consume $data on $__person's Almond",
-                        formatted: [],
-                        canonical: "eat data on test",
-                        is_list: false,
-                        is_monitorable: false,
-                        string_values: [null],
-                        confirm: true
-                    }
-                }
-            }
-        }
-    });
 
     assert.deepStrictEqual(await ttRequest(
         `/schema/com.bing,org.thingpedia.builtin.test.invisible?meta=1&developer_key=${process.env.DEVELOPER_KEY}`),
         BING_CLASS_WITH_METADATA + INVISIBLE_CLASS_WITH_METADATA);
 
-    assert.deepStrictEqual(await request(
-        `/schema/com.bing,org.thingpedia.builtin.test.invisible?meta=1&developer_key=${process.env.ROOT_DEVELOPER_KEY}`), {
-        result: 'ok',
-        data: {
-            'com.bing': BING_METADATA,
-            'org.thingpedia.builtin.test.invisible': {
-                kind_type: "primary",
-                triggers: {},
-                queries: {},
-                actions: {
-                    "eat_data": {
-                        extends: null,
-                        types: ["String"],
-                        args: ["data"],
-                        is_input: [true],
-                        required: [true],
-                        questions: ["What do you want me to consume?"],
-                        argcanonicals: ["data"],
-                        doc: "consume some data, do nothing",
-                        confirmation: "consume $data",
-                        confirmation_remote: "consume $data on $__person's Almond",
-                        formatted: [],
-                        canonical: "eat data on test",
-                        is_list: false,
-                        is_monitorable: false,
-                        string_values: [null],
-                        confirm: true
-                    }
-                }
-            }
-        }
-    });
-
     assert.deepStrictEqual(await ttRequest(
         `/schema/com.bing,org.thingpedia.builtin.test.invisible?meta=1&developer_key=${process.env.ROOT_DEVELOPER_KEY}`),
         BING_CLASS_WITH_METADATA + INVISIBLE_CLASS_WITH_METADATA);
 
-    assert.deepStrictEqual(await request(
-        `/schema/com.bing,org.thingpedia.builtin.test.adminonly?meta=1&developer_key=${process.env.DEVELOPER_KEY}`), {
-        result: 'ok',
-        data: {
-            'com.bing': BING_METADATA
-        }
-    });
-
     assert.deepStrictEqual(await ttRequest(
         `/schema/com.bing,org.thingpedia.builtin.test.adminonly?meta=1&developer_key=${process.env.DEVELOPER_KEY}`),
         BING_CLASS_WITH_METADATA);
-
-    assert.deepStrictEqual(await request(
-        `/schema/com.bing,org.thingpedia.builtin.test.adminonly?meta=1&developer_key=${process.env.ROOT_DEVELOPER_KEY}`), {
-        result: 'ok',
-        data: {
-            'com.bing': BING_METADATA,
-            'org.thingpedia.builtin.test.adminonly': {
-                kind_type: "primary",
-                triggers: {},
-                queries: {},
-                actions: {
-                    "eat_data": {
-                        extends: null,
-                        types: ["String"],
-                        args: ["data"],
-                        is_input: [true],
-                        required: [true],
-                        questions: ["What do you want me to consume?"],
-                        argcanonicals: ["data"],
-                        doc: "consume some data, do nothing",
-                        confirmation: "consume $data",
-                        confirmation_remote: "consume $data on $__person's Almond",
-                        formatted: [],
-                        canonical: "eat data on test",
-                        is_list: false,
-                        is_monitorable: false,
-                        string_values: [null],
-                        confirm: true
-                    }
-                }
-            }
-        }
-    });
 
     assert.deepStrictEqual(await ttRequest(
         `/schema/com.bing,org.thingpedia.builtin.test.adminonly?meta=1&developer_key=${process.env.ROOT_DEVELOPER_KEY}`),
@@ -1186,37 +861,17 @@ async function testGetDeviceIcon() {
     assert(!failed);
 }
 
-function checkManifest(obtained, expected) {
-    assert.strictEqual(obtained.result, 'ok');
-    obtained = obtained.data;
-
-    assert.strictEqual(typeof obtained.version, 'number');
-    assert.strictEqual(typeof obtained.developer, 'boolean');
-    assert(!obtained.examples || Array.isArray(obtained.examples));
-
-    delete obtained.version;
-    delete obtained.developer;
-    delete obtained.examples;
-}
-
 async function testGetDeviceManifest() {
-    checkManifest(await request('/devices/code/com.bing'));
-
     //console.log(String(toCharArray(BING_CLASS_FULL)));
     assert.strictEqual(await ttRequest('/devices/code/com.bing'), BING_CLASS_FULL);
     assert.strictEqual(await ttRequest(`/devices/code/com.bing?developer_key=${process.env.DEVELOPER_KEY}`), BING_CLASS_FULL);
     assert.strictEqual(await ttRequest(`/devices/code/com.bing?developer_key=${process.env.ROOT_DEVELOPER_KEY}`), BING_CLASS_FULL);
 
-    await assert.rejects(() => request('/devices/code/org.thingpedia.builtin.test.invisible'));
-    await assert.rejects(() => request('/devices/code/org.thingpedia.builtin.test.nonexistent'));
-    checkManifest(await request(
-        `/devices/code/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`));
+    await assert.rejects(() => ttRequest('/devices/code/org.thingpedia.builtin.test.invisible'));
+    await assert.rejects(() => ttRequest('/devices/code/org.thingpedia.builtin.test.nonexistent'));
 
-    await assert.rejects(() => request(
+    await assert.rejects(() => ttRequest(
         `/devices/code/org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`));
-
-    checkManifest(await request(
-        `/devices/code/org.thingpedia.builtin.test.invisible?developer_key=${process.env.ROOT_DEVELOPER_KEY}`));
 }
 
 async function testGetDevicePackage() {
