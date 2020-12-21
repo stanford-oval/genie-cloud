@@ -119,6 +119,30 @@ module.exports.WITH_THINGPEDIA = 'external';
   It **must** be set to `'/thingpedia'` to use the embedded Thingpedia.
 */
 module.exports.THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
+/**
+  Default Thingpedia developer key to use for Web Almond.
+
+  In external Thingpedia mode, this Thingpedia key will be made available to all
+  users that do not have another key configured, so they can access private devices
+  from the external Thingpedia.
+
+  The developer program must be disabled for this key to have any effect
+  (ENABLE_DEVELOPER_PROGRAM = false), and this key has no effect in embedded Thingpedia mode.
+
+  This key only affects users running Web Almond. To configure the key used by
+  the embedded NLP server, set NL_THINGPEDIA_DEVELOPER_KEY.
+*/
+module.exports.THINGPEDIA_DEVELOPER_KEY = null;
+/**
+  Thingpedia developer key to use for the root user in Web Almond.
+
+  In external Thingpedia mode, the initially created root user and all users in the
+  root organization will use this developer key. If unset, the root user will use a
+  randomly generated Thingpedia key.
+
+  This key has no effect in embedded Thingpedia mode.
+*/
+module.exports.ROOT_THINGPEDIA_DEVELOPER_KEY = null;
 
 /**
   Where to store icons and zip files.
@@ -318,6 +342,9 @@ module.exports.NL_SERVER_ADMIN_TOKEN = null;
 
   Set this key to your Thingpedia developer key if you're configuring a custom
   NLP server but you want to use the public Thingpedia.
+
+  This key only affects the embedded NLP server. To configure the key used by
+  users running Web Almond and talking to this NLP server, set THINGPEDIA_DEVELOPER_KEY.
 */
 module.exports.NL_THINGPEDIA_DEVELOPER_KEY = null;
 

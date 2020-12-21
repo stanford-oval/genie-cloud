@@ -70,6 +70,16 @@ function delay(ms) {
     });
 }
 
+function getUserDeveloperKey(user) {
+    if (user.developer_key)
+        return user.developer_key;
+
+    if (Config.ENABLE_DEVELOPER_PROGRAM || Config.WITH_THINGPEDIA === 'embedded')
+        return null;
+
+    return Config.THINGPEDIA_DEVELOPER_KEY;
+}
+
 class EngineProcess extends events.EventEmitter {
     constructor(id, cloudId) {
         super();
@@ -108,7 +118,7 @@ class EngineProcess extends events.EventEmitter {
             userId: user.id,
             cloudId: user.cloud_id,
             authToken: user.auth_token,
-            developerKey: user.developer_key,
+            developerKey: getUserDeveloperKey(user),
             locale: user.locale,
             timezone: user.timezone,
             storageKey: user.storage_key,
