@@ -59,7 +59,7 @@ async function downloadThingpedia(dbClient, orgId, language, forDevices, tmpDir)
     const examples = await exampleModel.getBaseByLanguage(dbClient, orgId, language);
 
     await util.promisify(fs.writeFile)(path.resolve(tmpDir, 'dataset.tt'),
-        DatasetUtils.examplesToDataset(`org.thingpedia.dynamic.everything`, language, examples));
+        await DatasetUtils.examplesToDataset(`org.thingpedia.dynamic.everything`, language, examples));
 }
 
 async function symlinkModule(tmpDir, moduleName) {

@@ -114,8 +114,8 @@ router.get('/update/:kind', (req, res, next) => {
                 exampleModel.getBaseBySchemaKind(dbClient, d.primary_kind, 'en')
             ]);
 
-            const dataset = DatasetUtils.examplesToDataset(d.primary_kind, 'en', examples,
-                                                           { editMode: true });
+            const dataset = await DatasetUtils.examplesToDataset(d.primary_kind, 'en', examples,
+                                                                 { editMode: true });
 
             res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - Edit Device"),
                                                              id: d.id,

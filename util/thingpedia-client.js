@@ -287,7 +287,8 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
         return Promise.resolve().then(() => _discoveryServer.decode(body));
     }
 
-    _makeDataset(name, rows, options = {}) {
+    _makeDataset(name, rows, dbClient, options = {}) {
+        options.dbClient = dbClient;
         options.needs_compatibility = this._needsCompatibility;
         options.thingtalk_version = this._thingtalkVersion;
         return DatasetUtils.examplesToDataset(`org.thingpedia.dynamic.${name}`, this.language, rows, options);
@@ -299,10 +300,10 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
             switch (accept) {
             case 'application/x-thingtalk;editMode=1':
                 return this._makeDataset(`by_key.${key.replace(/[^a-zA-Z0-9]+/g, '_')}`,
-                    rows, { editMode: true });
+                    rows, dbClient, { editMode: true });
             default:
                 return this._makeDataset(`by_key.${key.replace(/[^a-zA-Z0-9]+/g, '_')}`,
-                    rows);
+                    rows, dbClient);
             }
         });
     }
@@ -317,13 +318,13 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
             switch (accept) {
             case 'application/x-thingtalk;editMode=1':
                 if (kinds.length === 1)
-                    return DatasetUtils.examplesToDataset(kinds[0], this.language, rows, { editMode: true });
+                    return this._makeDataset(kinds[0], rows, { editMode: true });
 
                 return this._makeDataset(`by_kinds.${kinds.map((k) => k.replace(/[^a-zA-Z0-9]+/g, '_')).join('__')}`,
-                    rows, { editMode: true });
+                    rows, dbClient, { editMode: true });
             default:
                 return this._makeDataset(`by_kinds.${kinds.map((k) => k.replace(/[^a-zA-Z0-9]+/g, '_')).join('__')}`,
-                    rows);
+                    rows, dbClient);
             }
         });
     }
@@ -333,9 +334,9 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
             const rows = await exampleModel.getBaseByLanguage(dbClient, await this._getOrgId(dbClient), this.language);
             switch (accept) {
             case 'application/x-thingtalk;editMode=1':
-                return this._makeDataset(`everything`, rows, { editMode: true });
+                return this._makeDataset(`everything`, rows, dbClient, { editMode: true });
             default:
-                return this._makeDataset(`everything`, rows);
+                return this._makeDataset(`everything`, rows, dbClient);
             }
         });
     }

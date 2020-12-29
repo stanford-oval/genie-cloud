@@ -189,8 +189,8 @@ function exampleToCode(example) {
     return clone.prettyprint();
 }
 
-function intentsToInteractionModel(model, rows, req) {
-    const dataset = DatasetUtils.examplesToDataset(model.tag, model.language, rows);
+async function intentsToInteractionModel(model, rows, req) {
+    const dataset = await DatasetUtils.examplesToDataset(model.tag, model.language, rows);
     const parsed = ThingTalk.Syntax.parse(dataset).datasets[0];
 
     const alexaIntents = [];
@@ -296,7 +296,7 @@ router.get('/:language/:tag', user.requireLogIn, user.requireDeveloper(), (req, 
             throw new NotFoundError();
 
         const examples = await alexaModelsModel.getIntents(dbClient, model.id);
-        const [intents, alexaInteractionModel] = intentsToInteractionModel(model, examples, req);
+        const [intents, alexaInteractionModel] = await intentsToInteractionModel(model, examples, req);
 
         res.render('dev_alexa_model', { page_title: req._("Almond Developer Console - Alexa Skills"),
                                         model, intents,

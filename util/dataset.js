@@ -253,14 +253,19 @@ function sortAndChunkExamples(rows) {
 module.exports = {
     exampleToCode,
 
-    examplesToDataset(name, language, rows, options = {}) {
+    async examplesToDataset(name, language, rows, options = {}) {
         const code = `dataset @${name}
 #[language="${language}"] {
 ${rowsToExamples(rows, options)}}`;
 
         // convert code to thingtalk 1 if necessary
         if (options.needs_compatibility) {
+            const AdminThingpediaClient = require('./admin-thingpedia-client');
+            const tpClient = new AdminThingpediaClient(language, options.dbClient || null);
+            const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
+
             const parsed = ThingTalk.Syntax.parse(code);
+            await parsed.typecheck(schemas, false);
             return ThingTalk.Syntax.serialize(parsed, ThingTalk.Syntax.SyntaxType.Normal, undefined, {
                 compatibility: options.thingtalk_version
             });

@@ -154,10 +154,10 @@ router.get('/by-id/:kind', user.requireLogIn, iv.validateGET({ fromVersion: '?in
         const translatedExamples = await exampleModel.getBaseBySchema(dbClient, englishinfo.id, language);
         let dataset;
         if (translatedExamples.length > 0) {
-            dataset = DatasetUtils.examplesToDataset(req.params.kind, language, translatedExamples, { editMode: true });
+            dataset = await DatasetUtils.examplesToDataset(req.params.kind, language, translatedExamples, { editMode: true });
         } else {
             const englishExamples = await exampleModel.getBaseBySchema(dbClient, englishinfo.id, 'en');
-            dataset = DatasetUtils.examplesToDataset(req.params.kind, language, englishExamples, { editMode: true, skipId: true });
+            dataset = await DatasetUtils.examplesToDataset(req.params.kind, language, englishExamples, { editMode: true, skipId: true });
         }
 
         const { actions, queries } = makeTranslationPairs(english, translated);

@@ -126,7 +126,7 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
     const toDelete = new Set;
 
     const old = await exampleModel.getBaseBySchema(dbClient, schemaId, dataset.language);
-    const oldDataset = DatasetUtils.examplesToDataset(dataset.name.substring(1), dataset.language, old, { editMode: true });
+    const oldDataset = await DatasetUtils.examplesToDataset(dataset.name.substring(1), dataset.language, old, { editMode: true });
 
     // if the datasets are byte by byte identical, skip everything and return false
     // this covers the case where the user did not touch the file at all

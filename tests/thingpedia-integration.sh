@@ -90,6 +90,7 @@ else
     # login as bob
     bob_cookie=$(node $srcdir/tests/login.js bob 12345678)
 
+    COOKIE="${bob_cookie}" node $srcdir/tests/test_thingpedia_api_tt1.js
     COOKIE="${bob_cookie}" node $srcdir/tests/test_thingpedia_api_v3.js
 fi
 
