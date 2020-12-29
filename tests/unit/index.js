@@ -39,10 +39,6 @@ seq([
     ('./test_device_factories'),
     ('./test_binary_search'),
     ('./test_input_validation'),
-    ('./test_trie'),
-    ('./test_btrie'),
-    ('./test_edit_distance'),
-    ('./test_exact_matcher'),
     ('./test_example_names'),
     ('./test_alexa_intent_parser'),
     ('./test_k8s_api.js')

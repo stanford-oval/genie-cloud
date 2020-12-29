@@ -26,15 +26,16 @@ const logger = require('morgan');
 const bodyParser = require('body-parser');
 const cacheable = require('cacheable-middleware');
 const Prometheus = require('prom-client');
+const Genie = require('genie-toolkit');
 
 const db = require('../util/db');
 const Metrics = require('../util/metrics');
 const errorHandling = require('../util/error_handling');
 const modelsModel = require('../model/nlp_models');
 const I18n = require('../util/i18n');
+const AbstractFS = require('../util/abstract_fs');
 
 const NLPModel = require('./nlp_model');
-const ExactMatcher = require('./exact');
 const ProxyServer = require('./proxy');
 
 const Config = require('../config');
@@ -87,15 +88,24 @@ class NLPInferenceServer {
         return model;
     }
 
-    async loadAllLanguages() {
-        await db.withTransaction(async (dbClient) => {
-            for (let locale of Config.SUPPORTED_LANGUAGES) {
-                const language = I18n.localeToLanguage(locale);
-                const matcher = new ExactMatcher(language);
-                this._exactMatchers.set(language, matcher);
-                await matcher.load(dbClient);
-            }
+    async loadExactMatcher(matcher, language) {
+        const url = AbstractFS.resolve(Config.NL_EXACT_MATCH_DIR, language + '.btrie');
+        const tmpPath = await AbstractFS.download(url);
 
+        await matcher.load(tmpPath);
+
+        await AbstractFS.removeTemporary(tmpPath);
+    }
+
+    async loadAllLanguages() {
+        for (let locale of Config.SUPPORTED_LANGUAGES) {
+            const language = I18n.localeToLanguage(locale);
+            const matcher = new Genie.ExactMatcher();
+            await this.loadExactMatcher(matcher, language);
+            this._exactMatchers.set(language, matcher);
+        }
+
+        await db.withTransaction(async (dbClient) => {
             const modelspecs = await modelsModel.getAll(dbClient);
             for (let modelspec of modelspecs) {
                 const model = new NLPModel(modelspec, this);

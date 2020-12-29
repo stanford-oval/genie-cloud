@@ -31,8 +31,6 @@ const exampleModel = require('../../model/example');
 const AdminThingpediaClient = require('../../util/admin-thingpedia-client');
 const { makeFlags } = require('../../util/genie_flag_utils');
 const StreamUtils = require('../../util/stream-utils');
-const BTrie = require('../../util/btrie');
-const ExactMatcher = require('../../nlp/exact');
 const AbstractFS = require('../../util/abstract_fs');
 
 const db = require('../../util/db');
@@ -239,15 +237,15 @@ class DatasetUpdater {
     }
 
     async _updateExactMatch() {
-        const matcher = new ExactMatcher;
+        const matcher = new Genie.ExactMatcher;
 
         const rows = await db.withClient((dbClient) => {
             return exampleModel.getExact(dbClient, this._language);
         });
         for (let row of rows)
-            matcher.add(row.preprocessed, row.target_code);
+            matcher.add(row.preprocessed.split(' '), row.target_code.split(' '));
 
-        const builder = new BTrie.Builder((existing, newValue) => {
+        const builder = new Genie.BTrie.BTrieBuilder((existing, newValue) => {
             assert(typeof newValue === 'string');
             if (existing === undefined)
                 return newValue;

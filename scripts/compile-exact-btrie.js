@@ -26,8 +26,6 @@ const assert = require('assert');
 const Genie = require('genie-toolkit');
 
 const StreamUtils = require('../util/stream-utils');
-const BTrie = require('../util/btrie');
-const ExactMatcher = require('../nlp/exact');
 
 function maybeCreateReadStream(filename) {
     if (filename === '-')
@@ -59,7 +57,7 @@ module.exports = {
     },
 
     async main(argv) {
-        const matcher = new ExactMatcher;
+        const matcher = new Genie.ExactMatcher;
 
         const output = readAllLines(argv.input_file)
             .pipe(new Genie.DatasetParser({ contextual: argv.contextual }))
@@ -67,13 +65,13 @@ module.exports = {
                 objectMode: true,
 
                 write(ex, encoding, callback) {
-                    matcher.add(ex.preprocessed, ex.target_code);
+                    matcher.add(ex.preprocessed.split(' '), ex.target_code.split(' '));
                     callback();
                 },
             }));
         await StreamUtils.waitFinish(output);
 
-        const builder = new BTrie.Builder((existing, newValue) => {
+        const builder = new Genie.BTrie.BTrieBuilder((existing, newValue) => {
             assert(typeof newValue === 'string');
             if (existing === undefined)
                 return newValue;

@@ -153,7 +153,7 @@ async function learn(req, res) {
         return;
 
     if (trainable) {
-        model.exact.add(preprocessed, target_code);
+        model.exact.add(preprocessed.split(' '), target_code.split(' '));
         if (req.app.proxy) {
             // call other replicas to reload the new example
             const path = `/admin/reload/exact/@${req.params.model_tag}/${req.params.locale}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`;
