@@ -293,6 +293,11 @@ class ThingTalkTrainer {
             this._entities = parsed.entities;
             return Promise.all(parsed.candidates.map((candidate) => {
                 return ThingTalkUtils.parsePrediction(candidate.code, this._entities, this._schemaRetriever, true).then((program) => {
+                    if (program instanceof ThingTalk.Ast.DialogueState) {
+                        if (program.dialogueAct !== 'execute')
+                            throw new Error(`Not an executable command`);
+                        program = new ThingTalk.Ast.Program(null, [], [], [program.history[0].stmt]);
+                    }
                     candidate.program = program;
                     candidate.canonical = reconstructCanonical(program);
                     return candidate;

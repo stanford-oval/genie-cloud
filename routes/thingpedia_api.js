@@ -103,7 +103,7 @@ v3.get('/schema/:schemas', (req, res, next) => {
     //   producing ThingTalk output instead
     // - the other is to recognize browsers, so we show the ThingTalk code inline instead
     //   of downloading, which is quite convenient
-    const accept = accepts(req).types(['application/x-thingtalk', 'text/plain']);
+    const accept = accepts(req).types(['application/x-thingtalk', 'text/html']);
     if (!accept) {
         res.status(405).json({ error: 'must accept application/x-thingtalk' });
         return;
@@ -120,7 +120,7 @@ v3.get('/schema/:schemas', (req, res, next) => {
         if (!req.query.developer_key)
             res.cacheFor(86400000);
         if (typeof obj === 'string')
-            res.set('Content-Type', accept).send(obj);
+            res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept).send(obj);
         else
             res.json({ result: 'ok', data: obj });
     }).catch(next);
@@ -149,9 +149,9 @@ v3.get('/schema/:schemas', (req, res, next) => {
  * @apiSuccess {Object} data The manifest, as a JSON object
  */
 v3.get('/devices/code/:kind', (req, res, next) => {
-    const accept = accepts(req).types(['application/x-thingtalk', 'text/plain']);
+    const accept = accepts(req).types(['application/x-thingtalk', 'text/html']);
     if (!accept) {
-        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        res.status(405).json({ error: 'must accept application/x-thingtalk' });
         return;
     }
 
@@ -165,7 +165,7 @@ v3.get('/devices/code/:kind', (req, res, next) => {
                 res.set('ETag', `W/"version=${version}"`);
 
             res.cacheFor(86400000);
-            res.set('Content-Type', accept);
+            res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept);
             res.send(code);
         } else {
             const version = code.version;
@@ -666,7 +666,7 @@ v3.post('/devices/discovery', (req, res, next) => {
 v3.get('/examples/by-kinds/:kinds', (req, res, next) => {
     var kinds = req.params.kinds.split(',');
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/x-thingtalk;editMode=1', 'text/plain']);
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/x-thingtalk;editMode=1', 'text/html']);
     if (!accept) {
         res.status(405).json({ error: 'must accept application/x-thingtalk' });
         return;
@@ -676,7 +676,7 @@ v3.get('/examples/by-kinds/:kinds', (req, res, next) => {
         res.set('Vary', 'Accept');
         res.cacheFor(300000);
         res.status(200);
-        res.set('Content-Type', accept);
+        res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept);
         if (typeof result === 'string')
             res.send(result);
         else
@@ -732,7 +732,7 @@ v3.get('/examples/by-kinds/:kinds', (req, res, next) => {
  */
 v3.get('/examples/all', (req, res, next) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/x-thingtalk;editMode=1', 'text/plain']);
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/x-thingtalk;editMode=1', 'text/html']);
     if (!accept) {
         res.status(405).json({ error: 'must accept application/x-thingtalk' });
         return;
@@ -742,7 +742,7 @@ v3.get('/examples/all', (req, res, next) => {
         res.set('Vary', 'Accept');
         res.cacheFor(300000);
         res.status(200);
-        res.set('Content-Type', accept);
+        res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept);
         if (typeof result === 'string')
             res.send(result);
         else
@@ -802,7 +802,7 @@ v3.get('/examples/search', (req, res, next) => {
         res.status(400).json({ error: "missing query" });
         return;
     }
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/x-thingtalk;editMode=1', 'text/plain']);
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/x-thingtalk;editMode=1', 'text/html']);
     if (!accept) {
         res.status(405).json({ error: 'must accept application/x-thingtalk' });
         return;
@@ -812,7 +812,7 @@ v3.get('/examples/search', (req, res, next) => {
     client.getExamplesByKey(req.query.q, accept).then((result) => {
         res.cacheFor(300000);
         res.status(200);
-        res.set('Content-Type', accept);
+        res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept);
         if (typeof result === 'string')
             res.send(result);
         else
@@ -1314,7 +1314,7 @@ function getSnapshot(req, res, next, accept) {
             res.cacheFor(3600000);
         }
 
-        res.set('Content-Type', accept);
+        res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept);
         res.send(ThingTalk.Syntax.serialize(SchemaUtils.schemaListToClassDefs(rows, getMeta), ThingTalk.Syntax.SyntaxType.Normal, undefined, {
             compatibility: req.query.thingtalk_version
         }));
@@ -1322,7 +1322,7 @@ function getSnapshot(req, res, next, accept) {
 }
 
 v3.get('/snapshot/:id', (req, res, next) => {
-    const accept = accepts(req).types(['application/x-thingtalk', 'text/plain']);
+    const accept = accepts(req).types(['application/x-thingtalk', 'text/html']);
     if (!accept) {
         res.status(405).json({ error: 'must accept application/x-thingtalk' });
         return;
