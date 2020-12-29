@@ -62,7 +62,7 @@ jobs:
       install:
       - ./travis/install-webalmond-deps.sh
       - travis_retry npm install
-      - pyenv global 3.6.7
+      - pyenv global 3.7.1
       - ./tests/install-nlp-deps.sh
       - export GENIENLP_EMBEDDINGS=`pwd`/tests/embeddings
       - export PATH="`pwd`/geckodriver:$PATH"
@@ -73,7 +73,7 @@ jobs:
       install:
       - ./travis/install-webalmond-deps.sh
       - travis_retry npm install
-      - pyenv global 3.6.7
+      - pyenv global 3.7.1
       - ./tests/install-nlp-deps.sh
       - export GENIENLP_EMBEDDINGS=`pwd`/tests/embeddings
       - export PATH="`pwd`/geckodriver:$PATH"
