@@ -131,7 +131,7 @@
   },
   "optionalDependencies": {
     "@kubernetes/client-node": "^0.13.0",
-    "aws-sdk": "^2.800.0",
+    "aws-sdk": "^2.820.0",
     "selenium-webdriver": "^4.0.0-alpha.3"
   },
   "nyc": {
