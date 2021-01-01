@@ -46,7 +46,7 @@
     "discourse-sso": "^1.0.3",
     "escape-html": "^1.0.3",
     "express": "^4.15.2",
-    "express-mysql-session": "^2.0.0",
+    "express-mysql-session": "^2.1.5",
     "express-session": "^1.14.0",
     "express-ws": "^4.0.0",
     "express-xml-bodyparser": "^0.3.0",
