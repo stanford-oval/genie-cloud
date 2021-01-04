@@ -132,7 +132,7 @@ async function testBasic() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 0,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
+            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 100,"val_batch_size": 100,"model": "TransformerSeq2Seq","pretrained_model": "sshleifer/bart-tiny-random","warmup": 40,"lr_multiply": 0.01}',
             metrics: null,
             for_devices: []
         }, {
@@ -151,7 +151,7 @@ async function testBasic() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 0,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
+            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 100,"val_batch_size": 100,"model": "TransformerSeq2Seq","pretrained_model": "sshleifer/bart-tiny-random","warmup": 40,"lr_multiply": 0.01}',
             metrics: null,
             for_devices: []
         }
@@ -213,7 +213,7 @@ async function testForDevice() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 0,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
+            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 100,"val_batch_size": 100,"model": "TransformerSeq2Seq","pretrained_model": "sshleifer/bart-tiny-random","warmup": 40,"lr_multiply": 0.01}',
             metrics: null,
             for_devices: ['org.thingpedia.builtin.test.adminonly']
         }
@@ -264,7 +264,7 @@ async function testForDevice() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 4000,"val_batch_size": 128,"seq2seq_encoder": "Identity","dimension": 768,"rnn_dimension": 768,"transformer_hidden": 768,"transformer_layers": 0,"rnn_layers": 2,"rnn_zero_state": "average","context_embeddings": "bert-base-uncased","question_embeddings": "bert-base-uncased","decoder_embeddings": "","trainable_encoder_embeddings": 0,"trainable_decoder_embeddings": 25,"transformer_lr_multiply": 0.5}',
+            config: '{"synthetic_depth": 3,"dataset_target_pruning_size": 1000,"dataset_contextual_target_pruning_size": 1000,"dataset_quoted_probability": 0.1,"dataset_eval_probability": 0.5,"dataset_split_strategy": "sentence","train_iterations": 12,"save_every": 6,"val_every": 3,"log_every": 3,"train_batch_tokens": 100,"val_batch_size": 100,"model": "TransformerSeq2Seq","pretrained_model": "sshleifer/bart-tiny-random","warmup": 40,"lr_multiply": 0.01}',
             metrics: null,
         }
     ]);
@@ -306,8 +306,8 @@ async function testDownload() {
 
     entries.sort();
     assert.deepStrictEqual(entries, [
-        'added_tokens.json', 'best.pth', 'config.json', 'decoder-vocab.txt',
-        'special_tokens_map.json', 'tokenizer_config.json', 'vocab.txt'
+        'added_tokens.json', 'best.pth', 'config.json', 'merges.txt',
+        'special_tokens_map.json', 'tokenizer_config.json', 'vocab.json'
     ]);
 }
 

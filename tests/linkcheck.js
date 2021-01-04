@@ -69,7 +69,7 @@ class LinkChecker {
 
     async run() {
         const httpOptions = {
-            accept: 'text/html',
+            accept: 'text/html;q=1.0, text/plain;q=1.0, */*;q=0.1',
             'user-agent': 'Almond-Cloud-LinkCheck/1.0.0',
             followRedirects: false
         };

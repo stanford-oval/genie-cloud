@@ -25,6 +25,7 @@ const db = require('../util/db');
 const i18n = require('../util/i18n');
 const Config = require('../config');
 const modelsModel = require('../model/nlp_models');
+const exampleModel = require('../model/example');
 
 const router = express.Router();
 
@@ -51,10 +52,15 @@ router.post('/reload/exact/@:model_tag/:locale', (req, res, next) => {
         return;
     }
 
-    db.withClient((dbClient) => {
-        if (req.body.example_id)
-            return matcher.addExample(dbClient, req.body.example_id);
-        return matcher.load(dbClient);
+    const language = i18n.localeToLanguage(req.params.locale);
+    db.withClient(async (dbClient) => {
+        if (req.body.example_id) {
+            const row = await exampleModel.getExactById(dbClient, req.body.example_id);
+            matcher.add(row.preprocessed.split(' '), row.target_code.split(' '));
+            console.log(`Added ${req.body.example_id} for language ${language}`);
+        } else {
+            await req.app.service.loadExactMatcher(matcher, language);
+        }
     }).then(() => {
         res.json({ result: 'ok' });
     }).catch(next);

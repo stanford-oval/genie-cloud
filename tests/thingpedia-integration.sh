@@ -87,11 +87,10 @@ else
     # sleep until the process is settled
     sleep 30
 
-    node $srcdir/tests/test_thingpedia_api_v1_v2.js
-
     # login as bob
     bob_cookie=$(node $srcdir/tests/login.js bob 12345678)
 
+    COOKIE="${bob_cookie}" node $srcdir/tests/test_thingpedia_api_tt1.js
     COOKIE="${bob_cookie}" node $srcdir/tests/test_thingpedia_api_v3.js
 fi
 
@@ -165,10 +164,10 @@ node ${srcdir}/main.js run-training-task -t prepare-training-set --job-id 2 --jo
 
 sha256sum exact.tsv ./exact/en.btrie ./training/jobs/2/dataset/eval.tsv ./training/jobs/2/dataset/train.tsv
 sha256sum -c <<EOF
-6b7f74b549b610ccd6c505fcf1a84e1495a5e624cf5131cb0b13bb7d7ed285ae  exact.tsv
-f7877b57db68246c6b89a0e90541b126da00b466dc94fe27f04220445c445771  ./exact/en.btrie
+bcf4b06375a8f216d2e05497d477f1067bb2cf5207d9de50658e97fb2c0266ae  exact.tsv
+133ad1ecbb22cb85de4c6975cee9adc9943c7a5967ce89186cfde02aea133727  ./exact/en.btrie
 3ac80766f6627704c85572340a9cf034a9b0cdb9fe5ccce8e91f6af0829e5eb9  ./training/jobs/2/dataset/eval.tsv
-639e690b643d1cd91ed2a1d14fed66d75fafb0d86fdc22281ee2fb8add09296e  ./training/jobs/2/dataset/train.tsv
+298c044fe008f774e9a639631eb4cfb30ddf90fa95f999495c0a0e89089c14e8  ./training/jobs/2/dataset/train.tsv
 EOF
 
 rm -rf $workdir

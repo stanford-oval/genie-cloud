@@ -24,6 +24,7 @@ const SchemaRetriever = ThingTalk.SchemaRetriever;
 
 const ParserClient = require('./parserclient');
 const ThingpediaClient = require('./thingpediaclient');
+const ThingTalkUtils = require('./thingtalkutils');
 const reconstructCanonical = require('./reconstruct_canonical');
 
 module.exports = class ThingTalkTrainer {
@@ -91,22 +92,17 @@ module.exports = class ThingTalkTrainer {
         event.preventDefault();
 
         const a = $(event.currentTarget);
-        let code = a.attr('data-target');
-        code = code.split(' ');
+        const code = a.attr('data-target');
 
-        this._toThingTalk(code).then((tt) => {
-            $('#thingtalk-group').removeClass('has-error');
-            $('#thingtalk-error').text('');
-            $('#input-command-thingtalk').val(tt);
-            $('#results-container').addClass('hidden');
-            $('#results-fail').addClass('hidden');
-            $('#input-command-confirmation').val(a.attr('utterance'));
-            $('#thingtalk-group').show();
-            this._predicted = true;
-            this._confirmed = true;
-        }).catch((e) => {
-            alert(e.message+'\n'+e.stack);
-        });
+        $('#thingtalk-group').removeClass('has-error');
+        $('#thingtalk-error').text('');
+        $('#input-command-thingtalk').val(code);
+        $('#results-container').addClass('hidden');
+        $('#results-fail').addClass('hidden');
+        $('#input-command-confirmation').val(a.attr('utterance'));
+        $('#thingtalk-group').show();
+        this._predicted = true;
+        this._confirmed = true;
     }
 
     // hide predictions and let user type thingtalk code
@@ -133,13 +129,15 @@ module.exports = class ThingTalkTrainer {
                     prediction = candidate;
                 if (candidate.canonical === previous)
                     continue;
+
+                const code = candidate.program.prettyprint().replace(/\n/g, ' ');
                 previous = candidate.canonical;
                 let link = $('<a href="#">')
                     .text(candidate.canonical)
                     .addClass('result')
                     .attr('utterance', candidate.canonical)
-                    .attr('title', candidate.code.join(' '))
-                    .attr('data-target', candidate.code.join(' '))
+                    .attr('title', code)
+                    .attr('data-target', code)
                     .click(this._accept.bind(this));
                 results.append($('<li>').append(link));
             }
@@ -158,15 +156,9 @@ module.exports = class ThingTalkTrainer {
         });
     }
 
-    _updateConfirmation() {
-        return reconstructCanonical(this._schemaRetriever, this._code, this._entities).then((canonical) => {
-            $('#input-command-confirmation').val(canonical);
-        }).catch((e) => {
-            console.log('Failed to reconstruct canonical for ' + this._code);
-            console.log(e);
-            return null;
-        });
-
+    _updateConfirmation(program) {
+        const canonical = reconstructCanonical(program);
+        $('#input-command-confirmation').val(canonical);
     }
 
     _formatError(e) {
@@ -206,10 +198,10 @@ module.exports = class ThingTalkTrainer {
 
         let thingtalk = $('#input-command-thingtalk').val();
         if (thingtalk.length > 0) {
-            this._parseAndTypeCheck(thingtalk).then(() => {
+            this._parseAndTypeCheck(thingtalk).then((program) => {
                 $('#thingtalk-group').removeClass('has-error');
                 $('#thingtalk-error').text('');
-                this._updateConfirmation();
+                this._updateConfirmation(program);
             }).catch((e) => {
                 $('#thingtalk-group').addClass('has-error');
                 $('#thingtalk-error').text(this._formatError(e));
@@ -231,10 +223,10 @@ module.exports = class ThingTalkTrainer {
             if (thingtalk.length > 0) {
                 Promise.resolve().then(() => {
                     return this._learnThingTalk(thingtalk);
-                }).then(() => {
+                }).then((program) => {
                     $('#thingtalk-group').removeClass('has-error');
                     $('#thingtalk-error').text('');
-                    this._updateConfirmation();
+                    this._updateConfirmation(program);
                     window.location.href = '/';
                 }).catch((e) => {
                     $('#thingtalk-group').addClass('has-error');
@@ -247,25 +239,11 @@ module.exports = class ThingTalkTrainer {
         }
     }
 
-    _toProgram(code) {
-        let program = ThingTalk.NNSyntax.fromNN(code, this._entities);
-        return program.typecheck(this._schemaRetriever, true);
-    }
-
-    _toThingTalk(code) {
-        return this._toProgram(code).then((program) => program.prettyprint(true));
-    }
-
-    _toNN(program) {
-        let clone = {};
-        Object.assign(clone, this._entities);
-        return ThingTalk.NNSyntax.toNN(program, this._tokens, clone);
-    }
-
     _parseAndTypeCheck(text) {
         return Promise.resolve().then(() => {
-            return ThingTalk.Grammar.parseAndTypecheck(text, this._schemaRetriever).then((program) => {
-                this._code = this._toNN(program);
+            return ThingTalkUtils.parse(text, this._schemaRetriever).then((program) => {
+                this._code = ThingTalkUtils.serializePrediction(program, this._tokens, this._entities);
+                return program;
             });
         });
     }
@@ -273,9 +251,9 @@ module.exports = class ThingTalkTrainer {
     _learnThingTalk(text) {
         const raw = this._raw;
         const user = this._user;
-        return ThingTalk.Grammar.parseAndTypecheck(text, this._schemaRetriever).then((program) => {
-            this._code = this._toNN(program);
-            return this.parser.onlineLearn(raw, this._code, 'commandpedia', user);
+        return ThingTalkUtils.parse(text, this._schemaRetriever).then((program) => {
+            this._code = ThingTalkUtils.serializePrediction(program, this._tokens, this._entities);
+            return this.parser.onlineLearn(raw, this._code, 'commandpedia', user).then(() => program);
         });
     }
 
@@ -285,8 +263,14 @@ module.exports = class ThingTalkTrainer {
             this._tokens = parsed.tokens;
             this._entities = parsed.entities;
             return Promise.all(parsed.candidates.map((candidate) => {
-                return reconstructCanonical(this._schemaRetriever, candidate.code, this._entities).then((canonical) => {
-                    candidate.canonical = canonical;
+                return ThingTalkUtils.parsePrediction(candidate.code, this._entities, this._schemaRetriever, true).then((program) => {
+                    if (program instanceof ThingTalk.Ast.DialogueState) {
+                        if (program.dialogueAct !== 'execute')
+                            throw new Error(`Not an executable command`);
+                        program = new ThingTalk.Ast.Program(null, [], [], [program.history[0].stmt]);
+                    }
+                    candidate.program = program;
+                    candidate.canonical = reconstructCanonical(program);
                     return candidate;
                 }).catch((e) => {
                     console.log('Failed to reconstruct canonical for ' + candidate.code + ': ' + e.message);

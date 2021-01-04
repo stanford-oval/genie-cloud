@@ -126,7 +126,7 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
     const toDelete = new Set;
 
     const old = await exampleModel.getBaseBySchema(dbClient, schemaId, dataset.language);
-    const oldDataset = DatasetUtils.examplesToDataset(dataset.name.substring(1), dataset.language, old, { editMode: true });
+    const oldDataset = await DatasetUtils.examplesToDataset(dataset.name.substring(1), dataset.language, old, { editMode: true });
 
     // if the datasets are byte by byte identical, skip everything and return false
     // this covers the case where the user did not touch the file at all
@@ -148,7 +148,7 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
             if (existingMap.has(example.id)) {
                 const existing = existingMap.get(example.id);
                 if (existing.target_code === code && existing.language === dataset.language &&
-                    existing.name === example.annotations.name) {
+                    existing.name === example.annotations.name.toJS()) {
                     toDelete.delete(example.id);
                     if (existing.utterance !== example.utterances[0]) {
                         toUpdate.push({ id: example.id,
@@ -167,7 +167,7 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
                 utterance: example.utterances[0],
                 preprocessed: example.preprocessed[0],
                 target_code: code,
-                name: example.annotations.name,
+                name: example.annotations.name.toJS(),
             });
         }
 
@@ -423,17 +423,6 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
     return device;
 }
 
-function migrateManifest(code, device) {
-    const isJSON = typeof code === 'object' || /^\s*\{/.test(code);
-    if (!isJSON) // already migrated
-        return code;
-
-    let ast = typeof code === 'string' ? JSON.parse(code) : code;
-
-    ast.system = device.category === 'system';
-    return ThingTalk.Ast.fromManifest(device.primary_kind, ast).prettyprint();
-}
-
 function tryUpdateDevice(primaryKind, userId) {
     // do the update asynchronously - if the update fails, the user will
     // have another chance from the status page
@@ -592,6 +581,4 @@ module.exports = {
 
     importDevice,
     uploadDevice,
-
-    migrateManifest,
 };

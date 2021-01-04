@@ -22,6 +22,7 @@
 const express = require('express');
 const ThingTalk = require('thingtalk');
 const Tp = require('thingpedia');
+const Genie = require('genie-toolkit');
 
 const router = express.Router();
 
@@ -83,12 +84,13 @@ async function learn(req, res) {
 
     let sequence = req.body.target.split(' ');
     try {
-        const parsed = ThingTalk.NNSyntax.fromNN(sequence, tokenized.entities);
+        const parsed = ThingTalk.Syntax.parse(sequence, ThingTalk.Syntax.SyntaxType.Tokenized, tokenized.entities);
         await parsed.typecheck(new ThingTalk.SchemaRetriever(model.tpClient, null, true));
 
-        // convert back to NN to normalize the program and also check that entities and spans
-        // are present
-        sequence = ThingTalk.NNSyntax.toNN(parsed, tokenized.tokens, tokenized.entities);
+        // serialize again to normalize the program and also check that entities and spans are present
+        sequence = Genie.ThingTalkUtils.serializePrediction(parsed, tokenized.tokens, tokenized.entities, {
+            locale: req.params.locale
+        });
     } catch(e) {
         res.status(400).json({ error: 'Invalid ThingTalk', detail: e.message });
         return;
@@ -151,7 +153,7 @@ async function learn(req, res) {
         return;
 
     if (trainable) {
-        model.exact.add(preprocessed, target_code);
+        model.exact.add(preprocessed.split(' '), target_code.split(' '));
         if (req.app.proxy) {
             // call other replicas to reload the new example
             const path = `/admin/reload/exact/@${req.params.model_tag}/${req.params.locale}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`;

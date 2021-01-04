@@ -154,10 +154,10 @@ router.get('/by-id/:kind', user.requireLogIn, iv.validateGET({ fromVersion: '?in
         const translatedExamples = await exampleModel.getBaseBySchema(dbClient, englishinfo.id, language);
         let dataset;
         if (translatedExamples.length > 0) {
-            dataset = DatasetUtils.examplesToDataset(req.params.kind, language, translatedExamples, { editMode: true });
+            dataset = await DatasetUtils.examplesToDataset(req.params.kind, language, translatedExamples, { editMode: true });
         } else {
             const englishExamples = await exampleModel.getBaseBySchema(dbClient, englishinfo.id, 'en');
-            dataset = DatasetUtils.examplesToDataset(req.params.kind, language, englishExamples, { editMode: true, skipId: true });
+            dataset = await DatasetUtils.examplesToDataset(req.params.kind, language, englishExamples, { editMode: true, skipId: true });
         }
 
         const { actions, queries } = makeTranslationPairs(english, translated);
@@ -179,7 +179,7 @@ async function validateDataset(req, dbClient) {
     const tpClient = new ThingpediaClient(req.user.developer_key, req.user.locale, dbClient);
     const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
-    const parsed = await ThingTalk.Grammar.parseAndTypecheck(req.body.dataset, schemaRetriever, false);
+    const parsed = await ThingTalk.Syntax.parse(req.body.dataset).typecheck(schemaRetriever, false);
 
     if (parsed.datasets.length !== 1 ||
         parsed.datasets[0].name !== '@' + req.params.kind ||

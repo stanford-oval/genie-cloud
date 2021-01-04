@@ -2,7 +2,7 @@
 //
 // This file is part of Almond
 //
-// Copyright 2018-2019 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,24 +20,23 @@
 "use strict";
 
 const ThingTalk = require('thingtalk');
-const Describe = ThingTalk.Describe;
 
-const fakeGettext = {
-    dgettext(domain, sentence) {
-        return sentence;
-    },
-
-    dngettext(domain, sentence, plural, num) {
-        if (num === 1)
-            return sentence;
-        else
-            return plural;
+function parseOldOrNewSyntax(code) {
+    try {
+        return ThingTalk.Syntax.parse(code);
+    } catch(e1) {
+        if (e1.name !== 'SyntaxError')
+            throw e1;
+        try {
+            return ThingTalk.Syntax.parse(code, ThingTalk.Syntax.SyntaxType.Legacy);
+        } catch(e2) {
+            if (e2.name !== 'SyntaxError')
+                throw e2;
+            throw e1;
+        }
     }
-};
-
-function reconstructCanonical(program) {
-    const describer = new Describe.Describer(fakeGettext, 'en-US', 'America/Los_Angeles');
-    return describer.describe(program);
 }
 
-module.exports = reconstructCanonical;
+module.exports = {
+    parseOldOrNewSyntax
+};

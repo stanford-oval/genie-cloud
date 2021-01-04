@@ -20,6 +20,7 @@
 "use strict";
 
 const assert = require('assert');
+const semver = require('semver');
 
 const Tp = require('thingpedia');
 const TpDiscovery = require('thingpedia-discovery');
@@ -42,6 +43,7 @@ const I18n = require('./i18n');
 const codeStorage = require('./code_storage');
 const { NotFoundError, ForbiddenError, BadRequestError } = require('./errors');
 const resolveLocation = require('./location-linking');
+const { parseOldOrNewSyntax } = require('./compat');
 
 class ThingpediaDiscoveryDatabase {
     getByDiscoveryService(discoveryType, service) {
@@ -75,7 +77,7 @@ var _discoveryServer = new TpDiscovery.Server(new ThingpediaDiscoveryDatabase())
 const CATEGORIES = new Set(['media', 'social-network', 'home', 'communication', 'health', 'service', 'data-management']);
 
 module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
-    constructor(developerKey, locale, dbClient = null) {
+    constructor(developerKey, locale, thingtalk_version, dbClient = null) {
         super();
 
         this._developerKey = developerKey;
@@ -83,6 +85,8 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
         this.language = I18n.localeToLanguage(locale);
 
         this._dbClient = null;
+        this._thingtalkVersion = thingtalk_version || ThingTalk.version;
+        this._needsCompatibility = semver.satisfies(this._thingtalkVersion, '<2.0.0');
     }
 
     get developerKey() {
@@ -132,7 +136,7 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
         return codeStorage.getDownloadLocation(kind, version, developer);
     }
 
-    getDeviceCode(kind, accept) {
+    getDeviceCode(kind) {
         return this._withClient(async (dbClient) => {
             const orgId = await this._getOrgId(dbClient);
             const devs = await device.getFullCodeByPrimaryKind(dbClient, kind, orgId);
@@ -140,25 +144,14 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
                 throw new NotFoundError();
 
             const dev = devs[0];
-            const isJSON = /^\s*\{/.test(dev.code);
-
-            let manifest;
-            if (isJSON) {
-                manifest = JSON.parse(dev.code);
-                manifest.version = dev.version;
-            }
-
-            let code;
-            if (isJSON)
-                code = ThingTalk.Ast.fromManifest(kind, manifest).prettyprint();
-            else
-                code = dev.code;
+            const code = dev.code;
 
             // fast path without parsing the code
-            if (this.language === 'en' && accept === 'application/x-thingtalk')
+            if (this.language === 'en' && !this._needsCompatibility &&
+                !/(makeArgMap|\$context)/.test(code) /* quick check for old-syntax constructs */)
                 return code;
 
-            const parsed = ThingTalk.Grammar.parse(code);
+            const parsed = parseOldOrNewSyntax(code);
             const classDef = parsed.classes[0];
 
             if (this.language !== 'en') {
@@ -166,23 +159,13 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
                 SchemaUtils.mergeClassDefAndSchema(classDef, schema[0]);
             }
 
-            switch (accept) {
-            case 'application/json':
-                if (!isJSON)
-                    manifest = ThingTalk.Ast.toManifest(parsed);
-                if (dev.version !== dev.approved_version)
-                    manifest.developer = true;
-                else
-                    manifest.developer = false;
-                return manifest;
-            case 'application/x-thingtalk':
-            default:
-                return parsed.prettyprint();
-            }
+            return ThingTalk.Syntax.serialize(parsed, ThingTalk.Syntax.SyntaxType.Normal, undefined, {
+                compatibility: this._thingtalkVersion
+            });
         });
     }
 
-    getSchemas(schemas, withMetadata, accept = 'application/x-thingtalk') {
+    getSchemas(schemas, withMetadata) {
         if (schemas.length === 0)
             return Promise.resolve({});
 
@@ -193,26 +176,10 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
             else
                 rows = await schemaModel.getTypesAndNamesByKinds(dbClient, schemas, await this._getOrgId(dbClient));
 
-            switch (accept) {
-            case 'application/json': {
-                const obj = {};
-                rows.forEach((row) => {
-                    obj[row.kind] = {
-                        kind_type: row.kind_type,
-                        triggers: row.triggers,
-                        actions: row.actions,
-                        queries: row.queries
-                    };
-                });
-                return obj;
-            }
-
-            case 'application/x-thingtalk':
-            default: {
-                const classDefs = SchemaUtils.schemaListToClassDefs(rows, withMetadata);
-                return classDefs.prettyprint();
-            }
-            }
+            const classDefs = SchemaUtils.schemaListToClassDefs(rows, withMetadata);
+            return ThingTalk.Syntax.serialize(classDefs, ThingTalk.Syntax.SyntaxType.Normal, undefined, {
+                compatibility: this._thingtalkVersion
+            });
         });
     }
 
@@ -316,41 +283,14 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
         });
     }
 
-    // FIXME: remove this when almond-dialog-agent is fixed to use getDeviceSetup
-    getDeviceSetup2(kinds) {
-        return this.getDeviceSetup(kinds);
-    }
-
     getKindByDiscovery(body) {
         return Promise.resolve().then(() => _discoveryServer.decode(body));
     }
 
-    _datasetBackwardCompat(rows, applyCompat = false) {
-        for (let row of rows) {
-            if (/^[ \r\n\t\v]*(stream|query|action)[ \r\n\t\v]*(:=|\()/.test(row.target_code)) {
-                // backward compatibility: convert to a declaration
-                const dummydataset = `dataset @foo { ${row.target_code} }`;
-                const parsed = ThingTalk.Grammar.parse(dummydataset);
-                const example = parsed.datasets[0].examples[0];
-                const declaration = new ThingTalk.Ast.Program(null, [],
-                    [new ThingTalk.Ast.Statement.Declaration(null, 'x',
-                        example.type, example.args, example.value)],
-                    [], null);
-                row.target_code = declaration.prettyprint(true);
-            } else {
-                row.target_code = row.target_code.replace(/^[ \r\n\t\v]*program[ \r\n\t\v]*:=/, '').replace(/\};\s*$/, '}');
-            }
-            if (applyCompat) {
-                row.target_code = row.target_code.replace(/^[ \r\n\t\v]*let[ \r\n\t\v]+query[ \r\n\t\v]/, 'let table ');
-
-                row.target_code = row.target_code.replace(/^[ \r\n\t\v]*let[ \r\n\t\v]+(table|action|stream)[ \r\n\t\v]+x[ \r\n\t\v]*(\(.+\))[ \r\n\t\v]+:=[ \r\n\t\v]+/,
-                    'let $1 x := \\$2 -> ');
-            }
-            delete row.name;
-        }
-        return rows;
-    }
-    _makeDataset(name, rows, options = {}) {
+    _makeDataset(name, rows, dbClient, options = {}) {
+        options.dbClient = dbClient;
+        options.needs_compatibility = this._needsCompatibility;
+        options.thingtalk_version = this._thingtalkVersion;
         return DatasetUtils.examplesToDataset(`org.thingpedia.dynamic.${name}`, this.language, rows, options);
     }
 
@@ -358,13 +298,12 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
         return this._withClient(async (dbClient) => {
             const rows = await exampleModel.getByKey(dbClient, key, await this._getOrgId(dbClient), this.language);
             switch (accept) {
-            case 'application/json;apiVersion=1':
-                return this._datasetBackwardCompat(rows, true);
-            case 'application/json':
-                return this._datasetBackwardCompat(rows, false);
+            case 'application/x-thingtalk;editMode=1':
+                return this._makeDataset(`by_key.${key.replace(/[^a-zA-Z0-9]+/g, '_')}`,
+                    rows, dbClient, { editMode: true });
             default:
                 return this._makeDataset(`by_key.${key.replace(/[^a-zA-Z0-9]+/g, '_')}`,
-                    rows);
+                    rows, dbClient);
             }
         });
     }
@@ -377,19 +316,27 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
         return this._withClient(async (dbClient) => {
             const rows = await exampleModel.getByKinds(dbClient, kinds, await this._getOrgId(dbClient), this.language);
             switch (accept) {
-            case 'application/json;apiVersion=1':
-                return this._datasetBackwardCompat(rows, true);
-            case 'application/json':
-                return this._datasetBackwardCompat(rows, false);
             case 'application/x-thingtalk;editMode=1':
                 if (kinds.length === 1)
-                    return DatasetUtils.examplesToDataset(kinds[0], this.language, rows, { editMode: true });
+                    return this._makeDataset(kinds[0], rows, { editMode: true });
 
                 return this._makeDataset(`by_kinds.${kinds.map((k) => k.replace(/[^a-zA-Z0-9]+/g, '_')).join('__')}`,
-                    rows, { editMode: true });
+                    rows, dbClient, { editMode: true });
             default:
                 return this._makeDataset(`by_kinds.${kinds.map((k) => k.replace(/[^a-zA-Z0-9]+/g, '_')).join('__')}`,
-                    rows);
+                    rows, dbClient);
+            }
+        });
+    }
+
+    getAllExamples(accept = 'application/x-thingtalk') {
+        return this._withClient(async (dbClient) => {
+            const rows = await exampleModel.getBaseByLanguage(dbClient, await this._getOrgId(dbClient), this.language);
+            switch (accept) {
+            case 'application/x-thingtalk;editMode=1':
+                return this._makeDataset(`everything`, rows, dbClient, { editMode: true });
+            default:
+                return this._makeDataset(`everything`, rows, dbClient);
             }
         });
     }
@@ -413,18 +360,6 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
 
     lookupLocation(searchTerm, around) {
         return resolveLocation(this.locale, searchTerm, around);
-    }
-
-    getAllExamples(accept = 'application/x-thingtalk') {
-        return this._withClient(async (dbClient) => {
-            const rows = await exampleModel.getBaseByLanguage(dbClient, await this._getOrgId(dbClient), this.language);
-            switch (accept) {
-            case 'application/json':
-                return this._datasetBackwardCompat(rows, false);
-            default:
-                return this._makeDataset(`everything`, rows);
-            }
-        });
     }
 
     getAllDeviceNames() {
@@ -484,7 +419,6 @@ module.exports.prototype.$rpcMethods = [
     'getSchemas',
     'getMixins',
     'getDeviceSetup',
-    'getDeviceSetup2',
     'getDeviceFactories',
     'getDeviceList',
     'getDeviceSearch',

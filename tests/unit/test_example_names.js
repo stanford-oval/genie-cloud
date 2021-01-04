@@ -57,7 +57,7 @@ const TEST_CASES = [
     [`action (p_power : Enum(on,off)) := @light-bulb.set_power(power=p_power);`, 'SetPowerWithPower'],
     [`action () := @light-bulb.set_power(power=enum(on));`, 'SetPowerWithPowerOn'],
 
-    [`program := now => @com.twitter.search() => @com.twitter.retweet(tweet_id=tweet_id);`, 'SearchThenRetweetWithTweetId'],
+    [`program := now => @com.twitter.search() => @com.twitter.retweet(tweet_id=tweet_id);`, 'SearchAndRetweetWithTweetId'],
 ];
 
 async function testCase(i) {
@@ -66,7 +66,7 @@ async function testCase(i) {
     const [code, expected] = TEST_CASES[i];
 
     const dataset = `dataset @org.thingpedia language "en" { ${code} }`;
-    const parsed = await ThingTalk.Grammar.parseAndTypecheck(dataset, _schemaRetriever, true);
+    const parsed = await ThingTalk.Syntax.parse(dataset, ThingTalk.Syntax.SyntaxType.Legacy).typecheck(_schemaRetriever, true);
     const example = parsed.datasets[0].examples[0];
 
     let generated;

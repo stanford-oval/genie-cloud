@@ -28,14 +28,13 @@ const Url = require('url');
 const child_process = require('child_process');
 const Tp = require('thingpedia');
 const seedrandom = require('seedrandom');
+const Genie = require('genie-toolkit');
 
 const db = require('../util/db');
 const DatasetUtils = require('../util/dataset');
 const { clean } = require('../util/tokenize');
 const { choose } = require('../util/random');
 const { safeMkdir } = require('../util/fsutils');
-
-const { detokenize } = require('genie-toolkit/lib/i18n/american-english');
 
 const Config = require('../config');
 const texOptions = [
@@ -118,6 +117,7 @@ function formatDeviceName(d) {
     return tex;
 }
 
+const _i18n = Genie.I18n.get('en-US');
 function formatExample(ex) {
     let buf = '\\textbullet ';
     if (ex.type === 'stream')
@@ -151,7 +151,7 @@ function formatExample(ex) {
     let sentence = '';
     let prevtoken = null;
     for (let token of utterance.split(' ')) {
-        sentence = detokenize(sentence, prevtoken, token);
+        sentence = _i18n.detokenize(sentence, prevtoken, token);
         prevtoken = token;
     }
     buf += sentence;

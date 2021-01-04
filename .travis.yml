@@ -16,7 +16,6 @@ node_js: '10'
 cache:
   timeout: 900
   npm: true
-  yarn: true
   pip: true
 
 stages:
@@ -36,50 +35,50 @@ jobs:
       install:
       - sudo apt-get update -q -y
       - sudo apt-get install -y realpath
-      - travis_retry yarn
+      - travis_retry npm install
       script:
-      - yarn lint
+      - npm run lint
       - ./tests/check-migrations.sh
-      - yarn run nyc node ./tests/unit
-      after_success: yarn run coverage
+      - npx nyc node ./tests/unit
+      after_success: npm run coverage
     -
       name: "Web Almond Integration Tests"
       install:
       - ./travis/install-webalmond-deps.sh
-      - travis_retry yarn
+      - travis_retry npm install
       - export PATH="`pwd`/geckodriver:$PATH"
-      script: yarn run nyc ./tests/webalmond-integration.sh
-      after_success: yarn run coverage
+      script: npx nyc ./tests/webalmond-integration.sh
+      after_success: npm run coverage
     -
       name: "Thingpedia Integration Tests"
       install:
       - ./travis/install-webalmond-deps.sh
-      - travis_retry yarn
+      - travis_retry npm install
       - export PATH="`pwd`/geckodriver:$PATH"
-      script: yarn run nyc ./tests/thingpedia-integration.sh
-      after_success: yarn run coverage
+      script: npx nyc ./tests/thingpedia-integration.sh
+      after_success: npm run coverage
     -
       name: "NLP Integration Tests"
       install:
       - ./travis/install-webalmond-deps.sh
-      - travis_retry yarn
-      - pyenv global 3.6.7
+      - travis_retry npm install
+      - pyenv global 3.7.1
       - ./tests/install-nlp-deps.sh
       - export GENIENLP_EMBEDDINGS=`pwd`/tests/embeddings
       - export PATH="`pwd`/geckodriver:$PATH"
-      script: yarn run nyc ./tests/nlp-integration.sh
-      after_success: yarn run coverage
+      script: npx nyc ./tests/nlp-integration.sh
+      after_success: npm run coverage
     -
       name: "Training Integration Tests"
       install:
       - ./travis/install-webalmond-deps.sh
-      - travis_retry yarn
-      - pyenv global 3.6.7
+      - travis_retry npm install
+      - pyenv global 3.7.1
       - ./tests/install-nlp-deps.sh
       - export GENIENLP_EMBEDDINGS=`pwd`/tests/embeddings
       - export PATH="`pwd`/geckodriver:$PATH"
-      script: yarn run nyc ./tests/training-integration.sh
-      after_success: yarn run coverage
+      script: npx nyc ./tests/training-integration.sh
+      after_success: npm run coverage
     -
       stage: deploy
       name: "Deploy to Staging"

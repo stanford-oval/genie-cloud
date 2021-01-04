@@ -56,7 +56,7 @@ class: |
   }
 
 dataset: |
-  dataset @org.thingpedia.builtin.thingengine.gnome language "en" {
+  dataset @org.thingpedia.builtin.thingengine.gnome #[language="en"] {
     action (p_app_id :Entity(org.freedesktop:app_id))  := @org.thingpedia.builtin.thingengine.gnome.open_app(app_id=p_app_id)
     #_[utterances=["open $p_app_id","open $p_app_id on my laptop","open $p_app_id on my pc","start $p_app_id"]];
 

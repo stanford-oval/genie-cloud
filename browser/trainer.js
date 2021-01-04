@@ -30,6 +30,7 @@ const SchemaRetriever = ThingTalk.SchemaRetriever;
 
 const ParserClient = require('./deps/parserclient');
 const ThingpediaClient = require('./deps/thingpediaclient');
+const ThingTalkUtils = require('./deps/thingtalkutils');
 const reconstructCanonical = require('./deps/reconstruct_canonical');
 
 const Recorder = require('./deps/recorder');
@@ -134,23 +135,18 @@ class ThingTalkTrainer {
         event.preventDefault();
 
         const a = $(event.currentTarget);
-        let code = a.attr('data-target');
+        const code = a.attr('data-target');
         console.log('code', code);
-        code = code.split(' ');
 
         var editThingTalk = $('#edit-thingtalk')[0].checked;
         if (editThingTalk) {
-            this._toThingTalk(code).then((tt) => {
-                $('#thingtalk-editor').removeClass('hidden');
-                $('#thingtalk-group').removeClass('has-error');
-                $('#thingtalk-error').text('');
-                $('#thingtalk').val(tt);
-            }).catch((e) => {
-                alert(e.message+'\n'+e.stack);
-            });
+            $('#thingtalk-editor').removeClass('hidden');
+            $('#thingtalk-group').removeClass('has-error');
+            $('#thingtalk-error').text('');
+            $('#thingtalk').val(code);
         } else {
             $('#thingtalk-editor').addClass('hidden');
-            this._learnNN(code).then((data) => {
+            this._learnThingTalk(code).then((data) => {
                 $('#results-container').hide();
                 if (data.error)
                     console.log('Error in learning', data.error);
@@ -207,11 +203,13 @@ class ThingTalkTrainer {
                 if (candidate.canonical === previous)
                     continue;
                 previous = candidate.canonical;
+
+                const code = candidate.program.prettyprint().replace(/\n/g, ' ');
                 let link = $('<a href="#">')
                     .text(candidate.canonical)
                     .addClass('result')
-                    .attr('title', candidate.code.join(' '))
-                    .attr('data-target', candidate.code.join(' '))
+                    .attr('title', code)
+                    .attr('data-target', code)
                     .click(this._accept.bind(this));
                 results.append($('<li>').append(link));
             }
@@ -276,34 +274,15 @@ class ThingTalkTrainer {
         });
     }
 
-    _toProgram(code) {
-        let program = ThingTalk.NNSyntax.fromNN(code, this._entities);
-        return program.typecheck(this._schemaRetriever, true);
-    }
-
-    _toThingTalk(code) {
-        return this._toProgram(code).then((program) => program.prettyprint(true));
-    }
-
-    _toNN(program) {
-        let clone = {};
-        Object.assign(clone, this._entities);
-        return ThingTalk.NNSyntax.toNN(program, this._tokens, clone);
-    }
-
-    _learnNN(targetCode) {
-        return this.parser.onlineLearn(this._raw, targetCode, 'online', this._user);
-    }
-
     _learnThingTalk(text) {
         text = text.trim();
         if (!text)
             return Promise.resolve(null);
 
         const raw = this._raw;
-        return ThingTalk.Grammar.parseAndTypecheck(text, this._schemaRetriever).then((program) => {
-            const code = this._toNN(program);
-            return this.parser.onlineLearn(raw, code, 'online', this._user);
+        return ThingTalkUtils.parse(text, this._schemaRetriever).then((program) => {
+            this._code = ThingTalkUtils.serializePrediction(program, this._tokens, this._entities);
+            return this.parser.onlineLearn(raw, this._code, 'online', this._user);
         });
     }
 
@@ -313,8 +292,14 @@ class ThingTalkTrainer {
             this._tokens = parsed.tokens;
             this._entities = parsed.entities;
             return Promise.all(parsed.candidates.map((candidate) => {
-                return reconstructCanonical(this._schemaRetriever, candidate.code, this._entities).then((canonical) => {
-                    candidate.canonical = canonical;
+                return ThingTalkUtils.parsePrediction(candidate.code, this._entities, this._schemaRetriever, true).then((program) => {
+                    if (program instanceof ThingTalk.Ast.DialogueState) {
+                        if (program.dialogueAct !== 'execute')
+                            throw new Error(`Not an executable command`);
+                        program = new ThingTalk.Ast.Program(null, [], [], [program.history[0].stmt]);
+                    }
+                    candidate.program = program;
+                    candidate.canonical = reconstructCanonical(program);
                     return candidate;
                 }).catch((e) => {
                     console.log('Failed to reconstruct canonical for ' + candidate.code + ': ' + e.message);

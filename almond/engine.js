@@ -20,9 +20,6 @@
 "use strict";
 
 const Genie = require('genie-toolkit');
-const ThingTalk = require('thingtalk');
-
-const PlatformModule = require('./platform');
 
 // API wrappers for Genie's classes that expose the $rpcMethods interface
 // used by transparent-rpc
@@ -55,10 +52,9 @@ class ConversationWrapper {
 ConversationWrapper.prototype.$rpcMethods = ['destroy', 'handleCommand', 'handleParsedCommand', 'handleThingTalk'];
 
 class NotificationWrapper {
-    constructor(dispatcher, delegate, formatter) {
+    constructor(dispatcher, delegate) {
         this._dispatcher = dispatcher;
         this._delegate = delegate;
-        this._formatter = formatter;
         this._dispatcher.addNotificationOutput(this);
     }
 
@@ -68,27 +64,12 @@ class NotificationWrapper {
         this.$free();
     }
 
-    async notify(appId, icon, outputType, outputValue) {
-        const messages = await this._formatter.formatForType(outputType, outputValue, 'messages');
-        await this._delegate.send({
-            result: {
-                appId: appId,
-                icon: icon ? PlatformModule.cdnHost + '/icons/' + icon + '.png' : null,
-                raw: outputValue,
-                type: outputType,
-                formatted: messages
-            }
-        });
+    async notify(data) {
+        await this._delegate.send({ result: data });
     }
 
-    async notifyError(appId, icon, error) {
-        await this._delegate.send({
-            error: {
-                appId: appId,
-                icon: icon ? PlatformModule.cdnHost + '/icons/' + icon + '.png' : null,
-                error: error
-            }
-        });
+    async notifyError(data) {
+        await this._delegate.send({ error: data });
     }
 }
 NotificationWrapper.prototype.$rpcMethods = ['destroy'];
@@ -96,9 +77,6 @@ NotificationWrapper.prototype.$rpcMethods = ['destroy'];
 class Engine extends Genie.AssistantEngine {
     constructor(platform, options) {
         super(platform, options);
-
-        // used by the web API
-        this._formatter = new ThingTalk.Formatter(platform.locale, platform.timezone, this.schemas);
     }
 
     setConsent(consent) {
@@ -123,35 +101,12 @@ class Engine extends Genie.AssistantEngine {
     }
 
     async addNotificationOutput(delegate) {
-        return new NotificationWrapper(this.assistant, delegate, this._formatter);
+        return new NotificationWrapper(this.assistant, delegate);
     }
 
     async createDeviceAndReturnInfo(data) {
         const device = await this.createDevice(data);
         return this.getDeviceInfo(device.uniqueId);
-    }
-
-    async createAppAndReturnResults(data) {
-        const app = await this.createApp(data.code);
-        const results = [];
-        const errors = [];
-
-        for await (const value of app.mainOutput) {
-            if (value instanceof Error) {
-                errors.push(value);
-            } else {
-                const messages = await this._formatter.formatForType(value.outputType, value.outputValue, 'messages');
-                results.push({ raw: value.outputValue, type: value.outputType, formatted: messages });
-            }
-        }
-
-        return {
-            uniqueId: app.uniqueId,
-            description: app.description,
-            code: app.code,
-            icon: app.icon ? PlatformModule.cdnHost + '/icons/' + app.icon + '.png' : app.icon,
-            results, errors
-        };
     }
 }
 Engine.prototype.$rpcMethods = [

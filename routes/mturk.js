@@ -22,6 +22,7 @@
 
 const express = require('express');
 const ThingTalk = require('thingtalk');
+const Genie = require('genie-toolkit');
 
 const db = require('../util/db');
 const model = require('../model/mturk');
@@ -41,13 +42,15 @@ async function autoValidateParaphrase(dbClient, batchId, language, schemas, utte
 
     const tokenizer = i18n.get(language).genie.getTokenizer();
     const [program, { tokens: preprocessed, entities }] = await Promise.all([
-        ThingTalk.Grammar.parseAndTypecheck(thingtalk, schemas),
+        ThingTalk.Syntax.parse(thingtalk).typecheck(schemas),
         tokenizer.tokenize(utterance)
     ]);
 
     let target_code;
     try {
-        target_code = ThingTalk.NNSyntax.toNN(program, preprocessed, entities);
+        target_code = Genie.ThingTalkUtils.serializePrediction(program, preprocessed, entities, {
+            locale: language
+        });
     } catch(e) {
         throw new BadRequestError(e.message);
     }
@@ -159,7 +162,7 @@ router.get(`/submit/:batch/:hit`, (req, res, next) => {
             sentences.push(row.sentence);
 
             const hint = new Set;
-            const parsed = ThingTalk.Grammar.parse(row.thingtalk);
+            const parsed = ThingTalk.Syntax.parse(row.thingtalk);
             for (const [,prim] of parsed.iteratePrimitives()) {
                 if (prim.selector.isDevice && prim.selector.kind !== 'org.thingpedia.builtin.thingengine.builtin') {
                     allDeviceKinds.add(prim.selector.kind);

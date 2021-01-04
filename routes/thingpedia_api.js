@@ -24,6 +24,7 @@ const accepts = require('accepts');
 const passport = require('passport');
 const multer = require('multer');
 const os = require('os');
+const ThingTalk = require('thingtalk');
 
 const db = require('../util/db');
 const entityModel = require('../model/entity');
@@ -63,8 +64,6 @@ everything.options('/[^]{0,}', (req, res, next) => {
     res.send('');
 });
 
-const v1 = express.Router();
-const v2 = express.Router();
 const v3 = express.Router();
 
 // NOTES on versioning
@@ -81,231 +80,39 @@ const v3 = express.Router();
 // for / at the top (which returns 404)
 
 /**
- * @api {get} /v1/schema/:schema_ids Get Type Information
- * @apiName GetSchema
- * @apiGroup Schemas
- * @apiVersion 0.1.0
- *
- * @apiDescription Retrieve the ThingTalk type information
- *   associated with the named schemas (device interfaces);
- *   multiple schemas can be requested at once, separated by a comma.
- *
- *   Returns an object with one property for each schema ID.
- *   If a given ID does not exist or is not visible to the calling user, this
- *   endpoint will silently return nothing.
- *
- * @apiParam {String[]} schema_ids The identifiers (kinds) of the schemas
- *   to retrieve
- * @apiParam {String} [developer_key] Developer key to use for this operation
-
- * @apiSuccess {Object} schema
- * @apiSuccess {Object} schema.id.triggers The triggers in this schema (obsolete, and always empty)
- * @apiSuccess {Object} schema.id.queries The queries in this schema
- * @apiSuccess {Object} schema.id.actions The actions in this schema
- * @apiSuccess {String[]} schema.id.actions.args The names of all parameters of this functions
- * @apiSuccess {String[]} schema.id.actions.types The ThingTalk type of all parameters of this function
- * @apiSuccess {Boolean[]} schema.id.actions.required For each parameter, the corresponding element in this array is `true` if the parameter is required, and `false` otherwise
- * @apiSuccess {Boolean[]} schema.id.actions.is_input For each parameter, the corresponding element in this array is `true` if the parameter is an input parameter, and `false` otherwise if the parameter is an output
- * @apiSuccess {Boolean} schema.id.actions.is_list Whether this function returns a list; this is always false for actions
- * @apiSuccess {Boolean[]} schema.id.actions.is_monitorable Whether this function can be monitored; this is always false for actions
- *
- * @apiSuccessExample {json} Example Response:
- *
- *  {
- *    "com.twitter": {
- *      "kind_type": "primary",
- *      "triggers": {},
- *      "queries": {
- *        "home_timeline": {
- *          "types": [
- *            "String",
- *            "Array(Entity(tt:hashtag))",
- *            "Array(Entity(tt:url))",
- *            "Entity(tt:username)",
- *            "Entity(tt:username)",
- *            "Entity(com.twitter:id)"
- *          ],
- *          "args": [
- *            "text",
- *            "hashtags",
- *            "urls",
- *            "author",
- *            "in_reply_to",
- *            "tweet_id"
- *          ],
- *          "required": [
- *            false,
- *            false,
- *            false,
- *            false,
- *            false,
- *            false
- *          ],
- *          "is_input": [
- *            false,
- *            false,
- *            false,
- *            false,
- *            false,
- *            false
- *          ],
- *          "is_list": true,
- *          "is_monitorable": true
- *        }
- *      },
- *      "actions": {
- *        "post": {
- *          "types": [
- *            "String"
- *          ],
- *          "args": [
- *            "status"
- *          ],
- *          "required": [
- *            true
- *          ],
- *          "is_input": [
- *            true
- *          ],
- *          "is_list": false,
- *          "is_monitorable": false
- *        }
- *      }
- *    }
- *  }
- *
-**/
-v1.get('/schema/:schemas', (req, res, next) => {
-    var schemas = req.params.schemas.split(',');
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getSchemas(schemas, false, 'application/json').then((obj) => {
-        // don't cache if the user is a developer
-        if (!req.query.developer_key)
-            res.cacheFor(86400000);
-        res.json(obj);
-    }).catch(next);
-});
-
-/**
  * @api {get} /v3/schema/:schema_ids Get Type Information And Metadata
  * @apiName GetSchema
  * @apiGroup Schemas
  * @apiVersion 0.3.0
  *
  * @apiDescription Retrieve the ThingTalk type information and natural language metadata
- *   associated with the named schemas (device interfaces);
- *   multiple schemas can be requested at once, separated by a comma.
- *
- *   This API performs content negotiation, based on the `Accept` header. If
- *   the `Accept` header is unset or set to `application/x-thingtalk`, then a ThingTalk
- *   dataset is returned. Otherwise, the accept header must be set to `application/json`,
- *   or a 405 Not Acceptable error occurs.
- *
- *   If set to return ThingTalk, this API returns a single ThingTalk meta file containing
- *   multiple classes. If set to return JSON, it returns an object with one property for each schema ID.
- *   If a given ID does not exist or is not visible to the calling user, this
- *   endpoint will silently return nothing. The documentation is here for the JSON response
- *   format. See ThingTalk's documentation for the syntax of meta files.
+ *   associated with the named device classes; multiple devices can be requested at once,
+ *   separated by a comma.
+ *   This API returns a single ThingTalk library file containing all the requested classes
+ *   that could be found. Invalid or inaccessible class names are silently ignored.
  *
  * @apiParam {String[]} schema_ids The identifiers (kinds) of the schemas
  *   to retrieve
  * @apiParam {Number{0-1}} meta Include natural language metadata in the output
  * @apiParam {String} [developer_key] Developer key to use for this operation
  * @apiParam {String} [locale=en-US] Locale in which metadata should be returned
- *
- * @apiSuccess {String} result Whether the API call was successful; always the value `ok`
- * @apiSuccess {Object} data An object with one property for each schema ID
- * @apiSuccess {Object} data.id Each schema
- * @apiSuccess {Object} data.id.triggers The triggers in this schema (obsolete, and always empty)
- * @apiSuccess {Object} data.id.queries The queries in this schema
- * @apiSuccess {Object} data.id.actions The actions in this schema
- * @apiSuccess {String[]} data.id.actions.args The names of all parameters of this functions
- * @apiSuccess {String[]} data.id.actions.types The ThingTalk type of all parameters of this function
- * @apiSuccess {Boolean[]} data.id.actions.required For each parameter, the corresponding element in this array is `true` if the parameter is required, and `false` otherwise
- * @apiSuccess {Boolean[]} data.id.actions.is_input For each parameter, the corresponding element in this array is `true` if the parameter is an input parameter, and `false` otherwise if the parameter is an output
- * @apiSuccess {Boolean} data.id.actions.is_list Whether this function returns a list; this is always false for actions
- * @apiSuccess {Boolean} data.id.actions.is_monitorable Whether this function can be monitored; this is always false for actions
- *
- * @apiSuccessExample {json} Example Response:
- *
- *  {
- *    "result": "ok",
- *    "data": {
- *      "com.twitter": {
- *        "kind_type": "primary",
- *        "triggers": {},
- *        "queries": {
- *          "home_timeline": {
- *            "types": [
- *              "String",
- *              "Array(Entity(tt:hashtag))",
- *              "Array(Entity(tt:url))",
- *              "Entity(tt:username)",
- *              "Entity(tt:username)",
- *              "Entity(com.twitter:id)"
- *            ],
- *            "args": [
- *              "text",
- *              "hashtags",
- *              "urls",
- *              "author",
- *              "in_reply_to",
- *              "tweet_id"
- *            ],
- *            "required": [
- *              false,
- *              false,
- *              false,
- *              false,
- *              false,
- *              false
- *            ],
- *            "is_input": [
- *              false,
- *              false,
- *              false,
- *              false,
- *              false,
- *              false
- *            ],
- *            "is_list": true,
- *            "is_monitorable": true
- *          }
- *        },
- *        "actions": {
- *          "post": {
- *            "types": [
- *              "String"
- *            ],
- *            "args": [
- *              "status"
- *            ],
- *            "required": [
- *              true
- *            ],
- *            "is_input": [
- *              true
- *            ],
- *            "is_list": false,
- *            "is_monitorable": false
- *          }
- *        }
- *      }
- *    }
- *  }
- *
 **/
 v3.get('/schema/:schemas', (req, res, next) => {
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/json', 'text/html']);
+    // do content negotiation for two reasons:
+    // - one is to force legacy clients that try to talk v3 and do JSON output into
+    //   producing ThingTalk output instead
+    // - the other is to recognize browsers, so we show the ThingTalk code inline instead
+    //   of downloading, which is quite convenient
+    const accept = accepts(req).types(['application/x-thingtalk', 'text/html']);
     if (!accept) {
-        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        res.status(405).json({ error: 'must accept application/x-thingtalk' });
         return;
     }
 
     const schemas = req.params.schemas.split(',');
     const withMetadata = req.query.meta === '1';
 
-    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getSchemas(schemas, withMetadata, accept).then((obj) => {
         res.set('Vary', 'Accept');
 
@@ -316,188 +123,6 @@ v3.get('/schema/:schemas', (req, res, next) => {
             res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept).send(obj);
         else
             res.json({ result: 'ok', data: obj });
-    }).catch(next);
-});
-
-/**
- * @api {get} /v1/schema-metadata/:schema_ids Get Type Information and Metadata
- * @apiName GetSchemaMetadata
- * @apiGroup Schemas
- * @apiVersion 0.1.0
- *
- * @apiDescription Retrieve the ThingTalk type information and natural language metadata
- *   associated with the named schemas (device interfaces);
- *   multiple schemas can be requested at once, separated by a comma.
- *
- *   Returns an object with one property for each schema ID.
- *   If a given ID does not exist or is not visible to the calling user, this
- *   endpoint will silently return nothing.
- *
- * @apiParam {String[]} schema_ids The identifiers (kinds) of the schemas
- *   to retrieve
- * @apiParam {String} [developer_key] Developer key to use for this operation
- * @apiParam {String} [locale=en-US] Locale in which metadata should be returned
- *
- * @apiSuccess {Object} schema
- * @apiSuccess {Object} schema.id.triggers The triggers in this schema (obsolete, and always empty)
- * @apiSuccess {Object} schema.id.queries The queries in this schema
- * @apiSuccess {Object} schema.id.actions The actions in this schema
- * @apiSuccess {String[]} schema.id.actions.args The names of all parameters of this functions
- * @apiSuccess {String[]} schema.id.actions.types The ThingTalk type of all parameters of this function
- * @apiSuccess {Boolean[]} schema.id.actions.required For each parameter, the corresponding element in this array is `true` if the parameter is required, and `false` otherwise
- * @apiSuccess {Boolean[]} schema.id.actions.is_input For each parameter, the corresponding element in this array is `true` if the parameter is an input parameter, and `false` otherwise if the parameter is an output
- * @apiSuccess {Boolean} schema.id.actions.is_list Whether this function returns a list; this is always false for actions
- * @apiSuccess {Boolean} schema.id.actions.is_monitorable Whether this function can be monitored; this is always false for actions
- * @apiSuccess {String} schema.id.confirmation Confirmation string for this function
- * @apiSuccess {String} schema.id.confirmation_remote Remote confirmation string (obsolete)
- * @apiSuccess {String} schema.id.doc Documentation string for this function, to be shown eg. in a reference manual for the device
- * @apiSuccess {String} schema.id.canonical Short, concise description of this function, omitting stop words
- * @apiSuccess {String[]} schema.id.argcanonicals Translated argument names, to be used to construct sentences and display to the user; one element per argument
- * @apiSuccess {String[]} schema.id.questions Slot-filling questions
- *
- * @apiSuccessExample {json} Example Response:
- *
- *  {
- *    "com.twitter": {
- *      "kind_type": "primary",
- *      "triggers": {},
- *      "queries": {
- *        "home_timeline": {
- *          "types": [
- *            "String",
- *            "Array(Entity(tt:hashtag))",
- *            "Array(Entity(tt:url))",
- *            "Entity(tt:username)",
- *            "Entity(tt:username)",
- *            "Entity(com.twitter:id)"
- *          ],
- *          "args": [
- *            "text",
- *            "hashtags",
- *            "urls",
- *            "author",
- *            "in_reply_to",
- *            "tweet_id"
- *          ],
- *          "required": [
- *            false,
- *            false,
- *            false,
- *            false,
- *            false,
- *            false
- *          ],
- *          "is_input": [
- *            false,
- *            false,
- *            false,
- *            false,
- *            false,
- *            false
- *          ],
- *          "is_list": true,
- *          "is_monitorable": true,
- *          "confirmation": "tweets from anyone you follow",
- *          "confirmation_remote": "tweets from anyone $__person's follow",
- *          "doc": "shows your Twitter timeline (the home page of Twitter)",
- *          "canonical": "twitter home timeline",
- *          "argcanonicals": [
- *            "text",
- *            "hashtags",
- *            "urls",
- *            "author",
- *            "in reply to",
- *            "tweet id"
- *          ],
- *          "questions": [
- *            "",
- *            "",
- *            "",
- *            "",
- *            "",
- *            ""
- *          ]
- *        }
- *      },
- *      "actions": {
- *        "post": {
- *          "types": [
- *            "String"
- *          ],
- *          "args": [
- *            "status"
- *          ],
- *          "required": [
- *            true
- *          ],
- *          "is_input": [
- *            true
- *          ],
- *          "is_list": false,
- *          "is_monitorable": false,
- *          "confirmation": "tweet $status",
- *          "confirmation_remote": "post $status on $__person's Twitter",
- *          "doc": "post a tweet; use # to include a hashtag and @ to reply",
- *          "canonical": "post on twitter",
- *          "argcanonicals": [
- *            "status"
- *          ],
- *          "questions": [
- *            "What do you want to tweet?"
- *          ]
- *        }
- *      }
- *    }
- *  }
- *
-**/
-v1.get('/schema-metadata/:schemas', (req, res, next) => {
-    var schemas = req.params.schemas.split(',');
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getSchemas(schemas, true, 'application/json').then((obj) => {
-        // don't cache if the user is a developer
-        if (!req.query.developer_key)
-            res.cacheFor(86400000);
-
-        // return v1-compatible result (using the "schema" to indicate types
-        // rather than "types")
-        for (let kind in obj) {
-            for (let what of ['triggers', 'queries', 'actions']) {
-                for (let name in obj[kind][what]) {
-                    obj[kind][what][name].schema = obj[kind][what][name].types;
-                    delete obj[kind][what][name].types;
-                }
-            }
-        }
-        res.json(obj);
-    }).catch(next);
-});
-
-// in v3, /schema-metadata/ was merged with /schema, as in snapshot
-v3.get('/schema-metadata/:schemas', (req, res, next) => next('router'));
-
-/**
- * @api {get} /v1/code/devices/:kind Get Device Manifest
- * @apiName GetDeviceCode
- * @apiGroup Devices
- * @apiVersion 0.1.0
- *
- * @apiDescription Retrieve the manifest associated with the named device.
- *   See the [Guide to writing Thingpedia Entries](../thingpedia-device-intro.md)
- *   for a complete description of the manifest format.
- *
- * @apiParam {String} kind The identifier of the device to retrieve
- * @apiParam {String} [developer_key] Developer key to use for this operation
- * @apiParam {String} [locale=en-US] Locale in which metadata should be returned
- */
-v1.get('/code/devices/:kind', (req, res, next) => {
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getDeviceCode(req.params.kind, 'application/json').then((code) => {
-        if (code.developer)
-            res.cacheFor(3600000);
-        else
-            res.cacheFor(86400000);
-        res.json(code);
     }).catch(next);
 });
 
@@ -523,17 +148,14 @@ v1.get('/code/devices/:kind', (req, res, next) => {
  * @apiSuccess {String} result Whether the API call was successful; always the value `ok`
  * @apiSuccess {Object} data The manifest, as a JSON object
  */
-// in v3, /code/devices was moved to /devices/code, for
-// consistency with the other /devices end points
-v3.get('/code/devices/:kind', (req, res, next) => next('router'));
 v3.get('/devices/code/:kind', (req, res, next) => {
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/json', 'text/html']);
+    const accept = accepts(req).types(['application/x-thingtalk', 'text/html']);
     if (!accept) {
-        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        res.status(405).json({ error: 'must accept application/x-thingtalk' });
         return;
     }
 
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getDeviceCode(req.params.kind, accept).then((code) => {
         res.set('Vary', 'Accept');
         if (typeof code === 'string') {
@@ -553,30 +175,6 @@ v3.get('/devices/code/:kind', (req, res, next) => {
             res.cacheFor(86400000);
             res.json({ result: 'ok', data: code });
         }
-    }).catch(next);
-});
-
-v1.get('/devices/setup/:kinds', (req, res, next) => {
-    var kinds = req.params.kinds.split(',');
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getDeviceSetup(kinds).then((result) => {
-        for (let name in result) {
-            if (result[name].type === 'multiple')
-                result[name].choices = result[name].choices.map((c) => c.text);
-        }
-        return result;
-    }).then((result) => {
-        res.cacheFor(86400000);
-        res.status(200).json(result);
-    }).catch(next);
-});
-
-v2.get('/devices/setup/:kinds', (req, res, next) => {
-    var kinds = req.params.kinds.split(',');
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getDeviceSetup(kinds).then((result) => {
-        res.cacheFor(86400000);
-        res.status(200).json(result);
     }).catch(next);
 });
 
@@ -635,7 +233,7 @@ v2.get('/devices/setup/:kinds', (req, res, next) => {
  */
 v3.get('/devices/setup/:kinds', (req, res, next) => {
     var kinds = req.params.kinds.split(',');
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getDeviceSetup(kinds).then((result) => {
         res.cacheFor(86400000);
         res.status(200).json({ result: 'ok', data: result });
@@ -655,7 +253,7 @@ v3.get('/devices/setup/:kinds', (req, res, next) => {
  *
  * @apiParam {String} kind The identifier of the device for which the icon is desired.
  */
-v1.get('/devices/icon/:kind', (req, res) => {
+v3.get('/devices/icon/:kind', (req, res) => {
     // cache for forever, this redirect will never expire
     res.cacheFor(6, 'months');
 
@@ -678,7 +276,7 @@ v1.get('/devices/icon/:kind', (req, res) => {
  */
 v3.get('/devices/package/:kind', (req, res, next) => {
     const kind = req.params.kind;
-    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getModuleLocation(kind, req.query.version).then((location) => {
         res.cacheFor(60000);
         res.redirect(302, location);
@@ -696,28 +294,6 @@ function isValidDeviceClass(req, res) {
         return true;
     }
 }
-
-v1.get('/devices', (req, res, next) => {
-    if (!isValidDeviceClass(req, res))
-        return;
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getDeviceFactories(req.query.class).then((obj) => {
-        // convert to v1 format
-        obj = obj.map((d) => {
-            return {
-                primary_kind: d.kind,
-                name: d.text,
-                factory: d
-            };
-        });
-
-        res.cacheFor(86400000);
-        res.json(obj);
-    }).catch(next);
-});
-
-// the /devices endpoint was removed in v3
-// to avoid confusion between /devices/setup and /devices/all
 
 /**
  * @api {get} /v3/devices/setup Get Device Setup List
@@ -764,26 +340,13 @@ v1.get('/devices', (req, res, next) => {
  *    ]
  *  }
  */
-v3.get('/devices', (req, res, next) => next('router'));
 v3.get('/devices/setup', (req, res, next) => {
     if (!isValidDeviceClass(req, res))
         return;
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getDeviceFactories(req.query.class).then((obj) => {
         res.cacheFor(86400000);
         res.json({ result: 'ok', data: obj });
-    }).catch(next);
-});
-
-v1.get('/devices/all', (req, res, next) => {
-    const [page, page_size] = validatePageAndSize(req, 10, 50);
-    if (!isValidDeviceClass(req, res))
-        return;
-
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getDeviceList(req.query.class || null, page, page_size).then((devices) => {
-        res.cacheFor(86400000);
-        res.json({ devices });
     }).catch(next);
 });
 
@@ -834,7 +397,7 @@ v3.get('/devices/all', (req, res, next) => {
     if (!isValidDeviceClass(req, res))
         return;
 
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getDeviceList(req.query.class || null, page, page_size).then((devices) => {
         res.cacheFor(86400000);
         res.json({ result: 'ok', data: devices });
@@ -875,20 +438,6 @@ v3.get('/devices/all', (req, res, next) => {
  *    ]
  *  }
  */
-v1.get('/devices/search', (req, res, next) => {
-    var q = req.query.q;
-    if (!q) {
-        res.status(400).json({ error: 'missing query' });
-        return;
-    }
-
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getDeviceSearch(q).then((devices) => {
-        res.cacheFor(86400000);
-        res.json({ devices });
-    }).catch(next);
-});
-
 v3.get('/devices/search', (req, res, next) => {
     var q = req.query.q;
     if (!q) {
@@ -896,7 +445,7 @@ v3.get('/devices/search', (req, res, next) => {
         return;
     }
 
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getDeviceSearch(q).then((devices) => {
         res.cacheFor(86400000);
         res.json({ result: 'ok', data: devices });
@@ -950,7 +499,7 @@ v3.get('/devices/search', (req, res, next) => {
  *    ]
  *  }
  */
-v1.get('/commands/all', (req, res, next) => {
+v3.get('/commands/all', (req, res, next) => {
     const locale = req.query.locale || 'en-US';
     const language = I18n.localeToLanguage(locale);
     const gettext = I18n.get(locale).gettext;
@@ -1008,7 +557,7 @@ v1.get('/commands/all', (req, res, next) => {
  *    ]
  *  }
  */
-v1.get('/commands/search', (req, res, next) => {
+v3.get('/commands/search', (req, res, next) => {
     let q = req.query.q;
     if (!q) {
         res.status(400).json({ error: 'missing query' });
@@ -1026,37 +575,6 @@ v1.get('/commands/search', (req, res, next) => {
     }).catch(next);
 });
 
-
-v1.get('/apps', (req, res) => {
-    // deprecated endpoint
-    res.json([]);
-});
-v2.get('/apps', (req, res, next) => next('router'));
-
-v1.get('/code/apps/:app_id', (req, res) => {
-    // deprecated endpoint, respond with 410 Gone
-    res.status(410).send('This end point no longer exists');
-});
-v2.get('/code/apps/:app_id', (req, res, next) => next('router'));
-
-v1.post('/discovery', (req, res, next) => {
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-
-    client.getKindByDiscovery(req.body).then((result) => {
-        if (result === null) {
-            res.status(404).json({ error: 'Not Found' });
-            return;
-        }
-
-        res.cacheFor(86400000);
-        res.status(200).send(result.primary_kind);
-    }).catch((e) => {
-        if (e.message === 'Not Found')
-            res.status(404).json({ error: 'Not Found' });
-        else
-            throw e;
-    }).catch(next);
-});
 
 /**
  * @api {post} /v3/devices/discovery Resolve Discovery Information
@@ -1079,9 +597,8 @@ v1.post('/discovery', (req, res, next) => {
  *
  */
 // the /discovery endpoint was moved to /devices/discovery in v3
-v3.post('/discovery', (req, res, next) => next('router'));
 v3.post('/devices/discovery', (req, res, next) => {
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
 
     client.getKindByDiscovery(req.body).then((result) => {
         if (result === null) {
@@ -1096,16 +613,6 @@ v3.post('/devices/discovery', (req, res, next) => {
             res.status(404).json({ error: 'Not Found' });
         else
             throw e;
-    }).catch(next);
-});
-
-v1.get('/examples/by-kinds/:kinds', (req, res, next) => {
-    var kinds = req.params.kinds.split(',');
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-
-    client.getExamplesByKinds(kinds, 'application/json;apiVersion=1').then((result) => {
-        res.cacheFor(300000);
-        res.status(200).json(result);
     }).catch(next);
 });
 
@@ -1158,10 +665,10 @@ v1.get('/examples/by-kinds/:kinds', (req, res, next) => {
  */
 v3.get('/examples/by-kinds/:kinds', (req, res, next) => {
     var kinds = req.params.kinds.split(',');
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/x-thingtalk;editMode=1', 'application/json', 'text/html']);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/x-thingtalk;editMode=1', 'text/html']);
     if (!accept) {
-        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        res.status(405).json({ error: 'must accept application/x-thingtalk' });
         return;
     }
 
@@ -1224,10 +731,10 @@ v3.get('/examples/by-kinds/:kinds', (req, res, next) => {
  *
  */
 v3.get('/examples/all', (req, res, next) => {
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/json', 'text/html']);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/x-thingtalk;editMode=1', 'text/html']);
     if (!accept) {
-        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        res.status(405).json({ error: 'must accept application/x-thingtalk' });
         return;
     }
 
@@ -1240,19 +747,6 @@ v3.get('/examples/all', (req, res, next) => {
             res.send(result);
         else
             res.status(200).json({ result: 'ok', data: result });
-    }).catch(next);
-});
-
-v1.get('/examples', (req, res, next) => {
-    if (!req.query.key) {
-        res.status(400).json({ error: "missing query" });
-        return;
-    }
-
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getExamplesByKey(req.query.key, 'application/json;apiVersion=1').then((result) => {
-        res.cacheFor(300000);
-        res.status(200).json(result);
     }).catch(next);
 });
 
@@ -1303,21 +797,18 @@ v1.get('/examples', (req, res, next) => {
  *  }
  *
  */
-// the /examples?key=.. endpoint was moved to /examples/search?q=... in v3
-// for consistency with /commands and /devices
-v3.get('/examples', (req, res, next) => next('router'));
 v3.get('/examples/search', (req, res, next) => {
     if (!req.query.q) {
         res.status(400).json({ error: "missing query" });
         return;
     }
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/json', 'text/html']);
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/x-thingtalk;editMode=1', 'text/html']);
     if (!accept) {
-        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        res.status(405).json({ error: 'must accept application/x-thingtalk' });
         return;
     }
 
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getExamplesByKey(req.query.q, accept).then((result) => {
         res.cacheFor(300000);
         res.status(200);
@@ -1326,15 +817,6 @@ v3.get('/examples/search', (req, res, next) => {
             res.send(result);
         else
             res.json({ result: 'ok', data: result });
-    }).catch(next);
-});
-
-v1.get('/examples/click/:id', (req, res, next) => {
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-
-    client.clickExample(req.params.id).then(() => {
-        res.cacheFor(300000);
-        res.status(200).json({ result: 'ok' });
     }).catch(next);
 });
 
@@ -1356,11 +838,8 @@ v1.get('/examples/click/:id', (req, res, next) => {
  *  }
  *
  */
-// clicks were turned into a POST in v3
-// (because the API is obviously not idempotent)
-v3.get('/examples/click/:id', (req, res, next) => next('router'));
 v3.post('/examples/click/:id', (req, res, next) => {
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
 
     client.clickExample(req.params.id).then(() => {
         res.cacheFor(300000);
@@ -1377,7 +856,7 @@ function getAllEntities(req, res, next) {
         return;
     }
 
-    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
 
     client.getAllEntityTypes(snapshotId).then((data) => {
         if (data.length > 0 && snapshotId >= 0) {
@@ -1389,8 +868,6 @@ function getAllEntities(req, res, next) {
         res.status(200).json({ result: 'ok', data });
     }).catch(next);
 }
-
-v1.get('/entities', getAllEntities);
 
 /**
  * @api {get} /v3/entities/all Get List of Entity Types
@@ -1444,9 +921,6 @@ v1.get('/entities', getAllEntities);
  *  }
  *
  */
-// in v3, /entities was moved to /entities/all, for consistency
-// with /devices and /commands
-v3.get('/entities', (req, res, next) => next('router'));
 v3.get('/entities/all', getAllEntities);
 
 /**
@@ -1482,7 +956,7 @@ v3.get('/entities/all', getAllEntities);
  *  }
  *
  */
-v1.get('/entities/lookup', (req, res, next) => {
+v3.get('/entities/lookup', (req, res, next) => {
     const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
     const token = req.query.q;
 
@@ -1534,7 +1008,7 @@ v1.get('/entities/lookup', (req, res, next) => {
  *  }
  *
  */
-v1.get('/entities/lookup/:type', (req, res, next) => {
+v3.get('/entities/lookup/:type', (req, res, next) => {
     const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
     const token = req.query.q;
 
@@ -1553,15 +1027,6 @@ v1.get('/entities/lookup/:type', (req, res, next) => {
             meta: { name: meta.name, has_ner_support: meta.has_ner_support, is_well_known: meta.is_well_known },
             data: rows.map((r) => ({ type: r.entity_id, value: r.entity_value, canonical: r.entity_canonical, name: r.entity_name }))
         });
-    }).catch(next);
-});
-
-v1.get('/entities/list/:type', (req, res, next) => {
-    db.withClient((dbClient) => {
-        return entityModel.getValues(dbClient, req.params.type);
-    }).then((rows) => {
-        res.cacheFor(86400000);
-        res.status(200).json({ result: 'ok', data: rows.map((r) => ({ id: r.entity_value, name: r.entity_name })) });
     }).catch(next);
 });
 
@@ -1617,16 +1082,8 @@ v3.get('/entities/list/:type', (req, res, next) => {
     }).catch(next);
 });
 
-v1.get('/entities/icon', (req, res, next) => {
-    res.status(404).json({ error: 'The /entities/icon API was removed', code: 'ENOENT' });
-});
-
-v3.get('/entities/icon', (req, res, next) => {
-    res.status(404).json({ error: 'The /entities/icon API was removed', code: 'ENOENT' });
-});
-
 function getAllStrings(req, res, next) {
-    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
 
     client.getAllStrings().then((data) => {
         if (data.length > 0)
@@ -1731,7 +1188,7 @@ v3.get('/strings/list/:type', (req, res, next) => {
             throw new ForbiddenError(`A valid developer key is required to download string datasets`);
 
         const language = I18n.localeToLanguage(req.query.locale || 'en-US');
-        // check for the existance of this type, and also check if the dataset can be downloaded
+        // check for the existence of this type, and also check if the dataset can be downloaded
         const stringType = await stringModel.getByTypeName(dbClient, req.params.type, language);
         if (stringType.license === 'proprietary')
             throw new ForbiddenError(`This dataset is proprietary and cannot be downloaded`);
@@ -1785,7 +1242,7 @@ v3.get('/locations/lookup', (req, res, next) => {
         return;
     }
 
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
 
     client.lookupLocation(searchKey, req.query.latitude && req.query.longitude ? { latitude: req.query.latitude, longitude: req.query.longitude } : undefined).then((data) => {
         res.cacheFor(300000);
@@ -1847,7 +1304,7 @@ function getSnapshot(req, res, next, accept) {
         return;
     }
 
-    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
 
     client.getThingpediaSnapshot(getMeta, snapshotId).then((rows) => {
         if (rows.length > 0 && snapshotId >= 0) {
@@ -1857,22 +1314,17 @@ function getSnapshot(req, res, next, accept) {
             res.cacheFor(3600000);
         }
 
-        if (accept === 'application/json') {
-            res.json({ result: 'ok', data: rows });
-        } else {
-            res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept);
-            res.send(SchemaUtils.schemaListToClassDefs(rows, getMeta).prettyprint());
-        }
+        res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept);
+        res.send(ThingTalk.Syntax.serialize(SchemaUtils.schemaListToClassDefs(rows, getMeta), ThingTalk.Syntax.SyntaxType.Normal, undefined, {
+            compatibility: req.query.thingtalk_version
+        }));
     }).catch(next);
 }
 
-v1.get('/snapshot/:id', (req, res, next) => {
-    getSnapshot(req, res, next, 'application/json');
-});
 v3.get('/snapshot/:id', (req, res, next) => {
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/json', 'text/html']);
+    const accept = accepts(req).types(['application/x-thingtalk', 'text/html']);
     if (!accept) {
-        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        res.status(405).json({ error: 'must accept application/x-thingtalk' });
         return;
     }
     res.set('Vary', 'Accept');
@@ -1880,12 +1332,6 @@ v3.get('/snapshot/:id', (req, res, next) => {
     getSnapshot(req, res, next, accept);
 });
 
-
-// all endpoints that have not been overridden in v2 use the v1 version
-v2.use('/', v1);
-
-// all endpoints that have not been overridden in v3 use the v2 version
-v3.use('/', v2);
 
 // the POST apis below require OAuth
 v3.use((req, res, next) => {
@@ -2013,14 +1459,7 @@ v3.post('/strings/upload',
 });
 
 
-everything.use('/v1', v1);
-everything.use('/v2', v2);
 everything.use('/v3', v3);
-
-// for compatibility with the existing code, v1 is also exposed unversioned
-everything.use('/', v1);
-
-
 
 // if nothing handled the route, return a 404
 everything.use('/', (req, res) => {

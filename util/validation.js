@@ -63,12 +63,12 @@ function validateMetadata(metadata, allowed) {
 }
 
 async function loadClassDef(dbClient, req, kind, classCode, datasetCode) {
-    const tpClient = new ThingpediaClient(req.user.developer_key, req.user.locale, dbClient);
+    const tpClient = new ThingpediaClient(req.user.developer_key, req.user.locale, undefined, dbClient);
     const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
     let parsed;
     try {
-        parsed = await ThingTalk.Grammar.parseAndTypecheck(`${classCode}\n${datasetCode}`, schemaRetriever, true);
+        parsed = await ThingTalk.Syntax.parse(`${classCode}\n${datasetCode}`).typecheck(schemaRetriever, true);
     } catch(e) {
         if (e.name === 'SyntaxError' && e.location) {
             let lineNumber = e.location.start.line;
@@ -84,17 +84,17 @@ async function loadClassDef(dbClient, req, kind, classCode, datasetCode) {
         }
     }
 
-    if (!parsed.isMeta || parsed.classes.length !== 1 ||
+    if (!(parsed instanceof ThingTalk.Ast.Library) || parsed.classes.length !== 1 ||
         (kind !== null && parsed.classes[0].kind !== kind))
         throw new ValidationError("Invalid manifest file: must contain exactly one class, with the same identifier as the device");
     const classDef = parsed.classes[0];
 
-    if (parsed.datasets.length > 1 || (parsed.datasets.length > 0 && parsed.datasets[0].name !== '@' + kind))
+    if (parsed.datasets.length > 1 || (parsed.datasets.length > 0 && parsed.datasets[0].name !== kind))
         throw new ValidationError("Invalid dataset file: must contain exactly one dataset, with the same identifier as the class");
     if (parsed.datasets.length > 0 && parsed.datasets[0].language !== 'en')
         throw new ValidationError("The dataset must be for English: use `en` as the language tag.");
     const dataset = parsed.datasets.length > 0 ? parsed.datasets[0] :
-        new ThingTalk.Ast.Dataset(null, '@' + kind, 'en', [], {});
+        new ThingTalk.Ast.Dataset(null, kind, 'en', [], {});
 
     return [classDef, dataset];
 }
@@ -187,10 +187,13 @@ function validateDataset(dataset) {
     const names = new Set;
     dataset.examples.forEach((ex, i) => {
         try {
-            let ruleprog = ex.toProgram();
+            // FIXME: we clone the example here to workaround a bug in ThingTalk
+            // we should not need it
+            let ruleprog = ex.clone().toProgram();
 
             // try and convert to NN
-            ThingTalk.NNSyntax.toNN(ruleprog, {});
+            const allocator = new ThingTalk.Syntax.EntityRetriever('', {});
+            ThingTalk.Syntax.serialize(ruleprog, ThingTalk.Syntax.Tokenized, allocator);
 
             // validate placeholders in all utterances
             validateAnnotations(ex.annotations);
@@ -202,15 +205,16 @@ function validateDataset(dataset) {
             }
 
             if (ex.annotations.name) {
-                if (typeof ex.annotations.name !== 'string')
+                const value = ex.annotations.name.toJS();
+                if (typeof value !== 'string')
                     throw new ValidationError(`invalid #[name] annotation (must be a string)`);
-                if (ex.annotations.name.length > 128)
+                if (value.length > 128)
                     throw new ValidationError(`the #[name] annotation must be at most 128 characters`);
-                if (names.has(ex.annotations.name))
+                if (names.has(value))
                     throw new ValidationError(`duplicate name`);
-                names.add(ex.annotations.name);
+                names.add(value);
             } else {
-                ex.annotations.name = autogenExampleName(ex, names);
+                ex.annotations.name = new ThingTalk.Ast.Value.String(autogenExampleName(ex, names));
             }
 
             for (let utterance of ex.utterances)

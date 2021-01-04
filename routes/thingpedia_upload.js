@@ -109,14 +109,13 @@ router.get('/update/:kind', (req, res, next) => {
                 (req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0)
                 throw new ForbiddenError();
 
-            let [code, examples] = await Promise.all([
+            const [code, examples] = await Promise.all([
                 d.source_code || model.getCodeByVersion(dbClient, d.id, d.developer_version),
                 exampleModel.getBaseBySchemaKind(dbClient, d.primary_kind, 'en')
             ]);
 
-            code = Importer.migrateManifest(code, d);
-            const dataset = DatasetUtils.examplesToDataset(d.primary_kind, 'en', examples,
-                                                           { editMode: true });
+            const dataset = await DatasetUtils.examplesToDataset(d.primary_kind, 'en', examples,
+                                                                 { editMode: true });
 
             res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - Edit Device"),
                                                              id: d.id,

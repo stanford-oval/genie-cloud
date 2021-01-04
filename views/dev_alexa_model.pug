@@ -32,9 +32,9 @@ block content
 
           for intent in intents
             h5
-              a(href='#intent-' + intent.annotations.name.replace(/\./g, '-'), data-toggle='collapse')= intent.annotations.name
+              a(href='#intent-' + intent.annotations.name.toJS().replace(/\./g, '-'), data-toggle='collapse')= intent.annotations.name.toJS()
 
-            div(id='intent-' + intent.annotations.name.replace(/\./g, '-')).collapse
+            div(id='intent-' + intent.annotations.name.toJS().replace(/\./g, '-')).collapse
               p
                 code= intent.target_code
 

@@ -25,7 +25,7 @@ const BaseThingpediaClient = require('./thingpedia-client');
 // the full database
 module.exports = class AdminThingpediaClient extends BaseThingpediaClient {
     constructor(locale, dbClient) {
-        super(null, locale, dbClient);
+        super(null, locale, undefined, dbClient);
     }
 
     async _getOrg() {

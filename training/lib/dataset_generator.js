@@ -27,8 +27,6 @@ const csvstringify = require('csv-stringify');
 
 const ThingTalk = require('thingtalk');
 const Genie = require('genie-toolkit');
-// FIXME this should be exported in the normal way...
-const ConstantSampler = require('genie-toolkit/tool/lib/constants-sampler');
 
 const BaseThingpediaClient = require('../../util/thingpedia-client');
 const { parseFlags } = require('../../util/genie_flag_utils');
@@ -72,9 +70,10 @@ class QueryReadableAdapter extends Stream.Readable {
 }
 
 class TypecheckStream extends Stream.Transform {
-    constructor(schemas) {
+    constructor(tpClient, schemas) {
         super({ objectMode: true });
 
+        this._tpClient = tpClient;
         this._schemas = schemas;
         this._dropped = 0;
     }
@@ -88,8 +87,10 @@ class TypecheckStream extends Stream.Transform {
 
         try {
             const entities = Genie.EntityUtils.makeDummyEntities(ex.preprocessed);
-            const program = ThingTalk.NNSyntax.fromNN(ex.target_code.split(' '), entities);
-            await program.typecheck(this._schemas);
+            await Genie.ThingTalkUtils.parsePrediction(ex.target_code.split(' '), entities, {
+                thingpediaClient: this._tpClient,
+                schemaRetriever: this._schemas
+            }, true);
             this.push(ex);
             return;
         } catch(e) {
@@ -130,7 +131,7 @@ class Counter extends Stream.Transform {
 
 class OrgThingpediaClient extends BaseThingpediaClient {
     constructor(locale, dbClient, org) {
-        super(null, locale, dbClient);
+        super(null, locale, undefined, dbClient);
         this._org = org;
     }
 
@@ -253,7 +254,7 @@ module.exports = class DatasetGenerator {
             // XXX loading all devices like this is suboptimal...
             const forDevices = this._forDevices || (await schemaModel.getAllApproved(this._dbClient, this._options.owner)).map((d) => d.kind);
             assert(forDevices.length > 0);
-            const constSampler = new ConstantSampler(this._schemas, constProvider, {
+            const constSampler = new Genie.MTurk.ConstantsSampler(this._schemas, constProvider, {
                 rng: this._rng,
                 locale: this._locale,
 
@@ -293,7 +294,7 @@ module.exports = class DatasetGenerator {
         let paraphrase;
         if (this._shouldDownloadParaphrase) {
             paraphrase = this._downloadParaphrase(false)
-                .pipe(new TypecheckStream(this._schemas));
+                .pipe(new TypecheckStream(this._tpClient, this._schemas));
         }
         let source;
         // assume that the progress of synthetic generation is the overall progress, because
@@ -364,7 +365,7 @@ module.exports = class DatasetGenerator {
 
             await Promise.all(promises);
         } else if (this._shouldSampleForTurking) {
-            const sampler = new Genie.MTurk.SentenceSampler(this._schemas, constants, {
+            const sampler = new Genie.MTurk.SentenceSampler(this._tpClient, this._schemas, constants, {
                 rng: this._rng,
                 locale: this._language,
 

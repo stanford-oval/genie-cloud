@@ -509,7 +509,7 @@ class @com.yahoo.finance
 #_[canonical="yahoo finance"] {
   monitorable query get_stock_div(in req stock_id: Entity(tt:stock_id) #_[prompt="What company's stock do you want to watch? Use the 4 letter ID, like GOOG, AAPL or MSFT"] #_[canonical="stock id"],
                                   out company_name: String #_[canonical="company name"],
-                                  out yield: Number #_[canonical="yield"],
+                                  out yield_: Number #_[canonical="yield"],
                                   out value: Currency #_[canonical="value"],
                                   out pay_date: Date #_[canonical="pay date"],
                                   out ex_dividend_date: Date #_[canonical="ex dividend date"])

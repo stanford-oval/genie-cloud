@@ -71,7 +71,7 @@ async function testCombinedSTTAndNLU() {
     const parsed = JSON.parse(response);
     assert(Array.isArray(parsed.candidates));
     assert.deepStrictEqual(parsed.candidates[0], {
-        code: ['now', '=>', '@com.thecatapi.get', '=>', 'notify'],
+        code: ['@com.thecatapi', '.', 'get', '(', ')', ';'],
         score: 'Infinity'
     });
 }

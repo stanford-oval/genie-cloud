@@ -84,7 +84,7 @@ async function testEverything() {
 
         // everything should typecheck because the server filters server side
         let candidates = await Promise.all(analyzed.candidates.map(async (candidate, beamposition) => {
-            const program = ThingTalk.NNSyntax.fromNN(candidate.code, analyzed.entities);
+            const program = ThingTalk.Syntax.parse(candidate.code, ThingTalk.Syntax.SyntaxType.Tokenized, analyzed.entities);
             await program.typecheck(schemas, false);
             return program;
         }));
@@ -134,14 +134,14 @@ async function testContextual() {
         entities: {},
         candidates: [{
             code: [
-            '$dialogue', '@org.thingpedia.dialogue.transaction.execute', ';',
-            'now', '=>', '(', '@com.yelp.restaurant', ')', 'filter', 'param:cuisines', 'contains', '"', 'chinese', '"', '^^com.yelp:restaurant_cuisine', '=>', 'notify', ';' ],
+            '$dialogue', '@org.thingpedia.dialogue.transaction', '.', 'execute', ';',
+            '@com.yelp', '.', 'restaurant', '(', ')', 'filter', 'contains', '(', 'cuisines', ',', 'null', '^^com.yelp:restaurant_cuisine', '(', '"', 'chinese', '"', ')', ')', ';' ],
             score: 1
         }]
     });
 
     const q2 = await parser.sendUtterance('how about something that serves italian food?',
-        '$dialogue @org.thingpedia.dialogue.transaction.execute ; now => ( @com.yelp.restaurant ) filter param:cuisines contains GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 => notify #[ results = [ ] ] ;'.split(' '), {
+        '$dialogue @org.thingpedia.dialogue.transaction . sys_empty_search ; @com.yelp . restaurant ( ) filter contains ( cuisines , GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ) #[ results = [ ] ] ;'.split(' '), {
             'GENERIC_ENTITY_com.yelp:restaurant_cuisine_0': { display: "Chinese", value: 'chinese' }
         });
     delete q2.intent;
@@ -153,8 +153,8 @@ async function testContextual() {
         },
         candidates: [{
             code: [
-            '$dialogue', '@org.thingpedia.dialogue.transaction.execute', ';',
-            'now', '=>', '(', '@com.yelp.restaurant', ')', 'filter', 'param:cuisines', 'contains', '"', 'italian', '"', '^^com.yelp:restaurant_cuisine', '=>', 'notify', ';' ],
+            '$dialogue', '@org.thingpedia.dialogue.transaction', '.', 'execute', ';',
+            '@com.yelp', '.', 'restaurant', '(', ')', 'filter', 'contains', '(', 'cuisines', ',', 'null', '^^com.yelp:restaurant_cuisine', '(', '"', 'italian', '"', ')', ')', ';' ],
             score: 1
         }]
     });
@@ -174,7 +174,7 @@ function testExpect() {
     const parser = Genie.ParserClient.get(Config.NL_SERVER_URL, 'en-US');
 
     return Promise.all([
-        expectAnswer(parser, '42', 'Number', 'bookkeeping answer NUMBER_0', { NUMBER_0: 42 }),
+        expectAnswer(parser, '42', 'Number', '$answer ( NUMBER_0 ) ;', { NUMBER_0: 42 }),
         parser.sendUtterance('yes', undefined, undefined, { expect: 'YesNo' }),
         parser.sendUtterance('21 C', undefined, undefined, { expect: 'Measure(C)' }),
         parser.sendUtterance('69 F', undefined, undefined, { expect: 'Measure(C)' }),
@@ -190,7 +190,7 @@ async function testMultipleChoice(text, expected) {
     });
 
     assert.deepStrictEqual(analyzed.entities, {});
-    assert.deepStrictEqual(analyzed.candidates[0].code, ['bookkeeping', 'choice', expected]);
+    assert.deepStrictEqual(analyzed.candidates[0].code, ['$choice', '(', expected, ')', ';']);
 
     const analyzed2 = await parser.sendUtterance(text, undefined, undefined, {
         expect: 'MultipleChoice',
@@ -198,20 +198,20 @@ async function testMultipleChoice(text, expected) {
     });
 
     assert.deepStrictEqual(analyzed2.entities, {});
-    assert.deepStrictEqual(analyzed2.candidates[0].code, ['bookkeeping', 'choice', expected]);
+    assert.deepStrictEqual(analyzed2.candidates[0].code, ['$choice', '(', expected, ')', ';']);
 }
 
 async function testOnlineLearn() {
     const parser = Genie.ParserClient.get(Config.NL_SERVER_URL, 'en-US');
 
-    console.log(await parser.onlineLearn('send sms', ['now', '=>', '@org.thingpedia.builtin.thingengine.phone.send_sms'], 'no'));
+    console.log(await parser.onlineLearn('send sms', ['@org.thingpedia.builtin.thingengine.phone', '.',  'send_sms', '(', ')', ';'], 'no'));
 
-    console.log(await parser.onlineLearn('abcdef', ['now', '=>', '@org.thingpedia.builtin.thingengine.phone.send_sms'], 'online'));
+    console.log(await parser.onlineLearn('abcdef', ['@org.thingpedia.builtin.thingengine.phone', '.',  'send_sms', '(', ')', ';'], 'online'));
     const analyzed = await parser.sendUtterance('abcdef');
 
     assert.deepStrictEqual(analyzed.candidates[0], {
         score: 'Infinity',
-        code: ['now', '=>', '@org.thingpedia.builtin.thingengine.phone.send_sms']
+        code: ['@org.thingpedia.builtin.thingengine.phone', '.',  'send_sms', '(', ')', ';']
     });
 }
 

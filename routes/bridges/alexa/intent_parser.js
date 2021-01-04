@@ -75,7 +75,7 @@ function parseDuration(form) {
         throw new Error(`invalid duration value ${form}`);
 
     if (measures.length > 1)
-        return new Ast.Value.Computation('+', measures, [Type.Measure('ms'), Type.Measure('ms'), Type.Measure('ms')], Type.Measure('ms'));
+        return new Ast.Value.Computation('+', measures, [new Type.Measure('ms'), new Type.Measure('ms'), new Type.Measure('ms')], new Type.Measure('ms'));
     else
         return measures[0];
 }
@@ -137,13 +137,13 @@ function alexaSlotToThingTalk(type, alexaSlot) {
 function applySlotsToProgram(locale, exampleCode, alexaSlots) {
     const language = I18n.localeToLanguage(locale);
     const dataset = `dataset @org.thingpedia language "${language}" { ${exampleCode} }`;
-    const parsed = ThingTalk.Grammar.parse(dataset).datasets[0].examples[0];
+    const parsed = ThingTalk.Syntax.parse(dataset).datasets[0].examples[0];
 
     const program = parsed.toProgram();
     const slotNames = Object.keys(parsed.args);
 
     for (let slot of program.iterateSlots2()) {
-        if (slot instanceof Ast.Selector)
+        if (slot instanceof Ast.DeviceSelector)
             continue;
 
         const value = slot.get();
