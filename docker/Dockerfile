@@ -19,18 +19,18 @@ RUN touch /var/lib/rpm/* && \
   curl -sL https://copr.fedorainfracloud.org/coprs/gcampax/bubblewrap/repo/epel-8/gcampax-bubblewrap-epel-8.repo -o /etc/yum.repos.d/gcampax-bubblewrap-epel-8.repo && \
   dnf module install -y nodejs:10 && \
   dnf -y install zip unzip GraphicsMagick bubblewrap sqlcipher sqlcipher-devel procps-ng \
-    python3 python3-pip git make gettext && \
+    python38 python38-pip git make gettext && \
   rm -rf /var/cache/dnf
 
 # HACK: we need to download the wheel manually or docker will die
-RUN curl -sL https://files.pythonhosted.org/packages/38/53/914885a93a44b96c0dd1c36f36ff10afe341f091230aad68f7228d61db1e/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl \
-  -o torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl && \
-  pip3 install torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl && \
-  rm -fr /root/.cache && \
-  rm -fr torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl
-RUN dnf -y install cmake gcc gcc-c++ python3-devel && \
+RUN curl -sL https://files.pythonhosted.org/packages/1d/a9/f349273a0327fdf20a73188c9c3aa7dbce68f86fad422eadd366fd2ed7a0/torch-1.7.1-cp38-cp38-manylinux1_x86_64.whl \
+           -o torch-1.7.1-cp38-cp38-manylinux1_x86_64.whl \
+        && pip3 install torch-1.7.1-cp38-cp38-manylinux1_x86_64.whl \
+        && rm -fr torch-1.7.1-cp38-cp38-manylinux1_x86_64.whl \
+        && rm -fr /root/.cache
+RUN dnf -y install cmake gcc gcc-c++ python38-devel && \
    pip3 install 'genienlp==0.6.0a1' awscli && \
-   dnf -y remove cmake gcc gcc-c++ python3-devel && \
+   dnf -y remove cmake gcc gcc-c++ python38-devel && \
    rm -fr /var/cache/dnf && \
    rm -fr /root/.cache
 
