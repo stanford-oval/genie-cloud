@@ -125,8 +125,16 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
     const existingMap = new Map;
     const toDelete = new Set;
 
-    const old = await exampleModel.getBaseBySchema(dbClient, schemaId, dataset.language);
-    const oldDataset = await DatasetUtils.examplesToDataset(dataset.name.substring(1), dataset.language, old, { editMode: true });
+    const old = await exampleModel.getBaseBySchema(dbClient, schemaId, dataset.language || 'en');
+    let oldDataset;
+    try {
+        oldDataset = await DatasetUtils.examplesToDataset(dataset.name, dataset.language || 'en', old, { editMode: true });
+    } catch(e) {
+        if (e.name !== 'SyntaxError')
+            throw e;
+        // ignore the old dataset if it's really old and obsolete
+        oldDataset = `dataset @${dataset.name} {}`;
+    }
 
     // if the datasets are byte by byte identical, skip everything and return false
     // this covers the case where the user did not touch the file at all
