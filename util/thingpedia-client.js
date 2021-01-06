@@ -209,10 +209,7 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
     _ensureDeviceFactory(device) {
         if (device.factory !== null)
             return typeof device.factory === 'string' ? JSON.parse(device.factory) : device.factory;
-
-        assert(/\s*\{/.test(device.code));
-        const classDef = ThingTalk.Ast.ClassDef.fromManifest(device.primary_kind, JSON.parse(device.code));
-        return FactoryUtils.makeDeviceFactory(classDef, device);
+        return null;
     }
 
     getDeviceFactories(klass) {
