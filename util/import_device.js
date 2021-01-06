@@ -155,7 +155,7 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
         if (example.id >= 0) {
             if (existingMap.has(example.id)) {
                 const existing = existingMap.get(example.id);
-                if (existing.target_code === code && existing.language === dataset.language &&
+                if (existing.target_code === code && existing.language === (dataset.language || 'en') &&
                     existing.name === example.annotations.name.toJS()) {
                     toDelete.delete(example.id);
                     if (existing.utterance !== example.utterances[0]) {
@@ -205,7 +205,7 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
                 target_code: ex.target_code,
                 target_json: '', // FIXME
                 type: 'thingpedia',
-                language: dataset.language,
+                language: dataset.language || 'en',
                 is_base: 1,
                 flags: 'template',
                 name: ex.name
@@ -250,7 +250,7 @@ function uploadZipFile(req, obj, stream) {
         } catch(e) {
             throw new BadRequestError("Invalid package.json: SyntaxError at line " + e.lineNumber + ": " + e.message);
         }
-        if (!parsed.name || !parsed.main)
+        if (!parsed.name || (!parsed.main && !zipFile.file('index.js')))
             throw new BadRequestError(req._("Invalid package.json (missing name or main)"));
 
         parsed['thingpedia-version'] = obj.developer_version;

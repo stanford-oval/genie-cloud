@@ -91,7 +91,7 @@ async function loadClassDef(dbClient, req, kind, classCode, datasetCode) {
 
     if (parsed.datasets.length > 1 || (parsed.datasets.length > 0 && parsed.datasets[0].name !== kind))
         throw new ValidationError("Invalid dataset file: must contain exactly one dataset, with the same identifier as the class");
-    if (parsed.datasets.length > 0 && parsed.datasets[0].language !== 'en')
+    if (parsed.datasets.length > 0 && parsed.datasets[0].language && parsed.datasets[0].language !== 'en')
         throw new ValidationError("The dataset must be for English: use `en` as the language tag.");
     const dataset = parsed.datasets.length > 0 ? parsed.datasets[0] :
         new ThingTalk.Ast.Dataset(null, kind, 'en', [], {});
@@ -411,7 +411,7 @@ function tokenizeOneExample(id, utterance, language) {
 async function tokenizeDataset(dataset) {
     return Promise.all(dataset.examples.map(async (ex, i) => {
         await Promise.all(ex.utterances.map(async (_, j) => {
-            ex.preprocessed[j] = await tokenizeOneExample(i+1, ex.utterances[j], dataset.language);
+            ex.preprocessed[j] = await tokenizeOneExample(i+1, ex.utterances[j], dataset.language || 'en');
         }));
     }));
 }
