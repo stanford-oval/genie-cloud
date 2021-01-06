@@ -83,6 +83,7 @@ async function checkAllImages(driver) {
         _checkedImages.add(src);
 
         // this is not exactly what the browser does
+        console.log('checking ' + src);
         const res = await Tp.Helpers.Http.getStream(src, { extraHeaders: {
             Referrer: currentUrl
         }});

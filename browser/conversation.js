@@ -161,7 +161,7 @@ $(() => {
         var thingpediaUrl = ThingEngine.getThingpedia();
         var src;
         if (thingpediaUrl !== '/thingpedia')
-            src = thingpediaUrl + '/api/devices/icon/' + icon;
+            src = thingpediaUrl + '/api/v3/devices/icon/' + icon;
         else
             src = CDN_HOST + '/icons/' + icon + '.png';
         msg.append($('<img>').addClass('icon').attr('src', src));
