@@ -206,7 +206,15 @@ function getDetails(fn, param, req, res) {
                 current_job_queues[job.job_type] = [job];
         }
 
-        const parsed = parseOldOrNewSyntax(code);
+        let parsed;
+        try {
+            parsed = parseOldOrNewSyntax(code);
+        } catch(e) {
+            if (e.name !== 'SyntaxError')
+                throw e;
+            // really obsolete device, likely a JSON manifest
+            parsed = parseOldOrNewSyntax(`abstract class @${device.primary_kind} { }`);
+        }
         assert(parsed.classes.length > 0);
         const classDef = parsed.classes[0];
 
@@ -295,7 +303,8 @@ router.post('/delete', iv.validatePOST({ kind: 'string' }), (req, res, next) => 
             throw new NotFoundError();
         }
 
-        return model.delete(dbClient, row.id);
+        await schemaModel.deleteByKind(dbClient, req.body.kind);
+        await model.delete(dbClient, row.id);
     }).then(() => {
         res.redirect(303, '/thingpedia/devices');
     }).catch(next);

@@ -125,8 +125,16 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
     const existingMap = new Map;
     const toDelete = new Set;
 
-    const old = await exampleModel.getBaseBySchema(dbClient, schemaId, dataset.language);
-    const oldDataset = await DatasetUtils.examplesToDataset(dataset.name.substring(1), dataset.language, old, { editMode: true });
+    const old = await exampleModel.getBaseBySchema(dbClient, schemaId, dataset.language || 'en');
+    let oldDataset;
+    try {
+        oldDataset = await DatasetUtils.examplesToDataset(dataset.name, dataset.language || 'en', old, { editMode: true });
+    } catch(e) {
+        if (e.name !== 'SyntaxError')
+            throw e;
+        // ignore the old dataset if it's really old and obsolete
+        oldDataset = `dataset @${dataset.name} {}`;
+    }
 
     // if the datasets are byte by byte identical, skip everything and return false
     // this covers the case where the user did not touch the file at all
@@ -147,7 +155,7 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
         if (example.id >= 0) {
             if (existingMap.has(example.id)) {
                 const existing = existingMap.get(example.id);
-                if (existing.target_code === code && existing.language === dataset.language &&
+                if (existing.target_code === code && existing.language === (dataset.language || 'en') &&
                     existing.name === example.annotations.name.toJS()) {
                     toDelete.delete(example.id);
                     if (existing.utterance !== example.utterances[0]) {
@@ -197,7 +205,7 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
                 target_code: ex.target_code,
                 target_json: '', // FIXME
                 type: 'thingpedia',
-                language: dataset.language,
+                language: dataset.language || 'en',
                 is_base: 1,
                 flags: 'template',
                 name: ex.name
@@ -242,7 +250,7 @@ function uploadZipFile(req, obj, stream) {
         } catch(e) {
             throw new BadRequestError("Invalid package.json: SyntaxError at line " + e.lineNumber + ": " + e.message);
         }
-        if (!parsed.name || !parsed.main)
+        if (!parsed.name || (!parsed.main && !zipFile.file('index.js')))
             throw new BadRequestError(req._("Invalid package.json (missing name or main)"));
 
         parsed['thingpedia-version'] = obj.developer_version;

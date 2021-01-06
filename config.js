@@ -447,14 +447,6 @@ module.exports.TRAINING_WATCH_NUM_TRIES = 5;
 module.exports.TENSORBOARD_DIR = null;
 
 /**
-  URL of documentation.
-
-  Set this to a string starting with `/doc` to enable the embedded documentation site. Alternatively,
-  point to a public website hosting your documentation.
-*/
-module.exports.DOCUMENTATION_URL = 'https://almond.stanford.edu/doc/getting-started.md';
-
-/**
   OAuth Client ID to support Login With Google
 */
 module.exports.GOOGLE_CLIENT_ID = null;

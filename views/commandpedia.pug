@@ -34,7 +34,7 @@ div#commandpedia
                   a(href='#')#results-fail-write-thingtalk= _("Write ThingTalk code manually.")
               div(hidden=true).form-group#thingtalk-group
                 label(for='input-command-thingtalk').control-label= _("ThingTalk Code")
-                a('href'='/doc/thingtalk-intro.md')= _(" (How to write ThingTalk?)")
+                a(href='https://wiki.almond.stanford.edu/thingtalk/guide')= _(" (How to write ThingTalk?)")
                 textarea.form-control#input-command-thingtalk(name="code", placeholder=_("Code Here..."))
                 span.help-block#thingtalk-error
                 p

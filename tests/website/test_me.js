@@ -73,14 +73,15 @@ async function testMyDevices(bob, nobody) {
     if (Config.WITH_THINGPEDIA === 'external') {
         await assertRedirect(sessionRequest('/me/devices/create', 'POST', {
             kind: 'org.thingpedia.rss',
-            url: 'https://almond.stanford.edu/blog/feed.rss'
+            url: 'https://almond.stanford.edu/blog/feed.rss',
+            name: 'almond blog',
         }, bob, { followRedirects: false }), '/me');
 
         // FIXME there should be a /me/api to list devices
         const [bobInfo] = await dbQuery(`select * from users where username = ?`, ['bob']);
         assert(bobInfo);
         const engine = await EngineManagerClient.get().getEngine(bobInfo.id);
-        const device = await engine.getDeviceInfo('org.thingpedia.rss-url:https://almond.stanford.edu/blog/feed.rss');
+        const device = await engine.getDeviceInfo('org.thingpedia.rss-name:almond blog-url:https://almond.stanford.edu/blog/feed.rss');
         assert(device);
 
         await assertLoginRequired(sessionRequest('/me/devices/delete', 'POST', { id: 'foo' }, nobody));
@@ -91,9 +92,9 @@ async function testMyDevices(bob, nobody) {
         await assertHttpError(sessionRequest('/me/devices/delete', 'POST', { id: 'com.foo' }, bob),
             404, 'Not found.');
 
-        await sessionRequest('/me/devices/delete', 'POST', { id: 'org.thingpedia.rss-url:https://almond.stanford.edu/blog/feed.rss' }, bob);
+        await sessionRequest('/me/devices/delete', 'POST', { id: 'org.thingpedia.rss-name:almond blog-url:https://almond.stanford.edu/blog/feed.rss' }, bob);
 
-        assert(!await engine.hasDevice('org.thingpedia.rss-url:https://almond.stanford.edu/blog/feed.rss'));
+        assert(!await engine.hasDevice('org.thingpedia.rss-name:almond blog-url:https://almond.stanford.edu/blog/feed.rss'));
 
 
         await assertLoginRequired(sessionRequest('/me/devices/oauth2/com.linkedin', 'POST', { id: 'foo' }, nobody));

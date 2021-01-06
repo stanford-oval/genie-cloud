@@ -19,7 +19,7 @@ block content
         section.divider
           h3= _("Your OAuth Applications")
 
-          p!= _("OAuth apps allow you to develop software that accesses Almond as a service, for example in a smart speaker. For further information, see the <a href='/doc/my-api.md'>Web Almond API Guide</a>.")
+          p!= _("OAuth apps allow you to develop software that accesses Almond as a service, for example in a smart speaker. For further information, see the <a href='https://wiki.almond.stanford.edu/api-references/almond'>Web Almond API Guide</a>.")
           if developer_oauth2_clients.length > 0
             ul#developer-oauth-list
               each client, i in developer_oauth2_clients

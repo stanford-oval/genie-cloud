@@ -64,6 +64,33 @@ everything.options('/[^]{0,}', (req, res, next) => {
     res.send('');
 });
 
+// expose some legacy unversioned endpoints that were used until recently by
+// the browser code of Almond
+everything.get('/devices', (req, res, next) => {
+    if (!isValidDeviceClass(req, res))
+        return;
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    client.getDeviceFactories(req.query.class).then((obj) => {
+        // convert to v1 format
+        obj = obj.map((d) => {
+            return {
+                primary_kind: d.kind,
+                name: d.text,
+                factory: d
+            };
+        });
+
+        res.cacheFor(86400000);
+        res.json(obj);
+    }).catch(next);
+});
+
+everything.get('/devices/icon/:kind', (req, res) => {
+    // cache for forever, this redirect will never expire
+    res.cacheFor(6, 'months');
+    res.redirect(301, Config.CDN_HOST + '/icons/' + req.params.kind + '.png');
+});
+
 const v3 = express.Router();
 
 // NOTES on versioning
@@ -256,12 +283,7 @@ v3.get('/devices/setup/:kinds', (req, res, next) => {
 v3.get('/devices/icon/:kind', (req, res) => {
     // cache for forever, this redirect will never expire
     res.cacheFor(6, 'months');
-
-    if (req.query.style && /^[0-9]+$/.test(req.query.style)
-        && req.query.style >= 1 && req.query.style <= 8)
-       res.redirect(301, Config.CDN_HOST + '/icons/style-' + req.query.style + '/' + req.params.kind + '.png');
-    else
-       res.redirect(301, Config.CDN_HOST + '/icons/' + req.params.kind + '.png');
+    res.redirect(301, Config.CDN_HOST + '/icons/' + req.params.kind + '.png');
 });
 
 /**

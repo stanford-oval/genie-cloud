@@ -762,24 +762,6 @@ router.post('/delete', userUtils.requireLogIn, (req, res, next) => {
     }).catch(next);
 });
 
-router.get('/request-developer', userUtils.requireLogIn, (req, res, next) => {
-    if (req.user.developer_status >= userUtils.DeveloperStatus.DEVELOPER) {
-        res.render('error', { page_title: req._("Thingpedia - Error"),
-                              message: req._("You are already an enrolled developer.") });
-        return;
-    }
-    if (!req.user.email_verified) {
-        res.render('error', { page_title: req._("Thingpedia - Error"),
-                              message: req._("You must validate your email address before you can apply to be a Thingpedia developer.") });
-        return;
-    }
-
-    res.render('developer_access_required',
-               { page_title: req._("Thingpedia - Developer Program"),
-                 title: req._("Become a Thingpedia Developer"),
-                 csrfToken: req.csrfToken() });
-});
-
 function sendNewOrgNotificationEmail(req) {
     const mailOptions = {
         from: Config.EMAIL_FROM_ADMIN,
@@ -803,6 +785,25 @@ ${(req.body.comments || '').trim()}
 
     return SendMail.send(mailOptions);
 }
+
+if (Config.ENABLE_DEVELOPER_PROGRAM) {
+router.get('/request-developer', userUtils.requireLogIn, (req, res, next) => {
+    if (req.user.developer_status >= userUtils.DeveloperStatus.DEVELOPER) {
+        res.render('error', { page_title: req._("Thingpedia - Error"),
+                              message: req._("You are already an enrolled developer.") });
+        return;
+    }
+    if (!req.user.email_verified) {
+        res.render('error', { page_title: req._("Thingpedia - Error"),
+                              message: req._("You must validate your email address before you can apply to be a Thingpedia developer.") });
+        return;
+    }
+
+    res.render('developer_access_required',
+               { page_title: req._("Thingpedia - Developer Program"),
+                 title: req._("Become a Thingpedia Developer"),
+                 csrfToken: req.csrfToken() });
+});
 
 router.post('/request-developer', userUtils.requireLogIn, iv.validatePOST({ name: 'string', company: '?string', reason: '?string', comments: '?string' }), (req, res, next) => {
     if (req.user.developer_org !== null) {
@@ -845,6 +846,7 @@ router.post('/request-developer', userUtils.requireLogIn, iv.validatePOST({ name
         res.render('developer_access_ok', { page_title: req._("Thingpedia - Developer Program") });
     }).catch(next);
 });
+}
 
 router.post('/token', userUtils.requireLogIn, (req, res, next) => {
     // issue an access token for valid for one month, with all scopes

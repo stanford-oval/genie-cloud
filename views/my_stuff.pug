@@ -31,7 +31,7 @@ mixin device_list(devices)
                 if WITH_THINGPEDIA === 'embedded'
                   img(src=CDN_HOST + '/icons/' + dev.kind + '.png', alt="Icon for " + dev.name)
                 else
-                  img(src=THINGPEDIA_URL + '/api/devices/icon/' + dev.kind, alt="Icon for " + dev.name)
+                  img(src=THINGPEDIA_URL + '/api/v3/devices/icon/' + dev.kind, alt="Icon for " + dev.name)
               p= dev.description
 
               if dev.class === 'physical'

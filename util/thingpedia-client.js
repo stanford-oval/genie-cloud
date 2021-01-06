@@ -19,7 +19,6 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
 const semver = require('semver');
 
 const Tp = require('thingpedia');
@@ -38,7 +37,6 @@ const stringModel = require('../model/strings');
 
 const DatasetUtils = require('./dataset');
 const SchemaUtils = require('./manifest_to_schema');
-const FactoryUtils = require('./device_factories');
 const I18n = require('./i18n');
 const codeStorage = require('./code_storage');
 const { NotFoundError, ForbiddenError, BadRequestError } = require('./errors');
@@ -209,10 +207,7 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
     _ensureDeviceFactory(device) {
         if (device.factory !== null)
             return typeof device.factory === 'string' ? JSON.parse(device.factory) : device.factory;
-
-        assert(/\s*\{/.test(device.code));
-        const classDef = ThingTalk.Ast.ClassDef.fromManifest(device.primary_kind, JSON.parse(device.code));
-        return FactoryUtils.makeDeviceFactory(classDef, device);
+        return null;
     }
 
     getDeviceFactories(klass) {

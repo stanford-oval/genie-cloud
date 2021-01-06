@@ -10,11 +10,10 @@ ul.nav.navbar-nav
     li
       a(href='/thingpedia')= _("Thingpedia")
   li
-    a(href=Config.DOCUMENTATION_URL)= _("Docs")
-  if Config.ENABLE_DEVELOPER_PROGRAM
-    if authenticated && user.developer_org
-      li
-        a(href='/developers')= _("Console")
+    a(href='https://wiki.almond.stanford.edu')= _("Docs")
+  if authenticated && user.developer_org
+    li
+      a(href='/developers')= _("Console")
   if authenticated && (user.roles & Constants.Role.ALL_ADMIN) !== 0
     li
       a(href="/admin")= _("Admin")
