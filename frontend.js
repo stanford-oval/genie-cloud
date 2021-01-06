@@ -279,9 +279,6 @@ class Frontend {
         this._app.use('/me/status', require('./routes/status'));
         this._app.use('/devices', require('./routes/devices_compat'));
 
-        if (Config.DOCUMENTATION_URL.startsWith('/doc'))
-            this._app.use('/doc', require('./routes/doc'));
-
         this._app.use('/developers', require('./routes/developer_console'));
         if (Config.WITH_THINGPEDIA === 'embedded')
             this._app.use('/developers/alexa', require('./routes/developer_alexa'));

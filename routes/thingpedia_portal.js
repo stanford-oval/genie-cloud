@@ -40,15 +40,4 @@ router.get('/training', (req, res, next) => {
     res.redirect(301, '/developers/train#sentence-to-code-block');
 });
 
-router.get('/developers/:page', (req, res, next) => {
-    if (req.params.page.endsWith('.md'))
-        res.redirect(301, '/doc/' + req.params.page);
-    else
-        next();
-});
-
-router.use('/developers', (req, res, next) => {
-    res.redirect(301, '/developers');
-});
-
 module.exports = router;

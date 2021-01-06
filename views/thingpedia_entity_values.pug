@@ -2,54 +2,40 @@ extends layout
 
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
-  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/dev_sidebar.css')
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia-devices.css')
 
-block scripts
-  script(src=Config.ASSET_CDN + '/javascripts/docsearch.js')
-
 block page_name
-  - stdlayout = false;
-  - var currentPage = 'thingpedia-entity-list';
-  = _("Thingpedia Developer Portal")
+  = _("Entity: %s").format(entity.name)
 
 block content
-  div.container-fluid#page-body
-    div.row
-      div.col-lg-3.col-md-4
-        include doc_sidebar
-
-      div.col-xs-12.col-md-8.col-lg-9
-        h3= _("Entity: %s").format(entity.name)
-
-        if entity.id === 'tt:device'
-          p
-            = _("This entity type refers to the ID of a device in Thingpedia (e.g. com.twitter or com.hue).")
-            |
-            = _("In natural language, this entity is represented using the Thingpedia device name (e.g. Twitter or Philips Hue).")
-          p
-            a(href='/thingpedia')
-              = _("Go to the list of all devices.")
-        else if entity.id === 'tt:function'
-          p!= _("This entity type refers to a Thingpedia function, using the syntax <i>classname</i>:<i>functionname</i>, e.g. <code>com.twitter:post</code>. This entity type is not accessible from natural language.")
-        else if entity.id === 'tt:program'
-          p!= _("This entity type refers to a full ThingTalk program. It is used by <code>@<a href='/thingpedia/devices/by-id/org.thingpedia.builtin.thingengine.builtin'>org.thingpedia.builtin.thingengine.builtin</a>.get_commands</code> to return the example commands. This entity type is not accessible from natural language.")
-        else if entity.id === 'tt:flow_token'
-          p!= _("This entity type refers to the identifier of a <i>flow</i>, which connects two communicating ThingTalk programs. It is used by Communicating Almond, and is not accessible from natural language.")
-        else if entity.id === 'tt:picture'
-          p!= _("This entity type refers to the URL of a picture. Constants of this entity type cannot be expressed in natural language.")
-        else if entity.is_well_known
-          p= _("This entity type uses special syntax in the semantic parser.")
-        else if !entity.has_ner_support
-          p= _("This entity is an opaque identifier and is not accessible from natural language.")
-        else
-          table.table
-            thead
-              tr
-                th= _("Value")
-                th= _("Name")
-            tbody
-              for v in values
-                tr
-                  td= v.entity_value
-                  td= v.entity_name
+  if entity.id === 'tt:device'
+    p
+      = _("This entity type refers to the ID of a device in Thingpedia (e.g. com.twitter or com.hue).")
+      |
+      = _("In natural language, this entity is represented using the Thingpedia device name (e.g. Twitter or Philips Hue).")
+    p
+      a(href='/thingpedia')
+        = _("Go to the list of all devices.")
+  else if entity.id === 'tt:function'
+    p!= _("This entity type refers to a Thingpedia function, using the syntax <i>classname</i>:<i>functionname</i>, e.g. <code>com.twitter:post</code>. This entity type is not accessible from natural language.")
+  else if entity.id === 'tt:program'
+    p!= _("This entity type refers to a full ThingTalk program. It is used by <code>@<a href='/thingpedia/devices/by-id/org.thingpedia.builtin.thingengine.builtin'>org.thingpedia.builtin.thingengine.builtin</a>.get_commands</code> to return the example commands. This entity type is not accessible from natural language.")
+  else if entity.id === 'tt:flow_token'
+    p!= _("This entity type refers to the identifier of a <i>flow</i>, which connects two communicating ThingTalk programs. It is used by Communicating Almond, and is not accessible from natural language.")
+  else if entity.id === 'tt:picture'
+    p!= _("This entity type refers to the URL of a picture. Constants of this entity type cannot be expressed in natural language.")
+  else if entity.is_well_known
+    p= _("This entity type uses special syntax in the semantic parser.")
+  else if !entity.has_ner_support
+    p= _("This entity is an opaque identifier and is not accessible from natural language.")
+  else
+    table.table
+      thead
+        tr
+          th= _("Value")
+          th= _("Name")
+      tbody
+        for v in values
+          tr
+            td= v.entity_value
+            td= v.entity_name

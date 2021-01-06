@@ -10,7 +10,7 @@ ul.nav.navbar-nav
     li
       a(href='/thingpedia')= _("Thingpedia")
   li
-    a(href=Config.DOCUMENTATION_URL)= _("Docs")
+    a(href='https://wiki.almond.stanford.edu')= _("Docs")
   if authenticated && user.developer_org
     li
       a(href='/developers')= _("Console")

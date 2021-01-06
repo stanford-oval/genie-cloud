@@ -2,120 +2,104 @@ extends layout
 
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
-  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/dev_sidebar.css')
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia-devices.css')
 
-block scripts
-  script(src=Config.ASSET_CDN + '/javascripts/docsearch.js')
-
 block page_name
-  - stdlayout = false;
-  - var currentPage = 'thingpedia-string-type-list';
-  = _("Documentation")
+  = _("String Datasets")
 
 block content
-  div.container-fluid#page-body
+  if authenticated && user.developer_status >= Constants.DeveloperStatus.DEVELOPER
     div.row
-      div.col-lg-3.col-md-4
-        include doc_sidebar
+      div.col-sm-6.col-md-4
+        a(href='#new-string-type-dialog',data-toggle='modal').btn.btn-block.btn-sm.btn-default= _("Upload a new string dataset")
+    div.modal.fade(role='dialog')#new-string-type-dialog
+      div.modal-dialog
+        div.modal-content
+          div.modal-header
+            a.close(data-dismiss='modal', aria-label="Close")
+              span(aria-hidden='true') ×
 
-      div.col-xs-12.col-md-8.col-lg-9
-        h3= _("String Datasets")
+            h4.modal-title= _("New String Dataset")
+          form(action='/thingpedia/strings/create', enctype='multipart/form-data', method='post', data-toggle='validator')
+            input(type='hidden',name='_csrf',value=csrfToken)
 
-        if authenticated && user.developer_status >= Constants.DeveloperStatus.DEVELOPER
-          div.row
-            div.col-sm-6.col-md-4
-              a(href='#new-string-type-dialog',data-toggle='modal').btn.btn-block.btn-sm.btn-default= _("Upload a new string dataset")
-          div.modal.fade(role='dialog')#new-string-type-dialog
-            div.modal-dialog
-              div.modal-content
-                div.modal-header
-                  a.close(data-dismiss='modal', aria-label="Close")
-                    span(aria-hidden='true') ×
+            div.modal-body
+              div.form-group
+                label(for='new-string-type-name').control-label= _("Dataset ID")
+                input(type='text',name='type_name').form-control#new-string-type-name
+                span.help-block
+                  != _("The ID is used to refer to the dataset in a <code>#[string_values='']</code> annotation.")
+                  if (user.roles & Constants.Role.THINGPEDIA_ADMIN) === 0
+                    |
+                    != _("It must be of the form <var>prefix</var>:<var>suffix</var>, where <var>prefix</var> is the ID of a device you control, and <var>suffix</var> is an identifier.")
+              div.form-group
+                label(for='new-string-name').control-label= _("Description")
+                input(type='text',name='name').form-control#new-string-name
+                span.help-block= _("This description will be shown on the documentation")
+              div.form-group
+                label(for='new-string-upload').control-label= _("List of values")
+                input(type='file',name='upload',accept='text/tab-separated-value')#new-string-upload
+                span.help-block
+                  != _("Upload a TSV (tab separated) file with all the values for this entity, one per line. The file should be formatted as <code><var>value</var>&lt;tab&gt;<var>weight</var></code>, where <var>value</var> is the string value and <var>weight</var> is the unnormalized sampling probability for this value. Including weights in the file is optional. If the weights are provided, the dataset used for training will reflect the given distribution. If weights are omitted for any row, they default to 1.0.")
+              div.form-group
+                div.checkbox
+                  label(for='new-string-preprocessed').control-label
+                    input(type='checkbox',name='preprocessed',value='1',checked=false)#new-string-preprocessed
+                    = _(" The input file is already tokenized.")
+              div.form-group
+                label(for='new-string-license').control-label= _("License")
+                select(name='license').form-control#new-string-license
+                  option(value='public-domain',selected=true)= _("Public domain")
+                  option(value='free-permissive')= _("Free (permissive)")
+                  option(value='free-copyleft')= _("Free (GPL-compatible copyleft)")
+                  option(value='non-commercial')= _("Non Commercial (incl. academic licenses)")
+                  option(value='proprietary')= _("Proprietary")
+                span.help-block
+                  != _("By submitting this dataset, you agree to license it with the above choice of license, in accordance with the <a href='/about/tos'>Terms of Service</a>. You must not upload datasets for which you do not have the relevant licenses. Proprietary datasets will not be downloadable, and will only be used to train the natural language model for Almond.")
+              div.form-group
+                label(for='new-string-attribution').control-label= _("Attribution")
+                textarea(name='attribution').form-control#new-string-attribution
+                span.help-block= _("Use this field to provide details of the copyright and attribution, including any citations of relevant papers.")
+            div.modal-footer
+              div.form-group
+                button(type='submit').btn.btn-primary= _("Upload")
 
-                  h4.modal-title= _("New String Dataset")
-                form(action='/thingpedia/strings/create', enctype='multipart/form-data', method='post', data-toggle='validator')
-                  input(type='hidden',name='_csrf',value=csrfToken)
+  div.list-group#thingpedia-string-type-list
+    for st in stringTypes
+      li.list-group-item.clearfix
+        div.pull-left
+          h4= st.type_name
+          p= st.name
+        if authenticated
+          div.pull-right
+            if st.license === 'proprietary'
+              a(href='#', title=_("This dataset is proprietary and cannot be downloaded")).btn.btn-sm.btn-default.disabled= _("Download")
+            else
+              - var id = st.type_name.replace(/[^a-zA-Z0-9]/g, '_');
+              a(href='#' + id,data-toggle='modal').btn.btn-sm.btn-default= _("Download")
+              div.modal.fade(id=id, role='dialog')
+                div.modal-dialog
+                  div.modal-content
+                    div.modal-header
+                      a.close(data-dismiss='modal', aria-label=_("Close"))
+                        span(aria-hidden='true') ×
 
-                  div.modal-body
-                    div.form-group
-                      label(for='new-string-type-name').control-label= _("Dataset ID")
-                      input(type='text',name='type_name').form-control#new-string-type-name
-                      span.help-block
-                        != _("The ID is used to refer to the dataset in a <code>#[string_values='']</code> annotation.")
-                        if (user.roles & Constants.Role.THINGPEDIA_ADMIN) === 0
-                          |
-                          != _("It must be of the form <var>prefix</var>:<var>suffix</var>, where <var>prefix</var> is the ID of a device you control, and <var>suffix</var> is an identifier.")
-                    div.form-group
-                      label(for='new-string-name').control-label= _("Description")
-                      input(type='text',name='name').form-control#new-string-name
-                      span.help-block= _("This description will be shown on the documentation")
-                    div.form-group
-                      label(for='new-string-upload').control-label= _("List of values")
-                      input(type='file',name='upload',accept='text/tab-separated-value')#new-string-upload
-                      span.help-block
-                        != _("Upload a TSV (tab separated) file with all the values for this entity, one per line. The file should be formatted as <code><var>value</var>&lt;tab&gt;<var>weight</var></code>, where <var>value</var> is the string value and <var>weight</var> is the unnormalized sampling probability for this value. Including weights in the file is optional. If the weights are provided, the dataset used for training will reflect the given distribution. If weights are omitted for any row, they default to 1.0.")
-                    div.form-group
-                      div.checkbox
-                        label(for='new-string-preprocessed').control-label
-                          input(type='checkbox',name='preprocessed',value='1',checked=false)#new-string-preprocessed
-                          = _(" The input file is already tokenized.")
-                    div.form-group
-                      label(for='new-string-license').control-label= _("License")
-                      select(name='license').form-control#new-string-license
-                        option(value='public-domain',selected=true)= _("Public domain")
-                        option(value='free-permissive')= _("Free (permissive)")
-                        option(value='free-copyleft')= _("Free (GPL-compatible copyleft)")
-                        option(value='non-commercial')= _("Non Commercial (incl. academic licenses)")
-                        option(value='proprietary')= _("Proprietary")
-                      span.help-block
-                        != _("By submitting this dataset, you agree to license it with the above choice of license, in accordance with the <a href='/about/tos'>Terms of Service</a>. You must not upload datasets for which you do not have the relevant licenses. Proprietary datasets will not be downloadable, and will only be used to train the natural language model for Almond.")
-                    div.form-group
-                      label(for='new-string-attribution').control-label= _("Attribution")
-                      textarea(name='attribution').form-control#new-string-attribution
-                      span.help-block= _("Use this field to provide details of the copyright and attribution, including any citations of relevant papers.")
-                  div.modal-footer
-                    div.form-group
-                      button(type='submit').btn.btn-primary= _("Upload")
+                      h4.modal-title= _("Download Dataset")
 
-        div.list-group#thingpedia-string-type-list
-          for st in stringTypes
-            li.list-group-item.clearfix
-              div.pull-left
-                h4= st.type_name
-                p= st.name
-              if authenticated
-                div.pull-right
-                  if st.license === 'proprietary'
-                    a(href='#', title=_("This dataset is proprietary and cannot be downloaded")).btn.btn-sm.btn-default.disabled= _("Download")
-                  else
-                    - var id = st.type_name.replace(/[^a-zA-Z0-9]/g, '_');
-                    a(href='#' + id,data-toggle='modal').btn.btn-sm.btn-default= _("Download")
-                    div.modal.fade(id=id, role='dialog')
-                      div.modal-dialog
-                        div.modal-content
-                          div.modal-header
-                            a.close(data-dismiss='modal', aria-label=_("Close"))
-                              span(aria-hidden='true') ×
+                    div.modal-body
+                      p= _("You are about to download the “%s” dataset.").format(st.name)
 
-                            h4.modal-title= _("Download Dataset")
+                      if st.license !== 'public-domain'
+                        if st.license === 'non-commercial'
+                          p= _("This dataset is available only for non-commercial research use. By downloading this dataset, you agree to be bound by license agreement, including any attribution clause.")
+                        else
+                          p= _("Please review the license of this dataset before downloading it.")
+                        h5.license-header=_("License & Attribution")
+                        p
+                          pre= st.attribution
+                      else if st.attribution
+                        p= _("While this dataset is in the public domain, the author of this dataset has asked that you provide attribution if you use it:")
+                        p
+                          pre= st.attribution
 
-                          div.modal-body
-                            p= _("You are about to download the “%s” dataset.").format(st.name)
-
-                            if st.license !== 'public-domain'
-                              if st.license === 'non-commercial'
-                                p= _("This dataset is available only for non-commercial research use. By downloading this dataset, you agree to be bound by license agreement, including any attribution clause.")
-                              else
-                                p= _("Please review the license of this dataset before downloading it.")
-                              h5.license-header=_("License & Attribution")
-                              p
-                                pre= st.attribution
-                            else if st.attribution
-                              p= _("While this dataset is in the public domain, the author of this dataset has asked that you provide attribution if you use it:")
-                              p
-                                pre= st.attribution
-
-                            a(href='/thingpedia/strings/download/'+st.type_name).btn.btn-primary.btn-block= _("Download")
-
-                      
+                      a(href='/thingpedia/strings/download/'+st.type_name).btn.btn-primary.btn-block= _("Download")

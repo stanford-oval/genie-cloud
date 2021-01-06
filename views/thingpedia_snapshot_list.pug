@@ -2,57 +2,43 @@ extends layout
 
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
-  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/dev_sidebar.css')
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia-devices.css')
 
-block scripts
-  script(src=Config.ASSET_CDN + '/javascripts/docsearch.js')
-
 block page_name
-  - stdlayout = false;
-  - var currentPage = 'thingpedia-snapshot-list';
-  = _("Documentation")
+  = _("Thingpedia Snapshots")
 
 block content
-  div.container-fluid#page-body
-    div.row
-      div.col-lg-3.col-md-4
-        include doc_sidebar
+  ul.list-group#thingpedia-snapshot-list
+    for s in snapshots.slice(0, 20)
+      li.list-group-item
+        h4= _("[%d] %s").format(s.snapshot_id, s.description)
+        p= _("Created on %s").format(s.date.toLocaleString(user ? user.locale : undefined, { timeZone: user ? user.timezone : undefined }))
+        p
+          a.btn.btn-default.btn-small(href='/thingpedia/api/v3/snapshot/' + s.snapshot_id)
+            = _("Download types")
+          |
+          |
+          a.btn.btn-default.btn-small(href='/thingpedia/api/v3/snapshot/' + s.snapshot_id + '?meta=1')
+            = _("Download metadata")
 
-      div.col-xs-12.col-md-8.col-lg-9
-        h3= _("Thingpedia Snapshots")
+  nav
+    ul.pager
+      if page_num > 0
+        li
+          a(href='/thingpedia/devices?page=' + (page_num-1))= _("Previous")
+      if snapshots.length > 20
+        li
+          a(href='/thingpedia/devices?page=' + (page_num+1))= _("Next")
 
-        ul.list-group#thingpedia-snapshot-list
-          for s in snapshots.slice(0, 20)
-            li.list-group-item
-              h4= _("[%d] %s").format(s.snapshot_id, s.description)
-              p= _("Created on %s").format(s.date.toLocaleString(user ? user.locale : undefined, { timeZone: user ? user.timezone : undefined }))
-              p
-                a.btn.btn-default.btn-small(href='/thingpedia/api/v3/snapshot/' + s.snapshot_id)
-                  = _("Download types")
-                |
-                |
-                a.btn.btn-default.btn-small(href='/thingpedia/api/v3/snapshot/' + s.snapshot_id + '?meta=1')
-                  = _("Download metadata")
+  if authenticated && (user.roles & Constants.Role.THINGPEDIA_ADMIN) !== 0
+    div.panel.panel-default
+      p.panel-heading= _("Create a new snapshot")
+      div.panel-body
+        form(action='/thingpedia/snapshots/create', method='post', data-toggle='validator')
+          input(type='hidden',name='_csrf',value=csrfToken)
+          div.form-group
+            label(for='new-description').control-label= _("Description")
+            input(type='text',name='description').form-control#new-description
 
-        nav
-          ul.pager
-            if page_num > 0
-              li
-                a(href='/thingpedia/devices?page=' + (page_num-1))= _("Previous")
-            if snapshots.length > 20
-              li
-                a(href='/thingpedia/devices?page=' + (page_num+1))= _("Next")
-
-        if authenticated && (user.roles & Constants.Role.THINGPEDIA_ADMIN) !== 0
-          div.panel.panel-default
-            p.panel-heading= _("Create a new snapshot")
-            div.panel-body
-              form(action='/thingpedia/snapshots/create', method='post', data-toggle='validator')
-                input(type='hidden',name='_csrf',value=csrfToken)
-                div.form-group
-                  label(for='new-description').control-label= _("Description")
-                  input(type='text',name='description').form-control#new-description
-
-                div.form-group
-                  button(type='submit').btn.btn-primary= _("Create")
+          div.form-group
+            button(type='submit').btn.btn-primary= _("Create")
