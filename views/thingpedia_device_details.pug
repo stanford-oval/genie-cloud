@@ -88,7 +88,7 @@ block content
     p
       i= _("This is a builtin device in certain versions of Almond. It may not be available in the Almond you are using.")
 
-  if classDef.extends !== null
+  if classDef.extends.length > 0
     p!= _("This device extends the functionality of %s.").format(classDef.extends.map((k) => '<a href="/thingpedia/devices/by-id/' + k + '">@' + k + '</a>').join(', '))
 
   p
@@ -189,6 +189,7 @@ block content
               else
                 = _("%s [%s]").format(a.canonical, a.metadata.human_readable_type)
 
+    if inv.args.filter((argname) => !inv.isArgInput(argname)).length > 0
       section
         h4= _("Results:")
         ul
