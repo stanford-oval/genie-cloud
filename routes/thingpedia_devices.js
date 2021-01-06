@@ -303,7 +303,8 @@ router.post('/delete', iv.validatePOST({ kind: 'string' }), (req, res, next) => 
             throw new NotFoundError();
         }
 
-        return model.delete(dbClient, row.id);
+        await schemaModel.deleteByKind(dbClient, req.body.kind);
+        await model.delete(dbClient, row.id);
     }).then(() => {
         res.redirect(303, '/thingpedia/devices');
     }).catch(next);
