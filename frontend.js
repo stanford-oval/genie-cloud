@@ -256,11 +256,9 @@ class Frontend {
         }
         if (Config.WITH_LUINET === 'embedded') {
             this._app.use('/luinet/templates', require('./routes/luinet_templates'));
-            if (Config.ENABLE_DEVELOPER_PROGRAM)
-                this._app.use('/developers/mturk', require('./routes/developer_mturk'));
+            this._app.use('/developers/mturk', require('./routes/developer_mturk'));
         }
-        if (Config.ENABLE_DEVELOPER_PROGRAM)
-            this._app.use('/developers/oauth', require('./routes/developer_oauth2'));
+        this._app.use('/developers/oauth', require('./routes/developer_oauth2'));
         this._app.use('/admin/blog/upload', require('./routes/admin_upload'));
 
         this._app.use(csurf({ cookie: false }));
@@ -284,11 +282,9 @@ class Frontend {
         if (Config.DOCUMENTATION_URL.startsWith('/doc'))
             this._app.use('/doc', require('./routes/doc'));
 
-        if (Config.ENABLE_DEVELOPER_PROGRAM) {
-            this._app.use('/developers', require('./routes/developer_console'));
-            if (Config.WITH_THINGPEDIA === 'embedded')
-                this._app.use('/developers/alexa', require('./routes/developer_alexa'));
-        }
+        this._app.use('/developers', require('./routes/developer_console'));
+        if (Config.WITH_THINGPEDIA === 'embedded')
+            this._app.use('/developers/alexa', require('./routes/developer_alexa'));
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
             this._app.use('/thingpedia', require('./routes/thingpedia_portal'));

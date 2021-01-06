@@ -97,7 +97,10 @@ block content
                   |
                   a(href='/developers/organization/accept-invitation/' + org.id_hash).btn.btn-success.btn-sm= _("Accept")
           else
-            p.form-control-static!= _("None (<a href='/user/request-developer'>apply to be a developer</a>)")
+            if Config.ENABLE_DEVELOPER_PROGRAM
+              p.form-control-static!= _("None (<a href='/user/request-developer'>apply to be a developer</a>)")
+            else
+              p.form-control-static= _("None")
 
         if user.developer_org !== null
           div.form-group
