@@ -74,17 +74,17 @@ $(function() {
     }
 
     const developerKey = document.body.dataset.developerKey;
-    const url = getThingpedia() + '/api/devices?developer_key=' + developerKey;
-    $.get(url, function(factoryList) {
+    const url = getThingpedia() + '/api/v3/devices/setup?developer_key=' + developerKey;
+    $.get(url, function(result) {
         const container = $('#online-account-selector');
 
-        for (let i = 0; i < factoryList.length; i += 3) {
+        for (let i = 0; i < result.data.length; i += 3) {
             const row = $('<div>').addClass('row');
             container.append(row);
 
-            for (let j = 0; j < Math.min(3, factoryList.length - i); j++) {
-                const f = factoryList[i + j];
-                row.append(handleOnlineAccountFactory(f.factory, f.primary_kind, f.name));
+            for (let j = 0; j < Math.min(3, result.data.length - i); j++) {
+                const f = result.data[i + j];
+                row.append(handleOnlineAccountFactory(f, f.kind, f.text));
             }
         }
     });
