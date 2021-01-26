@@ -357,6 +357,22 @@ module.exports.NL_EXACT_MATCH_DIR = './exact';
 module.exports.NL_SERVICE_NAME = 'nlp';
 
 /**
+  Kubeflow Serving Inference Service Ingress
+
+  The local cluster endpoint to kf-serving inference service.
+*/
+module.exports.KF_INFERENCE_INGRESS = null;
+
+/**
+  Kubeflow Serving Inference Service Domain
+
+  Domain of Host http header in the kf-serving predict request. 
+  Inference service name (or model name) is the host. This header is used
+  to map the request to the right model server.
+*/
+module.exports.KF_INFERENCE_DOMAIN = null;
+
+/**
   Training server URL.
 
   This URL will be called from the Thingpedia web server when a new device

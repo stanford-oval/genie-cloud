@@ -129,6 +129,12 @@ module.exports = class NLPModel {
         this.tag = spec.tag;
         this.locale = spec.language;
         this.trained = spec.trained;
+        this.options = {
+            id: this.id,
+            nprocesses: nprocesses,
+            kf_inference_ingress: Config.KF_INFERENCE_INGRESS,
+            kf_inference_domain: Config.KF_INFERENCE_DOMAIN,
+        }
 
         if (spec.use_exact)
             this.exact = service.getExact(spec.language);
@@ -174,7 +180,7 @@ module.exports = class NLPModel {
 
         const oldpredictor = this.predictor;
         this.predictor = Genie.ParserClient.get('file://' + path.resolve(this._localdir), this.locale, this._platform,
-            this.exact, this.tpClient, { id: this.id, nprocesses });
+            this.exact, this.tpClient, this.options);
         await this.predictor.start();
 
         await Promise.all([
@@ -189,7 +195,7 @@ module.exports = class NLPModel {
 
         await this._download();
         this.predictor = Genie.ParserClient.get('file://' + path.resolve(this._localdir), this.locale, this._platform,
-            this.exact, this.tpClient, { id: this.id, nprocesses });
+            this.exact, this.tpClient, this.options);
         await this.predictor.start();
     }
 };
