@@ -132,9 +132,9 @@ module.exports = class NLPModel {
         this.options = {
             id: this.id,
             nprocesses: nprocesses,
-            kf_inference_ingress: Config.KF_INFERENCE_INGRESS,
-            kf_inference_domain: Config.KF_INFERENCE_DOMAIN,
-        }
+            kfInferenceIngress: Config.KF_INFERENCE_INGRESS,
+            kfInferenceDomain: Config.KF_INFERENCE_DOMAIN,
+        };
 
         if (spec.use_exact)
             this.exact = service.getExact(spec.language);
