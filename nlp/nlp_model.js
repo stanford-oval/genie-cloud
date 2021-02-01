@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
+const fs = require("fs");
 const path = require('path');
 const Genie = require('genie-toolkit');
 const Tp = require('thingpedia');
@@ -28,6 +29,7 @@ const AbstractFS = require('../util/abstract_fs');
 const localfs = require('../util/local_fs');
 
 const Config = require('../config');
+const kfInferenceUrl = require('../util/kf_inference_url');
 
 // A ThingpediaClient that operates under the credentials of a specific organization
 class OrgThingpediaClient extends BaseThingpediaClient {
@@ -119,6 +121,11 @@ const nprocesses = 1;
 module.exports = class NLPModel {
     constructor(spec, service) {
         this.id = `@${spec.tag}/${spec.language}`;
+        this._kfUrl = null;
+        if (Config.USE_KF_INFERENCE_SERVICE) {
+            const namespace = fs.readFileSync('/var/run/secrets/kubernetes.io/serviceaccount/namespace', 'utf-8');
+            this._kfUrl = kfInferenceUrl(this.id, namespace);
+        }
 
         this._localdir = null;
         this.init(spec, service);
@@ -169,6 +176,9 @@ module.exports = class NLPModel {
         if (!this.trained)
             return;
 
+        if (Config.USE_KF_INFERENCE_SERVICE)
+            return;
+
         const oldlocaldir = this._localdir;
         await this._download();
 
@@ -186,9 +196,15 @@ module.exports = class NLPModel {
     async load() {
         if (!this.trained)
             return;
-
-        await this._download();
-        this.predictor = Genie.ParserClient.get('file://' + path.resolve(this._localdir), this.locale, this._platform,
+        let url = null;
+        if (Config.USE_KF_INFERENCE_SERVICE) {
+            url = this._kfUrl;
+            console.log('Using KF Inference service: ' + this._kfUrl);
+        } else {
+            await this._download();
+            url = 'file://' + path.resolve(this._localdir);
+        }
+        this.predictor = Genie.ParserClient.get(url, this.locale, this._platform,
             this.exact, this.tpClient, { id: this.id, nprocesses });
         await this.predictor.start();
     }

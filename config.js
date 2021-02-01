@@ -356,6 +356,15 @@ module.exports.NL_EXACT_MATCH_DIR = './exact';
 */
 module.exports.NL_SERVICE_NAME = 'nlp';
 
+
+/**
+  The prediction URL pattern for kfserving inference service
+
+  {modelname} and {language} must be in lower case.
+  {namespace} is the kubernetes namespace where the inference servce is hosted.
+*/
+module.exports.USE_KF_INFERENCE_SERVICE = true;
+
 /**
   Training server URL.
 
