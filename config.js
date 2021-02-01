@@ -358,12 +358,11 @@ module.exports.NL_SERVICE_NAME = 'nlp';
 
 
 /**
-  The prediction URL pattern for kfserving inference service
+  Use kf serving inference service.
 
-  {modelname} and {language} must be in lower case.
-  {namespace} is the kubernetes namespace where the inference servce is hosted.
+  Will make HTTP requests to models that are hosted in kf-serving inference service.
 */
-module.exports.USE_KF_INFERENCE_SERVICE = true;
+module.exports.USE_KF_INFERENCE_SERVICE = false;
 
 /**
   Training server URL.
