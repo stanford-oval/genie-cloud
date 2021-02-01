@@ -24,7 +24,7 @@ const TEST_CASES = [
     ['@org.model/en', 'almond-staging',
      'http://040org02emodel02fen.almond-staging.svc.cluster.local/v1/models/040org02emodel02fen:predict'],
     ['@org0.model/en', 'almond-staging',
-     'http://040org0002emodel02fen.almond-staging.svc.cluster.local/v1/models/040org0002emodel02fen:predict'],
+     'http://040org03002emodel02fen.almond-staging.svc.cluster.local/v1/models/040org03002emodel02fen:predict'],
     ['@ORG.model/en', 'almond-staging',
      'http://04004f05204702emodel02fen.almond-staging.svc.cluster.local/v1/models/04004f05204702emodel02fen:predict']
 ];

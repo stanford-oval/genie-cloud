@@ -18,24 +18,8 @@
 //
 "use strict";
 
-function escapeInferenceName(s) {
-    let escaped = '';
-    for  (let c of s) {
-        if (c === '0') {
-            escaped += '00';
-            continue;
-        }
-        if (/[a-z0-9]/.test(c)) {
-            escaped += c;
-            continue;
-        }
-        escaped += '0' + c.charCodeAt(0).toString(16);
-    }
-    return escaped;
-}
-
 function getKfInferenceUrl(id, namespace) {
-    const escapedId = escapeInferenceName(id);
+    const escapedId = id.replace(/[^a-z1-9]/g, (c) => '0' + c.charCodeAt(0).toString(16));
     return `http://${escapedId}.${namespace}.svc.cluster.local/v1/models/${escapedId}:predict`;
 }
 
