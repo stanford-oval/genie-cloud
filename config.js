@@ -356,6 +356,14 @@ module.exports.NL_EXACT_MATCH_DIR = './exact';
 */
 module.exports.NL_SERVICE_NAME = 'nlp';
 
+
+/**
+  Use kf serving inference service.
+
+  Will make HTTP requests to models that are hosted in kf-serving inference service.
+*/
+module.exports.USE_KF_INFERENCE_SERVICE = false;
+
 /**
   Training server URL.
 
