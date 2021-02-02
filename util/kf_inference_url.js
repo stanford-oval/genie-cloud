@@ -20,14 +20,14 @@
 const crypto = require('crypto');
 
 function getKfInferenceUrl(id, namespace) {
-    // kfserving infernce name have following limitations:
+    // kfserving inference name has following limitations:
     //   * cannot be longer than 45 characters
-    //   * can only contain alphnumeric (lower cased) and '-'
-    //   * can only starts with an alphabet
+    //   * can only contain alphanumeric (lower cased) and '-'
+    //   * can only start with an alphabet
     // To work around these limitations, we will:
-    //   * escaped each nonsupported character with x{hex} 
-    //   * replace '.' with '-' since '.' is quite common model name
-    //   * if escaped name is longer than 45, trim the string to length 45 and replace
+    //   * escape each non-supported character with x{hex} 
+    //   * replace '.' with '-' since '.' is quite common in model names
+    //   * if escaped name is longer than 45, trim its length to 45 and replace
     //     the last 5 character with the first 5 character of its hash.
     let escapedId = id.replace(/[^a-wyz0-9\.]/g, (c) => 'x' + c.charCodeAt(0).toString(16));
     escapedId = escapedId.replace(/\./g, '-')
