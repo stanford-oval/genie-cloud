@@ -17,9 +17,25 @@
 // limitations under the License.
 //
 "use strict";
+const crypto = require('crypto');
 
 function getKfInferenceUrl(id, namespace) {
-    const escapedId = id.replace(/[^a-z1-9]/g, (c) => '0' + c.charCodeAt(0).toString(16));
+    // kfserving infernce name have following limitations:
+    //   * cannot be longer than 45 characters
+    //   * can only contain alphnumeric (lower cased) and '-'
+    //   * can only starts with an alphabet
+    // To work around these limitations, we will:
+    //   * escaped each nonsupported character with x{hex} 
+    //   * replace '.' with '-' since '.' is quite common model name
+    //   * if escaped name is longer than 45, trim the string to length 45 and replace
+    //     the last 5 character with the first 5 character of its hash.
+    let escapedId = id.replace(/[^a-wyz0-9\.]/g, (c) => 'x' + c.charCodeAt(0).toString(16));
+    escapedId = escapedId.replace(/\./g, '-')
+    if (escapedId.length > 45) {
+        const digest = crypto.createHash('sha1');
+        digest.update(id);
+        escapedId = escapedId.substring(0, 40) +  digest.digest('hex').substring(0,5);
+    }
     return `http://${escapedId}.${namespace}.svc.cluster.local/v1/models/${escapedId}:predict`;
 }
 

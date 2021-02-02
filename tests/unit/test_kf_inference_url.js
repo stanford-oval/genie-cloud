@@ -22,11 +22,17 @@ const kfInferenceUrl = require('../../util/kf_inference_url');
 
 const TEST_CASES = [
     ['@org.model/en', 'almond-staging',
-     'http://040org02emodel02fen.almond-staging.svc.cluster.local/v1/models/040org02emodel02fen:predict'],
+     'http://x40org-modelx2fen.almond-staging.svc.cluster.local/v1/models/x40org-modelx2fen:predict'],
+    ['@org.thingpedia.models.contextual/enverylonglongstring', 'almond-staging',
+     'http://x40org-thingpedia-models-contex78tualx2fdfbb8.almond-staging.svc.cluster.local/v1/models/x40org-thingpedia-models-contex78tualx2fdfbb8:predict'],
+    ['@org.model/en', 'almond-staging',
+     'http://x40org-modelx2fen.almond-staging.svc.cluster.local/v1/models/x40org-modelx2fen:predict'],
     ['@org0.model/en', 'almond-staging',
-     'http://040org03002emodel02fen.almond-staging.svc.cluster.local/v1/models/040org03002emodel02fen:predict'],
+     'http://x40org0-modelx2fen.almond-staging.svc.cluster.local/v1/models/x40org0-modelx2fen:predict'],
+    ['@orgx.model/en', 'almond-staging',
+     'http://x40orgx78-modelx2fen.almond-staging.svc.cluster.local/v1/models/x40orgx78-modelx2fen:predict'],
     ['@ORG.model/en', 'almond-staging',
-     'http://04004f05204702emodel02fen.almond-staging.svc.cluster.local/v1/models/04004f05204702emodel02fen:predict']
+     'http://x40x4fx52x47-modelx2fen.almond-staging.svc.cluster.local/v1/models/x40x4fx52x47-modelx2fen:predict']
 ];
 
 async function testCase(i) {
