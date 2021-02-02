@@ -198,8 +198,8 @@ module.exports = class NLPModel {
             return;
         let url = null;
         if (Config.USE_KF_INFERENCE_SERVICE) {
-            url = this._kfUrl;
-            console.log('Using KF Inference service: ' + this._kfUrl);
+            url = 'kf+' + this._kfUrl;
+            console.log('Using KF Inference service: ' + url);
         } else {
             await this._download();
             url = 'file://' + path.resolve(this._localdir);
