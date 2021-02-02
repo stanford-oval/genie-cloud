@@ -61,7 +61,7 @@ async function testMyApiCreateGetApp(auth) {
     }), { auth, dataContentType: 'application/json' }));
 
     assert(result.uniqueId.startsWith('uuid-'));
-    assert.strictEqual(result.description, 'get generate 10 byte of fake data with count equal to 2 and then notify you');
+    assert.strictEqual(result.description, 'get generate 10 byte of fake data with count equal to 2');
     assert.strictEqual(result.code, '@org.thingpedia.builtin.test.get_data(count=2, size=10byte);');
     assert.strictEqual(result.icon, '/download/icons/org.thingpedia.builtin.test.png');
     assert.deepStrictEqual(result.errors, []);

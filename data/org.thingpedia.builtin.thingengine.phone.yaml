@@ -90,6 +90,6 @@ dataset: |
     action  := @org.thingpedia.builtin.thingengine.phone.call(number=$undefined)
     #_[utterances=["place a phone call","call somebody","call my friend"]];
 
-    action (p_number :Entity(tt:contact_name))  := @org.thingpedia.builtin.thingengine.phone.call(number=p_number)
+    action (p_number :Entity(tt:phone_number))  := @org.thingpedia.builtin.thingengine.phone.call(number=p_number)
     #_[utterances=["call ${p_number}","make a call to ${p_number}"]];
   }
