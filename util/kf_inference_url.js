@@ -29,8 +29,8 @@ function getKfInferenceUrl(id, namespace) {
     //   * replace '.' with '-' since '.' is quite common in model names
     //   * if escaped name is longer than 45, trim its length to 45 and replace
     //     the last 5 character with the first 5 character of its hash.
-    let escapedId = id.replace(/[^a-wyz0-9\.]/g, (c) => 'x' + c.charCodeAt(0).toString(16));
-    escapedId = escapedId.replace(/\./g, '-')
+    let escapedId = id.replace(/[^a-wyz0-9.]/g, (c) => 'x' + c.charCodeAt(0).toString(16));
+    escapedId = escapedId.replace(/\./g, '-');
     if (escapedId.length > 45) {
         const digest = crypto.createHash('sha1');
         digest.update(id);
