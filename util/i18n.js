@@ -25,7 +25,6 @@ const gettextParser = require('gettext-parser');
 const fs = require('fs');
 const acceptLanguage = require('accept-language');
 const assert = require('assert');
-const ThingTalk = require('thingtalk');
 const Genie = require('genie-toolkit');
 
 const { InternalError } = require('./errors');
@@ -82,8 +81,6 @@ const self = {
             if (locale !== 'en-US') {
                 let modir = path.resolve(path.dirname(module.filename), '../po');//'
                 loadTextdomainDirectory(gt, locale, 'almond-cloud', modir);
-                modir = path.resolve(path.dirname(module.filename), '../node_modules/thingtalk/po');
-                loadTextdomainDirectory(gt, locale, 'thingtalk', modir);
                 modir = path.resolve(path.dirname(module.filename), '../node_modules/genie-toolkit/po');
                 loadTextdomainDirectory(gt, locale, 'genie-toolkit', modir);
             }
@@ -103,7 +100,6 @@ const self = {
                 dngettext: gt.dngettext.bind(gt),
                 dpgettext: gt.dpgettext.bind(gt),
             };
-            ThingTalk.I18n.init(locale, prebound);
 
             let split = locale.split('-');
             while (split.length > 0) {

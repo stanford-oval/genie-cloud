@@ -5,132 +5,109 @@ subcategory: service
 
 class: |
   class @org.thingpedia.builtin.thingengine.builtin
+  #_[thingpedia_name="Miscellaneous Interfaces"]
+  #_[thingpedia_description="Commands that are always available and don't belong to any specific device or account. Mostly related to time and randomness, because the universe is chaos and those always there. Also debugging."]
   #_[name="Miscellaneous Interfaces"]
   #_[description="Commands that are always available and don't belong to any specific device or account. Mostly related to time and randomness, because the universe is chaos and those always there. Also debugging."]
   #_[canonical="miscellaneous interfaces"]
-  {
+  #[repository="https://github.com/stanford-oval/genie-toolkit"]
+  #[subcategory="service"]
+  #[license="Apache-2.0"]
+  #[license_gplcompatible=true] {
     import loader from @org.thingpedia.builtin();
+
     import config from @org.thingpedia.config.builtin();
 
-    monitorable query get_gps(out location: Location
+    monitorable query get_gps(out location : Location
                               #_[canonical={
                                 default="preposition",
                                 base=["coordinates"],
                                 preposition=["in #", "at #", "around #"]
                               }],
-                              out altitude: Measure(m)
+                              out altitude : Measure(m)
                               #_[canonical={
                                 default="base",
                                 base=["altitude"],
                                 preposition=["at # above sea level"]
                               }]
                               #[min_number=0m]
-                              #[max_number=15000m], // not approved for use in the ISS
-                              out bearing: Number
+                              #[max_number=15000m],
+                              out bearing : Number
                               #_[canonical={
                                 base=["bearing"],
-                                passive_verb=["facing #"] // FIXME we want to say "facing 30 degrees north" but we can't quite do that...
+                                passive_verb=["facing #"]
                               }],
-                              out speed: Measure(mps)
+                              out speed : Measure(mps)
                               #_[canonical={
                                 base=["speed"],
                                 passive_verb=["going at #", "moving at #"],
                                 preposition=["at #"]
-                              }]
-                              )
+                              }])
     #_[canonical=["my current location", "my current position", "my current geocoordinates"]]
     #_[confirmation="your location"]
-    #_[formatted=[{type="text",text="Current Location: ${location}"}]]
+    #_[formatted=[{
+      type="text",
+      text="Current Location: ${location}"
+    }]]
+    #[minimal_projection=["location"]]
     #[poll_interval=0ms]
     #[doc="get last known GPS location"]
     #[confirm=false];
 
-    query get_time(out time: Time
+    query get_time(out time : Time
                    #_[canonical=["time"]]
                    #[filterable=false])
-    #[result=["it 's ${time}", "the current time is ${time}", "now it 's ${time}"]]
     #_[canonical=["time", "current time", "time of day"]]
     #_[confirmation="the current time"]
-    #_[formatted=[{type="text",text="Current time is ${time:time}."}]]
+    #_[formatted=[{
+      type="text",
+      text="Current time is ${time:time}."
+    }]]
+    #[result=["it 's ${time}", "the current time is ${time}", "now it 's ${time}"]]
     #[doc="get the current time"]
-    #[confirm=false];
+    #[confirm=false]
+    #[minimal_projection=[]];
 
-    query get_date(out date: Date
+    query get_date(out date : Date
                    #_[canonical=["date"]]
                    #[filterable=false])
     #_[canonical=["date", "current date", "today 's date"]]
     #_[confirmation="today's date"]
-    #_[formatted=[{type="text",text="Today is ${date:date}."}]]
+    #_[formatted=[{
+      type="text",
+      text="Today is ${date:date}."
+    }]]
     #[doc="get the current date"]
-    #[confirm=false];
+    #[confirm=false]
+    #[minimal_projection=[]];
 
-    query get_random_between(in opt low: Number
+    query get_random_between(in opt low : Number
                              #_[canonical={
                                base=["lower bound", "minimum number"],
-                               passive_verb=["higher than #", "more than #"] // the sentence is "give me a random number higher than X", so "higher than X" is pvp not apv
+                               passive_verb=["higher than #", "more than #"]
                              }],
-                             in opt high: Number
+                             in opt high : Number
                              #_[canonical={
                                base=["upper bound", "maximum number"],
-                               passive_verb=["higher than #", "more than #"] // the sentence is "give me a random number higher than X", so "higher than X" is pvp not apv
+                               passive_verb=["higher than #", "more than #"]
                              }],
-                             out random: Number
+                             out random : Number
                              #_[canonical={
-                               base=["number", "result"],
+                               base=["number", "result"]
                              }]
                              #[filterable=false])
     #_[canonical=["random number", "random integer"]]
-    #_[result=["${random}", "your number is ${random} .", "i chose ${random} ."]]
+    #_[result=["${random}", "your number is ${random}", "i chose ${random}"]]
     #_[confirmation="a random integer between $low and $high"]
-    #_[formatted=[{type="text",text="${random}"}]]
+    #_[formatted=[{
+      type="text",
+      text="${random}"
+    }]]
     #[doc="get a uniform random integer between `low` and `high`"]
-    #[confirm=false];
+    #[confirm=false]
+    #[minimal_projection=[]];
 
-    list query device(out id : Entity(tt:device)
-                      #_[canonical={
-                         base=["name"],
-                         passive_verb=["named #", "called #"],
-                      }],
-                      out description : String
-                      #_[canonical={
-                         base=["description"]
-                      }]
-                      #[string_values="tt:short_free_text"],
-                      out category : Enum(service, media, social_network, communication, home, health, data_management)
-                      #_[canonical={
-                         base=["category"],
-                         adjective=["#"],
-                         preposition=["in the # category"]
-                      }],
-                      out website : Entity(tt:url)
-                      #_[canonical={
-                         base=["website", "link", "url"]
-                      }]
-                      )
-    #_[canonical=["device", "skill", "thingpedia device", "supported skill"]]
-    #_[confirmation="Thingpedia devices"]
-    #_[formatted=[{type="text",text="${random}"}]]
-    #[doc="list supported Thingpedia devices"]
-    #[confirm=false];
-
-    list query commands(out id : Entity(tt:command_id),
-                        out device: Entity(tt:device)
-                        #_[canonical={
-                          base=["device", "account", "skill"],
-                          adjective=["# 's"],
-                          preposition=["of #", "in #"]
-                        }]
-                        #_[prompt=["what device do you want help for", "for what device"]],
-                        out program: Entity(tt:program)
-                        #_[canonical=["program", "command"]]
-                        #[filterable=false])
-    #_[canonical="supported command"]
-    #_[confirmation="the list of commands of $device"]
-    #_[formatted=[{type="text",text="${program}"}]]
-    #[doc="retrieve the list of supported commands for the given device"]
-    #[confirm=false];
-
-    action open_url(in req url: Entity(tt:url)
+    action open_url(in req url : Entity(tt:url)
                     #_[prompt=["what url do you want to open", "what do you want to open"]]
                     #_[canonical={
                       base=["url", "link", "page"],
@@ -139,86 +116,124 @@ class: |
     #_[canonical=["open a url", "open a link"]]
     #_[confirmation="open $url"]
     #[doc="open a file/link"]
-    #[confirm=false];
+    #[confirm=false]
+    #[minimal_projection=[]];
 
-    action say(in req message: String
+    action say(in req message : String
                #_[prompt="what do you want me to say"]
-               #[string_values="tt:long_free_text"]
-               #_[canonical="message"],
-               out message_output: String
+               #_[canonical="message"]
+               #[string_values="tt:long_free_text"],
+               out message_output : String
                #_[canonical="message"])
     #_[result="${message_output}"]
     #_[canonical="say"]
     #_[confirmation="send me a message $message"]
     #[doc="makes Almond say something"]
-    #[confirm=false];
+    #[confirm=false]
+    #[minimal_projection=[]];
 
-    action debug_log(in req message: String
+    action debug_log(in req message : String
                      #_[prompt=["what should i write in the logs", "what do you want me to write"]]
-                     #[string_values="tt:long_free_text"]
-                     #_[canonical="message"])
+                     #_[canonical="message"]
+                     #[string_values="tt:long_free_text"])
     #_[canonical=["log a message", "record a message", "write a message in the logs"]]
     #_[confirmation="write $message in the developer logs"]
     #[doc="log a message in the developer logs"]
-    #[confirm=false];
+    #[confirm=false]
+    #[minimal_projection=[]];
+
+    action faq_reply(in req question : Enum(about_almond_identity, about_almond_age, about_almond_how_are_you, about_almond_location, about_almond_comparison, about_almond_training, about_almond_partner, about_almond_junk, about_almond_preference, check_capability_home_assistant, check_capability_missing, general_help, positive_emotion_thanks, positive_emotion_cool)
+                     #_[prompt="what do you would like to know"]
+                     #_[canonical="message"],
+                     out reply : String
+                     #_[canonical=["reply", "answer"]])
+    #_[result="${reply}"]
+    #_[canonical="ask question about almond"]
+    #_[confirmation="reply to $question"]
+    #[doc="asks a question about Almond"]
+    #[confirm=false]
+    #[minimal_projection=[]];
   }
 
 
 dataset: |
-  dataset @org.thingpedia.builtin.thingengine.builtin #[language="en"] {
-      stream := monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps())
-      #_[utterances=["when my location changes",
-                     "when i move",
-                     "when i move around",
-                     "when i change location",
-                     "when my position changes"]]
-      #[name="MonitorGetCurrentLocation"];
+  dataset @org.thingpedia.builtin.thingengine.builtin
+  #[language="en"] {
+    stream = monitor(@org.thingpedia.builtin.thingengine.builtin.get_gps())
+    #_[utterances=["when my location changes", "when i move", "when i move around", "when i change location", "when my position changes"]]
+    #[name="MonitorGetCurrentLocation"];
 
-      stream (p_location :Location) := monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps()), location == p_location
-      #_[utterances=["when my location changes to $p_location",
-                     "when i reach $p_location",
-                     "when i get to $p_location",
-                     "when i arrive at $p_location"]]
-      #[name="MonitorGetCurrentLocationByLocation"];
+    stream (p_location : Location) = monitor(@org.thingpedia.builtin.thingengine.builtin.get_gps()) filter location == p_location
+    #_[utterances=["when my location changes to $p_location", "when i reach $p_location", "when i get to $p_location", "when i arrive at $p_location"]]
+    #[name="MonitorGetCurrentLocationByLocation"];
 
-      stream (p_location :Location) := monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps()), !(location == p_location)
-      #_[utterances=["when i move away from $p_location",
-                     "when my location changes away from $p_location",
-                     "when i leave $p_location"]]
-      #[name="MonitorGetCurrentLocationNotByLocation"];
+    stream (p_location : Location) = monitor(@org.thingpedia.builtin.thingengine.builtin.get_gps()) filter !(location == p_location)
+    #_[utterances=["when i move away from $p_location", "when my location changes away from $p_location", "when i leave $p_location"]]
+    #[name="MonitorGetCurrentLocationNotByLocation"];
 
-      program := @org.thingpedia.builtin.thingengine.builtin.get_time()
-      #_[utterances=["what time is it"]]
-      #[name="GetTime"];
+    program = @org.thingpedia.builtin.thingengine.builtin.get_time()
+    #_[utterances=["what time is it"]]
+    #[name="GetTime"];
 
-      program := @org.thingpedia.builtin.thingengine.builtin.get_date()
-      #_[utterances=["what day is today",
-                     "what day is it"]]
-      #[name="GetDate"];
+    program = @org.thingpedia.builtin.thingengine.builtin.get_date()
+    #_[utterances=["what day is today", "what day is it"]]
+    #[name="GetDate"];
 
-      query := @org.thingpedia.builtin.thingengine.builtin.get_random_between()
-      #_[utterances=[", choose a random number",
-                     ", throw a dice"]]
-      #[name="GetRandomInteger"];
+    query = @org.thingpedia.builtin.thingengine.builtin.get_random_between()
+    #_[utterances=[", choose a random number", ", throw a dice"]]
+    #[name="GetRandomInteger"];
 
-      query (p_low :Number, p_high :Number) := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=p_low, high=p_high)
-      #_[utterances=["a random number between ${p_low:const} and ${p_high:const}",
-                     "a random integer between ${p_low:const} and ${p_high:const}",
-                     ", throw a dice between ${p_low:const} and ${p_high:const}",
-                     ", generate a random number between ${p_low:const} and ${p_high:const}",
-                     ", choose a number between ${p_low:const} and ${p_high:const}"]]
-      #[name="GetRandomIntegerWithLowWithHigh"];
+    query (p_low : Number, p_high : Number) = @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=p_high, low=p_low)
+    #_[utterances=["a random number between ${p_low:const} and ${p_high:const}", "a random integer between ${p_low:const} and ${p_high:const}", ", throw a dice between ${p_low:const} and ${p_high:const}", ", generate a random number between ${p_low:const} and ${p_high:const}", ", choose a number between ${p_low:const} and ${p_high:const}"]]
+    #[name="GetRandomIntegerWithLowWithHigh"];
 
-      action (p_message :String) := @org.thingpedia.builtin.thingengine.builtin.say(message=p_message)
-      #_[utterances=["send me a message ${p_message:const}",
-                     "tell me $p_message",
-                     "say $p_message"]]
-      #[name="SayWithMessage"];
+    action (p_message : String) = @org.thingpedia.builtin.thingengine.builtin.say(message=p_message)
+    #_[utterances=["send me a message ${p_message:const}", "tell me $p_message", "say $p_message"]]
+    #[name="SayWithMessage"];
 
-      action (p_url :Entity(tt:url)) := @org.thingpedia.builtin.thingengine.builtin.open_url(url=p_url)
-      #_[utterances=["open $p_url",
-                     "open the file at $p_url",
-                     "open $p_url in the browser",
-                     "browse to $p_url"]]
-      #[name="OpenUrlOnBuiltinWithUrl"];
+    action (p_url : Entity(tt:url)) = @org.thingpedia.builtin.thingengine.builtin.open_url(url=p_url)
+    #_[utterances=["open $p_url", "open the file at $p_url", "open $p_url in the browser", "browse to $p_url"]]
+    #[name="OpenUrlOnBuiltinWithUrl"];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_identity)
+    #_[utterances=["Who are you?", "What are you?", "What is Almond?", "Are you almond?", "What is your name?", "What's your name?", "Whats your name?"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_age)
+    #_[utterances=["How old are you?", "When were you born?"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_how_are_you)
+    #_[utterances=["How are you?", "How are u?", "How are you doing?", "How are u doing?", "How are you today?", "How are u today?", "How are you feeling today?", "How are u feeling today?"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_location)
+    #_[utterances=["Where are you?", "Where are you now?"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_comparison)
+    #_[utterances=["Are you better than Cortana?", "Are you better than Siri?", "Are you better than Alexa?", "Are you better than Google?", "Are you better than Google Assistant?", "Are you better than Google Home?"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_training)
+    #_[utterances=["Are you good at training?"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_partner)
+    #_[utterances=["Do you have a partner?", "Do you have a significant other?", "Do you have a gf?", "Do you have a girlfriend?", "Do you have a bf?", "Do you have a boyfriend?", "Do you have a enbyfriend?"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_junk)
+    #_[utterances=["Do you know what porn is?"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_preference)
+    #_[utterances=["What is your favorite song?", "What is your favorite movie?", "What is your favorite book?", "What is your favourite song?", "What is your favourite movie?", "What is your favourite book?"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum check_capability_home_assistant)
+    #_[utterances=["Do you work with Home Assistant?"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum check_capability_missing)
+    #_[utterances=["Can you draw?", "Are you able to draw?"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum general_help)
+    #_[utterances=["What can you do?", "What can I do?", "What can you do for me?", "Help", "List commands", "Help skill", "What can I say?", "What do you do?", "What you can do?", "What can u do?", "What should I do?", "What command is available?", "What skills are there?", "What can you do at all?", "What could you do for me?", "Commands", "Devices", "Examples", "Can you give me another suggestion?", "Show skills"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum positive_emotion_thanks)
+    #_[utterances=["Lol", "Cool", "Nice", "I love you", "Great", "Good job", "Very funny", "Super", ":-)", ":o", "Good boy", "You are amazing"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum positive_emotion_cool)
+    #_[utterances=["Funny", "Haha", "Wow", "Hahaha", "Funny haha", "I love programming"]];
   }
