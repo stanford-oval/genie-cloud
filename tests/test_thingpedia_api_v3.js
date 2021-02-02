@@ -296,7 +296,7 @@ function checkExamples(generated, expected) {
 
 async function testGetExamplesByDevice() {
     const BING_EXAMPLES = 10;
-    const BUILTIN_EXAMPLES = 9;
+    const BUILTIN_EXAMPLES = 23;
     const INVISIBLE_EXAMPLES = 1;
 
     checkExamples(await ttRequest('/examples/by-kinds/com.bing'), BING_EXAMPLES);
@@ -345,7 +345,7 @@ async function testGetExamplesByDevice() {
 
 async function testGetExamplesByKey() {
     const BING_EXAMPLES = 10;
-    const PHONE_EXAMPLES = 15;
+    const PHONE_EXAMPLES = 14;
     const INVISIBLE_EXAMPLES = 1;
 
     checkExamples(await ttRequest('/examples/search?q=bing'), BING_EXAMPLES);
@@ -412,7 +412,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 101,
+      "id": 182,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me images from bing matching ____ larger than ____ x ____",
@@ -444,7 +444,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 76,
+      "id": 157,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me texts i received in the last hour",
@@ -460,7 +460,23 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 83,
+      "id": 72,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "Are you able to draw?",
+      "preprocessed": "are you able to draw ?",
+      "target_code": "program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum check_capability_missing);",
+      "click_count": 1,
+      "like_count": 0,
+      "liked": false,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.builtin"
+      ]
+    },
+    {
+      "id": 164,
       "language": "en",
       "type": "thingpedia",
       "utterance": "call somebody",
@@ -476,12 +492,12 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 20,
+      "id": 46,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "throw a dice between ____ and ____",
-      "preprocessed": ", throw a dice between ${p_low:const} and ${p_high:const}",
-      "target_code": "query (p_low : Number, p_high : Number) = @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=p_high, low=p_low);",
+      "utterance": "How are u feeling today?",
+      "preprocessed": "how are u feeling today ?",
+      "target_code": "program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_how_are_you);",
       "click_count": 1,
       "like_count": 0,
       "liked": false,
@@ -492,28 +508,12 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 50,
+      "id": 39,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "show me a screenshot of my laptop",
-      "preprocessed": "a screenshot of my laptop",
-      "target_code": "query = @org.thingpedia.builtin.thingengine.gnome.get_screenshot();",
-      "click_count": 1,
-      "like_count": 0,
-      "liked": false,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.gnome"
-      ]
-    },
-    {
-      "id": 21  ,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "generate a random number between ____ and ____",
-      "preprocessed": ", generate a random number between ${p_low:const} and ${p_high:const}",
-      "target_code": "query (p_low : Number, p_high : Number) = @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=p_high, low=p_low);",
+      "utterance": "How are you?",
+      "preprocessed": "how are you ?",
+      "target_code": "program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_how_are_you);",
       "click_count": 1,
       "like_count": 0,
       "liked": false,
@@ -526,18 +526,18 @@ async function testGetCommands() {
     {
        click_count: 1,
        devices: [
-         'org.thingpedia.builtin.thingengine.phone'
+         'org.thingpedia.builtin.thingengine.builtin'
        ],
-       id: 64,
+       id: 20,
        is_base: 1,
        language: 'en',
        like_count: 0,
        liked: false,
        owner_name: 'Site Administration',
-       preprocessed: 'phone ${p_number}',
-       target_code: 'action (p_number : Entity(tt:phone_number)) = @org.thingpedia.builtin.thingengine.phone.call(number=p_number);',
+       preprocessed: ', throw a dice between ${p_low:const} and ${p_high:const}',
+       target_code: 'query (p_low : Number, p_high : Number) = @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=p_high, low=p_low);',
        type: 'thingpedia',
-       utterance: 'phone ____'
+       utterance: 'throw a dice between ____ and ____'
     }
   ];
 
@@ -583,7 +583,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 50,
+      "id": 131,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me a screenshot of my laptop",
@@ -598,7 +598,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 42,
+      "id": 123,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop",
@@ -613,7 +613,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 41,
+      "id": 122,
       "language": "en",
       "type": "thingpedia",
       "utterance": "turn ____ my laptop",
@@ -628,7 +628,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 49,
+      "id": 130,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete a file from my laptop",
@@ -643,7 +643,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 48,
+      "id": 129,
       "language": "en",
       "type": "thingpedia",
       "utterance": "use ____ as the background of my laptop",
@@ -658,7 +658,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 52,
+      "id": 133,
       "language": "en",
       "type": "thingpedia",
       "utterance": "save a screenshot of my laptop",
@@ -673,7 +673,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 38,
+      "id": 119,
       "language": "en",
       "type": "thingpedia",
       "utterance": "lock my laptop",
@@ -688,7 +688,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 47,
+      "id": 128,
       "language": "en",
       "type": "thingpedia",
       "utterance": "set the background of my laptop to ____",
@@ -703,7 +703,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 46,
+      "id": 127,
       "language": "en",
       "type": "thingpedia",
       "utterance": "change the background on my laptop",
@@ -718,7 +718,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 43,
+      "id": 124,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop containing ____",
@@ -733,7 +733,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 31,
+      "id": 112,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open ____ on my laptop",
@@ -748,7 +748,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 45,
+      "id": 126,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete the file named ____ from my laptop",
@@ -763,7 +763,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 51,
+      "id": 132,
       "language": "en",
       "type": "thingpedia",
       "utterance": "take a screenshot of my laptop",
@@ -778,7 +778,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 35,
+      "id": 116,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open ____ with ____ on my laptop",
@@ -793,7 +793,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 44,
+      "id": 125,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete ____ from my laptop",
@@ -808,7 +808,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 39,
+      "id": 120,
       "language": "en",
       "type": "thingpedia",
       "utterance": "activate the lock screen on my laptop",
