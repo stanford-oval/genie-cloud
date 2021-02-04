@@ -100,6 +100,21 @@ async function loadEntityValues(dbClient) {
         is_well_known: false,
         has_ner_support: true,
     }]);
+    await entityModel.createMany(dbClient, [{
+        id: 'com.spotify:playable',
+        name: 'Playable item in Spotify',
+        language: 'en',
+        is_well_known: false,
+        has_ner_support: true,
+    }]);
+    await entityModel.createMany(dbClient, [{
+        id: 'com.spotify:song',
+        name: 'Song in Spotify',
+        language: 'en',
+        is_well_known: false,
+        has_ner_support: true,
+        subtype_of: 'com.spotify:playable',
+    }]);
 
     await db.insertOne(dbClient,
         `insert ignore into entity_lexicon(language,entity_id,entity_value,

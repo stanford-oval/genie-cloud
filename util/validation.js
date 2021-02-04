@@ -136,6 +136,12 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
         checkUrl: fullcode,
         deviceName: name
     });
+    // add all the parents of declared entities to the list of entities that must exist
+    for (let stmt of classDef.entities) {
+        if (stmt.extends)
+            entities.push(stmt.extends.includes(':') ? stmt.extends : classDef.kind + ':' + stmt.extends);
+    }
+
     // remove from entities those that are declared in this class
     entities = entities.filter((e) => !classDef.entities.find((stmt) => classDef.kind + ':' + stmt.name === e));
     const missingEntities = await entityModel.findNonExisting(dbClient, entities);

@@ -390,7 +390,8 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
                 type: r.id,
                 name: r.name,
                 is_well_known: r.is_well_known,
-                has_ner_support: r.has_ner_support
+                has_ner_support: r.has_ner_support,
+                subtype_of: r.subtype_of
             }));
         });
     }
