@@ -110,7 +110,8 @@ async function testEntityCreate(nobody, bob, root) {
             id: 'org.thingpedia.test:entity_test1',
             is_well_known: 0,
             language: 'en',
-            name: 'Test Entity'
+            name: 'Test Entity',
+            subtype_of: null,
         });
 
         const entityValues = toObject(await entityModel.getValues(dbClient, 'org.thingpedia.test:entity_test1'));
@@ -147,7 +148,8 @@ async function testEntityCreate(nobody, bob, root) {
             id: 'org.thingpedia.test:entity_test1',
             is_well_known: 0,
             language: 'en',
-            name: 'Test Entity Replaced'
+            name: 'Test Entity Replaced',
+            subtype_of: null
         });
 
         const entityValues = toObject(await entityModel.getValues(dbClient, 'org.thingpedia.test:entity_test1'));
@@ -197,7 +199,8 @@ async function testEntityCreate(nobody, bob, root) {
             id: 'org.thingpedia.test:entity_test2',
             is_well_known: 0,
             language: 'en',
-            name: 'Test Entity 2'
+            name: 'Test Entity 2',
+            subtype_of: null,
         });
 
         const entityValues = await entityModel.getValues(dbClient, 'org.thingpedia.test:entity_test2');

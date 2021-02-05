@@ -27,17 +27,18 @@ module.exports = {
         return db.insertOne(client, `replace into entity_names set language = 'en', ?`, [entity]);
     },
     createMany(client, entities) {
-        return db.insertOne(client, `replace into entity_names(id, language, name, is_well_known, has_ner_support) values ?`,
-            [entities.map((e) => [e.id, e.language, e.name, e.is_well_known, e.has_ner_support])]);
+        return db.insertOne(client, `replace into entity_names(id, language, name, is_well_known, has_ner_support, subtype_of) values ?`,
+            [entities.map((e) => [e.id, e.language, e.name, e.is_well_known, e.has_ner_support, e.subtype_of])]);
     },
 
     async update(client, id, entity) {
         await db.query(client, `update entity_names set ? where id = ?`, [entity, id]);
     },
     async updateMany(client, entities) {
-        return db.query(client, `insert into entity_names(id, language, name, is_well_known, has_ner_support) values ?
-            on duplicate key update name=values(name), is_well_known=values(is_well_known), has_ner_support=values(has_ner_support)`,
-            [entities.map((e) => [e.id, e.language, e.name, e.is_well_known, e.has_ner_support])]);
+        return db.query(client, `insert into entity_names(id, language, name, is_well_known, has_ner_support, subtype_of) values ?
+            on duplicate key update name=values(name), is_well_known=values(is_well_known), has_ner_support=values(has_ner_support),
+            subtype_of=values(subtype_of)`,
+            [entities.map((e) => [e.id, e.language, e.name, e.is_well_known, e.has_ner_support, e.subtype_of])]);
     },
 
     get(client, id, language = 'en') {

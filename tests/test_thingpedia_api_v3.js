@@ -1188,86 +1188,115 @@ async function testDiscovery() {
 async function testGetEntityList() {
     assert.deepStrictEqual(await request('/entities/all'),
         {"result":"ok",
-        "data":[{
+        "data":[
+        {
+            "type":"com.spotify:playable",
+            "name":"Playable item in Spotify",
+            "is_well_known":0,
+            "has_ner_support":1,
+            "subtype_of": null
+        },{
+            "type":"com.spotify:song",
+            "name":"Song in Spotify",
+            "is_well_known":0,
+            "has_ner_support":1,
+            "subtype_of": "com.spotify:playable",
+        },{
             "type":"org.freedesktop:app_id",
             "name":"Freedesktop App Identifier",
             "is_well_known":0,
-            "has_ner_support":1
+            "has_ner_support":1,
+            "subtype_of": null
         },{
             "type":"tt:command_id",
             "name":"Thingpedia Command ID",
             "is_well_known":0,
-            "has_ner_support":0
+            "has_ner_support":0,
+            "subtype_of": null
         },{
             "type":"tt:stock_id",
             "name":"Company Stock ID",
             "is_well_known":0,
-            "has_ner_support":1
+            "has_ner_support":1,
+            "subtype_of": null
         },{
             "type":"tt:contact",
             "name":"Contact Identity",
             "is_well_known":1,
-            "has_ner_support":0
+            "has_ner_support":0,
+            "subtype_of": null
         },{
             "type":"tt:contact_name",
             "name":"Contact Name",
             "is_well_known":1,
-            "has_ner_support":0
+            "has_ner_support":0,
+            "subtype_of": null
         },{
             "type":"tt:device",
             "name":"Device Name",
             "is_well_known":1,
-            "has_ner_support":0
+            "has_ner_support":0,
+            "subtype_of": null
         },{
             "type":"tt:email_address",
             "name":"Email Address",
             "is_well_known":1,
-            "has_ner_support":0
+            "has_ner_support":0,
+            "subtype_of": null
         },{
             "type":"tt:flow_token",
             "name":"Flow Identifier",
             "is_well_known":1,
-            "has_ner_support":0
+            "has_ner_support":0,
+            "subtype_of": null
         },{
             "type":"tt:function",
             "name":"Function Name",
             "is_well_known":1,
-            "has_ner_support":0
+            "has_ner_support":0,
+            "subtype_of": null
         },{
             "type":"tt:hashtag",
             "name":"Hashtag",
             "is_well_known":1,
-            "has_ner_support":0
+            "has_ner_support":0,
+            "subtype_of": null
         },{
             "type":"tt:path_name",
             "name":"Unix Path",
             "is_well_known":1,
-            "has_ner_support":0
+            "has_ner_support":0,
+            "subtype_of": null
         },{
             "type":"tt:phone_number",
             "name":"Phone Number",
             "is_well_known":1,
-            "has_ner_support":0
+            "has_ner_support":0,
+            "subtype_of": null
         },{
             "type":"tt:picture",
             "name":"Picture",
             "is_well_known":1,
-            "has_ner_support":0
+            "has_ner_support":0,
+            "subtype_of": null
         },{
             "type":"tt:program",
             "name":"Program",
             "is_well_known":1,
-            "has_ner_support":0
+            "has_ner_support":0,
+            "subtype_of": null
         },{
             "type":"tt:url",
             "name":"URL",
             "is_well_known":1,
-            "has_ner_support":0
+            "has_ner_support":0,
+            "subtype_of": null
         },{
             "type":"tt:username",
             "name":"Username",
             "is_well_known":1,
-            "has_ner_support":0
+            "has_ner_support":0,
+            "subtype_of": null
         }]}
     );
 }
@@ -1738,6 +1767,24 @@ module.exports = class TestDevice extends Tp.BaseDevice {
 };
 `;
 
+const NEW_DEVICE_WITH_ENTITY_CLASS = `
+class @org.thingpedia.test.newdevice_withentity {
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  entity foo #_[description="Some foo"];
+  entity bar extends foo #_[description="Some bar"];
+  entity baz extends ^^tt:stock_id #_[description="Some baz"];
+
+  query foo(out text : String)
+  #_[confirmation="the foos"];
+}
+`;
+const NEW_DEVICE_WITH_ENTITY_DATASET = `
+dataset @org.thingpedia.test.newdevice_withentity language "en" {
+}
+`;
+
 const BANG_CLASS_FULL = `class @com.bing
 #_[name="Bang Search"]
 #_[description="Search the web with Bang"]
@@ -1926,6 +1973,42 @@ async function testCreateDevice() {
         main: 'index.js',
         'thingpedia-version': 0
     });
+
+    await tryUpload(null, NEW_DEVICE1_CODE, NEW_DEVICE1_ICON, {
+        primary_kind: 'org.thingpedia.test.newdevice_withentity',
+        name: 'New Test Device With Entity',
+        description: 'Yet another test device - this one has an entity',
+        license: 'CC0',
+        license_gplcompatible: '1',
+        subcategory: 'service',
+        code: NEW_DEVICE_WITH_ENTITY_CLASS,
+        dataset: NEW_DEVICE_WITH_ENTITY_DATASET,
+    });
+
+    const newEntities = (await request('/entities/all')).data.filter((e) => e.type.startsWith('org.thingpedia.test.newdevice_withentity:'));
+    assert.deepStrictEqual(newEntities,[
+        {
+            "type":"org.thingpedia.test.newdevice_withentity:bar",
+            "name":"Some bar",
+            "is_well_known":0,
+            "has_ner_support":1,
+            "subtype_of": "org.thingpedia.test.newdevice_withentity:foo"
+        },
+        {
+            "type":"org.thingpedia.test.newdevice_withentity:baz",
+            "name":"Some baz",
+            "is_well_known":0,
+            "has_ner_support":1,
+            "subtype_of": "tt:stock_id"
+        },
+        {
+            "type":"org.thingpedia.test.newdevice_withentity:foo",
+            "name":"Some foo",
+            "is_well_known":0,
+            "has_ner_support":1,
+            "subtype_of": null
+        }
+    ]);
 }
 
 const BING_DATASET = `

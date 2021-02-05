@@ -295,6 +295,7 @@ CREATE TABLE `entity_names` (
   `name` varchar(255) CHARACTER SET utf8 NOT NULL,
   `is_well_known` tinyint(1) NOT NULL DEFAULT 0,
   `has_ner_support` tinyint(1) NOT NULL DEFAULT 0,
+  `subtype_of` varchar(64) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`,`language`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -313,6 +314,7 @@ CREATE TABLE `entity_names_snapshot` (
   `name` varchar(255) CHARACTER SET utf8 NOT NULL,
   `is_well_known` tinyint(1) NOT NULL DEFAULT 0,
   `has_ner_support` tinyint(1) NOT NULL DEFAULT 0,
+  `subtype_of` varchar(64) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`snapshot_id`,`id`,`language`),
   CONSTRAINT `entity_names_snapshot_ibfk_1` FOREIGN KEY (`snapshot_id`) REFERENCES `snapshot` (`snapshot_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
