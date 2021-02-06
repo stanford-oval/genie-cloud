@@ -57,7 +57,7 @@ class: |
     query get_time(out time : Time
                    #_[canonical=["time"]]
                    #[filterable=false])
-    #_[canonical=["time", "current time", "time of day"]]
+    #_[canonical=["current time", "time", "time of day"]]
     #_[confirmation="the current time"]
     #_[formatted=[{
       type="text",
@@ -71,7 +71,7 @@ class: |
     query get_date(out date : Date
                    #_[canonical=["date"]]
                    #[filterable=false])
-    #_[canonical=["date", "current date", "today 's date"]]
+    #_[canonical=["today 's date", "date", "current date"]]
     #_[confirmation="today's date"]
     #_[formatted=[{
       type="text",
@@ -104,6 +104,20 @@ class: |
       text="${random}"
     }]]
     #[doc="get a uniform random integer between `low` and `high`"]
+    #[confirm=false]
+    #[minimal_projection=[]];
+
+    query get_name(out name : String
+                   #_[canonical=["name"]]
+                   #[string_values="tt:person_first_name"]
+                   #[filterable=false])
+    #_[canonical=["my name", "user 's name"]]
+    #_[result=["your name is ${name}", "you are ${name}"]]
+    #_[on_error={
+      unset=["i do not know your name yet . would you like to tell me ?", "you have not told me your name yet"]
+    }]
+    #_[confirmation="your name"]
+    #[doc="get the user's preferred name (a setting)"]
     #[confirm=false]
     #[minimal_projection=[]];
 
@@ -142,7 +156,7 @@ class: |
     #[confirm=false]
     #[minimal_projection=[]];
 
-    action faq_reply(in req question : Enum(about_almond_identity, about_almond_age, about_almond_how_are_you, about_almond_location, about_almond_comparison, about_almond_training, about_almond_partner, about_almond_junk, about_almond_preference, check_capability_home_assistant, check_capability_missing, general_help, positive_emotion_thanks, positive_emotion_cool)
+    action faq_reply(in req question : Enum(about_almond_identity, about_almond_age, about_almond_how_are_you, about_almond_location, about_almond_comparison, about_almond_training, about_almond_partner, about_almond_junk, about_almond_preference, check_capability_home_assistant, check_capability_phone, general_help, positive_emotion_thanks, positive_emotion_cool, abusive, revoke_consent, how_to_train, how_to_configure_skill, how_to_disable_skill, how_to_set_language, how_to_access_settings, how_to_use_wakeword, troubleshooting_home_assistant)
                      #_[prompt="what do you would like to know"]
                      #_[canonical="message"],
                      out reply : String
@@ -151,6 +165,117 @@ class: |
     #_[canonical="ask question about almond"]
     #_[confirmation="reply to $question"]
     #[doc="asks a question about Almond"]
+    #[confirm=false]
+    #[minimal_projection=[]];
+
+    action configure(in req device : Entity(tt:device)
+                     #_[prompt="what device do you want to configure"])
+    #_[canonical=["configure a new skill", "enable a new skill"]]
+    #_[on_error={
+      unsupported_skill=["i do not know ${device} yet", "${device} is not supported yet"],
+      unsupported_platform=["you need to go to the configure new skill page to enable new skills"]
+    }]
+    #_[confirmation="configure a new $device"]
+    #[doc="configure a specific device by type"]
+    #[confirm=false]
+    #[minimal_projection=[]];
+
+    action set_language(in req language : Entity(tt:iso_lang_code)
+                        #_[canonical={
+                          base=["language"],
+                          preposition=["to #"]
+                        }])
+    #_[canonical=["set the language", "change the language", "set the assistant language", "set the language of the assistant"]]
+    #_[on_error={
+      unsupported_language=["${language} is not supported yet", "i do not support ${language} yet"],
+      unsupported_platform_cloud=["you need to go to the user profile page to change the language"]
+    }]
+    #_[confirmation="set the language to $language"]
+    #[doc="change the assistant language (not supported on all platforms)"]
+    #[confirm=false]
+    #[minimal_projection=[]];
+
+    action set_timezone(in req timezone : Entity(tt:timezone)
+                        #_[canonical={
+                          base=["time zone"],
+                          preposition=["to #"]
+                        }])
+    #_[canonical=["set the time zone", "change the time zone", "set the time zone of the assistant"]]
+    #_[on_error={
+      unsupported_platform=["i cannot change the time zone on this system . use the system settings to change my timezone"],
+      unsupported_platform_cloud=["you need to go to the user profile page to change the time zone"]
+    }]
+    #_[confirmation="set the time zone to $timezone"]
+    #[doc="change the assistant time zone (not supported on all platforms)"]
+    #[confirm=false]
+    #[minimal_projection=[]];
+
+    action set_wake_word(in req word : String
+                         #_[canonical={
+                           base=["word"],
+                           preposition=["to #"]
+                         }]
+                         #[string_values="tt:word"])
+    #_[canonical=["set the name of the assistant", "set the wake word", "set the hot word", "change the wake word", "set the assistant name", "change the assistant name"]]
+    #_[on_error={
+      unsupported=["changing the wake word is not supported yet", "i do not yet support changing my name"]
+    }]
+    #_[confirmation="set the wake word to $language"]
+    #[doc="change the assistant name (wake word) (not supported yet)"]
+    #[confirm=false]
+    #[minimal_projection=[]];
+
+    action set_voice_output(in req status : Enum(on, off)
+                            #_[canonical={
+                              base=["status", "preference"],
+                              preposition=["to #"]
+                            }])
+    #_[canonical=["change the voice output setting"]]
+    #_[on_error={
+      unsupported=["voice output is not supported on this platform"]
+    }]
+    #_[confirmation="turn ${status} voice output"]
+    #[doc="turn on or off voice output"]
+    #[confirm=false]
+    #[minimal_projection=[]];
+
+    action set_voice_input(in req status : Enum(on, off)
+                           #_[canonical={
+                             base=["status", "preference"],
+                             preposition=["to #"]
+                           }])
+    #_[canonical=["change the voice input setting"]]
+    #_[on_error={
+      unsupported=["voice input is not supported on this platform"]
+    }]
+    #_[confirmation="turn ${status} voice input"]
+    #[doc="turn on or off voice input"]
+    #[confirm=false]
+    #[minimal_projection=[]];
+
+    action set_name(in req name : String
+                    #_[canonical={
+                      base=["name"],
+                      preposition=["to #"]
+                    }]
+                    #[string_values="tt:person_first_name"])
+    #_[canonical=["change my name", "set my name"]]
+    #_[confirmation="change your name to ${name}"]
+    #[doc="change the user's preferred name (a setting)"]
+    #[confirm=false]
+    #[minimal_projection=[]];
+
+    action set_location(in opt type : Enum(current, home, work)
+                        #_[prompt="what type of location would you like to change"]
+                        #[default=enum current],
+                        in req location : Location
+                        #_[canonical={
+                          base=["location", "place", "address"],
+                          preposition=["to #", "as #"]
+                        }])
+    #_[canonical=["set my location", "set my address", "remember my location", "configure my location"]]
+    #_[confirmation="change your ${type} location to ${name}"]
+    #[doc="change the user's preferred locations (a setting)"]
     #[confirm=false]
     #[minimal_projection=[]];
   }
@@ -195,6 +320,43 @@ dataset: |
     #_[utterances=["open $p_url", "open the file at $p_url", "open $p_url in the browser", "browse to $p_url"]]
     #[name="OpenUrlOnBuiltinWithUrl"];
 
+    action (p_device : Entity(tt:device)) = @org.thingpedia.builtin.thingengine.builtin.configure(device=p_device)
+    #_[utterances=["configure $p_device", "setup $p_device", "enable $p_device", "install $p_device", "connect to $p_device", "add a new $p_device account"]]
+    #[name="ConfigureWithDevice"];
+
+    action (p_status : Enum(on, off)) = @org.thingpedia.builtin.thingengine.builtin.set_voice_output(status=p_status)
+    #_[utterances=["turn ${p_status} voice output"]];
+
+    program (p_status : Enum(on, off)) = @org.thingpedia.builtin.thingengine.builtin.set_voice_output(status=p_status)
+    #_[utterances=["turn ${p_status} your voice"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.set_voice_output(status=enum on)
+    #_[utterances=["start speaking", "talk to me", "use voice to talk to me", "speak to me"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.set_voice_output(status=enum off)
+    #_[utterances=["disable voice output"]];
+
+    action (p_status : Enum(on, off)) = @org.thingpedia.builtin.thingengine.builtin.set_voice_input(status=p_status)
+    #_[utterances=["turn ${p_status} voice input"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.set_voice_input(status=enum on)
+    #_[utterances=["start listening", "i want to use my voice", "listen to me"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.set_voice_input(status=enum off)
+    #_[utterances=["disable voice input", "stop listening"]];
+
+    program (p_name : String) = @org.thingpedia.builtin.thingengine.builtin.set_name(name=p_name)
+    #_[utterances=["call me ${p_name}", "refer to me as ${p_name}", "i am ${p_name}", "my name is ${p_name}", "i would like you to call me ${p_name}"]];
+
+    action (p_type : Enum(current, home, work)) = @org.thingpedia.builtin.thingengine.builtin.set_location(type=p_type)
+    #_[utterances=["set my ${p_type} location", "set my ${p_type} address", "remember my ${p_type} location", "change my ${p_type} address"]];
+
+    program (p_location : Location) = @org.thingpedia.builtin.thingengine.builtin.set_location(location=p_location)
+    #_[utterances=["my address is ${p_location}", "my location is ${p_location}"]];
+
+    program (p_type : Enum(current, home, work), p_location : Location) = @org.thingpedia.builtin.thingengine.builtin.set_location(location=p_location, type=p_type)
+    #_[utterances=["my ${p_type} address is ${p_location}", "my ${p_type} is at ${p_location}"]];
+
     program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_identity)
     #_[utterances=["Who are you?", "What are you?", "What is Almond?", "Are you almond?", "What is your name?", "What's your name?", "Whats your name?"]];
 
@@ -225,8 +387,8 @@ dataset: |
     program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum check_capability_home_assistant)
     #_[utterances=["Do you work with Home Assistant?"]];
 
-    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum check_capability_missing)
-    #_[utterances=["Can you draw?", "Are you able to draw?"]];
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum check_capability_phone)
+    #_[utterances=["Do you support any phones?", "What phones do you support?"]];
 
     program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum general_help)
     #_[utterances=["What can you do?", "What can I do?", "What can you do for me?", "Help", "List commands", "Help skill", "What can I say?", "What do you do?", "What you can do?", "What can u do?", "What should I do?", "What command is available?", "What skills are there?", "What can you do at all?", "What could you do for me?", "Commands", "Devices", "Examples", "Can you give me another suggestion?", "Show skills"]];
@@ -236,4 +398,31 @@ dataset: |
 
     program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum positive_emotion_cool)
     #_[utterances=["Funny", "Haha", "Wow", "Hahaha", "Funny haha", "I love programming"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum abusive)
+    #_[utterances=["Kill yourself", "You suck", "Go die", "Fuck you"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum revoke_consent)
+    #_[utterances=["Revoke consent.", "Stop recording my commands."]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_train)
+    #_[utterances=["How do I train you?"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_configure_skill)
+    #_[utterances=["What does it mean to configure something?", "How do I configure new skills?"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_disable_skill)
+    #_[utterances=["How do I disable a skill?"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_set_language)
+    #_[utterances=["How do I change the language?", "Which languages do you know?"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_access_settings)
+    #_[utterances=["Where is Almond settings?", "How to change preferences?"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_use_wakeword)
+    #_[utterances=["How do I use voice commands?", "How do I use hotword detection?", "How do I use wake word detection?", "What is the wake word?", "How do I enable audio?"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum troubleshooting_home_assistant)
+    #_[utterances=["Help in recognizing home assistant entities."]];
   }

@@ -5,9 +5,15 @@ subcategory: service
 
 class: |
   class @org.thingpedia.builtin.test
+  #_[thingpedia_name="Test Device"]
+  #_[thingpedia_description="Test Almond in various ways"]
   #_[name="Test Device"]
   #_[description="Test Almond in various ways"]
   #[system=true]
+  #[repository="https://github.com/stanford-oval/genie-toolkit"]
+  #[subcategory="service"]
+  #[license="Apache-2.0"]
+  #[license_gplcompatible=true]
   {
     import loader from @org.thingpedia.builtin();
     import config from @org.thingpedia.config.builtin();
@@ -47,15 +53,8 @@ class: |
     #_[confirmation_remote="consume $data on $__person's Almond"]
     #[doc="consume some data, do nothing"]
     #[confirm=true];
-
-    action ask(in req question: String #_[prompt="What do you want me to ask?"])
-    #_[canonical="say"]
-    #_[confirmation="ask me a question $question"]
-    #_[confirmation_remote="ask $__person question $question"]
-    #[doc="makes Almond ask something"]
-    #[confirm=false];
   }
+
 
 dataset: |
-  dataset @org.thingpedia.builtin.test language "en" {
-  }
+  dataset @org.thingpedia.builtin.test {}

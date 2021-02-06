@@ -61,7 +61,8 @@ async function testMyApiCreateGetApp(auth) {
     }), { auth, dataContentType: 'application/json' }));
 
     assert(result.uniqueId.startsWith('uuid-'));
-    assert.strictEqual(result.description, 'get generate 10 byte of fake data with count equal to 2');
+    assert(result.description === 'Get get 10 byte of data with count 2.'
+        || result.description === 'Get get data on test with count 2 and with size 10 byte.');
     assert.strictEqual(result.code, '@org.thingpedia.builtin.test.get_data(count=2, size=10byte);');
     assert.strictEqual(result.icon, '/download/icons/org.thingpedia.builtin.test.png');
     assert.deepStrictEqual(result.errors, []);
@@ -104,7 +105,9 @@ async function testMyApiCreateWhenApp(auth) {
     }), { auth, dataContentType: 'application/json' }));
 
     assert(result.uniqueId.startsWith('uuid-'));
-    assert.strictEqual(result.description, 'notify you when generate 10 byte of fake data change');
+    assert(result.description === 'Notify me when get 10 byte of data change.'
+        || result.description === 'Notify me when get data on test with size 10 byte change.',
+        `Invalid description ${result.description}`);
     assert.strictEqual(result.code, 'monitor(@org.thingpedia.builtin.test.get_data(size=10byte));');
     assert.strictEqual(result.icon, '/download/icons/org.thingpedia.builtin.test.png');
     assert.deepStrictEqual(result.results, []);
@@ -147,10 +150,11 @@ async function testMyApiCreateWhenApp(auth) {
 
 async function testMyApiListApps(auth, uniqueId) {
     const listResult = JSON.parse(await request('/me/api/apps/list', 'GET', null, { auth }));
+    listResult[0].description = '';
     assert.deepStrictEqual(listResult, [{
         uniqueId,
         name: 'Test',
-        description: 'notify you when generate 10 byte of fake data change',
+        description: '',
         error: null,
         code:
          'monitor(@org.thingpedia.builtin.test.get_data(size=10byte));',
@@ -160,10 +164,11 @@ async function testMyApiListApps(auth, uniqueId) {
     }]);
 
     const getResult = JSON.parse(await request('/me/api/apps/get/' + uniqueId, 'GET', null, { auth }));
+    getResult.description = '';
     assert.deepStrictEqual(getResult, {
         uniqueId,
         name: 'Test',
-        description: 'notify you when generate 10 byte of fake data change',
+        description: '',
         error: null,
         code:
          'monitor(@org.thingpedia.builtin.test.get_data(size=10byte));',
