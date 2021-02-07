@@ -290,7 +290,7 @@ function checkExamples(generated, expected) {
 
 async function testGetExamplesByDevice() {
     const BING_EXAMPLES = 10;
-    const BUILTIN_EXAMPLES = 23;
+    const BUILTIN_EXAMPLES = 44;
     const INVISIBLE_EXAMPLES = 1;
 
     checkExamples(await ttRequest('/examples/by-kinds/com.bing'), BING_EXAMPLES);

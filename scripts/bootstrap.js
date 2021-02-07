@@ -142,6 +142,18 @@ async function importStandardEntities(dbClient) {
         is_well_known: false,
         has_ner_support: false
     });
+    await entityModel.create(dbClient, {
+        id: 'tt:iso_lang_code',
+        name: 'Language Identifier',
+        is_well_known: false,
+        has_ner_support: true
+    });
+    await entityModel.create(dbClient, {
+        id: 'tt:timezone',
+        name: 'Timezone Identifier',
+        is_well_known: false,
+        has_ner_support: true
+    });
 }
 
 async function importStandardStringTypes(dbClient, rootOrg) {
@@ -152,6 +164,7 @@ async function importStandardStringTypes(dbClient, rootOrg) {
         'tt:person_first_name': 'First names of people',
         'tt:path_name': 'File and directory names',
         'tt:location': 'Cities, points on interest and addresses',
+        'tt:word': 'Individual words'
     };
 
     await stringModel.createMany(dbClient, Object.keys(STRING_TYPES).map((id) => {

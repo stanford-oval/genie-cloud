@@ -296,7 +296,7 @@ function checkExamples(generated, expected) {
 
 async function testGetExamplesByDevice() {
     const BING_EXAMPLES = 10;
-    const BUILTIN_EXAMPLES = 23;
+    const BUILTIN_EXAMPLES = 44;
     const INVISIBLE_EXAMPLES = 1;
 
     checkExamples(await ttRequest('/examples/by-kinds/com.bing'), BING_EXAMPLES);
@@ -412,7 +412,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 182,
+      "id": 234,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me images from bing matching ____ larger than ____ x ____",
@@ -444,7 +444,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 157,
+      "id": 209,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me texts i received in the last hour",
@@ -460,12 +460,12 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 72,
+      "id": 60,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "Are you able to draw?",
-      "preprocessed": "are you able to draw ?",
-      "target_code": "program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum check_capability_missing);",
+      "utterance": "my ____ address is ____",
+      "preprocessed": "my ${p_type} address is ${p_location}",
+      "target_code": "program (p_type : Enum(current, home, work), p_location : Location) = @org.thingpedia.builtin.thingengine.builtin.set_location(location=p_location, type=p_type);",
       "click_count": 1,
       "like_count": 0,
       "liked": false,
@@ -476,7 +476,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 164,
+      "id": 216,
       "language": "en",
       "type": "thingpedia",
       "utterance": "call somebody",
@@ -492,7 +492,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 46,
+      "id": 78,
       "language": "en",
       "type": "thingpedia",
       "utterance": "How are u feeling today?",
@@ -508,12 +508,12 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 39,
+      "id": 143,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "How are you?",
-      "preprocessed": "how are you ?",
-      "target_code": "program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_how_are_you);",
+      "utterance": "Kill yourself",
+      "preprocessed": "kill yourself",
+      "target_code": "program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum abusive);",
       "click_count": 1,
       "like_count": 0,
       "liked": false,
@@ -528,16 +528,16 @@ async function testGetCommands() {
        devices: [
          'org.thingpedia.builtin.thingengine.builtin'
        ],
-       id: 20,
+       id: 71,
        is_base: 1,
        language: 'en',
        like_count: 0,
        liked: false,
        owner_name: 'Site Administration',
-       preprocessed: ', throw a dice between ${p_low:const} and ${p_high:const}',
-       target_code: 'query (p_low : Number, p_high : Number) = @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=p_high, low=p_low);',
+       preprocessed: 'how are you ?',
+       target_code: 'program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_how_are_you);',
        type: 'thingpedia',
-       utterance: 'throw a dice between ____ and ____'
+       utterance: 'How are you?'
     }
   ];
 
@@ -583,7 +583,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 131,
+      "id": 183,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me a screenshot of my laptop",
@@ -598,7 +598,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 123,
+      "id": 175,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop",
@@ -613,7 +613,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 122,
+      "id": 174,
       "language": "en",
       "type": "thingpedia",
       "utterance": "turn ____ my laptop",
@@ -628,7 +628,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 130,
+      "id": 182,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete a file from my laptop",
@@ -643,7 +643,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 129,
+      "id": 181,
       "language": "en",
       "type": "thingpedia",
       "utterance": "use ____ as the background of my laptop",
@@ -658,7 +658,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 133,
+      "id": 185,
       "language": "en",
       "type": "thingpedia",
       "utterance": "save a screenshot of my laptop",
@@ -673,7 +673,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 119,
+      "id": 171,
       "language": "en",
       "type": "thingpedia",
       "utterance": "lock my laptop",
@@ -688,7 +688,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 128,
+      "id": 180,
       "language": "en",
       "type": "thingpedia",
       "utterance": "set the background of my laptop to ____",
@@ -703,7 +703,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 127,
+      "id": 179,
       "language": "en",
       "type": "thingpedia",
       "utterance": "change the background on my laptop",
@@ -718,7 +718,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 124,
+      "id": 176,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop containing ____",
@@ -733,7 +733,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 112,
+      "id": 164,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open ____ on my laptop",
@@ -748,7 +748,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 126,
+      "id": 178,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete the file named ____ from my laptop",
@@ -763,7 +763,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 132,
+      "id": 184,
       "language": "en",
       "type": "thingpedia",
       "utterance": "take a screenshot of my laptop",
@@ -778,7 +778,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 116,
+      "id": 168,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open ____ with ____ on my laptop",
@@ -793,7 +793,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 125,
+      "id": 177,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete ____ from my laptop",
@@ -808,7 +808,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 120,
+      "id": 172,
       "language": "en",
       "type": "thingpedia",
       "utterance": "activate the lock screen on my laptop",
@@ -1214,8 +1214,20 @@ async function testGetEntityList() {
             "has_ner_support":0,
             "subtype_of": null
         },{
+            "type":"tt:iso_lang_code",
+            "name":"Language Identifier",
+            "is_well_known":0,
+            "has_ner_support":1,
+            "subtype_of": null
+        },{
             "type":"tt:stock_id",
             "name":"Company Stock ID",
+            "is_well_known":0,
+            "has_ner_support":1,
+            "subtype_of": null
+        },{
+            "type":"tt:timezone",
+            "name":"Timezone Identifier",
             "is_well_known":0,
             "has_ner_support":1,
             "subtype_of": null
@@ -1415,6 +1427,12 @@ async function testGetStringList() {
                 "name": "General Text (short phrase)",
                 "license": "non-commercial",
                 "attribution": "The Brown Corpus <http://www.hit.uib.no/icame/brown/bcm.html>"
+            },
+            {
+                "type": "tt:word",
+                "name": "Individual words",
+                "license": "public-domain",
+                "attribution": ""
             }
         ]
     });
