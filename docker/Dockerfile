@@ -17,7 +17,7 @@ RUN touch /var/lib/rpm/* && \
   dnf -y install epel-release-latest-8.noarch.rpm && \
   curl -sL https://copr.fedorainfracloud.org/coprs/gcampax/sqlcipher/repo/epel-8/gcampax-sqlcipher-epel-8.repo -o /etc/yum.repos.d/gcampax-sqlcipher-epel-8.repo && \
   curl -sL https://copr.fedorainfracloud.org/coprs/gcampax/bubblewrap/repo/epel-8/gcampax-bubblewrap-epel-8.repo -o /etc/yum.repos.d/gcampax-bubblewrap-epel-8.repo && \
-  dnf module install -y nodejs:10 && \
+  dnf module install -y nodejs:12 && \
   dnf -y install zip unzip GraphicsMagick bubblewrap sqlcipher sqlcipher-devel procps-ng \
     python38 python38-pip git make gettext && \
   rm -rf /var/cache/dnf

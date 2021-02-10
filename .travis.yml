@@ -12,7 +12,7 @@ addons:
   - almond-dev.stanford.edu
   mariadb: '10.2'
   firefox: latest-esr
-node_js: '10'
+node_js: '12'
 cache:
   timeout: 900
   npm: true
