@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
+const fs = require('fs');
 const Genie = require('genie-toolkit');
 
 // API wrappers for Genie's classes that expose the $rpcMethods interface
@@ -50,6 +51,50 @@ class ConversationWrapper {
     }
 }
 ConversationWrapper.prototype.$rpcMethods = ['destroy', 'handleCommand', 'handleParsedCommand', 'handleThingTalk'];
+
+class RecordingController {
+    constructor(conversation) {
+        this._conversation = conversation;
+    }
+
+    log() {
+        const path = this._conversation.log;
+        return path ? fs.readFileSync(path, 'utf-8') : null;
+    }
+
+    startRecording() {
+        return this._conversation.startRecording();
+    }
+
+    endRecording() {
+        return this._conversation.endRecording();
+    }
+
+    inRecordingMode() {
+        return this._conversation.inRecordingMode;
+    }
+
+    saveLog() {
+        return this._conversation.saveLog();
+    }
+
+    voteLast(...args) {
+        return this._conversation.voteLast(...args);
+    }
+
+    commentLast(...args) {
+        return this._conversation.commentLast(...args);
+    }
+}
+RecordingController.prototype.$rpcMethods = [
+    'log',
+    'saveLog',
+    'startRecording',
+    'endRecording',
+    'inRecordingMode',
+    'voteLast',
+    'commentLast'
+];
 
 class NotificationWrapper {
     constructor(dispatcher, delegate) {
@@ -93,6 +138,11 @@ class Engine extends Genie.AssistantEngine {
         return this.assistant.converse(...args);
     }
 
+    getConversation(id) {
+        const conversation = this.assistant.getConversation(id);
+        return new RecordingController(conversation);
+    }
+
     async getOrOpenConversation(id, user, delegate, options) {
         // note: default arguments don't work because "undefined" becomes "null" through transparent-rpc
         options = options || {};
@@ -113,6 +163,7 @@ Engine.prototype.$rpcMethods = [
     'getConsent',
     'setConsent',
 
+    'getConversation',
     'getOrOpenConversation',
     'addNotificationOutput',
     'removeNotificationOutput',
