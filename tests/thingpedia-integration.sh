@@ -167,7 +167,7 @@ sha256sum -c <<EOF
 0e0ff0dbec86f385ff164670ae84b22f1a49c884df5c3dee0b15be969f753693  exact.tsv
 b22a9a93d6eea2c20d657ec6a5115ab48cb253bd41e780018dbd5ec34f29005c  ./exact/en.btrie
 6f16c60e07f0e61afbf1bdd9357ca77c248c3f3b51e8727a62a580f1257c4902  ./training/jobs/2/dataset/eval.tsv
-f821cbe15a604d147c5b05eb7005f8336ab626073c05f4c118b0e616f6ca869c  ./training/jobs/2/dataset/train.tsv
+53f38c802f327bae3782997098bc7eb0f55a60aa527ce05c67d790b193cbd049  ./training/jobs/2/dataset/train.tsv
 EOF
 
 rm -rf $workdir
