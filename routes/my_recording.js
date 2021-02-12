@@ -19,7 +19,6 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
 
-const fs = require('fs');
 const express = require('express');
 
 const user = require('../util/user');
