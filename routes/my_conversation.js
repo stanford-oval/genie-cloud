@@ -140,6 +140,8 @@ async function doConversation(user, anonymous, ws, query) {
 
         let wrapper;
         const id = query.id || 'web-' + makeRandom(4);
+        ws.send(JSON.stringify({ type: 'id', id : id }));
+
         ws.on('error', (err) => {
             ws.close();
         });
