@@ -119,7 +119,18 @@ block content
           = _("Record conversation")
       div.form-group.hidden#save-log
         i.far.fa-save#save-button
-        span= _("Save & Download Log")
+        span= _("Save")
+
+  div.modal#recording-save
+    div.modal-dialog
+      div.modal-content
+        div.modal-body
+          p= _("Conversation log updated.")
+          pre#recording-log
+        div.modal-footer
+          button.btn.btn-primary#recording-download= _("Download")
+          a.btn.btn-primary#recording-share= _("Share with Almond Team")
+          button.btn.btn-default#recording-save-done= _("Done")
 
   div#conversation.single(data-target='/me/ws/conversation')
     div#chat

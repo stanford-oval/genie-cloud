@@ -137,3 +137,7 @@
   padding: 10px;
   margin: 5px;
 }
+
+#recording-log {
+  max-height: calc(100vh - 200px);
+}
