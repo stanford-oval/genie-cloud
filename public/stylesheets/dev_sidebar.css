@@ -1,0 +1,179 @@
+nav#doc-sidebar {
+  display: block;
+  margin-top: 80px;
+  background-color: whitesmoke;
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
+
+@media screen and (min-width: 1000px) {
+  nav#doc-sidebar {
+    position: fixed;
+    margin-top: 30px;
+    width: 20vw;
+    min-width: 300px;
+    max-height: calc(100vh - 90px);
+    overflow-y: auto;
+    z-index: 1;
+  }
+  nav#doc-sidebar > ul > li > ul > li > a {
+    padding-right: 40px;
+  }
+}
+
+/* general style */
+nav#doc-sidebar ul {
+  padding: 0;
+}
+nav#doc-sidebar li {
+  display: block;
+  padding: 0;
+}
+nav#doc-sidebar a {
+  display: block;
+}
+nav#doc-sidebar .doc-sidebar-subtitle, nav#doc-sidebar a {
+  padding-left: 20px;
+}
+nav#doc-sidebar .doc-sidebar-subsubtitle {
+  padding-left: 40px;
+}
+nav#doc-sidebar > ul > li > ul > li .doc-sidebar-subtitle, nav#doc-sidebar > ul > li > ul > li a {
+  padding-left: 40px;
+}
+
+nav#doc-sidebar > ul > li > ul > li > ul > li > ul > li {
+  padding-left: 20px;
+}
+
+#docsearch-container {
+  padding-left: 20px;
+  padding-right: 20px;
+  position: relative;
+  overflow: visible;
+}
+
+#docsearch-results {
+  padding-left: 20px;
+  padding-right: 20px;
+  top: 100%;
+  background-color: white;
+  font-weight: normal;
+}
+#docsearch-results mark {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+#docsearch-input + #docsearch-results {
+  display: none;
+}
+#docsearch-input:valid + #docsearch-results {
+  display: block;
+}
+#docsearch-results > a.list-group-item {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+#docsearch-results > a.list-group-item > span {
+  display: block;
+  text-overflow: ellipsis;
+  max-height: 4.1em;
+  overflow: hidden;
+}
+
+
+nav#doc-sidebar li.current {
+  background-color: #8c1515;
+  color: white;
+}
+nav#doc-sidebar a:hover {
+  text-decoration: none;
+}
+
+div#doc-search {
+  padding-right: 30px;
+}
+
+span#doc-search-icon:hover {
+  color: white;
+}
+
+/* level 1 items */
+nav#doc-sidebar > ul > li > .doc-sidebar-subtitle {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-weight: bold;
+}
+nav#doc-sidebar > ul > li > a {
+  color: black;
+}
+nav#doc-sidebar > ul > li.current > a {
+  color: white;
+}
+nav#doc-sidebar > ul > li:hover, nav#doc-sidebar > ul > li.thingpedia-docs > a:hover {
+  background-color: lightgray;
+}
+nav#doc-sidebar > ul > li.thingpedia-docs:hover {
+  background-color: whitesmoke;
+}
+nav#doc-sidebar li.current > .doc-sidebar-subtitle {
+  color: white;
+}
+nav#doc-sidebar li.current > .doc-sidebar-subtitle:hover {
+  color: black;
+}
+
+/* level 2 items (docs category) */
+nav#doc-sidebar > ul > li > ul > li {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+nav#doc-sidebar > ul > li > ul > li > * {
+  display: block;
+  margin-bottom: 2px;
+  font-weight: bold;
+  color: black;
+}
+nav#doc-sidebar > ul > li > ul > li > *:first-child {
+  margin-top: 0px;
+}
+nav#doc-sidebar > ul > li > ul > li > *:last-child {
+  margin-bottom: 0px;
+}
+nav#doc-sidebar > ul > li > ul > li:hover:not(.current) {
+  background-color: lightgray;
+}
+nav#doc-sidebar > ul > li > ul > li > a:hover {
+  text-decoration: none;
+}
+nav#doc-sidebar > ul > li > ul > li > .doc-sidebar-subsubtitle {
+  font-weight: normal;
+  margin: 0px;
+}
+nav#doc-sidebar li.current > .doc-sidebar-subsubtitle {
+  color: white;
+}
+
+/* level 3+ items (docs) */
+nav#doc-sidebar > ul > li > ul > li > ul li {
+  font-weight: normal;
+  color: black;
+  /*padding: 0 0 0 20px;*/
+}
+nav#doc-sidebar > ul > li > ul > li > ul li a {
+  padding-right: 10px;
+}
+nav#doc-sidebar > ul > li > ul > li.current > ul li > a {
+  color: lightgray;
+}
+nav#doc-sidebar > ul > li > ul > li.current > ul li.current > a {
+  color: #ffdb9a;
+  background-color: transparent;
+}
+nav#doc-sidebar > ul > li > ul > li > ul li > a:hover {
+  color: #600e0e;
+}
+nav#doc-sidebar > ul > li > ul > li.current > ul li > a:hover {
+  color: #ffdb9a;
+}
