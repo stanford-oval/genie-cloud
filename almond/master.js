@@ -100,10 +100,13 @@ class ControlSocket extends events.EventEmitter {
 }
 
 class ControlSocketServer {
-    constructor(engines, shardId) {
+    constructor(engines, shardId, k8s) {
         this._server = net.createServer();
-        this._address = sockaddr(Config.THINGENGINE_MANAGER_ADDRESS[shardId]);
-
+        // In K8S, we assume the container port is the same as the service port
+        if (k8s)
+            this._address = sockaddr(`${process.env.HOSTNAME}:${process.env.ALMOND_BACKEND_SERVICE_PORT}`)
+        else
+            this._address = sockaddr(Config.THINGENGINE_MANAGER_ADDRESS[shardId]);
         this._connections = new Set;
         this._server.on('connection', (socket) => {
             const control = new ControlSocket(engines, socket);
@@ -167,7 +170,7 @@ module.exports = {
 
         const enginemanager = new EngineManager(argv.shard);
 
-        const controlSocket = new ControlSocketServer(enginemanager, argv.shard);
+        const controlSocket = new ControlSocketServer(enginemanager, argv.shard, argv.k8s);
 
         controlSocket.start().then(() => {
             return enginemanager.start();
