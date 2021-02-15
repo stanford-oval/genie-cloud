@@ -104,7 +104,7 @@ class ControlSocketServer {
         this._server = net.createServer();
         // In K8S, we assume the container port is the same as the service port
         if (k8s)
-            this._address = sockaddr(`${process.env.HOSTNAME}:${process.env.ALMOND_BACKEND_SERVICE_PORT}`)
+            this._address = sockaddr(`${process.env.HOSTNAME}:${process.env.ALMOND_BACKEND_SERVICE_PORT}`);
         else
             this._address = sockaddr(Config.THINGENGINE_MANAGER_ADDRESS[shardId]);
         this._connections = new Set;
