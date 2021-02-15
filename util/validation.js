@@ -119,7 +119,7 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
         if (!classDef.loader)
             throw new ValidationError(req._("Loader mixin missing from class declaration"));
         if (!classDef.config)
-            classDef.imports.push(new ThingTalk.Ast.ImportStmt.Mixin(null, ['config'], 'org.thingpedia.config.none', []));
+            classDef.imports.push(new ThingTalk.Ast.MixinImportStmt(null, ['config'], 'org.thingpedia.config.none', []));
     }
 
     const moduleType = classDef.is_abstract ? null : classDef.loader.module;

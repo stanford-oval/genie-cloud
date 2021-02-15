@@ -18,6 +18,10 @@ block content
       else
         p= String(error)
 
+  div.alert.alert-warning(role='alert',style='color:black')
+    p This is the #[strong development] version of Almond. It is not suitable for everyday use. You should not use this server to store any sensitive or important data.
+      strong Your account and your data might be deleted at any time without warning!
+
   form(action='/user/register', method='post', data-toggle='validator')
     input(type='hidden',name='_csrf',value=csrfToken)
     input(type='hidden',name='timezone')#timezone
@@ -74,7 +78,7 @@ block content
 
       p If you agree to these terms, please keep a copy of this form for your records.
 
-    div.form-group
+    //div.form-group
       div.checkbox
         label.control-label
           input(type='checkbox',name='agree_terms',id='register-agree-terms',value='1',required=true)
@@ -88,4 +92,3 @@ block content
 
     div.form-group
       button(type='submit').btn.btn-primary= _("Register")
-
