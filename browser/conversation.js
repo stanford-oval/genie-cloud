@@ -548,6 +548,33 @@ $(() => {
         $('#recording-toggle').prop('checked', true);
     });
 
+    $('#save-log').click(() => {
+        $.post('me/recording/save', {
+            id: conversationId,
+            _csrf: document.body.dataset.csrfToken
+        }).then((res) => {
+            if (res.status === 'ok') {
+                $.get('me/recording/log/' + conversationId).then((res) => {
+                    if (res.status === 'ok') {
+                        $('#recording-log').text(res.log);
+                        const email = 'oval-bug-reports@lists.stanford.edu';
+                        const subject = 'Almond Conversation Log';
+                        const body = encodeURIComponent(res.log);
+                        $('#recording-share').prop('href', `mailto:${email}?subject=${subject}&body=${body}`);
+                        $('#recording-save').modal('toggle');
+                    }
+                });
+            }
+        });
+    });
+
+    $('#recording-download').click(() => {
+        window.open("me/recording/log/" + conversationId + '.txt', "Almond Conversation Log");
+    });
+
+    $('#recording-save-done').click(() => {
+        $('#recording-save').modal('toggle');
+    });
 
     $('#recording-warning').on('hidden.bs.modal', () => {
         $('#recording-toggle').prop('checked', false);
@@ -556,16 +583,6 @@ $(() => {
     $('#cancel-recording').click(() => {
         $('#recording-toggle').prop('checked', false);
         $('#recording-warning').modal('toggle');
-    });
-
-    $('#save-log').click(() => {
-        $.post('/me/recording/save', {
-            id: conversationId,
-            _csrf: document.body.dataset.csrfToken
-        }).then((res) => {
-            if (res.status === 'ok')
-                window.open("/me/recording/log/" + conversationId, "Almond Conversation Log");
-        });
     });
 
     $('#comment-popup').submit((event) => {

@@ -126,7 +126,7 @@ router.post('/save', (req, res, next) => {
     }).catch(next);
 });
 
-router.get('/log/:id', (req, res, next) => {
+router.get('/log/:id.txt', (req, res, next) => {
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine(req.user.id);
         return engine.getConversation(req.params.id);
@@ -148,5 +148,27 @@ router.get('/log/:id', (req, res, next) => {
     }).catch(next);
 });
 
+router.get('/log/:id', (req, res, next) => {
+    Promise.resolve().then(async () => {
+        const engine = await EngineManager.get().getEngine(req.user.id);
+        return engine.getConversation(req.params.id);
+    }).then(async (conversation) => {
+        if (!conversation) {
+            res.status(404);
+            res.json({ error: 'No conversation found' });
+        } else {
+            const log = await conversation.log();
+            if (!log) {
+                res.status(404);
+                res.json({ error: 'No conversation log found' });
+            } else {
+                res.json({
+                    status: 'ok',
+                    log: log
+                });
+            }
+        }
+    }).catch(next);
+});
 
 module.exports = router;
