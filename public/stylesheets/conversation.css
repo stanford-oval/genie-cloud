@@ -115,3 +115,25 @@
   padding: 12px 12px;
   overflow: hidden;
 }
+
+#toolbar {
+  margin: auto;
+  max-width: 800px;
+}
+
+#toolbar i {
+  padding: 3px;
+}
+
+#save-log {
+  padding-left: 10px;
+  cursor: pointer;
+}
+
+.comment-options > .fa, .comment-options > .far {
+  cursor: pointer;
+  border-radius: 60px;
+  box-shadow: 0 0 2px #888;
+  padding: 10px;
+  margin: 5px;
+}
