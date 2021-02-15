@@ -75,10 +75,9 @@ async function testEverything() {
         const analyzed = await parser.sendUtterance(test, undefined, undefined);
 
         assert.strictEqual(typeof analyzed.intent, 'object');
-        assert.strictEqual(typeof analyzed.intent.question, 'number');
         assert.strictEqual(typeof analyzed.intent.command, 'number');
-        assert.strictEqual(typeof analyzed.intent.chatty, 'number');
         assert.strictEqual(typeof analyzed.intent.other, 'number');
+        assert.strictEqual(typeof analyzed.intent.ignore, 'number');
 
         assert(Array.isArray(analyzed.candidates));
 

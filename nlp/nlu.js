@@ -87,16 +87,7 @@ async function runNLU(query, params, data, service, res) {
         return undefined;
     }
 
-    // this exists for API compatibility only (until we restore the frontend classifier)
-    // for now, all commands are well, commands
-    const intent = {
-        question: 0,
-        command: 1,
-        chatty: 0,
-        other: 0
-    };
-
-    const { tokens, candidates, entities } = await model.predictor.sendUtterance(query,
+    const { tokens, candidates, entities, intent } = await model.predictor.sendUtterance(query,
         data.context ? data.context.split(' ') : undefined, data.context ? data.entities : undefined, data);
 
     if (store !== 'no' && expect !== 'MultipleChoice' && tokens.length > 0) {
