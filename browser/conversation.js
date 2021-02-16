@@ -39,12 +39,11 @@ $(() => {
     var conversationId = null;
 
     function refreshToolbar() {
-        const saveButton = $('#save-log');
+        const showLogButton = $('#show-log');
         $.get('/me/recording/status/' + conversationId).then((res) => {
             if (res.status === 'on') {
                 recording = true;
                 $('#recording-toggle').prop("checked", true);
-                saveButton.removeClass('hidden');
             } else {
                 recording = false;
                 $('#recording-toggle').prop("checked", false);
@@ -52,7 +51,7 @@ $(() => {
         });
         $.get('/me/recording/log/' + conversationId).then((res) => {
             if (res)
-                saveButton.removeClass('hidden');
+                showLogButton.removeClass('hidden');
         });
     }
 
@@ -528,7 +527,7 @@ $(() => {
             id: conversationId,
             _csrf: document.body.dataset.csrfToken
         });
-        $('#save-log').removeClass('hidden');
+        refreshToolbar();
     }
 
     $('#recording-toggle').click(() => {
@@ -545,10 +544,6 @@ $(() => {
                 id: conversationId,
                 _csrf: document.body.dataset.csrfToken
             });
-            $.post('/me/recording/save', {
-                id: conversationId,
-                _csrf: document.body.dataset.csrfToken
-            });
         }
     });
 
@@ -558,22 +553,15 @@ $(() => {
         $('#recording-toggle').prop('checked', true);
     });
 
-    $('#save-log').click(() => {
-        $.post('me/recording/save', {
-            id: conversationId,
-            _csrf: document.body.dataset.csrfToken
-        }).then((res) => {
+    $('#show-log').click(() => {
+        $.get('me/recording/log/' + conversationId).then((res) => {
             if (res.status === 'ok') {
-                $.get('me/recording/log/' + conversationId).then((res) => {
-                    if (res.status === 'ok') {
-                        $('#recording-log').text(res.log);
-                        const email = 'oval-bug-reports@lists.stanford.edu';
-                        const subject = 'Almond Conversation Log';
-                        const body = encodeURIComponent(res.log);
-                        $('#recording-share').prop('href', `mailto:${email}?subject=${subject}&body=${body}`);
-                        $('#recording-save').modal('toggle');
-                    }
-                });
+                $('#recording-log').text(res.log);
+                const email = 'oval-bug-reports@lists.stanford.edu';
+                const subject = 'Almond Conversation Log';
+                const body = encodeURIComponent(res.log);
+                $('#recording-share').prop('href', `mailto:${email}?subject=${subject}&body=${body}`);
+                $('#recording-save').modal('toggle');
             }
         });
     });
