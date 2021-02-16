@@ -31,6 +31,7 @@ router.use(user.requireLogIn);
 router.post('/start', (req, res, next) => {
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine(req.user.id);
+        engine.warnRecording();
         return engine.getConversation(req.body.id);
     }).then(async (conversation) => {
         if (!conversation) {
@@ -57,6 +58,13 @@ router.post('/stop', (req, res, next) => {
         }
     }).catch(next);
 });
+
+router.get('/warned', (req, res, next) => {
+    Promise.resolve().then(async () => {
+        const engine = await EngineManager.get().getEngine(req.user.id);
+        res.json({ warned: engine.recordingWarned() ? 'yes' : 'no' });
+    }).catch(next);
+})
 
 router.get('/status/:id', (req, res, next) => {
     Promise.resolve().then(async () => {

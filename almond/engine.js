@@ -134,6 +134,16 @@ class Engine extends Genie.AssistantEngine {
         return prefs.get('sabrina-store-log') !== 'no';
     }
 
+    warnRecording() {
+        const prefs = this.platform.getSharedPreferences();
+        prefs.set('recording-warning-shown', 'yes');
+    }
+
+    recordingWarned() {
+        const prefs = this.platform.getSharedPreferences();
+        return prefs.get('recording-warning-shown') === 'yes';
+    }
+
     async converse(...args) {
         return this.assistant.converse(...args);
     }
@@ -162,6 +172,9 @@ class Engine extends Genie.AssistantEngine {
 Engine.prototype.$rpcMethods = [
     'getConsent',
     'setConsent',
+
+    'warnRecording',
+    'recordingWarned',
 
     'getConversation',
     'getOrOpenConversation',
