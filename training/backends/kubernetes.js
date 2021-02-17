@@ -99,8 +99,18 @@ const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
                 return;
             }
             this._processJob(k8sJob, type);
+        }, (msg) => {
+            console.log('watch jobs done');
+            if (msg)
+                console.log(msg);
+            if (this._watchedJobs.size > 0) {
+                this._numTriesLeft--;
+                this._watchJobs();
+            }
         }, (err) => {
-            console.error('watch jobs error:', err);
+            console.error('watch jobs error');
+            if (err)
+                console.error(err);
             if (this._watchedJobs.size > 0) {
                 this._numTriesLeft--;
                 this._watchJobs();
@@ -110,7 +120,7 @@ const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
     
     _processJob(k8sJob, type) {
         const jobName = k8sJob.metadata.name;
-        console.log('processing job', jobName);
+        console.log('processing job', jobName, type);
         if (!this._watchedJobs.has(jobName)) {
             console.log('not watching job', jobName);
             return;
