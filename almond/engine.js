@@ -39,15 +39,15 @@ class ConversationWrapper {
     }
 
     handleCommand(...args) {
-        return this._conversation.handleCommand(...args);
+        return this._conversation.handleCommand(...args).then(() => this._conversation.saveLog());
     }
 
     handleParsedCommand(...args) {
-        return this._conversation.handleParsedCommand(...args);
+        return this._conversation.handleParsedCommand(...args).then(() => this._conversation.saveLog());
     }
 
     handleThingTalk(...args) {
-        return this._conversation.handleThingTalk(...args);
+        return this._conversation.handleThingTalk(...args).then(() => this._conversation.saveLog());
     }
 }
 ConversationWrapper.prototype.$rpcMethods = ['destroy', 'handleCommand', 'handleParsedCommand', 'handleThingTalk'];
@@ -79,11 +79,13 @@ class RecordingController {
     }
 
     voteLast(...args) {
-        return this._conversation.voteLast(...args);
+        this._conversation.voteLast(...args);
+        return this._conversation.saveLog();
     }
 
     commentLast(...args) {
-        return this._conversation.commentLast(...args);
+        this._conversation.commentLast(...args);
+        return this._conversation.saveLog();
     }
 }
 RecordingController.prototype.$rpcMethods = [
@@ -134,6 +136,16 @@ class Engine extends Genie.AssistantEngine {
         return prefs.get('sabrina-store-log') !== 'no';
     }
 
+    warnRecording() {
+        const prefs = this.platform.getSharedPreferences();
+        prefs.set('recording-warning-shown', 'yes');
+    }
+
+    recordingWarned() {
+        const prefs = this.platform.getSharedPreferences();
+        return prefs.get('recording-warning-shown') === 'yes';
+    }
+
     async converse(...args) {
         return this.assistant.converse(...args);
     }
@@ -162,6 +174,9 @@ class Engine extends Genie.AssistantEngine {
 Engine.prototype.$rpcMethods = [
     'getConsent',
     'setConsent',
+
+    'warnRecording',
+    'recordingWarned',
 
     'getConversation',
     'getOrOpenConversation',
