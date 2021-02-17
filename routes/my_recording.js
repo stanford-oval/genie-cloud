@@ -64,7 +64,7 @@ router.get('/warned', (req, res, next) => {
         const engine = await EngineManager.get().getEngine(req.user.id);
         res.json({ warned: engine.recordingWarned() ? 'yes' : 'no' });
     }).catch(next);
-})
+});
 
 router.get('/status/:id', (req, res, next) => {
     Promise.resolve().then(async () => {
