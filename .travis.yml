@@ -79,11 +79,6 @@ jobs:
       - export PATH="`pwd`/geckodriver:$PATH"
       script: npx nyc ./tests/training-integration.sh
       after_success: npm run coverage
-    -
-      stage: deploy
-      name: "Deploy to Staging"
-      install: ./travis/unlock-key.sh
-      script: ssh -i ./travis/id_rsa.autodeploy autodeploy@almond-dev.stanford.edu
 
 notifications:
   webhooks: https://coveralls.io/webhook
