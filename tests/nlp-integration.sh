@@ -48,7 +48,7 @@ FILE_STORAGE_BACKEND: local
 CDN_HOST: /download
 WITH_THINGPEDIA: external
 WITH_LUINET: embedded
-THINGPEDIA_URL: https://almond-dev.stanford.edu/thingpedia
+THINGPEDIA_URL: https://dev.almond.stanford.edu/thingpedia
 ENABLE_PROMETHEUS: true
 PROMETHEUS_ACCESS_TOKEN: my-prometheus-access-token
 MS_SPEECH_SUBSCRIPTION_KEY: "${MS_SPEECH_SUBSCRIPTION_KEY}"
