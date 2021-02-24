@@ -137,11 +137,19 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
     getDeviceCode(kind) {
         return this._withClient(async (dbClient) => {
             const orgId = await this._getOrgId(dbClient);
-            const devs = await device.getFullCodeByPrimaryKind(dbClient, kind, orgId);
-            if (devs.length < 1)
+            const classes = await this._internalGetDeviceCode([kind], orgId, dbClient);
+            if (classes.length < 1)
                 throw new NotFoundError();
+            return classes[0];
+        });
+    }
 
-            const dev = devs[0];
+    async _internalGetDeviceCode(kinds, orgId, dbClient) {
+        const devs = await device.getFullCodeByPrimaryKinds(dbClient, kinds, orgId);
+        let schemas;
+        if (this.language !== 'en')
+            schemas = await schemaModel.getMetasByKinds(dbClient, kinds, orgId, this.language);
+        return Promise.all(devs.map(async (dev) => {
             const code = dev.code;
 
             // fast path without parsing the code
@@ -153,31 +161,32 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
             const classDef = parsed.classes[0];
 
             if (this.language !== 'en') {
-                const schema = await schemaModel.getMetasByKinds(dbClient, [kind], orgId, this.language);
-                SchemaUtils.mergeClassDefAndSchema(classDef, schema[0]);
+                const schema = schemas.find((schema) => schema.kind === dev.primary_kind);
+                if (schema)
+                    SchemaUtils.mergeClassDefAndSchema(classDef, schema);
             }
 
             return ThingTalk.Syntax.serialize(parsed, ThingTalk.Syntax.SyntaxType.Normal, undefined, {
                 compatibility: this._thingtalkVersion
             });
-        });
+        }));
     }
 
     getSchemas(schemas, withMetadata) {
         if (schemas.length === 0)
-            return Promise.resolve({});
+            return Promise.resolve('');
 
         return this._withClient(async (dbClient) => {
-            let rows;
-            if (withMetadata)
-                rows = await schemaModel.getMetasByKinds(dbClient, schemas, await this._getOrgId(dbClient), this.language);
-            else
-                rows = await schemaModel.getTypesAndNamesByKinds(dbClient, schemas, await this._getOrgId(dbClient));
-
-            const classDefs = SchemaUtils.schemaListToClassDefs(rows, withMetadata);
-            return ThingTalk.Syntax.serialize(classDefs, ThingTalk.Syntax.SyntaxType.Normal, undefined, {
-                compatibility: this._thingtalkVersion
-            });
+            if (withMetadata) {
+                const orgId = await this._getOrgId(dbClient);
+                return (await this._internalGetDeviceCode(schemas, orgId, dbClient)).join('\n');
+            } else {
+                const rows = await schemaModel.getTypesAndNamesByKinds(dbClient, schemas, await this._getOrgId(dbClient));
+                const classDefs = SchemaUtils.schemaListToClassDefs(rows, withMetadata);
+                return ThingTalk.Syntax.serialize(classDefs, ThingTalk.Syntax.SyntaxType.Normal, undefined, {
+                    compatibility: this._thingtalkVersion
+                });
+            }
         });
     }
 

@@ -12,7 +12,6 @@ class: |
     action eat_data(in req data : String #_[prompt="What do you want me to consume?"])
     #[doc="consume some data, do nothing"]
     #_[confirmation="consume $data"]
-    #_[confirmation_remote="consume $data on $__person's Almond"]
     #_[canonical="eat data on test"];
   }
 
