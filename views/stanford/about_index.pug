@@ -76,10 +76,11 @@ block content
                 div.col-xs-12.col-sm-6.col-md-4
                   a(href='https://community.almond.stanford.edu')= _("Join Our Community")
 
-            //div(style='margin-top:1em;font-size:24px').text-center
-              p You can also try the bleeding edge, development version
-                br
-                | of Almond at #[a(href='https://dev.almond.stanford.edu') dev.almond.stanford.edu].
+            if Config.SERVER_ORIGIN === 'https://almond.stanford.edu'
+              div(style='margin-top:1em;font-size:24px').text-center
+                p You can also try the bleeding edge, development version
+                  br
+                  | of Almond at #[a(href='https://dev.almond.stanford.edu') dev.almond.stanford.edu].
 
             p(style='margin-top:1em;font-size:24px').text-center!= _("Brought to you by the <a href='https://oval.cs.stanford.edu'>Stanford Open Virtual Assistant Lab</a>.")
 
