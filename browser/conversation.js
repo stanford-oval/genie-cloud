@@ -526,8 +526,9 @@ $(() => {
         $.post('/me/recording/start', {
             id: conversationId,
             _csrf: document.body.dataset.csrfToken
+        }).then(() => {
+            refreshToolbar();
         });
-        refreshToolbar();
     }
 
     $('#recording-toggle').click(() => {
