@@ -46,7 +46,7 @@ const FORBIDDEN_NAMES = new Set(['__count__', '__noSuchMethod__', '__parent__',
 'toLocaleString', 'toSource', 'toString', 'valueOf']);
 
 const ALLOWED_ARG_METADATA = new Set(['canonical', 'prompt', 'question', 'counted_object']);
-const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'confirmation', 'confirmation_remote', 'result', 'formatted', 'on_error']);
+const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'canonical_short', 'confirmation', 'confirmation_remote', 'result', 'formatted', 'on_error']);
 const ALLOWED_CLASS_METADATA = new Set(['name', 'description', 'thingpedia_name', 'thingpedia_description', 'canonical']);
 
 function validateAnnotations(annotations) {
@@ -268,12 +268,7 @@ function validateAllInvocations(classDef, options = {}) {
     return [Array.from(entities), Array.from(stringTypes)];
 }
 
-function autogenCanonical(tokenizer, name, kind, deviceName) {
-    return `${clean(name)} on ${deviceName ? tokenizer.tokenize(deviceName).tokens.join(' ') : cleanKind(kind)}`;
-}
-
 function validateInvocation(kind, where, what, entities, stringTypes, options = {}) {
-    const tokenizer = I18n.get('en-US').genie.getTokenizer();
     for (const name in where) {
         if (FORBIDDEN_NAMES.has(name))
             throw new ValidationError(`${name} is not allowed as a function name`);
@@ -283,13 +278,7 @@ function validateInvocation(kind, where, what, entities, stringTypes, options = 
         validateAnnotations(fndef.annotations);
 
         if (!fndef.metadata.canonical)
-            fndef.metadata.canonical = autogenCanonical(tokenizer, name, kind, options.deviceName);
-        if (typeof fndef.metadata.canonical === 'string' &&
-            fndef.metadata.canonical.indexOf('$') >= 0)
-            throw new ValidationError(`Detected placeholder in canonical form for ${name}: this is incorrect, the canonical form must not contain parameters`);
-        if (!fndef.metadata.confirmation)
-            throw new ValidationError(`Missing confirmation for ${name}`);
-
+            fndef.metadata.canonical = clean(name);
         if (fndef.annotations.confirm) {
             if (fndef.annotations.confirm.isEnum) {
                 if (!['confirm', 'auto', 'display_result'].includes(fndef.annotations.confirm.toJS()))

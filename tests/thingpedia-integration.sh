@@ -164,8 +164,8 @@ node ${srcdir}/main.js run-training-task -t prepare-training-set --job-id 2 --jo
 
 sha256sum exact.tsv ./exact/en.btrie ./training/jobs/2/dataset/eval.tsv ./training/jobs/2/dataset/train.tsv
 sha256sum -c <<EOF
-0e0ff0dbec86f385ff164670ae84b22f1a49c884df5c3dee0b15be969f753693  exact.tsv
-b22a9a93d6eea2c20d657ec6a5115ab48cb253bd41e780018dbd5ec34f29005c  ./exact/en.btrie
+0e6519bafbb6196ade9694f34215cd29582c5bd4c51dfd42c2e228c11b91af31  exact.tsv
+d0720f4628e7ababcc685db151cfefc57886fdda388409a907004736c6fc1a6e  ./exact/en.btrie
 6f16c60e07f0e61afbf1bdd9357ca77c248c3f3b51e8727a62a580f1257c4902  ./training/jobs/2/dataset/eval.tsv
 53f38c802f327bae3782997098bc7eb0f55a60aa527ce05c67d790b193cbd049  ./training/jobs/2/dataset/train.tsv
 EOF

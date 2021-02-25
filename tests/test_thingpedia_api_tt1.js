@@ -68,62 +68,6 @@ monitorable list query web_search(in req query : String,
 #[minimal_projection=[]];
 }
 `;
-const BING_CLASS_WITH_METADATA = `class @com.bing
-#_[canonical="bing search"] {
-monitorable list query image_search(in req query : String
-                                    #_[canonical="query"]
-                                    #_[prompt="What do you want to search?"]
-                                    #[string_values="tt:search_query"],
-                                    out title : String
-                                    #_[canonical="title"]
-                                    #[string_values="tt:short_free_text"],
-                                    out picture_url : Entity(tt:picture)
-                                    #_[canonical="picture url"],
-                                    out link : Entity(tt:url)
-                                    #_[canonical="link"],
-                                    out width : Number
-                                    #_[canonical="width"]
-                                    #_[prompt="What width are you looking for (in pixels)?"],
-                                    out height : Number
-                                    #_[canonical="height"]
-                                    #_[prompt="What height are you looking for (in pixels)?"])
-#_[canonical="image search on bing"]
-#_[confirmation="images matching $query from Bing"]
-#_[formatted=[{
-  type="rdl",
-  webCallback="\${link}",
-  displayTitle="\${title}"
-}, {
-  type="picture",
-  url="\${picture_url}"
-}]]
-#[confirm=false]
-#[minimal_projection=[]];
-
-monitorable list query web_search(in req query : String
-                                  #_[canonical="query"]
-                                  #_[prompt="What do you want to search?"]
-                                  #[string_values="tt:search_query"],
-                                  out title : String
-                                  #_[canonical="title"]
-                                  #[string_values="tt:short_free_text"],
-                                  out description : String
-                                  #_[canonical="description"]
-                                  #[string_values="tt:long_free_text"],
-                                  out link : Entity(tt:url)
-                                  #_[canonical="link"])
-#_[canonical="web search on bing"]
-#_[confirmation="websites matching $query on Bing"]
-#_[formatted=[{
-  type="rdl",
-  webCallback="\${link}",
-  displayTitle="\${title}",
-  displayText="\${description}"
-}]]
-#[confirm=false]
-#[minimal_projection=[]];
-}
-`;
 const BING_CLASS_FULL = `class @com.bing
 #_[name="Bing Search"]
 #_[description="Search the web with Bing"]
@@ -203,25 +147,43 @@ action eat_data(in req data : String)
 }
 `;
 const INVISIBLE_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.invisible
-#_[canonical="invisible device"] {
+#_[name="Invisible Device"]
+#_[description="This device is owned by Bob. It was not approved."]
+#_[canonical="invisible device"]
+#[system=true]
+#[version=0]
+#[package_version=0] {
+  import loader from @org.thingpedia.builtin();
+  import config from @org.thingpedia.config.custom_oauth();
+
 action eat_data(in req data : String
-                #_[canonical="data"]
-                #_[prompt="What do you want me to consume?"])
-#_[canonical="eat data on test"]
+                #_[prompt="What do you want me to consume?"]
+                #_[canonical="data"])
 #_[confirmation="consume $data"]
-#[confirm=true]
-#[minimal_projection=[]];
+#_[canonical="eat data on test"]
+#[doc="consume some data, do nothing"]
+#[minimal_projection=[]]
+#[confirm=true];
 }
 `;
 const ADMINONLY_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.adminonly
-#_[canonical="admin-only device"] {
+#_[name="Admin-only Device"]
+#_[description="This device does not exist. This entry is visible only to the administrators of Thingpedia. It exists to test that the Thingpedia API properly masks and reveals devices based on the appropriate developer key. DO NOT APPROVE THIS DEVICE."]
+#_[canonical="admin-only device"]
+#[system=true]
+#[version=0]
+#[package_version=0] {
+  import loader from @org.thingpedia.builtin();
+  import config from @org.thingpedia.config.none();
+
 action eat_data(in req data : String
-                #_[canonical="data"]
-                #_[prompt="What do you want me to consume?"])
-#_[canonical="eat data on test"]
+                #_[prompt="What do you want me to consume?"]
+                #_[canonical="data"])
 #_[confirmation="consume $data"]
-#[confirm=true]
-#[minimal_projection=[]];
+#_[canonical="eat data on test"]
+#[doc="consume some data, do nothing"]
+#[minimal_projection=[]]
+#[confirm=true];
 }
 `;
 
@@ -250,29 +212,29 @@ async function testGetSchemas() {
 }
 
 async function testGetMetadata() {
-    assert.deepStrictEqual(await ttRequest('/schema/com.bing?meta=1'), BING_CLASS_WITH_METADATA);
+    assert.deepStrictEqual(await ttRequest('/schema/com.bing?meta=1'), BING_CLASS_FULL);
 
     assert.deepStrictEqual(await ttRequest('/schema/com.bing,org.thingpedia.builtin.test.nonexistent?meta=1'),
-        BING_CLASS_WITH_METADATA);
+        BING_CLASS_FULL);
 
     assert.deepStrictEqual(await ttRequest('/schema/com.bing,org.thingpedia.builtin.test.invisible?meta=1'),
-        BING_CLASS_WITH_METADATA);
+        BING_CLASS_FULL);
 
     assert.deepStrictEqual(await ttRequest(
         `/schema/com.bing,org.thingpedia.builtin.test.invisible?meta=1&developer_key=${process.env.DEVELOPER_KEY}`),
-        BING_CLASS_WITH_METADATA + INVISIBLE_CLASS_WITH_METADATA);
+        BING_CLASS_FULL + '\n' + INVISIBLE_CLASS_WITH_METADATA);
 
     assert.deepStrictEqual(await ttRequest(
         `/schema/com.bing,org.thingpedia.builtin.test.invisible?meta=1&developer_key=${process.env.ROOT_DEVELOPER_KEY}`),
-        BING_CLASS_WITH_METADATA + INVISIBLE_CLASS_WITH_METADATA);
+        BING_CLASS_FULL + '\n' + INVISIBLE_CLASS_WITH_METADATA);
 
     assert.deepStrictEqual(await ttRequest(
         `/schema/com.bing,org.thingpedia.builtin.test.adminonly?meta=1&developer_key=${process.env.DEVELOPER_KEY}`),
-        BING_CLASS_WITH_METADATA);
+        BING_CLASS_FULL);
 
     assert.deepStrictEqual(await ttRequest(
         `/schema/com.bing,org.thingpedia.builtin.test.adminonly?meta=1&developer_key=${process.env.ROOT_DEVELOPER_KEY}`),
-        BING_CLASS_WITH_METADATA + ADMINONLY_CLASS_WITH_METADATA);
+        BING_CLASS_FULL + '\n' + ADMINONLY_CLASS_WITH_METADATA);
 }
 
 function checkExamples(generated, expected) {
