@@ -306,7 +306,7 @@ $(() => {
             .attr('href', '#').text(title);
         btn.click((event) => {
             appendUserMessage(title);
-            handleChoice(idx);
+            handleChoice(idx, title);
             event.preventDefault();
         });
         holder.append(btn);
