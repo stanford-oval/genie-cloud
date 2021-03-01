@@ -46,7 +46,7 @@ $(() => {
     var lastMessageId = -1;
 
     function refreshToolbar() {
-        const showLogButton = $('#show-log');
+        $('#toolbar').removeClass('hidden');
         $.get('/me/recording/status/' + conversationId).then((res) => {
             if (res.status === 'on') {
                 recording = true;
@@ -58,7 +58,7 @@ $(() => {
         });
         $.get('/me/recording/log/' + conversationId).then((res) => {
             if (res)
-                showLogButton.removeClass('hidden');
+                $('#show-log').removeClass('hidden');
         });
     }
 
@@ -546,8 +546,9 @@ $(() => {
         $.post('/me/recording/start', {
             id: conversationId,
             _csrf: document.body.dataset.csrfToken
-        }).then(() => {
-            refreshToolbar();
+        }).then((res) => {
+            if (res.status === 'ok')
+                refreshToolbar();
         });
     }
 
