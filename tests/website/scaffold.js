@@ -98,7 +98,7 @@ function assertHttpError(request, httpStatus, expectedMessage) {
             } else {
                 message = err.detail;
             }
-            assert.strictEqual(message, expectedMessage);
+            assert(message.indexOf(expectedMessage) >= 0, `Unexpected error message, expected "${expectedMessage}" got "${message}"`);
         }
     });
 }
