@@ -119,7 +119,7 @@
     "eslint": "^7.21.0",
     "foodoc": "^0.0.9",
     "form-data": "^4.0.0",
-    "infinite-scroll": "^3.0.5",
+    "infinite-scroll": "^4.0.1",
     "inline-worker": "^1.1.0",
     "jsdoc": "^3.6.6",
     "jsxgettext": "^0.11.0",
