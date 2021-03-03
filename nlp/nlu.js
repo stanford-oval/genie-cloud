@@ -102,6 +102,7 @@ async function runNLU(query, params, data, service, res) {
             return exampleModel.logUtterance(dbClient, {
                 language: model.locale,
                 preprocessed: tokens.join(' '),
+                context: (!data.context || data.context === 'null') ? null : data.context,
                 target_code: candidates.length > 0 ? (candidates[0]['code'].join(' ')) : ''
             });
         });

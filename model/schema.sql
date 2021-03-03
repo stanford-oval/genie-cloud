@@ -797,6 +797,7 @@ DROP TABLE IF EXISTS `utterance_log`;
 CREATE TABLE `utterance_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `language` char(15) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL DEFAULT 'en',
+  `context` text NULL,
   `preprocessed` text NOT NULL,
   `target_code` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   `time` datetime DEFAULT current_timestamp(),
