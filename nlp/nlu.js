@@ -42,6 +42,14 @@ async function runNLU(query, params, data, service, res) {
             res.status(404).json({ error: 'No such model' });
             return undefined;
         }
+
+        if (model.contextual && !data.context) {
+            data.context = 'null';
+            data.entities = {};
+        } else if (!model.contextual) {
+            data.context = undefined;
+            data.entities = undefined;
+        }
     } else {
         let fallbacks;
         if (isValidDeveloperKey(data.developer_key)) {
@@ -65,11 +73,10 @@ async function runNLU(query, params, data, service, res) {
         for (const candidate of fallbacks) {
             model = service.getModel(candidate, params.locale);
             if (model && model.trained) {
-                const isContextual = candidate.endsWith('.contextual');
-                if (isContextual && !data.context) {
+                if (model.contextual && !data.context) {
                     data.context = 'null';
                     data.entities = {};
-                } else if (!isContextual) {
+                } else if (!model.contextual) {
                     data.context = undefined;
                     data.entities = undefined;
                 }

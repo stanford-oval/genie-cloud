@@ -136,6 +136,7 @@ module.exports = class NLPModel {
         this.tag = spec.tag;
         this.locale = spec.language;
         this.trained = spec.trained;
+        this.contextual = spec.contextual;
 
         if (spec.use_exact)
             this.exact = service.getExact(spec.language);
