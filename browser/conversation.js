@@ -57,7 +57,7 @@ $(() => {
             }
         });
         $.get('/me/recording/log/' + conversationId).then((res) => {
-            if (res)
+            if (res.status === 'ok')
                 $('#show-log').removeClass('hidden');
         });
     }
