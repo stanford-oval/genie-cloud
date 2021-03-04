@@ -389,6 +389,10 @@ $(() => {
             }
             conversationId = parsed.id;
             updateUrl();
+            if ($('#recording-toggle').is(':checked'))
+                startRecording();
+            else
+                refreshToolbar();
             return;
         }
 
