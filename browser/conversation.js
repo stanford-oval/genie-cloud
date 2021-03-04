@@ -57,7 +57,7 @@ $(() => {
             }
         });
         $.get('/me/recording/log/' + conversationId).then((res) => {
-            if (res)
+            if (res.status === 'ok')
                 $('#show-log').removeClass('hidden');
         });
     }
@@ -389,6 +389,10 @@ $(() => {
             }
             conversationId = parsed.id;
             updateUrl();
+            if ($('#recording-toggle').is(':checked'))
+                startRecording();
+            else
+                refreshToolbar();
             return;
         }
 
@@ -579,10 +583,6 @@ $(() => {
         $.get('me/recording/log/' + conversationId).then((res) => {
             if (res.status === 'ok') {
                 $('#recording-log').text(res.log);
-                const email = 'oval-bug-reports@lists.stanford.edu';
-                const subject = 'Almond Conversation Log';
-                const body = encodeURIComponent(res.log);
-                $('#recording-share').prop('href', `mailto:${email}?subject=${subject}&body=${body}`);
                 $('#recording-save').modal('toggle');
             }
         });
