@@ -133,7 +133,7 @@ class Engine extends Genie.AssistantEngine {
 
     getConsent() {
         const prefs = this.platform.getSharedPreferences();
-        return prefs.get('sabrina-store-log') !== 'no';
+        return prefs.get('sabrina-store-log') === 'yes';
     }
 
     warnRecording() {
