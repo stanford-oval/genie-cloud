@@ -46,20 +46,26 @@ $(() => {
     var lastMessageId = -1;
 
     function refreshToolbar() {
-        $('#toolbar').removeClass('hidden');
-        $.get('/me/recording/status/' + conversationId).then((res) => {
-            if (res.status === 'on') {
-                recording = true;
-                $('#recording-toggle').prop("checked", true);
-            } else {
-                recording = false;
-                $('#recording-toggle').prop("checked", false);
-            }
-        });
-        $.get('/me/recording/log/' + conversationId).then((res) => {
-            if (res.status === 'ok')
-                $('#show-log').removeClass('hidden');
-        });
+        if (conversationId) {
+            $('#toolbar').removeClass('hidden');
+            $.get('/me/recording/status/' + conversationId).then((res) => {
+                if (res.status === 'on') {
+                    recording = true;
+                    $('#recording-toggle').prop("checked", true);
+                } else {
+                    recording = false;
+                    $('#recording-toggle').prop("checked", false);
+                }
+            });
+            $.get('/me/recording/log/' + conversationId).then((res) => {
+                if (res.status === 'ok')
+                    $('#show-log').removeClass('hidden');
+                else
+                    $('#show-log').addClass('hidden');
+            });
+        } else {
+            $('#toolbar').addClass('hidden');
+        }
     }
 
     function updateConnectionFeedback() {
