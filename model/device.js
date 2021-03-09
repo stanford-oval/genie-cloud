@@ -101,17 +101,20 @@ module.exports = {
 
     getFullCodeByPrimaryKind(client, kind, orgId) {
         if (orgId === -1) {
-            return db.selectAll(client, "select code, version, approved_version, developer_version, primary_kind, category from device_code_version dcv, device_class d "
+            return db.selectAll(client, "select code, version, approved_version, developer_version, primary_kind, name, description, "
+                                + "category, subcategory, website, repository, issue_tracker, license from device_code_version dcv, device_class d "
                                 + "where d.primary_kind = ? and dcv.device_id = d.id "
                                 + "and dcv.version = d.developer_version", [kind]);
         } else if (orgId !== null) {
-            return db.selectAll(client, "select code, version, approved_version, developer_version, primary_kind, category from device_code_version dcv, device_class d "
+            return db.selectAll(client, "select code, version, approved_version, developer_version, primary_kind, name, description, "
+                                + "category, subcategory, website, repository, issue_tracker, license from device_code_version dcv, device_class d "
                                 + "where d.primary_kind = ? and dcv.device_id = d.id "
                                 + "and ((dcv.version = d.developer_version and d.owner = ?) "
                                 + "or (dcv.version = d.approved_version and d.owner <> ?))",
                                 [kind, orgId, orgId]);
         } else {
-            return db.selectAll(client, "select code, version, approved_version, developer_version, primary_kind, category from device_code_version dcv, device_class d "
+            return db.selectAll(client, "select code, version, approved_version, developer_version, primary_kind, name, description, "
+                                + "category, subcategory, website, repository, issue_tracker, license from device_code_version dcv, device_class d "
                                 + "where d.primary_kind = ? and dcv.device_id = d.id "
                                 + "and dcv.version = d.approved_version", [kind]);
         }
@@ -119,17 +122,20 @@ module.exports = {
 
     getFullCodeByPrimaryKinds(client, kinds, orgId) {
         if (orgId === -1) {
-            return db.selectAll(client, "select code, version, approved_version, developer_version, primary_kind, category from device_code_version dcv, device_class d "
+            return db.selectAll(client, "select code, version, approved_version, developer_version, primary_kind, name, description, "
+                                + "category, subcategory, website, repository, issue_tracker, license from device_code_version dcv, device_class d "
                                 + "where d.primary_kind in (?) and dcv.device_id = d.id "
                                 + "and dcv.version = d.developer_version", [kinds]);
         } else if (orgId !== null) {
-            return db.selectAll(client, "select code, version, approved_version, developer_version, primary_kind, category from device_code_version dcv, device_class d "
+            return db.selectAll(client, "select code, version, approved_version, developer_version, primary_kind, name, description, "
+                                + "category, subcategory, website, repository, issue_tracker, license from device_code_version dcv, device_class d "
                                 + "where d.primary_kind in (?) and dcv.device_id = d.id "
                                 + "and ((dcv.version = d.developer_version and d.owner = ?) "
                                 + "or (dcv.version = d.approved_version and d.owner <> ?))",
                                 [kinds, orgId, orgId]);
         } else {
-            return db.selectAll(client, "select code, version, approved_version, developer_version, primary_kind, category from device_code_version dcv, device_class d "
+            return db.selectAll(client, "select code, version, approved_version, developer_version, primary_kind, name, description, "
+                                + "category, subcategory, website, repository, issue_tracker, license from device_code_version dcv, device_class d "
                                 + "where d.primary_kind in (?) and dcv.device_id = d.id "
                                 + "and dcv.version = d.approved_version", [kinds]);
         }

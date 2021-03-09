@@ -83,6 +83,14 @@ const BING_CLASS_FULL = `class @com.bing
 #_[name="Bing Search"]
 #_[description="Search the web with Bing"]
 #_[canonical="bing search"]
+#_[thingpedia_name="Bing Search"]
+#_[thingpedia_description="Search the web with Bing"]
+#[subcategory=enum service]
+#[license="GPL-3.0"]
+#[license_gplcompatible=true]
+#[website="https://www.bing.com"^^tt:url]
+#[repository="https://github.com/stanford-oval/thingpedia-common-devices"^^tt:url]
+#[issue_tracker="https://github.com/stanford-oval/thingpedia-common-devices/issues"^^tt:url]
 #[version=0]
 #[package_version=0] {
   import loader from @org.thingpedia.v2();
@@ -159,7 +167,12 @@ const INVISIBLE_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.invisi
 #_[name="Invisible Device"]
 #_[description="This device is owned by Bob. It was not approved."]
 #_[canonical="invisible device"]
+#_[thingpedia_name="Invisible Device"]
+#_[thingpedia_description="This device is owned by Bob. It was not approved."]
 #[system=true]
+#[subcategory=enum service]
+#[license="GPL-3.0"]
+#[license_gplcompatible=true]
 #[version=0]
 #[package_version=0] {
   import loader from @org.thingpedia.builtin();
@@ -179,7 +192,12 @@ const ADMINONLY_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.admino
 #_[name="Admin-only Device"]
 #_[description="This device does not exist. This entry is visible only to the administrators of Thingpedia. It exists to test that the Thingpedia API properly masks and reveals devices based on the appropriate developer key. DO NOT APPROVE THIS DEVICE."]
 #_[canonical="admin-only device"]
+#_[thingpedia_name="Admin-only Device"]
+#_[thingpedia_description="This device does not exist. This entry is visible only to the administrators of Thingpedia. It exists to test that the Thingpedia API properly masks and reveals devices based on the appropriate developer key. DO NOT APPROVE THIS DEVICE."]
 #[system=true]
+#[subcategory=enum service]
+#[license="GPL-3.0"]
+#[license_gplcompatible=true]
 #[version=0]
 #[package_version=0] {
   import loader from @org.thingpedia.builtin();
@@ -1776,6 +1794,11 @@ const BANG_CLASS_FULL = `class @com.bing
 #_[name="Bang Search"]
 #_[description="Search the web with Bang"]
 #_[canonical="bang search"]
+#_[thingpedia_name="Bang Search"]
+#_[thingpedia_description="Search the web with Bang"]
+#[subcategory=enum service]
+#[license="CC0"]
+#[license_gplcompatible=true]
 #[version=1]
 #[package_version=1] {
   import loader from @org.thingpedia.v2();
@@ -1924,6 +1947,11 @@ async function testCreateDevice() {
 #_[name="New Test Device"]
 #_[description="Yet another test device (can't have too many of those)"]
 #_[canonical="new test device"]
+#_[thingpedia_name="New Test Device"]
+#_[thingpedia_description="Yet another test device (can't have too many of those)"]
+#[subcategory=enum service]
+#[license="CC0"]
+#[license_gplcompatible=true]
 #[version=0]
 #[package_version=0] {
   import loader from @org.thingpedia.v2();
