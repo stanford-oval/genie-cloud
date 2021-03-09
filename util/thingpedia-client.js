@@ -258,6 +258,11 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
             }
 
             const devices = await device.getDevicesForSetup(dbClient, kinds, org);
+            const names = {};
+            devices.forEach((d) => {
+                names[d.primary_kind] = d.name;
+            });
+
             const result = {};
             devices.forEach((d) => {
                 try {
@@ -266,7 +271,7 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
                         if (d.for_kind in result) {
                             if (result[d.for_kind].type !== 'multiple') {
                                  let first_choice = result[d.for_kind];
-                                 result[d.for_kind] = { type: 'multiple', choices: [first_choice] };
+                                 result[d.for_kind] = { type: 'multiple', text: names[d.for_kind] || d.for_kind, choices: [first_choice] };
                             }
                             result[d.for_kind].choices.push(d.factory);
                         } else {
@@ -280,7 +285,7 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
 
             for (let kind of kinds) {
                 if (!(kind in result))
-                    result[kind] = { type: 'multiple', choices: [] };
+                    result[kind] = { type: 'multiple', text: names[kind] || kind, choices: [] };
             }
 
             return result;

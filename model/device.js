@@ -446,13 +446,13 @@ module.exports = {
                  from device_class d, device_code_version dcv where d.id = dcv.device_id and
                  dcv.version = d.developer_version
                  and d.primary_kind in (?))
-                union all
+                union distinct
                 (select d.primary_kind, d.name, d.category, dck.kind as for_kind, dcv.code, dcv.factory from device_class d,
                  device_code_version dcv, device_class_kind dck where dck.device_id = d.id and
                  d.id = dcv.device_id and
                  dcv.version = d.developer_version
                  and dck.kind in (?))
-                union all
+                union distinct
                 (select d.primary_kind, d.name, d.category, dck2.kind as for_kind, dcv.code, dcv.factory from device_class d,
                  device_class d2, device_class_kind dck2, device_code_version dcv, device_class_kind dck
                  where dck.device_id = d.id and d.id = dcv.device_id and
@@ -466,14 +466,14 @@ module.exports = {
                  ((dcv.version = d.developer_version and d.owner = ?) or
                   (dcv.version = d.approved_version and d.owner <> ?))
                  and d.primary_kind in (?))
-                union all
+                union distinct
                 (select d.primary_kind, d.name, d.category, dck.kind as for_kind, dcv.code, dcv.factory from device_class d,
                  device_code_version dcv, device_class_kind dck where dck.device_id = d.id and
                  d.id = dcv.device_id and
                  ((dcv.version = d.developer_version and d.owner = ?) or
                   (dcv.version = d.approved_version and d.owner <> ?))
                  and dck.kind in (?))
-                union all
+                union distinct
                 (select d.primary_kind, d.name, d.category, dck2.kind as for_kind, dcv.code, dcv.factory from device_class d,
                  device_class d2, device_class_kind dck2, device_code_version dcv, device_class_kind dck
                  where dck.device_id = d.id and d.id = dcv.device_id and
@@ -487,13 +487,13 @@ module.exports = {
                  from device_class d, device_code_version dcv where d.id = dcv.device_id and
                  dcv.version = d.approved_version
                  and d.primary_kind in (?))
-                union all
+                union distinct
                 (select d.primary_kind, d.name, d.category, dck.kind as for_kind, dcv.code, dcv.factory from device_class d,
                  device_code_version dcv, device_class_kind dck where dck.device_id = d.id and
                  d.id = dcv.device_id and
                  dcv.version = d.approved_version
                  and dck.kind in (?))
-                union all
+                union distinct
                 (select d.primary_kind, d.name, d.category, dck2.kind as for_kind, dcv.code, dcv.factory from device_class d,
                  device_class d2, device_class_kind dck2, device_code_version dcv, device_class_kind dck
                  where dck.device_id = d.id and d.id = dcv.device_id and
