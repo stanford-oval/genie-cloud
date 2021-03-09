@@ -862,6 +862,7 @@ async function testGetDeviceSetup() {
         data: {
             'org.thingpedia.builtin.thingengine.builtin': {
                 type: 'multiple',
+                text: 'Miscellaneous Interfaces',
                 choices: []
             }
         }
@@ -878,6 +879,7 @@ async function testGetDeviceSetup() {
             },
             'org.thingpedia.builtin.thingengine.builtin': {
                 type: 'multiple',
+                text: 'Miscellaneous Interfaces',
                 choices: []
             }
         }
@@ -888,6 +890,7 @@ async function testGetDeviceSetup() {
         data: {
             'org.thingpedia.builtin.test.invisible': {
                 type: 'multiple',
+                text: 'org.thingpedia.builtin.test.invisible',
                 choices: []
             }
         }
@@ -925,6 +928,7 @@ async function testGetDeviceSetup() {
         data: {
             'org.thingpedia.builtin.test.adminonly': {
                 type: 'multiple',
+                text: 'org.thingpedia.builtin.test.adminonly',
                 choices: []
             }
         }
