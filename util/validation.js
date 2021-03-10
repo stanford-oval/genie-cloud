@@ -153,20 +153,24 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
         throw new ValidationError('Invalid string types: ' + missingStrings.join(', '));
 
     const tokenizer = I18n.get('en-US').genie.getTokenizer();
-    if (!classDef.metadata.name)
-        classDef.metadata.name = name;
-    if (!classDef.metadata.description)
-        classDef.metadata.description = description;
-    if (!classDef.metadata.canonical)
-        classDef.metadata.canonical = tokenizer.tokenize(name).tokens.join(' ');
+    if (!classDef.nl_annotations.name)
+        classDef.nl_annotations.name = name;
+    if (!classDef.nl_annotations.description)
+        classDef.nl_annotations.description = description;
+    if (!classDef.nl_annotations.canonical)
+        classDef.nl_annotations.canonical = tokenizer.tokenize(name).tokens.join(' ');
+    classDef.nl_annotations.thingpedia_name = name;
+    classDef.nl_annotations.thingpedia_description = description;
+    classDef.impl_annotations.subcategory = new ThingTalk.Ast.Value.Enum(options.subcategory);
+    classDef.impl_annotations.license = new ThingTalk.Ast.Value.String(options.license);
+    classDef.impl_annotations.license_gplcompatible = new ThingTalk.Ast.Value.Boolean(!!options.license_gplcompatible);
+    if (options.website)
+        classDef.impl_annotations.website = new ThingTalk.Ast.Value.Entity(options.website, 'tt:url', null);
+    if (options.repository)
+        classDef.impl_annotations.repository = new ThingTalk.Ast.Value.Entity(options.repository, 'tt:url', null);
+    if (options.issue_tracker)
+        classDef.impl_annotations.issue_tracker = new ThingTalk.Ast.Value.Entity(options.issue_tracker, 'tt:url', null);
     await validateDataset(dataset);
-
-    // delete annotations that are specific to devices uploaded with the "thingpedia" CLI tool
-    // and are stored elsewhere in Thingpedia
-    delete classDef.metadata.thingpedia_name;
-    delete classDef.metadata.thingpedia_description;
-    for (let key of ['license', 'license_gplcompatible', 'subcategory', 'website', 'repository', 'issue_tracker'])
-        delete classDef.annotations[key];
 
     return [classDef, dataset];
 }
