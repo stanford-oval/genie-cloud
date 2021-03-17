@@ -1,3 +1,25 @@
+2.0.0-alpha.1
+=============
+
+This is the first Alpha release of the Almond 2.0 release cycle. It brings
+the latest version of the Almond platform, with several improvements across
+the board. The high-level list of changes is available on the
+[release page](https://wiki.almond.stanford.edu/en/release-planning/two-point-oh).
+
+Among the almond-cloud specific changes are:
+
+* Thingpedia was updated to support ThingTalk 2.0 and the latest set of
+  annotations used by Genie.
+* A new recording mode was added, that allows detailed recordings to be made
+  of dialogues as they occur, including the full content of all executed ThingTalk
+  programs and the replies from the agent. These recording can be used for
+  testing and debugging.
+* The NLP server now supports Kubeflow Serving as a backend for the actual NLP
+  model, instead of spawning the model in the same container. This provides
+  additional robustness and scalability when running in Kubernetes.
+* The recommended package manager was switched to npm instead of yarn, to match
+  what is used by the recent version of ThingTalk and Genie.
+
 1.99.0
 ======
 

@@ -1,8 +1,8 @@
 {
   "name": "almond-cloud",
-  "version": "1.99.0",
+  "version": "2.0.0-alpha.1",
   "description": "Cloud Almond",
-  "author": "Stanford University Mobile and Social Computing Lab",
+  "author": "Stanford University Open Virtual Assistant Lab",
   "license": "Apache-2.0",
   "repository": "https://github.com/stanford-oval/almond-cloud",
   "contributors": [
