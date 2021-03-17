@@ -68,7 +68,7 @@
     "markdown-it-footnote": "^3.0.1",
     "markdown-it-highlightjs": "^3.3.1",
     "markdown-it-table-of-contents": "^0.5.2",
-    "microsoft-cognitiveservices-speech-sdk": "^1.15.1",
+    "microsoft-cognitiveservices-speech-sdk": "^1.16.0",
     "mmap-io": "^1.1.7",
     "moment-timezone": "^0.5.33",
     "morgan": "^1.9.1",
