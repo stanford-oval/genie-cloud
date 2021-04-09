@@ -71,12 +71,18 @@ CodeMirror.defineSimpleMode('thingtalk', {
 });
 
 CodeMirror.registerHelper("lint", "thingtalk", (text) => {
+    // empty string is valid
+    if (!text.trim())
+        return [];
+
     const found = [];
     try {
         ThingTalk.Syntax.parse(text);
     } catch(e) {
         if (e.name !== 'SyntaxError')
             throw e;
+        if (!e.location)
+            return found;
         found.push({
             from: CodeMirror.Pos(e.location.start.line-1, e.location.start.column-1),
             to: CodeMirror.Pos(e.location.end.line-1, e.location.end.column-1),
