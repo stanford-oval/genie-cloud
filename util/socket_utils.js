@@ -44,11 +44,11 @@ class JsonSocketAdapter extends stream.Duplex {
 }
 
 
-// A server to proxy sockets using the following connections
+// A server to create proxy sockets using the following connections
 //     socket --- proxySocket --- remoteSocket
-// ProxySocket and remoteSocket connection are made using unix domain socket.
-// Since proxySocket and remoteSocket are stream based, JsonSocketAdapter will not work and
-// JsonDatagramSocket is recommended for transparent-rpc.
+// proxySocket and remoteSocket connection is created using unix domain socket.
+// Since proxySocket and remoteSocket are stream based, transparent-rpc will not work 
+// with JsonSocketAdapter and JsonDatagramSocket is recommended.
 class SocketProxyServer {
     constructor() {
         this._nextNum = 0;
