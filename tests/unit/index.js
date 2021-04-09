@@ -42,5 +42,6 @@ seq([
     ('./test_example_names'),
     ('./test_alexa_intent_parser'),
     ('./test_k8s_api.js'),
-    ('./test_kf_inference_url.js')
+    ('./test_kf_inference_url.js'),
+    ('./test_stream_utils.js')
 ]);
