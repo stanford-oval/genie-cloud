@@ -43,5 +43,5 @@ seq([
     ('./test_alexa_intent_parser'),
     ('./test_k8s_api.js'),
     ('./test_kf_inference_url.js'),
-    ('./test_stream_utils.js')
+    ('./test_socket_utils.js')
 ]);
