@@ -3,7 +3,7 @@
 //
 // This file is part of Almond
 //
-// Copyright 2017-2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2021 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,85 +17,242 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
-
-// load thingpedia to initialize the polyfill
-require('thingpedia');
 
 const express = require('express');
 const http = require('http');
-const url = require('url');
 const WebSocket = require('ws');
-const EngineManager = require('./enginemanager');
 const db = require('../util/db');
 const user = require('../model/user');
 const userToShardId = require('./shard');
 const bodyParser = require('body-parser');
 
-const stream = require('stream');
 const rpc = require('transparent-rpc');
 const argparse = require('argparse');
 
-const PlatformModule = require('./platform');
 const { JsonSocketAdapter } = require('../util/socket_utils');
-const i18n = require('../util/i18n');
-const Engine = require('./engine');
+const { BadRequestError } = require('../util/errors');
+
+
+function _json(res, result) {
+    if (result === undefined) 
+        res.send('undefined');
+    else 
+	res.json(result);
+}
+
+// TODO: Uncommet
+//
+// function _user(userId) {
+//     return db.withClient((dbClient) => {
+//         return user.get(dbClient, userId);
+//     })
+// }
+
+// Used for test
+function _user(userId) {
+        if (userId === '1') {
+            return {
+                    id: '1',
+                    cloud_id: '101',
+                    auth_token: 'auth-token',
+                    developer_key: null,
+                    locale: 'en-US',
+                    timezone: null,
+                    storage_key: null,
+                    model_tag: null
+            };
+        }
+        if (userId === '3') {
+            return {
+                    id: '3',
+                    cloud_id: '103',
+                    auth_token: 'auth-token',
+                    developer_key: null,
+                    locale: 'en-US',
+                    timezone: null,
+                    storage_key: null,
+                    model_tag: null
+            };
+        }
+        return {
+            id: '2',
+            cloud_id: '102',
+            auth_token: 'auth-token',
+            developer_key: null,
+            locale: 'en-US',
+            timezone: null,
+            storage_key: null,
+            model_tag: null
+         };
+}
+
+// TODO: uncomment
+//    async function _getAllUsers(shardId) {
+//        return db.withClient(async (client) => {
+//            const rows = await user.getAllForShardId(client, shardId);
+//            return Promise.all(rows.map((r) => {
+//                // explicitly export user fields to worker nodes.
+//                return {
+//                    id: r.id,
+//                    cloud_id: r.cloud_id,
+//                    auth_token: r.auth_token,
+//                    developer_key: r.developer_key,
+//                    locale: r.locale,
+//                    timezone: r.timezone,
+//                    storage_key: r.storage_key,
+//                    model_tag: r.model_tag
+//                };
+//            }));
+//        });
+//    }
+
+// For test only
+async function _getAllUsers(shardId) {
+   const rows = [
+       {
+           id: '0',
+           cloud_id: '100',
+           auth_token: 'auth-token',
+           developer_key: null,
+           locale: 'en-US',
+           timezone: null,
+           storage_key: null,
+           model_tag: null
+       },
+       {
+           id: '1',
+           cloud_id: '101',
+           auth_token: 'auth-token',
+           developer_key: null,
+           locale: 'en-US',
+           timezone: null,
+           storage_key: null,
+           model_tag: null
+       }
+   ];
+   return Promise.all(rows.map((r) => {
+       // explicitly export user fields to worker nodes.
+       return {
+           id: r.id,
+           cloud_id: r.cloud_id,
+           auth_token: r.auth_token,
+           developer_key: r.developer_key,
+           locale: r.locale,
+           timezone: r.timezone,
+           storage_key: r.storage_key,
+           model_tag: r.model_tag
+       };
+   }));
+}
+
 
 
 class ControlServer {
     constructor(port) {
         this._sharedBackends = {};
         this._app = express();
-        this._app.set('port', port)
+        this._app.set('port', port);
         this._app.use(bodyParser.json());
         this._app.use(bodyParser.urlencoded({ extended: true }));
 
         this._app.post('/registerBackend', (req, res, next) => {
             Promise.resolve().then(async () => {
-                console.log(`---body: ${req.body}`);
-                console.log(`---body: ${JSON.stringify(req.body)}`);
-                res.json(this._registerBackend(req.body.backend));
+                _json(res, this._registerBackend(req.body.backend));
             }).catch(next);
         });
 
         this._app.get('/deregisterBackend', (req, res, next) => {
             Promise.resolve().then(async () => {
-                res.json(this._deregisterBackend(res.body.backend));
-            }).catch(next);
-        });
-
-        this._app.get('/killAllUsers', (req, res, next) => {
-            Promise.resolve().then(async () => {
-                res.json(this._killAllUsers());
+                _json(res, this._deregisterBackend(res.body.backend));
             }).catch(next);
         });
 
         this._app.get('/engineUrl/:userId', (req, res, next) => {
             Promise.resolve().then(async () => {
-               console.log(`engineUrl for userId: ${req.params.userId}`);
-               // const backend = this._sharedBackends[userToShardId(userId)];
-               const backend = this._sharedBackends[0];
-               res.json(backend.engineUrl);
+               const userId = req.params.userId;
+               const backend = this._sharedBackends[userToShardId(userId)];
+               _json(res, backend.engineUrl);
+            }).catch(next);
+        });
+
+
+        this._app.get('/killAllUsers', (req, res, next) => {
+            Promise.resolve().then(async () => {
+                _json(res, this._killAllUsers());
+            }).catch(next);
+        });
+
+
+        this._app.get('/isRunning/:userId', (req, res, next) => {
+            Promise.resolve().then(async () => {
+                const userId = req.params.userId;
+                _json(res, await this._getBackend(userId).isRunning(userId));
+            }).catch(next);
+        });
+
+        this._app.get('/getProcessId/:userId', (req, res, next) => {
+            Promise.resolve().then(async () => {
+                const userId = req.params.userId;
+                _json(res, await this._getBackend(userId).getProcessId(userId));
             }).catch(next);
         });
 
         this._app.get('/startUser/:userId', (req, res, next) => {
             Promise.resolve().then(async () => {
-                res.json(this._startUser(req.params.userId));
+                const userId = req.params.userId;
+                _json(res, await this._getBackend(userId).startUser(_user(userId)));
             }).catch(next);
         });
 
         this._app.get('/killUser/:userId', (req, res, next) => {
             Promise.resolve().then(async () => {
-                res.json(this._killUser(req.params.userId));
+                const userId = req.params.userId;
+                _json(res ,await this._getBackend(userId).killUser(userId));
+            }).catch(next);
+        });
+
+        this._app.get('/deleteUser/:userId', (req, res, next) => {
+            Promise.resolve().then(async () => {
+                const userId = req.params.userId;
+                _json(res, await this._getBackend(userId).deleteUser(_user(userId)));
+            }).catch(next);
+        });
+
+        this._app.get('/clearCache/:userId', (req, res, next) => {
+            Promise.resolve().then(async () => {
+                const userId = req.params.userId;
+                _json(res, await this._getBackend(userId).clearCache(_user(userId)));
+            }).catch(next);
+        });
+
+        this._app.get('/restartUser/:userId', (req, res, next) => {
+            Promise.resolve().then(async () => {
+                const userId = req.params.userId;
+                _json(res, await this._getBackend(userId).restartUser(_user(userId)));
+            }).catch(next);
+        });
+
+        this._app.get('/restartUserWithoutCache/:userId', (req, res, next) => {
+            Promise.resolve().then(async () => {
+                const userId = req.params.userId;
+                _json(res, await this._getBackend(userId).restartUserWithoutCache(_user(userId)));
             }).catch(next);
         });
 
         this._server = http.createServer(this._app);
     }
 
+    _getBackend(userId) {
+        const shardId = userToShardId(userId);
+        if (!(shardId in this._sharedBackends))
+            throw new BadRequestError(`Invalid userId: ${userId}`);
+        console.log(`shard id ${shardId}`);
+        return this._sharedBackends[shardId].backend;
+    }
+
     _registerBackend(backend) {
+        console.log(`Registering backend ${JSON.stringify(backend)}`);
         if (this._sharedBackends[backend.shardId]) {
             console.log(`Backend ${backend.url} already connected`);
             return;
@@ -147,66 +304,8 @@ class ControlServer {
         this._sharedBackends[backend.shardId] = null;
     }
      
-
-    async _getAllUsers(shardId) {
-        return db.withClient(async (client) => {
-            const rows = await user.getAllForShardId(client, shardId);
-            return Promise.all(rows.map((r) => {
-                // explicitly export user fields to worker nodes.
-                return {
-                    id: r.id,
-                    cloud_id: r.cloud_id,
-                    auth_token: r.auth_token,
-                    developer_key: r.developer_key,
-                    locale: r.locale,
-                    timezone: r.timezone,
-                    storage_key: r.storage_key,
-                    model_tag: r.model_tag
-                };
-            }));
-        });
-    }
-
-    async _getAllUsersTest(shardId) {
-       const rows = [
-           {
-               id: '0',
-               cloud_id: '100',
-               auth_token: 'auth-token',
-               developer_key: null,
-               locale: 'en-US',
-               timezone: null,
-               storage_key: null,
-               model_tag: null
-           },
-           {
-               id: '1',
-               cloud_id: '101',
-               auth_token: 'auth-token',
-               developer_key: null,
-               locale: 'en-US',
-               timezone: null,
-               storage_key: null,
-               model_tag: null
-           }
-       ]
-       return Promise.all(rows.map((r) => {
-           // explicitly export user fields to worker nodes.
-           return {
-               id: r.id,
-               cloud_id: r.cloud_id,
-               auth_token: r.auth_token,
-               developer_key: r.developer_key,
-               locale: r.locale,
-               timezone: r.timezone,
-               storage_key: r.storage_key,
-               model_tag: r.model_tag
-           };
-       }));
-    }
-
     async _startBackend(connectedBackend) {
-        const users = await this._getAllUsersTest(connectedBackend.shardId);
+        const users = await _getAllUsers(connectedBackend.shardId);
         console.log(`Starting backend ${connectedBackend.shardId} ${connectedBackend.url}`);
         connectedBackend.backend.start(users);
     }
@@ -220,74 +319,6 @@ class ControlServer {
         return true;
     }
 
-    _user(userId) {
-        return db.withClient((dbClient) => {
-            return user.get(dbClient, userId);
-        })
-    }
-
-    _userTest(userId) {
-        if (userId == '1')
-            return {
-                    id: '1',
-                    cloud_id: '101',
-                    auth_token: 'auth-token',
-                    developer_key: null,
-                    locale: 'en-US',
-                    timezone: null,
-                    storage_key: null,
-                    model_tag: null
-            };
-        if (userId == '3')
-            return {
-                    id: '3',
-                    cloud_id: '103',
-                    auth_token: 'auth-token',
-                    developer_key: null,
-                    locale: 'en-US',
-                    timezone: null,
-                    storage_key: null,
-                    model_tag: null
-            };
-        return {
-            id: '0',
-            cloud_id: '100',
-            auth_token: 'auth-token',
-            developer_key: null,
-            locale: 'en-US',
-            timezone: null,
-            storage_key: null,
-            model_tag: null
-         };
-    }
-
-    _backend(userId) {
-        // const backend = this._sharedBackends[userToShardId(userId)];
-        const backend = this._sharedBackends[0];
-        if (!backend) {
-            console.log("Warning: cannot find backendfor userId:" + userId);
-            return null;
-        }
-        return backend.backend;
-    }
-
-    async _startUser(userId) {
-        const backend = this._backend(userId);
-        if (!backend)
-            return false;
-        console.log(`===== starting user ${userId}`);
-        await backend.startUser(await this._userTest(userId));
-        return true;
-    }
-
-    async _killUser(userId) {
-        const backend = this._backend(userId);
-        if (!backend)
-            return false;
-        console.log(`===== kill user ${userId}`);
-        await backend.killUser(userId);
-        return true;
-    }
 
     async start() {
         // '::' means the same as 0.0.0.0 but for IPv6
@@ -337,6 +368,7 @@ function main() {
         add_help: true,
         description: 'Almond backend control process'
     });
+
     parser.add_argument('-p', '--port', {
         required: false,
         type: Number,
@@ -354,7 +386,7 @@ function main() {
             return;
         _stopping = true;
         try {
-            await masterServer.stop();
+            await controlServer.stop();
         } catch(e) {
             console.error('Failed to stop: ' + e.message);
             console.error(e.stack);
@@ -372,7 +404,6 @@ function main() {
         console.error(e.stack);
         process.exit(1);
     });
-
 }
 
 main();

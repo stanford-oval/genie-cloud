@@ -28,11 +28,8 @@ const stream = require('stream');
 const rpc = require('transparent-rpc');
 const util = require('util');
 
-const user = require('../model/user');
-// const db = require('../util/db');
 const ThingpediaClient = require('../util/thingpedia-client');
 const Lock = require('../util/lock');
-// const Config = require('../config');
 const { InternalError } = require('../util/errors');
 
 class ChildProcessSocket extends stream.Duplex {
@@ -421,6 +418,7 @@ class EngineManager extends events.EventEmitter {
     }
 
     isRunning(userId) {
+        console.log(`---is running ${userId}`);
         return (this._engines[userId] !== undefined && this._engines[userId].process !== null);
     }
 
@@ -433,9 +431,6 @@ class EngineManager extends events.EventEmitter {
     }
 
     async sendSocket(userId, replyId, socket) {
-        for (let k in this._engines) {
-           console.log(`--engine ${k}`);
-        }
         if (this._engines[userId] === undefined)
             throw new InternalError('E_INVALID_USER', 'Invalid user ID');
         if (this._engines[userId].process === null)
@@ -556,11 +551,15 @@ class EngineManager extends events.EventEmitter {
 
     _getUserCloudIdForPath(user) {
         let obj = this._engines[user.id];
+        console.log(`----obj ${obj}`);
         if (obj) {
+            console.log(`----obj process ${obj.process}`);
             if (obj.process !== null)
                 obj.process.killEngine(user.id);
+            console.log(`----obj cloudId ${obj.cloudId}`);
             return Promise.resolve(obj.cloudId);
         } else {
+            console.log(`----user cloudId ${user.cloud_id}`);
             return user.cloud_id;
         }
     }
@@ -590,17 +589,17 @@ class EngineManager extends events.EventEmitter {
         }
     }
 
-    async _clearCacheLocked(userId) {
-        const dir = path.resolve('.', await this._getUserCloudIdForPath(userId), 'cache');
+    async _clearCacheLocked(user) {
+        const dir = path.resolve('.', await this._getUserCloudIdForPath(user), 'cache');
         await util.promisify(child_process.execFile)('/bin/rm',
             ['-rf', dir]);
     } 
 
-    async clearCache(userId) {
-        console.log(`Clearing cache for ${userId}`);
-        const releaseLock = await this._lockUser(userId);
+    async clearCache(user) {
+        console.log(`Clearing cache for ${user}`);
+        const releaseLock = await this._lockUser(user.id);
         try {
-            await this._clearCacheLocked(userId);
+            await this._clearCacheLocked(user);
         } finally {
             releaseLock();
         }
@@ -611,12 +610,12 @@ class EngineManager extends events.EventEmitter {
     // as after restart they will be placed in a shared process,
     // and we don't want them having access to unapproved (and dangerous)
     // devices through the cache
-    async restartUserWithoutCache(userId) {
+    async restartUserWithoutCache(user) {
         console.log(`Requested cache clear & restart of user ${user.id}`);
         const releaseLock = await this._lockUser(user.id);
         try {
             await this._killUserLocked(user.id);
-            await this._clearCacheLocked(user.id);
+            await this._clearCacheLocked(user);
             await this._startUserLocked(user);
         } finally {
             releaseLock();

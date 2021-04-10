@@ -19,32 +19,15 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const net = require('net');
 const events = require('events');
 const rpc = require('transparent-rpc');
-const sockaddr = require('sockaddr');
 const Tp = require('thingpedia');
 const WebSocket = require('ws');
 
 const JsonDatagramSocket = require('../util/json_datagram_socket');
-const userToShardId = require('./shard');
 
-const Config = require('../config');
 
 var _instance;
-
-function connectToMaster(shardId) {
-    const shard = Config.THINGENGINE_MANAGER_ADDRESS[shardId];
-
-    const socket = new net.Socket();
-    socket.connect(sockaddr(shard));
-
-    const jsonSocket = new JsonDatagramSocket(socket, socket, 'utf8');
-    if (Config.THINGENGINE_MANAGER_AUTHENTICATION !== null)
-        jsonSocket.write({ control: 'auth', token: Config.THINGENGINE_MANAGER_AUTHENTICATION });
-
-    return jsonSocket;
-}
 
 
 class EngineManagerClient extends events.EventEmitter {
@@ -147,45 +130,6 @@ class EngineManagerClient extends events.EventEmitter {
         });
     }
 
-    _connect() {
-        if (this._rpcControl)
-            return;
-
-        const jsonSocket = connectToController();
-        const rpcSocket = new rpc.Socket(jsonSocket);
-        this._rpcSocket = rpcSocket;
-
-        const ready = (msg) => {
-            if (msg.control === 'ready') {
-                console.log(`Control channel to Controller ready`);
-                this._rpcControl = rpcSocket.getProxy(msg.rpcId);
-                jsonSocket.removeListener('data', ready);
-            }
-        };
-        jsonSocket.on('data', ready);
-        jsonSocket.write({ control:'master' });
-        rpcSocket.on('close', () => {
-            this._rpcSocket = null;
-            this._rpcControl = null;
-
-            if (this._expectClose)
-                return;
-
-            console.log(`Control channel to Controller severed`);
-            console.log('Reconnecting in 10s...');
-            setTimeout(() => {
-                this._connect();
-            }, 10000);
-        });
-        rpcSocket.on('error', () => {
-            // ignore the error, the socket will be closed soon and we'll deal with it
-        });
-    }
-
-    start() {
-        this._connect();
-    }
-
     stop() {
         _instance = null;
         this._expectClose = true;
@@ -201,12 +145,14 @@ class EngineManagerClient extends events.EventEmitter {
     }
 
     async controlGet(command, param) {
-        let url = `${this._controlUrl}/${command}`
+        let url = `${this._controlUrl}/${command}`;
         if (param || param === 0)
             url += `/${param}`;
-        console.log(`http call ---> ${url}`);
+        console.log(`http request ---> ${url}`);
         const response = await Tp.Helpers.Http.get(url);
         console.log(`http respone ---> ${response}`);
+        if (response === 'undefined')
+            return undefined;
         return JSON.parse(response);
     }
 
@@ -218,46 +164,44 @@ class EngineManagerClient extends events.EventEmitter {
         return JSON.parse(response);
     }
 
-    async killAllUsers() {
-        return await this.controlGet('killAllUsers');
+    killAllUsers() {
+        return this.controlGet('killAllUsers');
     }
 
     async isRunning(userId) {
-        return this.controlCall('isRunning', {userId: userId});
+        return this.controlGet('isRunning', userId);
     }
 
-    async getProcessId(userId) {
-        if (!this._rpcControl)
-            return -1;
-        return this.controlCall('getProcessId', {userId: userId});
+    getProcessId(userId) {
+        return this.controlGet('getProcessId', userId);
     }
 
-    async startUser(userId) {
+    startUser(userId) {
         return this.controlGet('startUser', userId);
     }
 
-    async killUser(userId) {
+    killUser(userId) {
         this._cachedEngines.delete(userId);
         return this.controlGet('killUser', userId);
     }
 
-    async deleteUser(userId) {
+    deleteUser(userId) {
         this._cachedEngines.delete(userId);
-        return this.controlCall('deleteUser', {userId: userId});
+        return this.controlGet('deleteUser', userId);
     }
 
-    async clearCache(userId) {
+    clearCache(userId) {
         this._cachedEngines.delete(userId);
-        return this.controlCall('clearCache', {userId: userId});
+        return this.controlGet('clearCache', userId);
     }
 
-    async restartUser(userId) {
-        return this.controlCall('restartUser', {userId: userId});
+    restartUser(userId) {
+        return this.controlGet('restartUser', userId);
     }
 
-    async restartUserWithoutCache(userId) {
+    restartUserWithoutCache(userId) {
         this._cachedEngines.delete(userId);
-        return this.controlCall('restartUserWithoutCache', {userId: userId});
+        return this.controlGet('restartUserWithoutCache', userId);
     }
 }
 

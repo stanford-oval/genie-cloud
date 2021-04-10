@@ -29,18 +29,13 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const url = require('url');
-const net = require('net');
 const EngineManager = require('./enginemanager');
 
-const stream = require('stream');
 const rpc = require('transparent-rpc');
 const argparse = require('argparse');
 
-const PlatformModule = require('./platform');
 const JsonDatagramSocket = require('../util/json_datagram_socket');
 const { JsonSocketAdapter, SocketProxyServer } = require('../util/socket_utils');
-const i18n = require('../util/i18n');
-const Engine = require('./engine');
 
 
 class MasterServer {
@@ -55,8 +50,8 @@ class MasterServer {
 	const masterServer = this;
 
         const backend_wss = new WebSocket.Server({ noServer: true });
-        this._backend_wss = backend_wss
-        backend_wss.on('connection', function connection(ws) {
+        this._backend_wss = backend_wss;
+        backend_wss.on('connection', (ws) => {
             console.log('---backend ws connection');
             const jsonSocket = new JsonSocketAdapter(WebSocket.createWebSocketStream(ws));
             const rpcSocket = new rpc.Socket(jsonSocket);
@@ -67,23 +62,23 @@ class MasterServer {
 
         const engine_wss = new WebSocket.Server({ noServer: true });
         this._engine_wss = engine_wss;
-        engine_wss.on('connection', async function connection(ws, request) {
+        engine_wss.on('connection', async (ws, request) => {
             console.log('connect engine request:' + request);
             masterServer._connectEngine(ws);
         });
 
         this._app = express();
-        this._app.set('port', options.port)
+        this._app.set('port', options.port);
 
         this._server = http.createServer(this._app);
-        this._server.on('upgrade', function upgrade(request, socket, head) {
+        this._server.on('upgrade', (request, socket, head) => {
           const pathname = url.parse(request.url).pathname;
           if (pathname === '/backend') {
-              backend_wss.handleUpgrade(request, socket, head, function done(ws) {
+              backend_wss.handleUpgrade(request, socket, head, (ws) => {
                   backend_wss.emit('connection', ws, request);
               });
           } else if (pathname === '/engine') {
-              engine_wss.handleUpgrade(request, socket, head, function done(ws) {
+              engine_wss.handleUpgrade(request, socket, head, (ws) => {
                   engine_wss.emit('connection', ws, request);
               });
           } else {
@@ -146,9 +141,9 @@ class MasterServer {
             url: `ws://${this._options.hostname}:${this._options.port}/backend`,
             engineUrl: `ws://${this._options.hostname}:${this._options.port}/engine`,
             shardId: this._options.shard,
-        }
+        };
         console.log(`Registering backend: ${backend.url} shardId: ${backend.shardId}`);
-        console.log(`POST ${this._options.control_url}/registerBackend  :` +  JSON.stringify({backend: backend}))
+        console.log(`POST ${this._options.control_url}/registerBackend  :` +  JSON.stringify({backend: backend}));
         Tp.Helpers.Http.post(`${this._options.control_url}/registerBackend`, JSON.stringify({backend: backend}), {
             dataContentType: 'application/json'
         });
@@ -179,7 +174,7 @@ class MasterServer {
         });
         return Promise.resolve();
     }
-};
+}
 
 MasterServer.prototype.$rpcMethods = ['runEngine', 'killEngine'];
 
@@ -243,7 +238,7 @@ function main() {
         console.log(`Running in Kubernetes.`);
         const match = /-([0-9]+)$/.exec(argv.hostname);
         argv.shard = parseInt(match[1], 10);
-        console.log(`Inferred hostname: ${hostname}, shardId: ${argv.shard}`);
+        console.log(`Inferred hostname: ${argv.hostname}, shardId: ${argv.shard}`);
     }
 
     const masterServer = new MasterServer(argv);

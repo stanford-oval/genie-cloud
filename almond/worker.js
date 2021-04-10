@@ -117,10 +117,6 @@ function handleDirectSocket(userId, replyId, socket) {
         console.log('Error on direct RPC socket: ' + e.message);
     });
 
-    for (let k in _engines) {
-       console.log(`child engine:${k} ${typeof(k)} ${typeof(userId)}`);
-    }
-    
     let obj = _engines.get(userId);
     if (!obj) {
         console.log('Could not find an engine with the required user ID');
