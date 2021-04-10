@@ -120,7 +120,7 @@ function handleDirectSocket(userId, replyId, socket) {
     let obj = _engines.get(userId);
     if (!obj) {
         console.log('Could not find an engine with the required user ID');
-        rpcSocket.call(replyId, 'error', ['---Invalid user ID ' + userId]);
+        rpcSocket.call(replyId, 'error', ['Invalid user ID ' + userId]);
         rpcSocket.end();
         return;
     }

@@ -18,8 +18,8 @@ async function main() {
     // resp = await client.killAllUsers();
 
     // resp = await client.startUser('3');
-    // const engine = await client.getEngine('3');
-    // resp = await engine.getConsent();
+    const engine = await client.getEngine('3');
+    resp = await engine.getConsent();
     // resp = await engine.recordingWarned();
     // resp = await engine.warnRecording();
     // resp = await engine.recordingWarned();

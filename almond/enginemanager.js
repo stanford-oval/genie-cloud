@@ -444,20 +444,6 @@ class EngineManager extends events.EventEmitter {
         }
     }
 
-    async sendWebSocket(userId, replyId, socket) {
-        if (this._engines[userId] === undefined)
-            throw new InternalError('E_INVALID_USER', 'Invalid user ID');
-        if (this._engines[userId].process === null)
-            throw new InternalError('E_ENGINE_DEAD', 'Engine dead');
-
-        const releaseLock = await this._lockUser(userId);
-        try {
-            this._engines[userId].process.send({ type: 'directws', target: userId, replyId: replyId }, socket);
-        } finally {
-            releaseLock();
-        }
-    }
-
     _startSharedProcesses(nprocesses) {
         let promises = new Array(nprocesses);
         this._rrproc = new Array(nprocesses);
