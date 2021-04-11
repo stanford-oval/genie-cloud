@@ -8,7 +8,7 @@ block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/conversation.css')
 
 block page_name
-  = _("Web Almond")
+  = _("Web Genie")
 
 block content
   div#conversation.single(data-target='/me/ws/conversation')
@@ -23,10 +23,10 @@ block content
           span(role='button').hidden#cancel
             span(aria-hidden='true').glyphicon.glyphicon-remove-circle.form-control-feedback
 
-  div#hidden-container 
+  div#hidden-container
     div.help-block.hidden= _("Lost connection to the server.")
     div.almond-thinking.hidden
       span
       span
       span
-         
+

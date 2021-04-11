@@ -8,12 +8,12 @@ ul.nav.navbar-nav
     a(href=Config.THINGPEDIA_URL)= _("Thingpedia")
   li
     a(href='https://wiki.almond.stanford.edu')= _("Docs")
-  
+
 ul.nav.navbar-nav.navbar-right
   if authenticated
     li
-      a(href="/me")= _("My Almond") 
-  if authenticated  
+      a(href="/me")= _("My Genie")
+  if authenticated
     li
       a(href=Config.THINGPEDIA_URL + '/cheatsheet')= _("Cheatsheet")
   if authenticated && user.developer_org

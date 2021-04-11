@@ -87,7 +87,7 @@ router.get('/users', user.requireRole(user.Role.ADMIN),
     db.withClient((dbClient) => {
         return model.getAll(dbClient, page * USERS_PER_PAGE, USERS_PER_PAGE + 1, sort);
     }).then(renderUserList).then((users) => {
-        res.render('admin_user_list', { page_title: req._("Almond - Administration"),
+        res.render('admin_user_list', { page_title: req._("Genie - Administration"),
                                         csrfToken: req.csrfToken(),
                                         users: users,
                                         page_num: page,
@@ -104,7 +104,7 @@ router.get('/users/search', user.requireRole(user.Role.ADMIN), iv.validateGET({ 
         else
             return model.getSearch(dbClient, req.query.q);
     }).then(renderUserList).then((users) => {
-        res.render('admin_user_list', { page_title: req._("Almond - User List"),
+        res.render('admin_user_list', { page_title: req._("Genie - User List"),
                                         csrfToken: req.csrfToken(),
                                         users: users,
                                         page_num: 0,
@@ -284,7 +284,7 @@ if (Config.WITH_THINGPEDIA === 'embedded') {
         db.withClient((dbClient) => {
             return device.getReviewQueue(dbClient, page * DEVICES_PER_PAGE, DEVICES_PER_PAGE + 1);
         }).then((devices) => {
-            res.render('admin_review_queue', { page_title: req._("Almond - Administration"),
+            res.render('admin_review_queue', { page_title: req._("Genie - Administration"),
                                                csrfToken: req.csrfToken(),
                                                devices: devices,
                                                page_num: page,
@@ -305,7 +305,7 @@ router.get('/organizations', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.va
     db.withClient((dbClient) => {
         return organization.getAll(dbClient, page * 20, 21);
     }).then((rows) => {
-        res.render('admin_org_list', { page_title: req._("Almond - Developer Organizations"),
+        res.render('admin_org_list', { page_title: req._("Genie - Developer Organizations"),
                                        csrfToken: req.csrfToken(),
                                        page_num: page,
                                        organizations: rows,
@@ -322,7 +322,7 @@ router.get('/organizations/search', user.requireRole(user.Role.THINGPEDIA_ADMIN)
     db.withClient((dbClient) => {
         return organization.getByFuzzySearch(dbClient, req.query.q);
     }).then((rows) => {
-        res.render('admin_org_list', { page_title: req._("Almond - Developer Organizations"),
+        res.render('admin_org_list', { page_title: req._("Genie - Developer Organizations"),
                                        csrfToken: req.csrfToken(),
                                        page_num: -1,
                                        organizations: rows,
@@ -338,7 +338,7 @@ router.get('/organizations/details/:id', user.requireRole(user.Role.THINGPEDIA_A
             device.getByOwner(dbClient, Number(req.params.id))
         ]);
     }).then(([org, users, devices]) => {
-        res.render('admin_org_details', { page_title: req._("Almond - Developer Organization"),
+        res.render('admin_org_details', { page_title: req._("Genie - Developer Organization"),
                                           csrfToken: req.csrfToken(),
                                           org: org,
                                           members: users,
@@ -389,7 +389,7 @@ router.get('/blog', user.requireRole(user.Role.BLOG_EDITOR), iv.validateGET({ pa
         return blogModel.getAll(dbClient, page * BLOG_POSTS_PER_PAGE, BLOG_POSTS_PER_PAGE+1);
     }).then((posts) => {
         return res.render('admin_blog_archive', {
-            page_title: req._("Almond - Blog Archive"),
+            page_title: req._("Genie - Blog Archive"),
             posts
         });
     }).catch(next);
@@ -400,7 +400,7 @@ router.get('/blog/update/:id', user.requireRole(user.Role.BLOG_EDITOR), (req, re
         return blogModel.getForEdit(dbClient, Number(req.params.id));
     }).then((post) => {
         return res.render('blog_create_or_edit', {
-            page_title: req._("Almond - Blog Editor"),
+            page_title: req._("Genie - Blog Editor"),
             create: false,
             post,
             messages: req.flash('admin-blog-message'),
@@ -410,7 +410,7 @@ router.get('/blog/update/:id', user.requireRole(user.Role.BLOG_EDITOR), (req, re
 
 router.get('/blog/create', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
     res.render('blog_create_or_edit', {
-        page_title: req._("Almond - Blog Editor"),
+        page_title: req._("Genie - Blog Editor"),
         create: true,
         messages: [],
         post: {

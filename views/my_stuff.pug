@@ -5,7 +5,7 @@ block scripts
   script(src=Config.ASSET_CDN + '/javascripts/conversation-bundle.js')
 
 block page_name
-  = _("My Almond")
+  = _("My Genie")
 
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/my_stuff.css')
@@ -61,7 +61,7 @@ block content
 
   if !isRunning
     div.alert.alert-danger(role='alert')
-      p= _("Your Almond exited. ")
+      p= _("Your Genie exited. ")
         a.btn.btn-default.new-msg-button.btn-sm(href="/me/status")= _("More Details")
 
 
@@ -103,8 +103,8 @@ block content
         div.modal-body
           h4= _("Warning:")
           p
-            = _("While recording is active, all your commands and all the replies from Almond will be stored ")
-            = _("and reviewed by the Stanford Almond Team.")
+            = _("While recording is active, all your commands and all the replies from Genie will be stored ")
+            = _("and reviewed by the Stanford Genie Team.")
         div.modal-footer
           button.btn.btn-primary.new-msg-button#confirm-recording= _("Confirm")
           button.btn.btn-default.new-msg-button#cancel-recording= _("Cancel")
@@ -140,8 +140,8 @@ block content
           span#form-icon.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden
           span(role='button').hidden#cancel
             span(aria-hidden='true').glyphicon.glyphicon-remove-circle.form-control-feedback
-    
-  div#hidden-container 
+
+  div#hidden-container
     div.help-block.hidden= _("Lost connection to the server.")
     div.almond-thinking.hidden
       span

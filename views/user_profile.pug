@@ -67,9 +67,9 @@ block content
           div.checkbox
             label(for='setting-data-collection').control-label
               input(type='checkbox',name='data_collection',value='1',checked=data_collection)#setting-data-collection
-              = _("Send anonymized commands to the authors of Almond for training.")
+              = _("Send anonymized commands to the authors of Genie for training.")
             span.help-block
-              != _("Almond is a research project from Stanford University. If you would like to participate to help us, you can allow us to collect the commands that you type. We only collect what you type, not your data, or what Almond replies. Please review the <a href='https://oval.cs.stanford.edu/almond-consent-form.html'>Consent Form</a> and keep it for your records before agreeing.")
+              != _("Genie is a research project from Stanford University. If you would like to participate to help us, you can allow us to collect the commands that you type. We only collect what you type, not your data, or what Genie replies. Please review the <a href='https://oval.cs.stanford.edu/almond-consent-form.html'>Consent Form</a> and keep it for your records before agreeing.")
 
         if Config.SUPPORTED_LANGUAGES.length > 1
           div.form-group
@@ -113,7 +113,7 @@ block content
             label.control-label= _("Developer Access")
             if user.developer_status >= Constants.DeveloperStatus.DEVELOPER && (user.roles & Constants.Role.TRUSTED_DEVELOPER) !== 0
               p.form-control-static= _("Trusted Developer")
-              span.help-block= _("All code you submit can go live to all Almonds with no review. Be careful!")
+              span.help-block= _("All code you submit can go live to all Genies with no review. Be careful!")
             else if user.developer_status >= Constants.DeveloperStatus.DEVELOPER
               p.form-control-static= _("Developer")
               span.help-block= _("You can submit new entries, but they have to be reviewed by an administrator before users can see them.")
@@ -125,7 +125,7 @@ block content
             label.control-label(for='developer-key')= _("Thingpedia Developer Key")
             p.form-control-static= user.developer_key
             span.help-block
-              = _("You can use this developer key in other Almonds (such as one you're running locally for testing) to access your devices before they are approved.")
+              = _("You can use this developer key in other Genies (such as one you're running locally for testing) to access your devices before they are approved.")
 
         div.new-button.form-group
           button(type='submit').btn.btn-primary= _("Update profile")
@@ -267,11 +267,11 @@ block content
 
     div.panel-body
       if phone.isConfigured
-        p= _("You are running a Almond in your phone.")
+        p= _("You are running a Genie in your phone.")
       else
-        p= _("You did not link the Almond in your phone to your account.")
+        p= _("You did not link the Genie in your phone to your account.")
         div#config-phone-desktop-browser
-          p!= _("If you are not running Almond already, first <a href='https://play.google.com/store/apps/details?id=edu.stanford.thingengine.engine'>download the app</a>.")
+          p!= _("If you are not running Genie already, first <a href='https://play.google.com/store/apps/details?id=edu.stanford.thingengine.engine'>download the app</a>.")
             = _(" Then visit this page on a mobile browser, or scan this QR code.")
 
             div#qrcode-target= phone.qrcodeTarget
@@ -286,7 +286,7 @@ block content
 
     div.panel-body
       if desktop.isConfigured
-        p= _("You are running a Almond in your laptop.")
+        p= _("You are running a Genie in your laptop.")
       else
-        p= _("You did not link the Almond in your laptop to your account. You should do so from the Settings page in the native Almond app.")
+        p= _("You did not link the Genie in your laptop to your account. You should do so from the Settings page in the native Genie app.")
 

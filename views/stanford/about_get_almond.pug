@@ -1,40 +1,40 @@
 extends ../layout
 
 block page_name
-  = _("Get Almond")
+  = _("Get Genie")
 
 block content
   div.row
     div.col-md-6
       div.panel.panel-default
         div.panel-heading
-          h2.panel-title= _("Web Almond")
+          h2.panel-title= _("Web Genie")
 
         div.panel-body
           p
-            = _("Web Almond gives you the full power of a personal virtual assistant, without leaving the browser.")
+            = _("Web Genie gives you the full power of a personal virtual assistant, without leaving the browser.")
           p
-            small!= _('Web Almond is provided free of charge to the research community. Use of Web Almond is subject to our <a href="/about/privacy">Privacy Policy</a>.')
+            small!= _('Web Genie is provided free of charge to the research community. Use of Web Genie is subject to our <a href="/about/privacy">Privacy Policy</a>.')
 
           if authenticated
-            a(href='/me').btn.btn-primary.custom-btn.col-md-offset-4= _("Go To Web Almond")
+            a(href='/me').btn.btn-primary.custom-btn.col-md-offset-4= _("Go To Web Genie")
           else
             a(href='/user/register').btn.btn-primary.custom-btn.col-md-offset-4= _("Create An Account")
 
     div.col-md-6
       div.panel.panel-default
         div.panel-heading
-          h2.panel-title= _("Almond on your Laptop")
+          h2.panel-title= _("Genie on your Laptop")
 
         div.panel-body
           p
-            = _("Almond is also available as a native application for the GNOME desktop environment.")
+            = _("Genie is also available as a native application for the GNOME desktop environment.")
             |
             |
-            != _('Use <a href="/thingpedia/devices/by-id/org.thingpedia.builtin.thingengine.gnome">Almond 4 GNOME</a> to open apps and documents, take screenshots, change settings and lock your PC automatically.')
+            != _('Use <a href="/thingpedia/devices/by-id/org.thingpedia.builtin.thingengine.gnome">Genie 4 GNOME</a> to open apps and documents, take screenshots, change settings and lock your PC automatically.')
 
           p
-            a(href='https://flathub.org/apps/details/edu.stanford.Almond')
+            a(href='https://flathub.org/apps/details/edu.stanford.Genie')
               img(width='200',alt=_("Download on Flathub"),src="https://flathub.org/assets/badges/flathub-badge-en.png")
 
     div.col-md-6.col-md-offset-3
@@ -60,17 +60,17 @@ block content
     //-div.col-md-6.col-md-offset-3
       div.panel.panel-default
         div.panel-heading
-          h2.panel-title= _("Almond for Android")
+          h2.panel-title= _("Genie for Android")
 
         div.panel-body
           p
-            = _("A beta version of the Almond app is also available as a native Android application.")
+            = _("A beta version of the Genie app is also available as a native Android application.")
             |
             |
-            = _("When you install Almond on your Android phone, all your data and credentials are stored only on your device.")
+            = _("When you install Genie on your Android phone, all your data and credentials are stored only on your device.")
             |
             |
-            = _("This ensures the maximum level of privacy, without sacrificing the convenience of having Almond always with you.")
+            = _("This ensures the maximum level of privacy, without sacrificing the convenience of having Genie always with you.")
 
           p
             a(href='https://play.google.com/store/apps/details?id=edu.stanford.thingengine.engine&pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1')
@@ -90,4 +90,4 @@ block content
             = _("Still have not found what your looking for?")
             |
             |
-            != _("Check out Almond\'s source code in our <a href='https://github.com/stanford-oval'>Github page</a>.")
+            != _("Check out Genie\'s source code in our <a href='https://github.com/stanford-oval'>Github page</a>.")

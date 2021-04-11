@@ -38,7 +38,7 @@ router.get('/organization/:id_hash', (req, res, next) => {
             deviceModel.getAllApprovedByOwner(dbClient, org.id)
         ]);
         res.render('public_org_profile', {
-            page_title: req._("Almond - Developer Organization"),
+            page_title: req._("Genie - Developer Organization"),
             organization: org,
             members: members.filter((m) => !!(m.profile_flags & user.ProfileFlags.VISIBLE_ORGANIZATION_PROFILE)),
             devices
@@ -46,7 +46,7 @@ router.get('/organization/:id_hash', (req, res, next) => {
     }).catch((e) => {
         if (e.code === 'ENOENT') {
             res.status(404).render('error', {
-                page_title: req._("Almond - Not Found"),
+                page_title: req._("Genie - Not Found"),
                 message: req._("The requested organization does not exist.")
             });
         } else {
@@ -71,13 +71,13 @@ router.get('/user/:cloud_id', (req, res, next) => {
         profile.profile_pic_url = `https://www.gravatar.com/avatar/${emailHash}?s=250&d=mp`;
 
         res.render('public_user_profile', {
-            page_title: req._("Almond - Public Profile of %s").format(profile.username),
+            page_title: req._("Genie - Public Profile of %s").format(profile.username),
             profile,
         });
     }).catch((e) => {
         if (e.code === 'ENOENT') {
             res.status(404).render('error', {
-                page_title: req._("Almond - Not Found"),
+                page_title: req._("Genie - Not Found"),
                 message: req._("The requested user does not exist.")
             });
         } else {

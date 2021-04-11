@@ -80,13 +80,13 @@ block content
 
   if device.primary_kind === 'org.thingpedia.builtin.thingengine.builtin'
     p
-      i= _("This is a builtin device in any Almond.")
+      i= _("This is a builtin device in any Genie.")
   else if device.primary_kind === 'org.thingpedia.builtin.thingengine.remote' || device.primary_kind === 'org.thingpedia.builtin.thingengine'
     p
-      i= _("This is an internally created, system device in any Almond.")
+      i= _("This is an internally created, system device in any Genie.")
   else if device.primary_kind.startsWith('org.thingpedia.builtin.thingengine.')
     p
-      i= _("This is a builtin device in certain versions of Almond. It may not be available in the Almond you are using.")
+      i= _("This is a builtin device in certain versions of Genie. It may not be available in the Genie you are using.")
 
   if classDef.extends.length > 0
     p!= _("This device extends the functionality of %s.").format(classDef.extends.map((k) => '<a href="/thingpedia/devices/by-id/' + k + '">@' + k + '</a>').join(', '))

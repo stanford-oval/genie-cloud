@@ -43,7 +43,7 @@ export let DATABASE_URL : string|undefined = process.env.DATABASE_URL;
 /**
   Database Proxy URL.
 
-  This the URL of the dbproxy server setup in the kubernetes cluster. If set, worker engine will use the 
+  This the URL of the dbproxy server setup in the kubernetes cluster. If set, worker engine will use the
   cloud database through the proxy. Otherwise, a local sqlitedb is used.
 */
 export let DATABASE_PROXY_URL : string|null = null;
@@ -539,15 +539,15 @@ export let MAILGUN_PASSWORD : string|null = null;
 /**
   From: field of user emails (email verification, password reset, etc.)
 */
-export let EMAIL_FROM_USER : string = 'Almond <noreply@almond.stanford.edu>';
+export let EMAIL_FROM_USER : string = 'Genie <noreply@almond.stanford.edu>';
 /**
   From: field of admin emails (review requests, developer requests, etc.)
 */
-export let EMAIL_FROM_ADMIN : string = 'Almond <root@almond.stanford.edu>';
+export let EMAIL_FROM_ADMIN : string = 'Genie <root@almond.stanford.edu>';
 /**
   From: field of admin-training notifications
 */
-export let EMAIL_FROM_TRAINING : string = 'Almond Training Service <almond-training@almond.stanford.edu>';
+export let EMAIL_FROM_TRAINING : string = 'Genie Training Service <genie-training@almond.stanford.edu>';
 
 /**
   To: field of admin emails

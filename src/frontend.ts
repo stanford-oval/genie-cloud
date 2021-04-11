@@ -313,7 +313,7 @@ class Frontend {
         this._app.use((req, res) => {
             // if we get here, we have a 404 response
             res.status(404).render('error', {
-                page_title: req._("Almond - Page Not Found"),
+                page_title: req._("Genie - Page Not Found"),
                 message: req._("The requested page does not exist.")
             });
         });
