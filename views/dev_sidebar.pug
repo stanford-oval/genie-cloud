@@ -3,9 +3,9 @@ nav#doc-sidebar
     li(class=(section === 'overview' ? 'current' : ''))
       a.doc-sidebar-subtitle(href='/developers')= _("Overview")
     li(class=(section === 'train-almond' ? 'current' : ''))
-      a.doc-sidebar-subtitle(href='/developers/train')= _("Train Almond")
+      a.doc-sidebar-subtitle(href='/developers/train')= _("Train Genie")
     li(class = (section === 'status' ? 'current' : ''))
-      a.doc-sidebar-subtitle(href='/me/status')= _("Almond Status and Logs")
+      a.doc-sidebar-subtitle(href='/me/status')= _("Genie Status and Logs")
     if user.developer_org !== null
       if Config.WITH_THINGPEDIA === 'embedded'
         li(class=(section === 'devices' ? 'current' : ''))

@@ -36,7 +36,7 @@ router.get('/', (req, res, next) => {
         const featuredDevices = await deviceModel.getFeatured(dbClient);
         const news = await blogModel.getHomePage(dbClient);
         res.render(Config.ABOUT_OVERRIDE['index'] || 'about_index', {
-            page_title: req._('Almond'),
+            page_title: req._('Genie'),
             csrfToken: req.csrfToken(),
             featuredDevices,
             news
@@ -58,7 +58,7 @@ for (let page of Config.EXTRA_ABOUT_PAGES) {
 // terms of service is always enabled
 router.get('/about/tos', (req, res, next) => {
     res.render(Config.ABOUT_OVERRIDE['tos'] || 'about_tos', {
-        page_title: req._("Terms of Service for Almond & Thingpedia")
+        page_title: req._("Terms of Service for Genie & Thingpedia")
     });
 });
 
@@ -71,7 +71,7 @@ router.get('/about/toc', (req, res, next) => {
 // privacy policy is always enabled
 router.get('/about/privacy', (req, res, next) => {
     res.render(Config.ABOUT_OVERRIDE['privacy'] || 'about_privacy', {
-        page_title: req._("Almond Privacy Policy")
+        page_title: req._("Genie Privacy Policy")
     });
 });
 

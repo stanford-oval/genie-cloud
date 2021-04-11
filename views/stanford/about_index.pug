@@ -13,7 +13,7 @@ block scripts
 
 block page_name
   - stdlayout = false;
-  = _("Almond")
+  = _("Genie")
 
 block content
   if authenticated
@@ -26,24 +26,24 @@ block content
           div.col-lg-6
             h1#almond-title
               img(src=Config.ASSET_CDN + '/images/logo.png',style='display:inline-block;padding-right:12px;height:1em;vertical-align:bottom')
-              = _("Almond")
+              = _("Genie")
             h2#almond-subtitle= _("The Open, Privacy-Preserving Virtual Assistant")
 
             p.text-center#almond-explanation-line
-              = _("Almond translates your commands into a personalized program.")
+              = _("Genie translates your commands into a personalized program.")
 
             if authenticated
               div.row
                 div.col-lg-8.col-lg-offset-2
-                  a(href='/me').btn.btn-primary.btn-block.call-to-action= _("Go To My Almond")
+                  a(href='/me').btn.btn-primary.btn-block.call-to-action= _("Go To My Genie")
             else if !ENABLE_ANONYMOUS_USER
               div.row
                 div.col-lg-8.col-lg-offset-2
-                  a(href='/user/register').btn.btn-primary.btn-block.call-to-action= _("Try Almond Now")
+                  a(href='/user/register').btn.btn-primary.btn-block.call-to-action= _("Try Genie Now")
             else
               div.row#try-almond-now-row
                 div.col-lg-8.col-lg-offset-2
-                  a#try-almond-now(href='#conversation').btn.btn-primary.btn-block.call-to-action= _("Try Almond Now")
+                  a#try-almond-now(href='#conversation').btn.btn-primary.btn-block.call-to-action= _("Try Genie Now")
 
               div.row
                 div.col-lg-12
@@ -60,16 +60,16 @@ block content
                           button(type='button').btn.btn-primary#record-button= _("Say a command!")
                           span.spinner-container.form-control-feedback.hidden
                             span.spinner
-                            span.sr-only= _("Almond is thinking…")
+                            span.sr-only= _("Genie is thinking…")
                           span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden(title=_("Lost connection to the server."))
                           span.help-block.hidden= _("Lost connection to the server.")
 
             div(style='margin-top:1em;font-size:24px').text-center
               div.row
                 div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
-                  a(href='/about/get-almond')= _("Get Almond")
+                  a(href='/about/get-almond')= _("Get Genie")
                 div.col-xs-12.col-sm-6.col-md-4
-                  a(href='/about/get-involved')= _("Contribute To Almond")
+                  a(href='/about/get-involved')= _("Contribute To Genie")
               div.row
                 div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
                   a(href='https://forms.gle/Q1m5uZDF8ZyRbdSw7', rel='noopener')= _("Sign Up for Updates")
@@ -80,7 +80,7 @@ block content
               div(style='margin-top:1em;font-size:24px').text-center
                 p You can also try the bleeding edge, development version
                   br
-                  | of Almond at #[a(href='https://dev.almond.stanford.edu') dev.almond.stanford.edu].
+                  | of Genie at #[a(href='https://dev.almond.stanford.edu') dev.almond.stanford.edu].
 
             p(style='margin-top:1em;font-size:24px').text-center!= _("Brought to you by the <a href='https://oval.cs.stanford.edu'>Stanford Open Virtual Assistant Lab</a>.")
 
@@ -91,19 +91,19 @@ block content
                 div.item.active
                   h3= _("Notifications That Matter To You")
                   img(src=Config.ASSET_CDN + '/images/carousel-nyt.png',
-                      alt=_("Screenshot of Almond for Android. The user asks: “Show me the New York Times”. Almond replies with news articles."))
+                      alt=_("Screenshot of Genie for Android. The user asks: “Show me the New York Times”. Genie replies with news articles."))
                   div.carousel-caption
                     h4= _("Say: “Monitor the New York Times”")
                 div.item
                   h3= _("Graphical and Voice is the Best Combination")
                   img(src=Config.ASSET_CDN + '/images/carousel-nest.png',
-                      alt=_("Screenshot of Web Almond. The user asks, in sequence, “Turn on my security camera”, “Get a snapshot” and “Send an email to my neighbor if my camera detects motion when I am not home”."))
+                      alt=_("Screenshot of Web Genie. The user asks, in sequence, “Turn on my security camera”, “Get a snapshot” and “Send an email to my neighbor if my camera detects motion when I am not home”."))
                   div.carousel-caption
                     h4= _("Say: “Show me a security camera snapshot”")
                 div.item
                   h3= _("Enhance Your Life With All The Internet's Resources")
                   img(src=Config.ASSET_CDN + '/images/carousel-nasa.png',
-                      alt=_("Screenshot of Almond for PC. The list of enabled rules is shown, which includes: “Set your laptop's background to the NASA Astronomy Picture of the Day”. In the background, a NASA picture is shown."))
+                      alt=_("Screenshot of Genie for PC. The list of enabled rules is shown, which includes: “Set your laptop's background to the NASA Astronomy Picture of the Day”. In the background, a NASA picture is shown."))
                   div.carousel-caption
                     h4= _("Say: “Change my laptop background to the NASA Picture of the Day”")
                 div.item
@@ -115,7 +115,7 @@ block content
                       em= _("Coming soon!")
                 //-div.item
                   h3= _("The Best Way To Control Your Home")
-                  img(src=Config.ASSET_CDN + '/images/carousel-livingroom.png', alt="Picture of Almond Home device")
+                  img(src=Config.ASSET_CDN + '/images/carousel-livingroom.png', alt="Picture of Genie Home device")
                   div.carousel-caption
                     h4= _("Say: “Turn off my TV if there is nobody in the room”")
                     p
@@ -130,19 +130,19 @@ block content
 
     div.sections#home-page-sections
       section.divider
-        h3= _("How Almond Works")
+        h3= _("How Genie Works")
 
         div.container
           div.row
             div.col-lg-5.col-lg-offset-1.marketing-video
               iframe(style='max-width:100%;height: 270px;width: 100%;', src="https://www.youtube.com/embed/5JUtTe00yGc", frameborder="0", allow="autoplay;encrypted-media", allowfullscreen=true)
 
-              p.text-center= _("See how Almond helps Kimmy babysit.")
+              p.text-center= _("See how Genie helps Kimmy babysit.")
 
             div.col-lg-5.marketing-video
               iframe(style='max-width:100%;height: 270px;width: 100%;', src="https://www.youtube.com/embed/IUtURMngJr8", frameborder="0", allow="autoplay;encrypted-media", allowfullscreen=true)
 
-              p.text-center= _("Learn how you can use Almond for your tasks.")
+              p.text-center= _("Learn how you can use Genie for your tasks.")
 
 
       section.divider
@@ -168,10 +168,10 @@ block content
             div.col-md-6.col-md-offset-3
               h4 Sharing with individual data ownership
               p We as users should have a choice in virtual assistant services and the ability to control how we share our data.
-              p Learn more about #[a(href='/about/get-almond') how you can run Almond with maximum privacy].
+              p Learn more about #[a(href='/about/get-almond') how you can run Genie with maximum privacy].
 
       //section.divider#almond-in-the-news
-        h3= _("Almond In The News")
+        h3= _("Genie In The News")
 
         div.container
           div.row
@@ -201,18 +201,18 @@ block content
             div.col-md-6
 
               p
-                != _("Notifications are <em>hard</em>! Every website, every social network, every app is continuously competing for our attention. But that's no more: with Almond, <em>you</em> decide what <em>you</em> care about.")
+                != _("Notifications are <em>hard</em>! Every website, every social network, every app is continuously competing for our attention. But that's no more: with Genie, <em>you</em> decide what <em>you</em> care about.")
               p
-                != _("Commands in Almond can be <i>monitored</i> and <i>filtered</i>: you can specify to be notified whenever the result changes, when a certain condition is true, or only for a certain subset of the data. For example:")
+                != _("Commands in Genie can be <i>monitored</i> and <i>filtered</i>: you can specify to be notified whenever the result changes, when a certain condition is true, or only for a certain subset of the data. For example:")
               ul
                 li= _("You can monitor the New York Times, and be notified when they publish a new article; or you can monitor just the articles with the word “Millennial”, so you know which industry is being killed now.")
                 li= _("You can monitor the weather, or you choose to be notified only when the temperature is below 40 degrees, and it's time to bring in your dog.")
                 li= _("You can monitor your work email, and then decide that, you know what, it's after hours, you don't want to be bothered.")
               p
-                != _("Almond's conditions can make use of any result returned by a command, like the title of an article or the body of the new email. You can also use a command, and check if that satisfies a condition. Just specify your conditions in English, and let Almond notify you.")
+                != _("Genie's conditions can make use of any result returned by a command, like the title of an article or the body of the new email. You can also use a command, and check if that satisfies a condition. Just specify your conditions in English, and let Genie notify you.")
 
             div.col-md-6
-              img(src=Config.ASSET_CDN + '/images/example-bitcoin.png',alt=_("Example of a notification. The user says “Alert me when the price of Bitcoin is below $3,600”. Almond confirms, and then notifies, as the price of Bitcoin is now $3,500.")).img-responsive
+              img(src=Config.ASSET_CDN + '/images/example-bitcoin.png',alt=_("Example of a notification. The user says “Alert me when the price of Bitcoin is below $3,600”. Genie confirms, and then notifies, as the price of Bitcoin is now $3,500.")).img-responsive
 
           div.row
             div.col-xs-12
@@ -221,7 +221,7 @@ block content
             div.col-md-6.col-md-push-6
 
               p
-                != _("Almond is the first virtual assistant that allows you to specify commands that combine two or more services at once. You can specify <em class=when>when</em> to execute the command, what data to <em class=get>get</em>, and what to <em class=do>do</em>, and each part can be any of the primitives supported by Almond.")
+                != _("Genie is the first virtual assistant that allows you to specify commands that combine two or more services at once. You can specify <em class=when>when</em> to execute the command, what data to <em class=get>get</em>, and what to <em class=do>do</em>, and each part can be any of the primitives supported by Genie.")
               p
                 != _("You can use compound commands for:")
               ul.example-command-list
@@ -229,7 +229,7 @@ block content
                 li!= _("Synchronization: <q><span class=when>when I post to Twitter</span>, <span class=do>copy the post to Facebook</span></q>.")
                 li!= _("Composition: <q><span class=get>get the Bitcoin price</span> and then <span class=do>send it to my colleague on Slack</span></q>.")
                 li= _("And many more!")
-              p= _("If you have used IFTTT, you'll love Almond.")
+              p= _("If you have used IFTTT, you'll love Genie.")
 
             div.col-md-6.col-md-pull-6.visible-md.visible-lg(aria-hidden='true')
               .example
@@ -242,11 +242,11 @@ block content
           div.row#why-almond-thingpedia-row
             div.col-md-6
               p
-                != _("Almond provides a uniform interface to your physical devices, your social network accounts, and many more services. Almond wants to let you access anything on the Internet, from your assistant.")
+                != _("Genie provides a uniform interface to your physical devices, your social network accounts, and many more services. Genie wants to let you access anything on the Internet, from your assistant.")
               p
-                != _("Almond capabilities are defined in <em>Thingpedia</em>, a crowdsourced repository of commands and interfaces to online services and Internet of Things. Anyone can contribute new entries to Thingpedia, and with small amounts of training data, Almond will be immediately able to interact with the new device or service. ")
+                != _("Genie capabilities are defined in <em>Thingpedia</em>, a crowdsourced repository of commands and interfaces to online services and Internet of Things. Anyone can contribute new entries to Thingpedia, and with small amounts of training data, Genie will be immediately able to interact with the new device or service. ")
               p
-                != _("<a href='/thingpedia'>Learn more about Thingpedia</a> and <a href='/about/get-involved'>how you can help Almond learn new services and skills</a>.")
+                != _("<a href='/thingpedia'>Learn more about Thingpedia</a> and <a href='/about/get-involved'>how you can help Genie learn new services and skills</a>.")
 
             div.col-md-6
               div.row
@@ -262,9 +262,9 @@ block content
           div.row
             div.col-md-6.col-md-push-6
               p
-                = _("Almond uses a state-of-the-art natural language understanding model. Almond's deep learning model allows it to understand more complex commands across more domains than any other assistant on the market: just train Almond with pairs of sentences and programs, and Almond will learn.")
+                = _("Genie uses a state-of-the-art natural language understanding model. Genie's deep learning model allows it to understand more complex commands across more domains than any other assistant on the market: just train Genie with pairs of sentences and programs, and Genie will learn.")
               p
-                != _("We are continuously improving Almond, and building tools to allow others to extend Almond. We have developed a tool called <a href='https://wiki.almond.stanford.edu/en/genie'>Genie</a> that allows to generate training data in new domains from scratch. Using Genie, we have found that Almond understands user's input with 68% accuracy - a marked improvement over the previous best known result. Furthermore, with little effort we were able to build a specialized skill for <a href='https://almond.stanford.edu/thingpedia/devices/by-id/com.spotify'>Spotify</a>, add natural language to access control, and extend Almond with aggregates (sum, count, average, etc.).")
+                != _("We are continuously improving Genie, and building tools to allow others to extend Genie. We have developed a tool called <a href='https://wiki.almond.stanford.edu/en/genie'>Genie</a> that allows to generate training data in new domains from scratch. Using Genie, we have found that Genie understands user's input with 68% accuracy - a marked improvement over the previous best known result. Furthermore, with little effort we were able to build a specialized skill for <a href='https://almond.stanford.edu/thingpedia/devices/by-id/com.spotify'>Spotify</a>, add natural language to access control, and extend Genie with aggregates (sum, count, average, etc.).")
               p
                 != _("As academics, our research is open-source, and all technology is freely available to the public. Anyone can leverage our algorithm in their product or in their own research. <a href='https://oval.cs.stanford.edu'>Learn more about our research</a>.")
 
@@ -272,9 +272,9 @@ block content
               include ../../art/seq-seq-animation-clean-svg.svg
 
       section.divider#section-commandpedia
-        h3= _("What can Almond do?")
+        h3= _("What can Genie do?")
         div.container
           div.row
             div.col-xs-12.col-md-6.col-md-offset-3
-              p= _("Here is a sample of what Almond can do, and a few commands that our users and developers think are interesting. It is not an exhaustive list! Commands can combined in arbitrary ways, creating endless possibilities for your assistant.")
+              p= _("Here is a sample of what Genie can do, and a few commands that our users and developers think are interesting. It is not an exhaustive list! Commands can combined in arbitrary ways, creating endless possibilities for your assistant.")
           include ../commandpedia.pug

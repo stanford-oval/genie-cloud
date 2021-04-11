@@ -5,19 +5,19 @@ block scripts
 
 block page_name
   - index = true;
-  = _("Almond")
+  = _("Genie")
 
 block content
   div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
 
   div.jumbotron.text-center
-    h1= _("Welcome to Almond, %s!").format(username)
+    h1= _("Welcome to Genie, %s!").format(username)
 
     if user.email_verified
-      p= _("You are now ready to start using Almond for your own accounts.")
+      p= _("You are now ready to start using Genie for your own accounts.")
 
       p
-        a(href='/me').btn.btn-primary= _("Go to My Almond")
+        a(href='/me').btn.btn-primary= _("Go to My Genie")
         |
         |
         a(href='https://community.almond.stanford.edu').btn.btn-primary= _("Join the Community")
@@ -31,7 +31,7 @@ block content
           button(type='submit').btn.btn-primary= _("Resend verification email")
         |
         |
-        a(href='/me').btn.btn-primary= _("Go to My Almond")
+        a(href='/me').btn.btn-primary= _("Go to My Genie")
         |
         |
         a(href='https://community.almond.stanford.edu').btn.btn-primary= _("Join the Community")
@@ -43,7 +43,7 @@ block content
         a(href='/user/profile').btn.btn-primary= _("User Settings")
         |
         |
-        a(href='/me').btn.btn-primary= _("Go to My Almond")
+        a(href='/me').btn.btn-primary= _("Go to My Genie")
         |
         |
         a(href='https://community.almond.stanford.edu').btn.btn-primary= _("Join the Community")

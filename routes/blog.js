@@ -47,7 +47,7 @@ router.get('/', (req, res, next) => {
         return blogModel.getAllPublished(dbClient, page * BLOG_POSTS_PER_PAGE, BLOG_POSTS_PER_PAGE+1);
     }).then((posts) => {
         return res.render('blog_archive', {
-            page_title: req._("Almond Blog"),
+            page_title: req._("Genie Blog"),
             page_num: page,
             posts
         });

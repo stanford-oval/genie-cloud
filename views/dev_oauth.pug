@@ -19,7 +19,7 @@ block content
         section.divider
           h3= _("Your OAuth Applications")
 
-          p!= _("OAuth apps allow you to develop software that accesses Almond as a service, for example in a smart speaker. For further information, see the <a href='https://wiki.almond.stanford.edu/api-references/almond'>Web Almond API Guide</a>.")
+          p!= _("OAuth apps allow you to develop software that accesses Genie as a service, for example in a smart speaker. For further information, see the <a href='https://wiki.almond.stanford.edu/api-references/almond'>Web Genie API Guide</a>.")
           if developer_oauth2_clients.length > 0
             ul#developer-oauth-list
               each client, i in developer_oauth2_clients
@@ -82,7 +82,7 @@ block content
                         div.checkbox
                           label
                             input(type='checkbox',name='scope',value='user-exec-command',checked=false)
-                            = _("Access Web Almond and execute ThingTalk code")
+                            = _("Access Web Genie and execute ThingTalk code")
                         if Config.WITH_THINGPEDIA === 'embedded'
                           div.checkbox
                             label

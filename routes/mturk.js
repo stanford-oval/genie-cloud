@@ -279,7 +279,7 @@ router.get(`/validate/:batch/:hit`, (req, res, next) => {
         }
 
         res.render('mturk_validate', {
-            page_title: req._("Almond - Paraphrase Validation"),
+            page_title: req._("Genie - Paraphrase Validation"),
             hit: hitId,
             batch: req.params.batch,
             sentences,

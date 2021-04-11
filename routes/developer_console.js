@@ -89,7 +89,7 @@ router.get('/', (req, res, next) => {
             organization.getStatistics(dbClient, req.user.developer_org)
         ]);
     }).then(([developer_org, developer_org_members, developer_org_invitations, developer_org_stats]) => {
-        res.render('dev_overview', { page_title: req._("Almond Developer Console"),
+        res.render('dev_overview', { page_title: req._("Genie Developer Console"),
                                                 csrfToken: req.csrfToken(),
                                                 developer_org,
                                                 developer_org_members,
@@ -105,7 +105,7 @@ router.get('/oauth', user.requireLogIn, user.requireDeveloper(), (req, res, next
     db.withClient((dbClient) => {
         return oauth2.getClientsByOwner(dbClient, req.user.developer_org);
     }).then((developer_oauth2_clients) => {
-        res.render('dev_oauth', { page_title: req._("Almond Developer Console - OAuth 2.0 Applications"),
+        res.render('dev_oauth', { page_title: req._("Genie Developer Console - OAuth 2.0 Applications"),
                                              csrfToken: req.csrfToken(),
                                              developer_oauth2_clients: developer_oauth2_clients
         });
@@ -123,7 +123,7 @@ router.post('/organization/add-member', user.requireLogIn, user.requireDeveloper
             if (!row.email_verified)
                 throw new BadRequestError(req._("%s has not verified their email address yet.").format(req.body.username));
         } catch(e) {
-            res.status(400).render('error', { page_title: req._("Almond - Error"),
+            res.status(400).render('error', { page_title: req._("Genie - Error"),
                                               message: e });
             return false;
         }
@@ -184,7 +184,7 @@ router.get('/organization/accept-invitation/:id_hash', user.requireLogIn, (req, 
             if (!invitation)
                 throw new BadRequestError(req._("The invitation is no longer valid. It might have expired or might have been rescinded by the organization administrator."));
         } catch(e) {
-            res.status(400).render('error', { page_title: req._("Almond - Error"),
+            res.status(400).render('error', { page_title: req._("Genie - Error"),
                                               message: e });
             return [null, null];
         }
@@ -196,7 +196,7 @@ router.get('/organization/accept-invitation/:id_hash', user.requireLogIn, (req, 
         if (userId !== null) {
             await EngineManager.get().restartUser(userId);
             res.render('message', {
-                page_title: req._("Almond - Developer Invitation"),
+                page_title: req._("Genie - Developer Invitation"),
                 message: req._("You're now a member of the %s organization.").format(orgName)
             });
         }
@@ -274,7 +274,7 @@ router.post('/organization/edit-profile', user.requireLogIn, user.requireDevelop
     iv.validatePOST({ name: 'string' }), (req, res, next) => {
     for (let token of tokenize(req.body.name)) {
         if (['stanford', 'almond'].indexOf(token) >= 0) {
-            res.status(400).render('error', { page_title: req._("Almond - Error"),
+            res.status(400).render('error', { page_title: req._("Genie - Error"),
                                               message: req._("You cannot use the word “%s” in your organization name.").format(token) });
             return;
         }
@@ -289,7 +289,7 @@ router.post('/organization/edit-profile', user.requireLogIn, user.requireDevelop
 
 
 router.get('/train', user.requireLogIn, (req, res) => {
-    res.render('dev_train_almond', { page_title: req._("Almond - Train Almond"), csrfToken: req.csrfToken() });
+    res.render('dev_train_almond', { page_title: req._("Genie - Train Almond"), csrfToken: req.csrfToken() });
 });
 
 router.get('/status', (req, res) => {
@@ -322,7 +322,7 @@ if (Config.WITH_LUINET === 'embedded') {
             const customDatasetJobs = trainingJobs.filter((job) => job.job_type !== 'train' && job.owner === req.user.developer_org);
 
             res.render('dev_nlp_models', {
-                page_title: req._("Almond Developer Console - Models"),
+                page_title: req._("Genie Developer Console - Models"),
                 models, templatePacks, customDatasetJobs,
                 defaultModelConfig: DEFAULT_TRAINING_CONFIG,
                 defaultCustomDatasetConfig: DEFAULT_CUSTOM_DATASET_CONFIG,
@@ -338,7 +338,7 @@ if (Config.WITH_THINGPEDIA === 'embedded') {
         db.withClient((dbClient) => {
             return device.getByOwner(dbClient, req.user.developer_org);
         }).then((developer_devices) => {
-            res.render('dev_devices', { page_title: req._("Almond Developer Console - Devices"),
+            res.render('dev_devices', { page_title: req._("Genie Developer Console - Devices"),
                                         developer_devices });
         }).catch(next);
     });

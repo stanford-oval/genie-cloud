@@ -20,8 +20,8 @@ block content
 
       div.col-xs-12.col-md-8.col-lg-9
         section.divider#sentence-to-code-block
-          h3= _("Train Almond")
-          p= _("If Almond is misbehaving or misinterpreting your input, you can correct it here.")
+          h3= _("Train Genie")
+          p= _("If Genie is misbehaving or misinterpreting your input, you can correct it here.")
             |
             |
           p!= _("Try entering a verbal command by clicking the button below to start and stop the recording! Then, just correct the transcription in the input box and press <kbd>Enter</kbd>. Alternatively, type a sentence and then press <kbd>Enter</kbd>.")
@@ -35,7 +35,7 @@ block content
             form#sentence-to-code-form
               div.form-group
                 label.sr-only(for="utterance")= _("Input:")
-                input.form-control(type="text", placeholder="What do you want Almond to do?")#utterance
+                input.form-control(type="text", placeholder="What do you want Genie to do?")#utterance
                 button(type='button').btn.btn-primary#record-button= _("Say a command!")
             div#thingtalk-editor.hidden
               div.form-group#thingtalk-group
@@ -45,10 +45,10 @@ block content
               div.form-group
                 button(type='button').btn.btn-primary#sentence-to-code-done= _("Learn")
           div#results-container
-            p#sabrina-thinks= _("Almond's choice: ")
+            p#sabrina-thinks= _("Genie's choice: ")
             span#prediction
             p= _("Your choice:")
             ul#results
 
           div#counter-box
-            != _("You have trained Almond with <span id=counter></span> sentences. Thank you!")
+            != _("You have trained Genie with <span id=counter></span> sentences. Thank you!")

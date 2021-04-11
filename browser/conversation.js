@@ -23,9 +23,10 @@ const Recorder = require('./deps/recorder');
 $(() => {
     var conversationId = null;
     var url;
+    var target = $('#conversation').attr('data-target');
+    var isAnonymous = target === '/me/ws/anonymous';
     function updateUrl() {
-        url = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host
-            + $('#conversation').attr('data-target');
+        url = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + target;
         if (conversationId)
             url += '?id=' + conversationId;
     }
@@ -181,7 +182,10 @@ $(() => {
             };
         }
 
-        connect();
+        if (isAnonymous)
+            $('#try-almond-now').one('click', () => { connect(); });
+        else
+            connect();
     })();
 
     function syncCancelButton(msg) {

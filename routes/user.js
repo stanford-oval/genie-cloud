@@ -65,7 +65,7 @@ router.get('/oauth2/google/callback', passport.authenticate('google'), (req, res
         res.locals.authenticated = true;
         res.locals.user = req.user;
         res.render('register_success', {
-            page_title: req._("Almond - Registration Successful"),
+            page_title: req._("Genie - Registration Successful"),
             username: req.user.username,
             cloudId: req.user.cloud_id,
             authToken: req.user.auth_token });
@@ -91,7 +91,7 @@ router.get('/oauth2/github/callback', passport.authenticate('github'), (req, res
         res.locals.authenticated = true;
         res.locals.user = req.user;
         res.render('register_success', {
-            page_title: req._("Almond - Registration Successful"),
+            page_title: req._("Genie - Registration Successful"),
             username: req.user.username,
             cloudId: req.user.cloud_id,
             authToken: req.user.auth_token });
@@ -115,7 +115,7 @@ router.get('/login', (req, res, next) => {
     res.render('login', {
         csrfToken: req.csrfToken(),
         errors: req.flash('error'),
-        page_title: req._("Almond - Login")
+        page_title: req._("Genie - Login")
     });
 });
 
@@ -151,7 +151,7 @@ router.get('/2fa/login', (req, res, next) => {
     }
 
     res.render('2fa_login', {
-        page_title: req._("Almond - Login"),
+        page_title: req._("Genie - Login"),
         errors: req.flash('error'),
     });
 });
@@ -178,7 +178,7 @@ router.post('/2fa/login', passport.authenticate('totp', { failureRedirect: '/use
 router.get('/2fa/setup', userUtils.requireLogIn, iv.validateGET({ force: 'boolean' }), (req, res, next) => {
     if (req.user.totp_key !== null && req.query.force !== '1') {
         res.status(400).render('error', {
-            page_title: req._("Almond - Error"),
+            page_title: req._("Genie - Error"),
             message: req._("You already configured two-factor authentication.")
         });
         return;
@@ -198,7 +198,7 @@ router.get('/2fa/setup', userUtils.requireLogIn, iv.validateGET({ force: 'boolea
     const qrUrl = `otpauth://totp/${label}?secret=${encodedKey}`;
 
     res.render('2fa_setup', {
-        page_title: req._("Almond - Two-Factor Authentication"),
+        page_title: req._("Genie - Two-Factor Authentication"),
         encryptedKey,
         qrUrl
     });
@@ -215,7 +215,7 @@ router.post('/2fa/setup', userUtils.requireLogIn, iv.validatePOST({ encrypted_ke
         const rv = totp.verify(req.body.code, totpKey, { window: 6, time: TOTP_PERIOD });
         if (!rv) {
             res.render('error', {
-                page_title: req._("Almond - Two-Factor Authentication"),
+                page_title: req._("Genie - Two-Factor Authentication"),
                 message: req._("Invalid OTP Code. Please check that your Authenticator app is properly configured.")
             });
             return;
@@ -228,7 +228,7 @@ router.post('/2fa/setup', userUtils.requireLogIn, iv.validatePOST({ encrypted_ke
         req.session.completed2fa = true;
 
         res.render('message', {
-            page_title: req._("Almond - Two-Factor Authentication"),
+            page_title: req._("Genie - Two-Factor Authentication"),
             message: req._("Two-factor authentication was set up successfully. You will need to use your Authenticator app at the next login.")
         });
     }).catch(next);
@@ -237,7 +237,7 @@ router.post('/2fa/setup', userUtils.requireLogIn, iv.validatePOST({ encrypted_ke
 router.get('/register', (req, res, next) => {
     res.render('register', {
         csrfToken: req.csrfToken(),
-        page_title: req._("Almond - Register")
+        page_title: req._("Genie - Register")
     });
 });
 
@@ -321,7 +321,7 @@ router.post('/register', iv.validatePOST(registerArguments), (req, res, next) =>
     } catch(e) {
         res.render('register', {
             csrfToken: req.csrfToken(),
-            page_title: req._("Almond - Register"),
+            page_title: req._("Genie - Register"),
             error: e
         });
         return;
@@ -335,7 +335,7 @@ router.post('/register', iv.validatePOST(registerArguments), (req, res, next) =>
             } catch(e) {
                 res.render('register', {
                     csrfToken: req.csrfToken(),
-                    page_title: req._("Almond - Register"),
+                    page_title: req._("Genie - Register"),
                     error: e
                 });
                 return null;
@@ -360,7 +360,7 @@ router.post('/register', iv.validatePOST(registerArguments), (req, res, next) =>
         res.locals.authenticated = true;
         res.locals.user = user;
         res.render('register_success', {
-            page_title: req._("Almond - Registration Successful"),
+            page_title: req._("Genie - Registration Successful"),
             username: options.username,
             cloudId: user.cloud_id,
             authToken: user.auth_token });
@@ -399,7 +399,7 @@ router.get('/verify-email/:token', userUtils.requireLogIn, (req, res, next) => {
             });
         } catch(e) {
             res.status(400).render('error', {
-                page_title: req._("Almond - Error"),
+                page_title: req._("Genie - Error"),
                 message: req._("The verification link you have clicked is not valid. You might be logged-in as the wrong user, or the link might have expired.")
             });
             return;
@@ -407,7 +407,7 @@ router.get('/verify-email/:token', userUtils.requireLogIn, (req, res, next) => {
 
         await model.verifyEmail(dbClient, decoded.sub, decoded.email);
         res.render('email_verified', {
-            page_title: req._("Almond - Verification Successful")
+            page_title: req._("Genie - Verification Successful")
         });
     }).catch(next);
 });
@@ -415,14 +415,14 @@ router.get('/verify-email/:token', userUtils.requireLogIn, (req, res, next) => {
 router.post('/resend-verification', userUtils.requireLogIn, (req, res, next) => {
     if (req.user.email_verified) {
         res.status(400).render('error', {
-            page_title: req._("Almond - Error"),
+            page_title: req._("Genie - Error"),
             message: req._("Your email address was already verified.")
         });
         return;
     }
     if (!req.user.email) {
         res.status(400).render('error', {
-            page_title: req._("Almond - Error"),
+            page_title: req._("Genie - Error"),
             message: req._("You must set an email address before sending a verification email.")
         });
         return;
@@ -430,7 +430,7 @@ router.post('/resend-verification', userUtils.requireLogIn, (req, res, next) => 
 
     sendValidationEmail(req.user.cloud_id, req.user.username, req.user.email).then(() => {
         res.render('message', {
-            page_title: req._("Almond - Verification Sent"),
+            page_title: req._("Genie - Verification Sent"),
             message: req._("A verification email was sent to %s. If you did not receive it, please check your Spam folder.").format(req.user.email)
         });
     }).catch(next);
@@ -438,7 +438,7 @@ router.post('/resend-verification', userUtils.requireLogIn, (req, res, next) => 
 
 router.get('/recovery/start', (req, res, next) => {
     res.render('password_recovery_start', {
-        page_title: req._("Almond - Password Reset")
+        page_title: req._("Genie - Password Reset")
     });
 });
 
@@ -478,7 +478,7 @@ router.post('/recovery/start', iv.validatePOST({ username: 'string' }), (req, re
             // this eliminates the ability to check for the existance of
             // a username by initiating password recovery
             res.render('message', {
-                page_title: req._("Almond - Password Reset Sent"),
+                page_title: req._("Genie - Password Reset Sent"),
                 message: req._("A recovery email was sent to the address on file for %s. If you did not receive it, please check the spelling of your username, and check your Spam folder.").format(req.body.username)
             });
             return;
@@ -486,7 +486,7 @@ router.post('/recovery/start', iv.validatePOST({ username: 'string' }), (req, re
 
         if (!users[0].email_verified) {
             res.render('error', {
-                page_title: req._("Almond - Error"),
+                page_title: req._("Genie - Error"),
                 message: req._("You did not verify your email address, hence you cannot recover your password automatically. Please contact the website adminstrators to recover your password.")
             });
             return;
@@ -495,7 +495,7 @@ router.post('/recovery/start', iv.validatePOST({ username: 'string' }), (req, re
         // note: we must not reveal the email address in this message
         await sendRecoveryEmail(users[0].cloud_id, users[0].username, users[0].email);
         res.render('message', {
-            page_title: req._("Almond - Password Reset Sent"),
+            page_title: req._("Genie - Password Reset Sent"),
             message: req._("A recovery email was sent to the address on file for %s. If you did not receive it, please check the spelling of your username, and check your Spam folder.").format(req.body.username)
         });
     }).catch(next);
@@ -510,21 +510,21 @@ router.get('/recovery/continue/:token', (req, res, next) => {
         const users = await model.getByCloudId(dbClient, decoded.sub);
         if (users.length === 0) {
             res.status(404).render('error', {
-                page_title: req._("Almond - Error"),
+                page_title: req._("Genie - Error"),
                 message: req._("The user for which you're resetting the password no longer exists.")
             });
             return;
         }
 
         res.render('password_recovery_continue', {
-            page_title: req._("Almond - Password Reset"),
+            page_title: req._("Genie - Password Reset"),
             token: req.params.token,
             recoveryUser: users[0],
             error: undefined
         });
     }, (err) => {
         res.status(400).render('error', {
-            page_title: req._("Almond - Password Reset"),
+            page_title: req._("Genie - Password Reset"),
             message: req._("The verification link you have clicked is not valid.")
         });
     }).catch(next);
@@ -540,7 +540,7 @@ router.post('/recovery/continue', iv.validatePOST({ token: 'string', password: '
             });
         } catch(e) {
             res.status(400).render('error', {
-                page_title: req._("Almond - Error"),
+                page_title: req._("Genie - Error"),
                 message: e
             });
             return;
@@ -554,7 +554,7 @@ router.post('/recovery/continue', iv.validatePOST({ token: 'string', password: '
                 throw new BadRequestError(req._("The password and the confirmation do not match"));
         } catch(e) {
             res.render('password_recovery_continue', {
-                page_title: req._("Almond - Password Reset"),
+                page_title: req._("Genie - Password Reset"),
                 token: req.body.token,
                 error: e
             });
@@ -563,7 +563,7 @@ router.post('/recovery/continue', iv.validatePOST({ token: 'string', password: '
         const users = await model.getByCloudId(dbClient, decoded.sub);
         if (users.length === 0) {
             res.status(404).render('error', {
-                page_title: req._("Almond - Error"),
+                page_title: req._("Genie - Error"),
                 message: req._("The user for which you're resetting the password no longer exists.")
             });
             return;
@@ -574,7 +574,7 @@ router.post('/recovery/continue', iv.validatePOST({ token: 'string', password: '
             const rv = totp.verify(req.body.code, secret.decrypt(user.totp_key), { window: 6, time: TOTP_PERIOD });
             if (!rv) {
                 res.render('password_recovery_continue', {
-                    page_title: req._("Almond - Password Reset"),
+                    page_title: req._("Genie - Password Reset"),
                     token: req.body.token,
                     error: req._("Invalid OTP code")
                 });
@@ -591,7 +591,7 @@ router.post('/recovery/continue', iv.validatePOST({ token: 'string', password: '
         res.locals.authenticated = true;
         res.locals.user = user;
         res.render('message', {
-            page_title: req._("Almond - Password Reset"),
+            page_title: req._("Genie - Password Reset"),
             message: req._("Your password was reset successfully.")
         });
     }).catch(next);
@@ -872,7 +872,7 @@ if (Config.DISCOURSE_SSO_SECRET && Config.DISCOURSE_SSO_REDIRECT) {
         const sigbuffer = Buffer.from(req.query.sig, 'hex');
         if (expectedsig.length !== sigbuffer.length || !crypto.timingSafeEqual(expectedsig, sigbuffer)) {
             res.status(403).render('error', {
-                page_title: req._("Almond - Error"),
+                page_title: req._("Genie - Error"),
                 message: "Invalid signature"
             });
             return;
@@ -880,7 +880,7 @@ if (Config.DISCOURSE_SSO_SECRET && Config.DISCOURSE_SSO_REDIRECT) {
 
         if (!req.user.email_verified) {
             res.status(400).render('error', {
-                page_title: req._("Almond - Error"),
+                page_title: req._("Genie - Error"),
                 message: req._("You must verify your email before accessing Almond's Discourse.")
             });
             return;

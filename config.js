@@ -518,11 +518,11 @@ module.exports.MAILGUN_PASSWORD = null;
 /**
   From: field of user emails (email verification, password reset, etc.)
 */
-module.exports.EMAIL_FROM_USER = 'Almond <noreply@almond.stanford.edu>';
+module.exports.EMAIL_FROM_USER = 'Genie <noreply@almond.stanford.edu>';
 /**
   From: field of admin emails (review requests, developer requests, etc.)
 */
-module.exports.EMAIL_FROM_ADMIN = 'Almond <root@almond.stanford.edu>';
+module.exports.EMAIL_FROM_ADMIN = 'Genie <root@almond.stanford.edu>';
 /**
   From: field of admin-training notifications
 */

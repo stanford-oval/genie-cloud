@@ -80,7 +80,7 @@ router.get('/authorize', server.authorization((clientID, redirectURI, scope, don
     const origin = parsedUrl.port !== 443 ? (parsedUrl.hostname + ':' + parsedUrl.port) : parsedUrl.hostname;
 
     res.render('oauth2_authorize', {
-        page_title: req._("Almond - Authorize Access"),
+        page_title: req._("Genie - Authorize Access"),
         transaction_id: req.oauth2.transactionID,
         client: req.oauth2.client,
         scope: req.oauth2.req.scope,
