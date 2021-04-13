@@ -62,7 +62,7 @@ async function testMyApiCreateGetApp(auth) {
 
     assert(result.uniqueId.startsWith('uuid-'));
     assert(result.description === 'Get get 10 byte of data with count 2.'
-        || result.description === 'Get get data on test with count 2 and with size 10 byte.');
+        || result.description === 'Get get data on test with count 2 and size 10 byte.');
     assert.strictEqual(result.code, '@org.thingpedia.builtin.test.get_data(count=2, size=10byte);');
     assert.strictEqual(result.icon, '/download/icons/org.thingpedia.builtin.test.png');
     assert.deepStrictEqual(result.errors, []);
@@ -73,7 +73,10 @@ async function testMyApiCreateGetApp(auth) {
             data: '!!!!!!!!!!',
             size: 10
         },
-        formatted: ['!!!!!!!!!!'],
+        formatted: [{
+            type: 'text',
+            text: 'The answer is !!!!!!!!!!',
+        }],
         type: 'org.thingpedia.builtin.test:get_data'
     }, {
         raw: {
@@ -81,7 +84,10 @@ async function testMyApiCreateGetApp(auth) {
             data: '""""""""""',
             size: 10
         },
-        formatted: ['""""""""""'],
+        formatted: [{
+            type: 'text',
+            text: 'The answer is """""""""".',
+        }],
         type: 'org.thingpedia.builtin.test:get_data'
     }]);
 }
@@ -126,7 +132,10 @@ async function testMyApiCreateWhenApp(auth) {
                     { appId: result.uniqueId,
                       raw: { data: '!!!!!!!!!!', size: 10 },
                       type: 'org.thingpedia.builtin.test:get_data',
-                      formatted: [ '!!!!!!!!!!' ],
+                      formatted: [{
+                        type: 'text',
+                        text: 'Notification from Test: the answer is !!!!!!!!!!',
+                      }],
                       icon: '/download/icons/org.thingpedia.builtin.test.png' }
                 });
             } else {
@@ -134,7 +143,10 @@ async function testMyApiCreateWhenApp(auth) {
                     { appId: result.uniqueId,
                       raw: { data: '""""""""""', size: 10 },
                       type: 'org.thingpedia.builtin.test:get_data',
-                      formatted: [ '""""""""""' ],
+                      formatted: [{
+                        type: 'text',
+                        text: 'Notification from Test: the answer is """""""""".',
+                      }],
                       icon: '/download/icons/org.thingpedia.builtin.test.png' }
                 });
             }
@@ -298,6 +310,7 @@ async function testMyApiConverse(auth) {
     assert(result1.conversationId.startsWith('stateless-'));
     const conversationId1 = result1.conversationId;
     delete result1.conversationId;
+    delete result1.messages[1].uniqueId;
     assert.deepStrictEqual(result1, {
         askSpecial: null,
         messages: [{
@@ -306,6 +319,17 @@ async function testMyApiConverse(auth) {
             command: '\\t now => @org.thingpedia.builtin.test.dup_data(data_in="foo") => notify;',
         }, {
             id: 1,
+            type: 'new-program',
+            code: '@org.thingpedia.builtin.test.dup_data(data_in="foo");',
+            errors: [],
+            icon: 'org.thingpedia.builtin.test',
+            name: 'Test',
+            results: [{
+                data_in: 'foo',
+                data_out: 'foofoo'
+            }],
+        }, {
+            id: 2,
             type: 'text',
             text: 'The answer is foofoo.',
             icon: 'org.thingpedia.builtin.test'
@@ -322,11 +346,11 @@ async function testMyApiConverse(auth) {
     assert.deepStrictEqual(result2, {
         askSpecial: null,
         messages: [{
-            id: 2,
+            id: 3,
             type: 'command',
             command: 'yes',
         }, {
-            id: 3,
+            id: 4,
             type: 'text',
             text: 'Sorry, I did not understand that. Can you rephrase it?',
             icon: 'org.thingpedia.builtin.test'

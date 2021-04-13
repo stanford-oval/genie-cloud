@@ -100,7 +100,7 @@ function makeSchemaClassDef(kind, schema, isMeta) {
 
 function mergeFunctionDefAndSchema(fnDef, schema) {
     let complete = true;
-    for (let key of ['confirmation', 'confirmation_remote', 'canonical']) {
+    for (let key of ['canonical']) {
         if (schema[key])
             fnDef.metadata[key] = schema[key];
         else

@@ -21,12 +21,23 @@ class: |
     monitorable list query get_data(in req size: Measure(byte) #_[prompt="How much fake data do you want?"],
                                     in opt count: Number,
                                     out data: String)
-    #_[result="the answer is ${data}"]
+    #_[result={
+      top=["the answer is ${data}"],
+      list_concat=["${__index:ordinal: =1{first answer for ${count} items of size ${size} is ${data}.} one{${__index}st answer is ${data}.} two{${__index}nd answer is ${data}.} few{${__index}rd answer is ${data}.} other{${__index}rd answer is ${data}.}}"],
+    }]
     #_[canonical="get data on test"]
-    #_[confirmation="generate $size of fake data"]
-    #_[confirmation_remote="generate $size of fake data on $__person's Almond"]
-    #_[formatted=[{type="text",text="${data}"}]]
     #[poll_interval=0ms]
+    #[doc="generate `size` amount of fake data"]
+    #[confirm=false];
+
+    list query get_data2(in req size: Measure(byte) #_[prompt="How much fake data do you want?"],
+                         in opt count: Number,
+                         out data: String)
+    #_[result={
+      top=["the answer is ${data}"],
+      list=["the answers for ${count} items of size ${size} are ${data}"],
+    }]
+    #_[canonical="second test data"]
     #[doc="generate `size` amount of fake data"]
     #[confirm=false];
 
