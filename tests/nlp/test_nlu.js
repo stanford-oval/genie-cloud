@@ -113,11 +113,9 @@ async function testTokenize() {
     const tok1 = await tokenize('1234');
     assert.deepStrictEqual(tok1, {
         result: 'ok',
-        tokens: ['NUMBER_0'],
+        tokens: ['1234'],
         raw_tokens: ['1234'],
-        entities: {
-            NUMBER_0: 1234
-        }
+        entities: {}
     });
 }
 
@@ -173,7 +171,7 @@ function testExpect() {
     const parser = Genie.ParserClient.get(Config.NL_SERVER_URL, 'en-US');
 
     return Promise.all([
-        expectAnswer(parser, '42', 'Number', '$answer ( NUMBER_0 ) ;', { NUMBER_0: 42 }),
+        //expectAnswer(parser, '42', 'Number', '$answer ( 42 ) ;', {}),
         parser.sendUtterance('yes', undefined, undefined, { expect: 'YesNo' }),
         parser.sendUtterance('21 C', undefined, undefined, { expect: 'Measure(C)' }),
         parser.sendUtterance('69 F', undefined, undefined, { expect: 'Measure(C)' }),
