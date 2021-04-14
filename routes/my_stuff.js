@@ -84,7 +84,7 @@ router.post('/apps/delete', iv.validatePOST({ id: 'string' }), (req, res, next) 
                                               message: req._("Not found.") });
             return;
         }
-        req.flash('app-message', "Application successfully deleted");
+        req.flash('app-message', "Command stopped successfully.");
         res.redirect(303, '/me');
     }).catch(next);
 });
