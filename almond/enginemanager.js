@@ -217,7 +217,8 @@ class EngineProcess extends events.EventEmitter {
         args.push(
             '--thingpedia-url', Config.THINGPEDIA_URL,
             '--nl-server-url', Config.NL_SERVER_URL,
-            '--oauth-redirect-origin', Config.OAUTH_REDIRECT_ORIGIN
+            '--oauth-redirect-origin', Config.OAUTH_REDIRECT_ORIGIN,
+            '--notification-config', JSON.stringify(Config.NOTIFICATION_CONFIG),
         );
         for (let lang of Config.SUPPORTED_LANGUAGES)
             args.push('--locale', lang);

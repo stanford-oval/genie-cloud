@@ -359,16 +359,10 @@ module.exports = {
     // Will be called before instantiating the engine
     init(options) {
         _shared = options.shared;
-        this._thingpediaUrl = options.thingpedia_url;
-        this._nlServerUrl = options.nl_server_url;
-        this._oauthRedirectOrigin = options.oauth_redirect_origin;
-    },
-
-    get thingpediaUrl() {
-        return this._thingpediaUrl;
-    },
-    get nlServerUrl() {
-        return this._nlServerUrl;
+        this.thingpediaUrl = options.thingpedia_url;
+        this.nlServerUrl = options.nl_server_url;
+        this.oauthRedirectOrigin = options.oauth_redirect_origin;
+        this.notificationConfig = JSON.parse(options.notification_config);
     },
 
     get shared() {
@@ -381,7 +375,7 @@ module.exports = {
 
     // for compat with existing code that does platform.getOrigin()
     getOrigin() {
-        return this._oauthRedirectOrigin;
+        return this.oauthRedirectOrigin;
     },
 
     // Check if this platform has the required capability

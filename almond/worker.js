@@ -77,7 +77,8 @@ function runEngine(thingpediaClient, options) {
     const obj = { cloudId: options.cloudId, running: false, sockets: new Set };
     const engine = new Engine(platform, {
         thingpediaUrl: PlatformModule.thingpediaUrl,
-        nluModelUrl: PlatformModule.nlServerUrl
+        nluModelUrl: PlatformModule.nlServerUrl,
+        notifications: PlatformModule.notificationConfig,
         // nlg will be set to the same URL
     });
     obj.engine = engine;
@@ -164,6 +165,10 @@ function main() {
     parser.add_argument('--nl-server-url', {
         required: true,
         help: 'NLP Server URL',
+    });
+    parser.add_argument('--notification-config', {
+        required: true,
+        help: 'Notification Configuration',
     });
 
     const argv = parser.parse_args();

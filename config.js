@@ -664,3 +664,8 @@ module.exports.MS_SPEECH_SUBSCRIPTION_KEY = null;
   Azure region identifier for Microsoft Speech Services SDK
 */
 module.exports.MS_SPEECH_SERVICE_REGION = null;
+
+/**
+ * Configuration parameters for builtin notification modules.
+ */
+module.exports.NOTIFICATION_CONFIG = {};
