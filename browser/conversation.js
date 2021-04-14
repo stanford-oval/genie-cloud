@@ -315,7 +315,6 @@ $(() => {
         var btn = $('<a>').addClass('message message-choice btn btn-default')
             .attr('href', '#').text(title);
         btn.click((event) => {
-            appendUserMessage(title);
             handleChoice(idx, title);
             event.preventDefault();
         });
@@ -329,7 +328,6 @@ $(() => {
         var btn = $('<a>').addClass('message message-button btn btn-default')
             .attr('href', '#').text(title);
         btn.click((event) => {
-            appendUserMessage(title);
             handleParsedCommand(json);
             event.preventDefault();
         });
@@ -357,7 +355,6 @@ $(() => {
         var btn = $('<a>').addClass('message message-yesno btn btn-default')
             .attr('href', '#').text("Yes");
         btn.click((event) => {
-            appendUserMessage("Yes");
             handleSpecial('yes');
             event.preventDefault();
         });
@@ -367,7 +364,6 @@ $(() => {
         btn = $('<a>').addClass('message message-yesno btn btn-default')
             .attr('href', '#').text("No");
         btn.click((event) => {
-            appendUserMessage("No");
             handleSpecial('no');
             event.preventDefault();
         });
