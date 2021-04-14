@@ -82,6 +82,7 @@
   max-width: 800px;
   background: rgba(243,244,242,0.7);
   padding: 40px;
+  text-align: left;
 }
 #conversation.single {
   height: calc(100vh - 300px);
@@ -114,6 +115,7 @@
   display: block;
   padding: 12px 12px;
   overflow: hidden;
+  line-height: inherit;
 }
 
 #toolbar {
@@ -140,4 +142,8 @@
 
 #recording-log {
   max-height: calc(100vh - 200px);
+}
+
+#conversation #record-button {
+  margin-top: 0.5em;
 }
