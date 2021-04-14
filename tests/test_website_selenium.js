@@ -126,13 +126,13 @@ async function testHomepage(driver) {
         30000);
     await checkAllImages(driver);
 
-    assert.strictEqual(await title.getText(), 'Almond');
+    assert.strictEqual(await title.getText(), 'Genie');
 
     const subtitle = await driver.findElement(WD.By.id('almond-subtitle'));
     if (Config.ABOUT_OVERRIDE['index'] === 'stanford/about_index.pug')
         assert.strictEqual(await subtitle.getText(), 'The Open, Privacy-Preserving Virtual Assistant');
     else
-        assert.strictEqual(await subtitle.getText(), 'The Open Virtual Assistant');
+        assert.strictEqual(await subtitle.getText(), 'The COVID-19 Assistant');
 
     /*if (Config.WITH_THINGPEDIA === 'embedded') {
         await driver.wait(WD.until.elementLocated(WD.By.css('#command-container .command-utterance')),

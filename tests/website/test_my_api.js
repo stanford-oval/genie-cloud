@@ -207,8 +207,8 @@ async function testMyApiDevices(auth) {
     console.log(listResult);
     assert.deepStrictEqual(listResult, [
       { uniqueId: 'thingengine-own-cloud',
-        name: 'Almond cloud ()',
-        description: 'This is one of your own Almond apps.',
+        name: 'Genie cloud ()',
+        description: 'This is one of your Genie apps.',
         kind: 'org.thingpedia.builtin.thingengine',
         version: 0,
         ownerTier: 'cloud',
@@ -224,7 +224,7 @@ async function testMyApiDevices(auth) {
         isTransient: true },
       { uniqueId: 'org.thingpedia.builtin.test',
         name: 'Test Device',
-        description: 'Test Almond in various ways',
+        description: 'Test Genie in various ways',
         kind: 'org.thingpedia.builtin.test',
         version: 0,
         ownerTier: 'global',
@@ -254,8 +254,8 @@ async function testMyApiDevices(auth) {
     listResult2[listResult2.length-1].version = 0;
     assert.deepStrictEqual(listResult2, [
       { uniqueId: 'thingengine-own-cloud',
-        name: 'Almond cloud ()',
-        description: 'This is one of your own Almond apps.',
+        name: 'Genie cloud ()',
+        description: 'This is one of your Genie apps.',
         kind: 'org.thingpedia.builtin.thingengine',
         version: 0,
         ownerTier: 'cloud',
@@ -271,7 +271,7 @@ async function testMyApiDevices(auth) {
         isTransient: true },
       { uniqueId: 'org.thingpedia.builtin.test',
         name: 'Test Device',
-        description: 'Test Almond in various ways',
+        description: 'Test Genie in various ways',
         kind: 'org.thingpedia.builtin.test',
         version: 0,
         ownerTier: 'global',
