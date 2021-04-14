@@ -93,7 +93,8 @@ function runEngine(thingpediaClient : rpc.Proxy<Tp.BaseClient>|null, options : P
     platform.init().then(() => {
         obj.engine = new Engine(platform, {
             thingpediaUrl: PlatformModule.thingpediaUrl,
-            nluModelUrl: PlatformModule.nlServerUrl
+            nluModelUrl: PlatformModule.nlServerUrl,
+            notifications: PlatformModule.notificationConfig,
             // nlg will be set to the same URL
         });
         if (_stopped || obj.stopped)
@@ -193,6 +194,10 @@ function main() {
     parser.add_argument('--nl-server-url', {
         required: true,
         help: 'NLP Server URL',
+    });
+    parser.add_argument('--notification-config', {
+        required: true,
+        help: 'Notification Configuration',
     });
     parser.add_argument('--faq-models', {
         required: true,

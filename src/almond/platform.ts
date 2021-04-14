@@ -29,6 +29,7 @@ import * as child_process from 'child_process';
 import { LocalCVC4Solver } from 'smtlib';
 import * as Tp from 'thingpedia';
 import * as rpc from 'transparent-rpc';
+import * as Genie from 'genie-toolkit';
 
 import type { CloudSyncWebsocketDelegate } from '../routes/cloud-sync';
 import * as graphics from './graphics';
@@ -418,6 +419,7 @@ class PlatformModule {
     private _nlServerUrl ! : string;
     private _oauthRedirectOrigin ! : string;
     private _faqModels ! : Record<string, { url : string, highConfidence ?: number, lowConfidence ?: number }>;
+    private _notificationConfig ! : Genie.DialogueAgent.NotificationConfig;
 
     // Initialize the platform code
     // Will be called before instantiating the engine
@@ -427,12 +429,14 @@ class PlatformModule {
         nl_server_url : string;
         oauth_redirect_origin : string;
         faq_models : string;
+        notification_config : string;
     }) {
         _shared = options.shared;
         this._thingpediaUrl = options.thingpedia_url;
         this._nlServerUrl = options.nl_server_url;
         this._oauthRedirectOrigin = options.oauth_redirect_origin;
         this._faqModels = JSON.parse(options.faq_models);
+        this._notificationConfig = JSON.parse(options.notification_config);
     }
 
     get thingpediaUrl() {
@@ -443,6 +447,9 @@ class PlatformModule {
     }
     get faqModels() {
         return this._faqModels;
+    }
+    get notificationConfig() {
+        return this._notificationConfig;
     }
 
     get shared() {

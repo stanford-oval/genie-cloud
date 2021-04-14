@@ -251,6 +251,7 @@ class EngineProcess extends events.EventEmitter {
             '--nl-server-url', Config.NL_SERVER_URL,
             '--oauth-redirect-origin', Config.OAUTH_REDIRECT_ORIGIN,
             '--faq-models', JSON.stringify(Config.FAQ_MODELS),
+            '--notification-config', JSON.stringify(Config.NOTIFICATION_CONFIG),
         );
         for (const lang of Config.SUPPORTED_LANGUAGES)
             args.push('--locale', lang);

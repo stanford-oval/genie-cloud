@@ -18,6 +18,8 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import type * as Genie from 'genie-toolkit';
+
 /* eslint prefer-const: off, @typescript-eslint/no-inferrable-types: off */
 
 /**
@@ -654,3 +656,8 @@ export let MS_SPEECH_SERVICE_REGION : string|null = null;
  * FAQ models to enable.
  */
 export let FAQ_MODELS : Record<string, { url : string, highConfidence ?: number, lowConfidence ?: number }> = {};
+
+/**
+ * Configuration parameters for builtin notification modules.
+ */
+export let NOTIFICATION_CONFIG : Genie.DialogueAgent.NotificationConfig = {};
