@@ -70,7 +70,7 @@ async function createRootOrg(dbClient) {
         name: 'Site Administration',
         comment:  '',
         id_hash: makeRandom(8),
-        developer_key: makeRandom(),
+        developer_key: Config.WITH_THINGPEDIA === 'external' ? (Config.ROOT_THINGPEDIA_DEVELOPER_KEY || makeRandom()) : makeRandom(),
         is_admin: true
     });
 }
