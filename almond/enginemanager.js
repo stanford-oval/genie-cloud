@@ -226,7 +226,8 @@ class EngineProcess extends events.EventEmitter {
     start() {
         const ALLOWED_ENVS = ['LANG', 'LOGNAME', 'USER', 'PATH',
                               'HOME', 'SHELL', 'THINGENGINE_PROXY',
-                              'CI', 'THINGENGINE_DISABLE_SYSTEMD'];
+                              'CI', 'THINGENGINE_DISABLE_SYSTEMD',
+                              'MONGODB_URL'];
         function envIsAllowed(name) {
             if (name.startsWith('LC_'))
                 return true;
