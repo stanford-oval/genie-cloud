@@ -202,6 +202,16 @@ module.exports.ASSET_CDN = '/assets';
 module.exports.USE_BRAND = 'generic';
 
 /**
+  An optional warning message to show on the registration page.
+
+  This can be used on testing versions of Genie to inform people that they are accessing an
+  unstable system.
+
+  HTML is allowed in this configuration key.
+*/
+module.exports.REGISTRATION_WARNING = null;
+
+/**
   The origin (scheme, hostname, port) where the server is reachable.
 
   This is used for redirects and CORS checks.

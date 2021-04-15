@@ -362,3 +362,8 @@ a.social-icon:visited {
   margin-top: 1em;
   height: 100px;
 }
+
+.consent-form {
+  max-height:300px;
+  overflow: auto;
+}

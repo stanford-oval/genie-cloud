@@ -1,4 +1,5 @@
 extends layout
+include ./register_mixins
 
 block scripts
   script(src=Config.ASSET_CDN + '/javascripts/register.js')
@@ -7,88 +8,18 @@ block page_name
   = _("Register")
 
 block content
-  if error
-    div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
-      button(type='button', data-dismiss='alert', aria-label="Close").close
-        span(aria-hidden='true') ×
-      if typeof error === 'string'
-        p= error
-      else if error.message
-        p= error.message
-      else
-        p= String(error)
+  div.row
+    div.col-lg-4.col-lg-offset-4.col-md-6.col-md-offset-3.col-sm-8.col-sm-offset-2
+      if error
+        div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
+          button(type='button', data-dismiss='alert', aria-label="Close").close
+            span(aria-hidden='true') ×
+          if typeof error === 'string'
+            p= error
+          else if error.message
+            p= error.message
+          else
+            p= String(error)
 
-  div.alert.alert-warning(role='alert',style='color:black')
-    p This is the #[strong development] version of Genie. It is not suitable for everyday use. You should not use this server to store any sensitive or important data.
-      strong Your account and your data might be deleted at any time without warning!
+      +registration_form(includeConsent)
 
-  form(action='/user/register', method='post', data-toggle='validator')
-    input(type='hidden',name='_csrf',value=csrfToken)
-    input(type='hidden',name='timezone')#timezone
-    div.form-group
-      label(for='username').control-label= _("Username")
-      input(type='text',name='username',value='',required=true,maxlength=60,autocorrect='off',autocapitalize='none').form-control#username
-    div.form-group
-      label(for='email').control-label= _("E-Mail")
-      input(type='email',name='email',value='',required=true,maxlength=255).form-control#email
-      span.help-block= _("This e-mail will only be used by the system administrators to contact you in case of necessity, and will not be divulgated or displayed publicly.")
-    div.form-group
-      label(for='password').control-label= _("Password")
-      input(type='password',name='password',value='',required=true,maxlength=255,minlength=8,data-minlength=8).form-control#password
-      span.help-block= _("Minimum of 8 characters")
-    div.form-group#confirm-password-group
-      label(for='confirm-password').control-label= _("Confirm password")
-      input(type='password',name='confirm-password',value='',required=true,data-match='#password',data-match-error=_("The password and the confirmation must match")).form-control#confirm-password
-      span.help-block.with-errors
-
-    if Config.SUPPORTED_LANGUAGES.length > 1
-      div.form-group
-        label(for='locale').control-label= _("Language")
-        select(name='locale').form-control#locale
-          for lang, i in Config.SUPPORTED_LANGUAGES
-            option(value=lang,selected=(i===0))= I18n.getLangName(_, lang)
-    else
-      input(type='hidden',name='locale',value=Config.SUPPORTED_LANGUAGES[0])
-
-    h2=_("Consent Form")
-    div(style='max-height:300px;overflow: auto')
-      p
-        | You are invited to participate in a research study on virtual assistants. With your consent, the Genie virtual assistant will record the commands you give it.
-        | Recording the commands will allow Genie to improve its understanding of natural language. The collection is completely confidential, and personal data (such as emails and phone numbers) will be stripped automatically.
-        | You must be 18 or older to participate, and currently residing in the United States.
-
-      h3 Risks and Benefits
-      p
-       | We do not foresee any risk from this study. The benefits which may reasonably be expected to result from this study are that the open-source Genie virtual assistant improves over time. We cannot and do not guarantee or promise that you will receive any benefits from this study. Your decision whether or not to participate in this study will not affect the functionality of the Genie service, or your ability to use it. You will not receive any payment for your participation.
-
-      h3 Participant Rights
-      p
-        | If you have read this form and have decided to participate in this project, please understand your participation is voluntary and you have the right to withdraw your consent or discontinue participation at any time without penalty or loss of benefits to which you are otherwise entitled.  The alternative is not to participate.  You have the right to refuse to answer particular questions.  The results of this research study may be presented at scientific or professional meetings or published in scientific journals.  Your individual privacy will be maintained in all published and written data resulting from the study.
-
-      p
-        | Your private information collected as part of the research might be shared with other researchers in anonymized form in the future, without additional consent from you.
-
-      h3 Contact Information
-
-      p
-        | Questions:  If you have any questions, concerns or complaints about this research, its procedures, risks and benefits, contact the Protocol Director, Giovanni Campagna, at [gcampagn [at] cs.stanford.edu].
-
-      p
-        | Independent Contact:  If you are not satisfied with how this study is being conducted, or if you have any concerns, complaints, or general questions about the research or your rights as a participant, please contact the Stanford Institutional Review Board (IRB) to speak to someone independent of the research team at (650)-723-2480 or toll free at 1-866-680-2906, or email at IRB2-Manager@lists.stanford.edu.  You can also write to the Stanford IRB, Stanford University, 1705 El Camino Real, Palo Alto, CA 94306.
-
-      p If you agree to these terms, please keep a copy of this form for your records.
-
-    div.form-group
-      div.checkbox
-        label.control-label
-          input(type='checkbox',name='agree_terms',id='register-agree-terms',value='1',required=true)
-          != _("I agree to the <a href='/about/tos'>terms of service</a> of the Genie service.")
-
-    div.form-group
-      div.checkbox
-        label.control-label
-          input(type='checkbox',name='agree_consent',id='register-agree-consent',value='1',required=false)
-          =_("I agree to grant consent to this research.")
-
-    div.form-group
-      button(type='submit').btn.btn-primary= _("Register")

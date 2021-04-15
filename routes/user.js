@@ -235,9 +235,11 @@ router.post('/2fa/setup', userUtils.requireLogIn, iv.validatePOST({ encrypted_ke
 });
 
 router.get('/register', (req, res, next) => {
+    console.log(req.cookies);
     res.render('register', {
         csrfToken: req.csrfToken(),
-        page_title: req._("Genie - Register")
+        page_title: req._("Genie - Register"),
+        includeConsent: req.cookies.agreed_consent !== '1',
     });
 });
 
@@ -277,6 +279,7 @@ const registerArguments = {
     locale: 'string',
     agree_terms: 'boolean',
     agree_consent: 'boolean',
+    conversation_state: '?string',
 };
 
 function login(req, user) {
@@ -318,10 +321,14 @@ router.post('/register', iv.validatePOST(registerArguments), (req, res, next) =>
         options.timezone = req.body['timezone'];
         options.locale = req.body['locale'];
 
+        if (!req.body.agree_terms || !req.body.agree_consent)
+            throw new BadRequestError(req._("You must agree to the consent form to sign-up."));
+
     } catch(e) {
         res.render('register', {
             csrfToken: req.csrfToken(),
             page_title: req._("Genie - Register"),
+            includeConsent: req.cookies.agreed_consent !== '1',
             error: e
         });
         return;
@@ -336,6 +343,7 @@ router.post('/register', iv.validatePOST(registerArguments), (req, res, next) =>
                 res.render('register', {
                     csrfToken: req.csrfToken(),
                     page_title: req._("Genie - Register"),
+                    includeConsent: req.cookies.agreed_consent !== '1',
                     error: e
                 });
                 return null;
@@ -349,6 +357,15 @@ router.post('/register', iv.validatePOST(registerArguments), (req, res, next) =>
             EngineManager.get().startUser(user.id).then(async () => {
                 const engine = await EngineManager.get().getEngine(req.user.id);
                 await engine.setConsent(!!req.body.agree_consent);
+
+                if (req.body.conversation_state) {
+                    const assistantUser = { name: req.body.human_name || req.body.username, isOwner: true };
+                    await engine.getOrOpenConversation('main', assistantUser, null, {
+                        showWelcome: true,
+                        anonymous: false,
+                        inactivityTimeout: -1
+                    }, JSON.parse(req.body.conversation_state));
+                }
             }).catch((e) => {
                 console.error(`Failed to start engine of newly registered user: ${e.message}`);
             }),

@@ -129,17 +129,18 @@ async function doConversation(user, anonymous, ws, query) {
         // "isOwner" is a multi-user assistant thing, it has nothing to do with anonymous or not
         const assistantUser = { name: user.human_name || user.username, isOwner: true };
         const options = {
-            showWelcome: !query.hide_welcome,
+            showWelcome: true,
             anonymous,
 
-            // set a very large timeout so we don't get recycled until the socket is closed
-            inactivityTimeout: 3600 * 1000
+            // in anonymous mode, set a very large timeout so we don't get recycled until the socket is closed
+            // in user mode, we always share the same conversation so we set no inactivity timeout at all
+            inactivityTimeout: anonymous ? (3600 * 1000) : -1
         };
 
         const delegate = new WebsocketAssistantDelegate(ws);
 
         let wrapper;
-        const id = query.id || 'web-' + makeRandom(4);
+        const id = anonymous ? (query.id || 'web-' + makeRandom(4)) : 'main';
         ws.send(JSON.stringify({ type: 'id', id : id }));
 
         ws.on('error', (err) => {

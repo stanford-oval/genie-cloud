@@ -38,6 +38,10 @@ class ConversationWrapper {
         this.$free();
     }
 
+    getState() {
+        return this._conversation.getState();
+    }
+
     handleCommand(...args) {
         return this._conversation.handleCommand(...args).then(() => this._conversation.saveLog());
     }
@@ -50,7 +54,7 @@ class ConversationWrapper {
         return this._conversation.handleThingTalk(...args).then(() => this._conversation.saveLog());
     }
 }
-ConversationWrapper.prototype.$rpcMethods = ['destroy', 'handleCommand', 'handleParsedCommand', 'handleThingTalk'];
+ConversationWrapper.prototype.$rpcMethods = ['destroy', 'getState', 'handleCommand', 'handleParsedCommand', 'handleThingTalk'];
 
 class RecordingController {
     constructor(conversation) {
@@ -155,11 +159,14 @@ class Engine extends Genie.AssistantEngine {
         return new RecordingController(conversation);
     }
 
-    async getOrOpenConversation(id, user, delegate, options) {
+    async getOrOpenConversation(id, user, delegate, options, initialState) {
         // note: default arguments don't work because "undefined" becomes "null" through transparent-rpc
         options = options || {};
-        const conversation = await this.assistant.getOrOpenConversation(id, user, options);
-        return new ConversationWrapper(conversation, delegate);
+        const conversation = await this.assistant.getOrOpenConversation(id, user, options, initialState || undefined);
+        if (delegate)
+            return new ConversationWrapper(conversation, delegate);
+        else
+            return undefined;
     }
 
     async addNotificationOutput(delegate) {

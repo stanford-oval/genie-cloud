@@ -774,18 +774,18 @@ h2#almond-subtitle {
   font-size: 24px;
 }
 
-#try-almond-now-row + .row {
-  display: none;
-}
-#try-almond-now-row.expanded + .row {
-  display: block;
-}
-#try-almond-now-row.expanded + .row > div {
-  display: block;
-  padding: 0;
-}
 #try-almond-now-row.expanded {
   display: none;
+}
+
+#try-almond-now-consent-form-inner {
+  background-color: white;
+  padding: 0.5em 1em 1em 1em;
+  margin-top: 1em;
+  text-align: left;
+}
+#try-almond-now-consent-form-inner h2 {
+  margin: 0.5em 0 0.1em 0;
 }
 
 #almond-in-the-news {
