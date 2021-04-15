@@ -244,8 +244,7 @@ router.post('/2fa/setup', userUtils.requireLogIn, iv.validatePOST({ encrypted_ke
 });
 
 router.get('/register', (req, res, next) => {
-    console.log(req.cookies);
-    res.render('register', {
+        res.render('register', {
         csrfToken: req.csrfToken(),
         page_title: req._("Genie - Register"),
         includeConsent: req.cookies.agreed_consent !== '1',
@@ -282,6 +281,7 @@ register an account on the Almond service at <${Config.SERVER_ORIGIN}>.
 const registerArguments = {
     username: 'string',
     email: 'string',
+    phone: '?string',
     password: 'string',
     'confirm-password': 'string',
     timezone: '?string',
@@ -290,6 +290,15 @@ const registerArguments = {
     agree_consent: 'boolean',
     conversation_state: '?string',
 };
+
+function normalizePhoneNumber(text) {
+    if (text.startsWith('1'))
+        text = '+' + text;
+    else if (!text.startsWith('+'))
+        text = '+1' + text;
+
+    return text.replace(/[() -]/g, '');
+}
 
 function login(req, user) {
     return new Promise((resolve, reject) => {
@@ -329,6 +338,9 @@ router.post('/register', iv.validatePOST(registerArguments), (req, res, next) =>
             throw new BadRequestError("Invalid localization data.");
         options.timezone = req.body['timezone'];
         options.locale = req.body['locale'];
+
+        if (req.body['phone'])
+            options.phone = normalizePhoneNumber(req.body['phone']);
 
         if (!req.body.agree_terms || !req.body.agree_consent)
             throw new BadRequestError(req._("You must agree to the consent form to sign-up."));
@@ -671,6 +683,7 @@ router.get('/profile', userUtils.requireLogIn, (req, res, next) => {
 const profileArguments = {
     username: 'string',
     email: 'string',
+    phone: '?string',
     human_name: '?string',
     locale: 'string',
     visible_organization_profile: 'boolean',
@@ -686,6 +699,10 @@ router.post('/profile', userUtils.requireLogIn, iv.validatePOST(profileArguments
         if (req.body['email'].indexOf('@') < 0 ||
             req.body['email'].length > 255)
             req.body.email = req.user.email;
+        if (req.body.phone)
+            req.body.phone = normalizePhoneNumber(req.body.phone);
+        else
+            req.body.phone = null;
 
         let profile_flags = 0;
         if (req.body.visible_organization_profile)
@@ -705,6 +722,7 @@ router.post('/profile', userUtils.requireLogIn, iv.validatePOST(profileArguments
                             { username: req.body.username,
                               email: req.body.email,
                               email_verified: !mustSendEmail,
+                              phone: req.body.phone,
                               locale: req.body.locale,
                               human_name: req.body.human_name || '',
                               profile_flags });

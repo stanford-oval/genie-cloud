@@ -133,6 +133,7 @@ module.exports = {
             password: hash,
             email: options.email,
             email_verified: options.email_verified || false,
+            phone: options.phone || null,
             locale: options.locale,
             timezone: options.timezone,
             salt: salt,
