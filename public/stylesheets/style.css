@@ -826,3 +826,8 @@ input[type="checkbox"] {
     font-weight: 600;
     font-size: 2em;
 }
+
+.consent-form {
+  max-height:300px;
+  overflow: auto;
+}

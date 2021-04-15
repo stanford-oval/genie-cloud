@@ -54,6 +54,27 @@ const TOTP_PERIOD = 30; // duration in second of TOTP code
 
 const router = express.Router();
 
+function registerSuccess(req : express.Request, res : express.Response) {
+    if (req.user!.email_verified)
+        req.flash('app-message', req._("Welcome to Genie! You are now ready to start using Genie to receive notifications."));
+    else if (req.user!.email)
+        req.flash('app-message', req._("Welcome to Genie! A verification email has been sent to your address. Some functionality on your account, such as receiving notifications, will be limited until you verify your email. You must click on the verification link to enable your account in full."));
+    else
+        req.flash('app-message', req._("Welcome to Genie! You did not provide an email address. Some functionality on your account, such as receiving notifications, will be limited until you provide and verify your email. You can do so from your user settings."));
+
+    res.redirect(303, '/me');
+
+    /**
+    res.locals.authenticated = true;
+    res.locals.user = user;
+    res.render('register_success', {
+        page_title: req._("Genie - Registration Successful"),
+        username: options.username,
+        cloudId: user.cloud_id,
+        authToken: user.auth_token });
+    */
+}
+
 router.get('/oauth2/google', passport.authenticate('google', {
     scope: userUtils.GOOGLE_SCOPES,
 }));
@@ -63,13 +84,7 @@ router.get('/oauth2/google/callback', passport.authenticate('google'), (req, res
 
     if (req.user!.newly_created) {
         req.user!.newly_created = false;
-        res.locals.authenticated = true;
-        res.locals.user = req.user;
-        res.render('register_success', {
-            page_title: req._("Genie - Registration Successful"),
-            username: req.user!.username,
-            cloudId: req.user!.cloud_id,
-            authToken: req.user!.auth_token });
+        registerSuccess(req, res);
     } else {
         // Redirection back to the original page
         const redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
@@ -89,13 +104,7 @@ router.get('/oauth2/github/callback', passport.authenticate('github'), (req, res
 
     if (req.user!.newly_created) {
         req.user!.newly_created = false;
-        res.locals.authenticated = true;
-        res.locals.user = req.user;
-        res.render('register_success', {
-            page_title: req._("Genie - Registration Successful"),
-            username: req.user!.username,
-            cloudId: req.user!.cloud_id,
-            authToken: req.user!.auth_token });
+        registerSuccess(req, res);
     } else {
         // Redirection back to the original page
         const redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
@@ -238,7 +247,7 @@ router.post('/2fa/setup', userUtils.requireLogIn, iv.validatePOST({ encrypted_ke
 router.get('/register', (req, res, next) => {
     res.render('register', {
         csrfToken: req.csrfToken(),
-        page_title: req._("Genie - Register")
+        page_title: req._("Genie - Register"),
     });
 });
 
@@ -289,6 +298,7 @@ router.post('/register', iv.validatePOST({
     locale: 'string',
     agree_terms: 'boolean',
     agree_consent: 'boolean',
+    conversation_state: '?string',
 }), (req, res, next) => {
     let options : {
         username : string;
@@ -317,6 +327,9 @@ router.post('/register', iv.validatePOST({
             !/^[a-z]{2,}-[a-z]{2,}/i.test(req.body.locale) ||
             !i18n.get(req.body.locale, false))
             throw new BadRequestError("Invalid localization data.");
+
+        if (!req.body.agree_terms)
+            throw new BadRequestError(req._("You must agree to the terms of service to sign-up."));
 
         options = {
             username: req.body['username'],
@@ -356,6 +369,14 @@ router.post('/register', iv.validatePOST({
             EngineManager.get().startUser(user.id).then(async () => {
                 const engine = await EngineManager.get().getEngine(req.user!.id);
                 await engine.setConsent(!!req.body.agree_consent);
+
+                if (req.body.conversation_state) {
+                    await engine.ensureConversation('main', {
+                        showWelcome: true,
+                        anonymous: false,
+                        inactivityTimeout: -1
+                    }, JSON.parse(req.body.conversation_state));
+                }
             }).catch((e) => {
                 console.error(`Failed to start engine of newly registered user: ${e.message}`);
             }),
@@ -364,13 +385,9 @@ router.post('/register', iv.validatePOST({
 
         // skip login & 2fa for newly created users
         req.session.completed2fa = true;
-        res.locals.authenticated = true;
-        res.locals.user = user;
-        res.render('register_success', {
-            page_title: req._("Genie - Registration Successful"),
-            username: options.username,
-            cloudId: user.cloud_id,
-            authToken: user.auth_token });
+
+        // go straight to My Genie
+        registerSuccess(req, res);
     }).catch(next);
 });
 

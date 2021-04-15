@@ -224,7 +224,7 @@ $(() => {
                 break;
             case 'add':
                 $('#chat > .help-block').remove();
-                $(".help-block").clone().appendTo("#chat").last();
+                $('#conversation .hidden-container > .help-block').clone().appendTo('#chat').last();
                 break;
         }
 
@@ -478,15 +478,25 @@ $(() => {
         maybeScroll(holder);
     }
 
-    function linkMessage(title, url) {
-        if (url === '/apps')
-            url = '/me';
-        else if (url.startsWith('/devices'))
-            url = '/me' + url;
-
+    function linkMessage(title, url, state) {
         var holder = $('<div>').addClass('col-xs-12 col-sm-6');
-        var btn = $('<a>').addClass('message message-button btn btn-default')
-            .attr('href', url).attr("target", "_blank").attr("rel", "noopener").text(title);
+
+        var btn;
+        if (url === '/user/register') {
+            btn = $('<button>').addClass('message message-button btn btn-default').text(title).click((event) => {
+                event.preventDefault();
+                $('#try-almond-registration [name=conversation_state]').val(JSON.stringify(state));
+                $('#try-almond-registration').modal();
+            });
+        } else {
+            if (url === '/apps')
+                url = '/me';
+            else if (url.startsWith('/devices'))
+                url = '/me' + url;
+
+            btn = $('<a>').addClass('message message-button btn btn-default')
+                .attr('href', url).attr("target", "_blank").attr("rel", "noopener").text(title);
+        }
         holder.append(btn);
         getGrid().append(holder);
         maybeScroll(holder);
@@ -558,44 +568,44 @@ $(() => {
         lastMessageId = parsed.id;
 
         switch (parsed.type) {
-            case 'text':
-            case 'result':
-                // FIXME: support more type of results
-                textMessage(parsed.text, parsed.icon);
-                currentGrid = null;
-                break;
+        case 'text':
+        case 'result':
+            // FIXME: support more type of results
+            textMessage(parsed.text, parsed.icon);
+            currentGrid = null;
+            break;
 
-            case 'picture':
-                picture(parsed.url, parsed.icon);
-                currentGrid = null;
-                break;
+        case 'picture':
+            picture(parsed.url, parsed.icon);
+            currentGrid = null;
+            break;
 
-            case 'rdl':
-                rdl(parsed.rdl, parsed.icon);
-                currentGrid = null;
-                break;
+        case 'rdl':
+            rdl(parsed.rdl, parsed.icon);
+            currentGrid = null;
+            break;
 
-            case 'choice':
-                choice(parsed.idx, parsed.title);
-                break;
+        case 'choice':
+            choice(parsed.idx, parsed.title);
+            break;
 
-            case 'button':
-                buttonMessage(parsed.title, parsed.json);
-                break;
+        case 'button':
+            buttonMessage(parsed.title, parsed.json);
+            break;
 
-            case 'link':
-                linkMessage(parsed.title, parsed.url);
-                break;
+        case 'link':
+            linkMessage(parsed.title, parsed.url, parsed.state);
+            break;
 
-            case 'hypothesis':
-                $('#input').val(parsed.hypothesis);
-                break;
+        case 'hypothesis':
+            $('#input').val(parsed.hypothesis);
+            break;
 
-            case 'command':
-                $('#input').val('');
-                collapseButtons();
-                appendUserMessage(parsed.command);
-                break;
+        case 'command':
+            $('#input').val('');
+            collapseButtons();
+            appendUserMessage(parsed.command);
+            break;
         }
     }
 

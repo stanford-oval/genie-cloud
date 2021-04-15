@@ -1,4 +1,7 @@
 extends ../layout
+include ../conversation_mixin
+include ../register_mixins
+
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/index.css')
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/app.css')
@@ -18,6 +21,16 @@ block page_name
 block content
   if authenticated
     div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
+  else if ENABLE_ANONYMOUS_USER
+    div.modal.fade#try-almond-registration(role='dialog')
+      div.modal-dialog(role='document')
+        div.modal-content
+          div.modal-header
+            a.close(data-dismiss='modal', aria-label="Close")
+              span(aria-hidden='true') ×
+            h4.modal-title= _("Register for Genie")
+          div.modal-body
+            +registration_form(true)
 
   div#page-body.head-home
     section.divider.home-page#section-heading
@@ -43,36 +56,11 @@ block content
             else
               div.row#try-almond-now-row
                 div.col-lg-4.col-lg-offset-4
-                  a#try-almond-now(href='#conversation').btn.btn-primary.custom-btn.btn-block.call-to-action= _("Try Genie Now")
+                  button#try-almond-now.btn.btn-primary.custom-btn.btn-block.call-to-action= _("Try Genie Now")
 
-              div.row
+              div.row.hidden#try-almond-now-conversation
                 div.col-lg-12
-                  div#conversation.home(data-target='/me/ws/anonymous',aria-expanded='false')
-                    div#chat
-                    div#input-block
-                      form(action='#')#input-form
-                        div.form-group.has-feedback#input-form-group
-                          label(for='#chat-input').sr-only= _("Command:")
-                          input(type='text', placeholder=_("Write your command or answer here"), value=command ? command : '').form-control#input
-                          button(type='button', title=_("Click to send a voice command")).btn.btn-primary#record-button
-                          span#form-icon.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden
-                          span(role='button').hidden#cancel
-                            span(aria-hidden='true').glyphicon.glyphicon-remove-circle.form-control-feedback
-                      //-form(action='#')#input-form
-                        div.form-group.has-feedback#input-form-group
-                          label(for='#chat-input').sr-only= _("Command:")
-                          input(type='text',placeholder=_("Write your command or answer here")).form-control#input
-                          button(type='button', title='Click to send a voice command').btn.btn-primary.hidden#record-button
-                          span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden
-                          span(role='button').hidden#cancel
-                          span(aria-hidden='true').glyphicon.glyphicon-remove-circle
-
-                div#hidden-container
-                  div.help-block.hidden= _("Lost connection to the server.")
-                  div.almond-thinking.hidden
-                    span
-                    span
-                    span
+                  +conversation_mixin('/me/ws/anonymous')(class='home',aria-expanded='false')
 
     div.sections#home-page-sections
       //-section.divider

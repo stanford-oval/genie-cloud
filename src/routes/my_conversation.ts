@@ -161,14 +161,15 @@ async function doConversation(user : userModel.RowWithOrg, anonymous : boolean, 
             showWelcome: !query.hide_welcome,
             anonymous,
 
-            // set a very large timeout so we don't get recycled until the socket is closed
-            inactivityTimeout: 3600 * 1000
+            // in anonymous mode, set a very large timeout so we don't get recycled until the socket is closed
+            // in user mode, we always share the same conversation so we set no inactivity timeout at all
+            inactivityTimeout: anonymous ? (3600 * 1000) : -1
         };
 
         const delegate = new WebsocketAssistantDelegate(ws);
 
         let wrapper : rpc.Proxy<ConversationWrapper>|undefined;
-        const id = query.id || 'web-' + makeRandom(4);
+        const id = anonymous ? (query.id || 'web-' + makeRandom(4)) : 'main';
         ws.send(JSON.stringify({ type: 'id', id : id }));
 
         ws.on('error', (err) => {

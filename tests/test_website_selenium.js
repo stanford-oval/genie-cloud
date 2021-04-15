@@ -124,7 +124,7 @@ async function testHomepage(driver) {
         30000);
     await checkAllImages(driver);
 
-    assert.strictEqual(await title.getText(), 'Almond');
+    assert.strictEqual(await title.getText(), 'Genie');
 
     const subtitle = await driver.findElement(WD.By.id('almond-subtitle'));
     if (Config.ABOUT_OVERRIDE['index'] === 'stanford/about_index.pug')
@@ -240,7 +240,7 @@ async function testRegister(driver) {
     if (Config.EXTRA_ABOUT_PAGES.find((x) => x.url === 'get-almond')) {
         // in Stanford mode, we click on Get Almond, and from there to Create An Account
         const getAlmond = await driver.wait(
-            WD.until.elementLocated(WD.By.linkText('Get Almond')),
+            WD.until.elementLocated(WD.By.linkText('Get Genie')),
             30000);
         await checkAllImages(driver);
 

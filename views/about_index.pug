@@ -1,4 +1,7 @@
 extends layout
+include ./conversation_mixin
+include ./register_mixins
+
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/index.css')
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/app.css')
@@ -6,10 +9,13 @@ block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/conversation.css')
 
 block scripts
-  script(src=Config.ASSET_CDN + '/javascripts/commandpedia-bundle.js')
+  if WITH_THINGPEDIA === 'embedded'
+    script(src=Config.ASSET_CDN + '/javascripts/commandpedia-bundle.js')
   script(src=Config.ASSET_CDN + '/javascripts/index.js')
-  if ENABLE_ANONYMOUS_USER && !authenticated
+  if authenticated || ENABLE_ANONYMOUS_USER
     script(src=Config.ASSET_CDN + '/javascripts/conversation-bundle.js')
+  if !authenticated && ENABLE_ANONYMOUS_USER
+    script(src=Config.ASSET_CDN + '/javascripts/register.js')
 
 block page_name
   - stdlayout = false;
@@ -18,6 +24,16 @@ block page_name
 block content
   if authenticated
     div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
+  else if ENABLE_ANONYMOUS_USER
+    div.modal.fade#try-almond-registration(role='dialog')
+      div.modal-dialog(role='document')
+        div.modal-content
+          div.modal-header
+            a.close(data-dismiss='modal', aria-label="Close")
+              span(aria-hidden='true') ×
+            h4.modal-title= _("Register for Genie")
+          div.modal-body
+            +registration_form(true)
 
   div#page-body
     section.divider#section-heading
@@ -27,37 +43,21 @@ block content
       div.container
         if authenticated
           div.row
+            div.col-lg-6.col-lg-offset-3
+              +conversation_mixin('/me/ws/conversation')(class='')
+        else if ENABLE_ANONYMOUS_USER
+          div.row#try-almond-now-row
             div.col-lg-4.col-lg-offset-4
-              a(href='/me').btn.btn-primary.btn-block.call-to-action= _("Go To My Genie")
-        else if !ENABLE_ANONYMOUS_USER
+              button.btn.btn-primary.btn-block.call-to-action#try-almond-now= _("Try Genie Now")
+
+          div.row.hidden#try-almond-now-conversation
+            div.col-lg-6.col-lg-offset-3
+              +conversation_mixin('/me/ws/anonymous')(class='')
+
+        else
           div.row
             div.col-lg-4.col-lg-offset-4
               a(href='/user/register').btn.btn-primary.btn-block.call-to-action= _("Try Genie Now")
-        else
-          div.row#try-almond-now-row
-            div.col-lg-4.col-lg-offset-4
-              a#try-almond-now(href='#conversation').btn.btn-primary.btn-block.call-to-action= _("Try Genie Now")
-
-          div.row
-            div.col-lg-4.col-lg-offset-4
-              div#conversation.single(data-target='/me/ws/anonymous',aria-expanded='false')
-                div#chat
-                div#input-block
-                  form(action='#')#input-form
-                    div.form-group.has-feedback#input-form-group
-                      label(for='#chat-input').sr-only= _("Command:")
-                      input(type='text', placeholder=_("Write your command or answer here"), value=command ? command : '').form-control#input
-                      button(type='button', title=_("Click to send a voice command")).btn.btn-primary#record-button
-                      span#form-icon.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden
-                      span(role='button').hidden#cancel
-                        span(aria-hidden='true').glyphicon.glyphicon-remove-circle.form-control-feedback
-
-              div#hidden-container
-                div.help-block.hidden= _("Lost connection to the server.")
-                div.almond-thinking.hidden
-                  span
-                  span
-                  span
 
     div.sections
       if WITH_THINGPEDIA === 'embedded'

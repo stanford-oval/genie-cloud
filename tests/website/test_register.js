@@ -53,7 +53,8 @@ async function testRegister(charlie) {
         password: 'lol',
         'confirm-password': 'lol',
         locale: 'en-US',
-        timezone: 'America/Los_Angeles'
+        timezone: 'America/Los_Angeles',
+        agree_terms: '1'
     }, charlie), 'You must specify a valid email.');
 
     await assertBanner(sessionRequest('/user/register', 'POST', {
@@ -62,7 +63,8 @@ async function testRegister(charlie) {
         password: 'lol',
         'confirm-password': 'lol',
         locale: 'en-US',
-        timezone: 'America/Los_Angeles'
+        timezone: 'America/Los_Angeles',
+        agree_terms: '1'
     }, charlie), 'You must specifiy a valid password, of at least 8 characters.');
 
     await assertBanner(sessionRequest('/user/register', 'POST', {
@@ -71,7 +73,8 @@ async function testRegister(charlie) {
         password: '12345678',
         'confirm-password': 'lol',
         locale: 'en-US',
-        timezone: 'America/Los_Angeles'
+        timezone: 'America/Los_Angeles',
+        agree_terms: '1'
     }, charlie), 'The password and the confirmation do not match.');
 
     await assertBanner(sessionRequest('/user/register', 'POST', {
@@ -80,7 +83,8 @@ async function testRegister(charlie) {
         password: '12345678',
         'confirm-password': '12345678',
         locale: 'en-US',
-        timezone: 'Foo/Bar'
+        timezone: 'Foo/Bar',
+        agree_terms: '1'
     }, charlie), 'Invalid localization data.');
 
     await assertBanner(sessionRequest('/user/register', 'POST', {
@@ -89,8 +93,18 @@ async function testRegister(charlie) {
         password: '12345678',
         'confirm-password': '12345678',
         locale: 'en-US',
-        timezone: 'America/Los_Angeles'
+        timezone: 'America/Los_Angeles',
+        agree_terms: '1'
     }, charlie), 'A user with this name already exists.');
+
+    await assertBanner(sessionRequest('/user/register', 'POST', {
+        username: 'charlie',
+        email: 'foo@bar',
+        password: '12345678',
+        'confirm-password': '12345678',
+        locale: 'en-US',
+        timezone: 'America/Los_Angeles',
+    }, charlie), 'You must agree to the terms of service to sign-up.');
 
     await sessionRequest('/user/register', 'POST', {
         username: 'charlie',
@@ -98,7 +112,8 @@ async function testRegister(charlie) {
         password: '12345678',
         'confirm-password': '12345678',
         locale: 'en-US',
-        timezone: 'America/Los_Angeles'
+        timezone: 'America/Los_Angeles',
+        agree_terms: '1'
     }, charlie);
 
     // check that now we're registered
