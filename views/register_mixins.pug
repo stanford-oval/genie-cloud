@@ -14,6 +14,10 @@ mixin registration_form(include_consent_form)
       label(for='email').control-label= _("E-Mail")
       input(type='email',name='email',value='',required=true,maxlength=255).form-control#email
     div.form-group
+      label(for='phone').control-label= _("Phone Number")
+      input(type='tel',name='phone',value='',required=false,maxlength=255).form-control#phone
+      span.help-block=_("Enter your a mobile phone number if you would like to receive notifications over SMS.")
+    div.form-group
       label(for='password').control-label= _("Password")
       input(type='password',name='password',value='',required=true,maxlength=255,minlength=8,data-minlength=8).form-control#password
       span.help-block= _("Minimum of 8 characters")

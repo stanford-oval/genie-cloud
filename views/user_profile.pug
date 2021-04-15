@@ -37,7 +37,7 @@ block content
         div.form-group
           label.control-label(for='email')= _("E-Mail")
           div.input-group
-            input(type='text',name='email',value=user.email).form-control#email
+            input(type='email',name='email',value=user.email).form-control#email
             if user.email_verified
               span.input-group-addon
                 span.glyphicon.glyphicon-ok(title=_("Your email was verified."),aria-label=_("Your email was verified."))
@@ -47,16 +47,20 @@ block content
                 button(type='submit', form='form-resend-email').btn.btn-default= _("Resend verification")
 
         div.form-group
+          label.control-label(for='phone')= _("Phone Number")
+          input(type='tel',name='phone',value=user.phone).form-control#phone
+
+        div.form-group
           label.control-label(for='human-name')= _("Real name")
           input(type='text',name='human_name',value=user.human_name).form-control#human-name
 
-        div.form-group.form-inline
+        //-div.form-group
           div.checkbox
             label
               input(type='checkbox',name='show_human_name',value='1',checked=!!(user.profile_flags & Constants.ProfileFlags.SHOW_HUMAN_NAME))
               = _("Show my real name in my public profile.")
 
-        div.form-group.form-inline
+        //-div.form-group
           div.checkbox
             label
               input(type='checkbox',name='show_profile_picture',value='1',checked=!!(user.profile_flags & Constants.ProfileFlags.SHOW_PROFILE_PICTURE))
@@ -131,7 +135,7 @@ block content
           button(type='submit').btn.btn-primary= _("Update profile")
           |
           |
-          a(href='/profiles/user/' + user.cloud_id).btn.btn-default= _("Show my public profile")
+          //-a(href='/profiles/user/' + user.cloud_id).btn.btn-default= _("Show my public profile")
 
   div.panel.panel-default
     div.panel-heading
@@ -225,7 +229,7 @@ block content
 
                   div.form-group
                     button(type='submit').btn.btn-danger= _("Yes, I want to delete my account")
-                    |  
+                    |
                     a.btn.btn-default(data-dismiss='modal')= _("No, I changed my mind")
 
   div.panel.panel-default#user-authorized-oauth-panel
@@ -261,8 +265,8 @@ block content
           pre
             code#issue-token-result-placeholder
 
-  div.panel.panel-default
-    div.user-profile.panel-heading
+  //-div.panel.panel-default
+    div.panel-heading
       h2.panel-title= _("Phone")
 
     div.panel-body
@@ -280,8 +284,8 @@ block content
         p#config-phone-mobile-browser(aria-hidden='true')
           a(href=phone.qrcodeTarget).btn.btn-primary= _("Configure")
 
-  div.panel.panel-default
-    div.user-profile.panel-heading
+  //-div.panel.panel-default
+    div.panel-heading
       h2.panel-title= _("Laptop")
 
     div.panel-body

@@ -31,6 +31,7 @@ export interface Row {
     human_name : string|null;
     email : string;
     email_verified : boolean;
+    phone : string|null;
     locale : string;
     timezone : string;
     model_tag : string|null;
@@ -53,7 +54,7 @@ export interface Row {
     registration_time : Date;
     lastlog_time : Date;
 }
-export type OptionalFields = 'human_name' | 'email_verified' | 'locale' | 'timezone' |
+export type OptionalFields = 'human_name' | 'email_verified' | 'phone' | 'locale' | 'timezone' |
     'model_tag' | 'google_id' | 'github_id' | 'facebook_id' | 'omlet_id' | 'password' |
     'salt' | 'totp_key' | 'roles' | 'profile_flags' | 'assistant_feed_id' | 'developer_status' |
     'developer_org' | 'force_separate_process' | 'registration_time' | 'lastlog_time';

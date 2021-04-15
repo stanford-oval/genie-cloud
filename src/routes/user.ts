@@ -289,9 +289,19 @@ function login(req : express.Request<any, any, any, any>, user : Express.User) {
     });
 }
 
+function normalizePhoneNumber(text : string) {
+    if (text.startsWith('1'))
+        text = '+' + text;
+    else if (!text.startsWith('+'))
+        text = '+1' + text;
+
+    return text.replace(/[() -]/g, '');
+}
+
 router.post('/register', iv.validatePOST({
     username: 'string',
     email: 'string',
+    phone: '?string',
     password: 'string',
     'confirm-password': 'string',
     timezone: '?string',
@@ -303,6 +313,7 @@ router.post('/register', iv.validatePOST({
     let options : {
         username : string;
         email : string;
+        phone ?: string;
         password : string;
         timezone : string;
         locale : string;
@@ -338,6 +349,9 @@ router.post('/register', iv.validatePOST({
             timezone: req.body['timezone'],
             locale: req.body['locale']
         };
+
+        if (req.body['phone'])
+            options.phone = normalizePhoneNumber(req.body['phone']);
     } catch(e) {
         res.render('register', {
             csrfToken: req.csrfToken(),
@@ -680,6 +694,7 @@ router.get('/profile', userUtils.requireLogIn, (req, res, next) => {
 router.post('/profile', userUtils.requireLogIn, iv.validatePOST({
     username: 'string',
     email: 'string',
+    phone: '?string',
     human_name: '?string',
     locale: 'string',
     visible_organization_profile: 'boolean',
@@ -694,6 +709,8 @@ router.post('/profile', userUtils.requireLogIn, iv.validatePOST({
         if (req.body['email'].indexOf('@') < 0 ||
             req.body['email'].length > 255)
             req.body.email = req.user!.email;
+        if (req.body.phone)
+            req.body.phone = normalizePhoneNumber(req.body.phone);
 
         let profile_flags = 0;
         if (req.body.visible_organization_profile)
@@ -713,6 +730,7 @@ router.post('/profile', userUtils.requireLogIn, iv.validatePOST({
                             { username: req.body.username,
                               email: req.body.email,
                               email_verified: !mustSendEmail,
+                              phone: req.body.phone,
                               locale: req.body.locale,
                               human_name: req.body.human_name || '',
                               profile_flags });
