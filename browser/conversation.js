@@ -328,7 +328,7 @@ $(() => {
         var btn = $('<a>').addClass('message message-button btn btn-default')
             .attr('href', '#').text(title);
         btn.click((event) => {
-            handleParsedCommand(json);
+            handleParsedCommand(json, title);
             event.preventDefault();
         });
         holder.append(btn);
