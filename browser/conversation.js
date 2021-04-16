@@ -365,7 +365,7 @@ $(() => {
         var btn = $('<a>').addClass('message message-yesno btn btn-default')
             .attr('href', '#').text("Yes");
         btn.click((event) => {
-            handleSpecial('yes');
+            handleSpecial('yes', "Yes");
             event.preventDefault();
         });
         holder.append(btn);
@@ -374,7 +374,7 @@ $(() => {
         btn = $('<a>').addClass('message message-yesno btn btn-default')
             .attr('href', '#').text("No");
         btn.click((event) => {
-            handleSpecial('no');
+            handleSpecial('no', "No");
             event.preventDefault();
         });
         holder.append(btn);
