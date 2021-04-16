@@ -44,7 +44,7 @@ class GoogleAssistantDelegate implements rpc.Stubbable {
     private _requestSignin : boolean;
     private _suggestions : string[];
 
-    constructor() {
+    constructor(locale : string) {
         this._buffer = [];
         this._requestSignin = false;
         this._suggestions = [];
@@ -187,8 +187,9 @@ app.intent('actions.intent.MAIN', async (conv) => {
 
     const [anonymous, user] = await retrieveUser(conv.body.user?.accessToken);
 
+    const locale = conv.body.user?.locale || 'en-US';
     const conversationId = conv.body.conversation?.conversationId;
-    const delegate = new GoogleAssistantDelegate();
+    const delegate = new GoogleAssistantDelegate(locale);
 
     const engine = await EngineManager.get().getEngine(user.id);
     await engine.getOrOpenConversation('google_assistant:' + conversationId,
@@ -224,8 +225,9 @@ app.intent('actions.intent.TEXT', async (conv, input) => {
 
     const [anonymous, user] = await retrieveUser(conv.body.user?.accessToken);
 
+    const locale = conv.body.user?.locale || 'en-US';
     const conversationId = conv.body.conversation?.conversationId;
-    const delegate = new GoogleAssistantDelegate();
+    const delegate = new GoogleAssistantDelegate(locale);
 
     const engine = await EngineManager.get().getEngine(user.id);
     const conversation = await engine.getOrOpenConversation('google_assistant:' + conversationId,

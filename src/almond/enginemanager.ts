@@ -154,6 +154,10 @@ class EngineProcess extends events.EventEmitter {
             storageKey: user.storage_key,
             modelTag: user.model_tag,
             dbProxyUrl: Config.DATABASE_PROXY_URL,
+            humanName: user.human_name,
+            phone: user.phone,
+            email: user.email,
+            emailVerified: !!user.email_verified,
         }];
         return this._rpcSocket!.call(this._rpcId!, 'runEngine', args);
     }

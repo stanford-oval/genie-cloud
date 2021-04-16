@@ -171,6 +171,10 @@ export interface PlatformOptions {
     storageKey : string;
     modelTag : string|null;
     dbProxyUrl : string|null;
+    humanName : string|null;
+    phone : string|null;
+    email : string;
+    emailVerified : boolean;
 }
 
 export class Platform extends Tp.BasePlatform {
@@ -183,6 +187,7 @@ export class Platform extends Tp.BasePlatform {
     private _sqliteKey : string;
     private _dbProxyUrl : string|null;
     private _userId : number;
+    private _profile : Tp.UserProfile;
     // TODO
     private _gettext : ReturnType<(typeof i18n)['get']>;
     private _writabledir : string;
@@ -201,6 +206,16 @@ export class Platform extends Tp.BasePlatform {
         this._sqliteKey = options.storageKey;
         this._dbProxyUrl = options.dbProxyUrl;
         this._userId = options.userId;
+        this._profile = {
+            account: options.cloudId,
+            name: options.humanName ?? undefined,
+            locale: options.locale,
+            timezone: options.timezone,
+            phone: options.phone ?? undefined,
+            phone_verified: true,
+            email: options.email,
+            email_verified: options.emailVerified
+        };
 
         this._gettext = i18n.get(this._locale);
 
@@ -235,6 +250,22 @@ export class Platform extends Tp.BasePlatform {
 
     get timezone() {
         return this._timezone;
+    }
+
+    getProfile() {
+        return this._profile;
+    }
+
+    async setProfile(changes : {
+        locale ?: string;
+        timezone ?: string;
+        name ?: string;
+        email ?: string;
+        phone ?: string;
+    }) {
+        // TODO implement actual changes
+        Object.assign(this._profile, changes);
+        return true;
     }
 
     // Return the platform device for this platform, accessing platform-specific
