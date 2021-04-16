@@ -159,10 +159,10 @@ class Engine extends Genie.AssistantEngine {
         return new RecordingController(conversation);
     }
 
-    async getOrOpenConversation(id, user, delegate, options, initialState) {
+    async getOrOpenConversation(id, delegate, options, initialState) {
         // note: default arguments don't work because "undefined" becomes "null" through transparent-rpc
         options = options || {};
-        const conversation = await this.assistant.getOrOpenConversation(id, user, options, initialState || undefined);
+        const conversation = await this.assistant.getOrOpenConversation(id, options, initialState || undefined);
         if (delegate)
             return new ConversationWrapper(conversation, delegate);
         else

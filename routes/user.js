@@ -380,8 +380,7 @@ router.post('/register', iv.validatePOST(registerArguments), (req, res, next) =>
                 await engine.setConsent(!!req.body.agree_consent);
 
                 if (req.body.conversation_state) {
-                    const assistantUser = { name: req.body.human_name || req.body.username, isOwner: true };
-                    await engine.getOrOpenConversation('main', assistantUser, null, {
+                    await engine.getOrOpenConversation('main', null, {
                         showWelcome: true,
                         anonymous: false,
                         inactivityTimeout: -1

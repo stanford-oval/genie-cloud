@@ -149,6 +149,16 @@ class Platform extends Tp.BasePlatform {
         this._locale = options.locale;
         this._timezone = options.timezone;
         this._sqliteKey = options.storageKey;
+        this._profile = {
+            account: options.cloudId,
+            name: options.humanName,
+            locale: options.locale,
+            timezone: options.timezone,
+            phone: options.phone,
+            phone_verified: true,
+            email: options.email,
+            email_verified: options.emailVerified
+        };
 
         this._gettext = i18n.get(this._locale);
 
@@ -175,6 +185,20 @@ class Platform extends Tp.BasePlatform {
 
     get timezone() {
         return this._timezone;
+    }
+
+    getProfile() {
+        return this._profile;
+    }
+
+    async setProfile(changes) {
+        // TODO implement actual changes
+        Object.assign(this._profile, changes);
+        if (changes.email)
+            changes.email_verified = false;
+        if (changes.phone)
+            changes.phone_verified = true;
+        return true;
     }
 
     // Return the platform device for this platform, accessing platform-specific

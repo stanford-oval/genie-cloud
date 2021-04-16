@@ -123,6 +123,10 @@ class EngineProcess extends events.EventEmitter {
             timezone: user.timezone,
             storageKey: user.storage_key,
             modelTag: user.model_tag,
+            humanName: user.human_name,
+            phone: user.phone,
+            email: user.email,
+            emailVerified: user.email_verified,
         }]);
     }
 
