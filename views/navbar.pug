@@ -9,7 +9,7 @@ ul.nav.navbar-nav
   if WITH_THINGPEDIA === 'embedded'
     li
       a(href='/thingpedia')= _("Thingpedia")
-  li
+  //-li
     a(href='https://wiki.almond.stanford.edu')= _("Docs")
   if authenticated && user.developer_org
     li
