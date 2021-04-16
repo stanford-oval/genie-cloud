@@ -262,16 +262,16 @@ async function sendValidationEmail(cloudId, username, email) {
     const mailOptions = {
         from: Config.EMAIL_FROM_USER,
         to: email,
-        subject: 'Welcome To Almond!',
+        subject: 'Welcome To Genie!',
         text:
-`Welcome to Almond!
+`Welcome to Genie!
 
 To verify your email address, please click the following link:
 <${Config.SERVER_ORIGIN}/user/verify-email/${token}>
 
 ----
 You are receiving this email because someone used your address to
-register an account on the Almond service at <${Config.SERVER_ORIGIN}>.
+register an account on the Genie service at <${Config.SERVER_ORIGIN}>.
 `
     };
 
@@ -484,17 +484,17 @@ async function sendRecoveryEmail(cloudId, username, email) {
     const mailOptions = {
         from: Config.EMAIL_FROM_USER,
         to: email,
-        subject: 'Almond Password Reset',
+        subject: 'Genie Password Reset',
         text:
 `Hi ${username},
 
-We have been asked to reset your Almond password.
+We have been asked to reset your Genie password.
 To continue, please click the following link:
 <${Config.SERVER_ORIGIN}/user/recovery/continue/${token}>
 
 ----
 You are receiving this email because someone tried to recover
-your Almond password. Not you? You can safely ignore this email.
+your Genie password. Not you? You can safely ignore this email.
 `
     };
 
@@ -920,7 +920,7 @@ if (Config.DISCOURSE_SSO_SECRET && Config.DISCOURSE_SSO_REDIRECT) {
         if (!req.user.email_verified) {
             res.status(400).render('error', {
                 page_title: req._("Genie - Error"),
-                message: req._("You must verify your email before accessing Almond's Discourse.")
+                message: req._("You must verify your email before accessing Genie's Discourse.")
             });
             return;
         }

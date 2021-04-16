@@ -162,6 +162,7 @@ class Engine extends Genie.AssistantEngine {
     async getOrOpenConversation(id, delegate, options, initialState) {
         // note: default arguments don't work because "undefined" becomes "null" through transparent-rpc
         options = options || {};
+        options.debug = true;
         const conversation = await this.assistant.getOrOpenConversation(id, options, initialState || undefined);
         if (delegate)
             return new ConversationWrapper(conversation, delegate);
