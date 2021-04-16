@@ -12,6 +12,8 @@ $(() => {
     }
 
     function parseCookies() {
+        if (!document.cookie)
+            return {};
         const parsed = {};
         for (const cookie of document.cookie.split(/;/g)) {
             const [key, value] = cookie.split('=');
