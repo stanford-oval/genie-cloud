@@ -21,6 +21,8 @@
 
 const express = require('express');
 const passport = require('passport');
+const { urlencoded } = require('body-parser');
+const MessagingResponse = require('twilio').twiml.MessagingResponse;
 
 const user = require('../util/user');
 const EngineManager = require('../almond/enginemanagerclient');
@@ -37,6 +39,8 @@ const MyConversation = require('./my_conversation');
 
 var router = express.Router();
 
+router.use(urlencoded({extended:false}));
+
 router.options('/[^]{0,}', (req, res, next) => {
     res.set('Access-Control-Max-Age', '86400');
     res.set('Access-Control-Allow-Methods', 'GET, POST');
@@ -50,6 +54,22 @@ router.use((req, res, next) => {
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Vary', 'Origin');
     next();
+});
+
+router.post('/sms', (req, res, next) => {
+    Promise.resolve().then(async () => {
+        let message = `${req.body.Body}`;
+
+        const me = await user.getAnonymousUser();
+        const engine = await EngineManager.get().getEngine(me.id);
+        const assistantUser = { name: me.human_name || me.username, isOwner: true };
+        const result = await engine.converse(message, assistantUser, req.body.conversationId ? req.body.conversationId : 'stateless-' + makeRandom(4));
+        
+        const twiml = new MessagingResponse();
+        result.messages.forEach(element => twiml.message(element));
+        res.type('text/xml');
+        res.end(twiml.toString());
+    }).catch(next);    
 });
 
 router.post('/oauth2/token',
