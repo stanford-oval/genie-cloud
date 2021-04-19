@@ -671,3 +671,8 @@ export let FAQ_MODELS : Record<string, { url : string, highConfidence ?: number,
  * Configuration parameters for builtin notification modules.
  */
 export let NOTIFICATION_CONFIG : Genie.DialogueAgent.NotificationConfig = {};
+
+/**
+ * Additional environment variables to set for the almond workers.
+ */
+export let EXTRA_ENVIRONMENT : Record<string, string> = {};

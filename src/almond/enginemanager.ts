@@ -278,6 +278,8 @@ class EngineProcess extends events.EventEmitter {
             if (envIsAllowed(name))
                 env[name] = process.env[name]!;
         }
+        for (const key in Config.EXTRA_ENVIRONMENT)
+            env[key] = Config.EXTRA_ENVIRONMENT[key];
         env.THINGENGINE_USER_ID = String(this._id);
 
         const managerPath = path.dirname(module.filename);
