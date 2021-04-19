@@ -77,7 +77,10 @@ router.get('/notifications/unsubscribe/:email', (req, res, next) => {
             await engine.deleteAllApps();
         }
 
-        res.redirect(303, '/');
+        res.render('message', {
+            page_title: 'Genie',
+            message: req._("You have successfully unsubscribed %s from all notifications.").format(email)
+        });
     }).catch(next);
 });
 
