@@ -179,6 +179,29 @@ class Engine extends Genie.AssistantEngine {
         const device = await this.createDevice(data);
         return this.getDeviceInfo(device.uniqueId);
     }
+
+    async deleteAllApps(forNotificationBackend, forNotificationConfig) {
+        const apps = this.apps.getAllApps();
+        for (const app of apps) {
+            if (forNotificationBackend) {
+                if (!app.notifications)
+                    continue;
+                if (app.notifications.backend !== forNotificationBackend)
+                    continue;
+                let good = true;
+                for (let key in forNotificationConfig) {
+                    if (forNotificationConfig[key] !== app.notifications.config[key]) {
+                        good = false;
+                        break;
+                    }
+                }
+                if (!good)
+                    continue;
+            }
+
+            await this.apps.removeApp(app);
+        }
+    }
 }
 Engine.prototype.$rpcMethods = [
     'getConsent',
@@ -209,6 +232,7 @@ Engine.prototype.$rpcMethods = [
     'getAppInfo',
     'deleteApp',
     'createAppAndReturnResults',
+    'deleteAllApps',
 
     'setCloudId',
     'setServerAddress',

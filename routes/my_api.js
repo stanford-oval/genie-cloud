@@ -23,6 +23,8 @@ const express = require('express');
 const passport = require('passport');
 
 const user = require('../util/user');
+const userModel = require('../model/user');
+const db = require('../util/db');
 const EngineManager = require('../almond/enginemanagerclient');
 const iv = require('../util/input_validation');
 const { NotFoundError, BadRequestError } = require('../util/errors');
@@ -55,6 +57,30 @@ router.use((req, res, next) => {
 router.post('/oauth2/token',
     passport.authenticate(['oauth2-client-basic', 'oauth2-client-password'], { session: false }),
     oauth2server.token(), oauth2server.errorHandler());
+
+router.get('/notifications/unsubscribe/:email', (req, res, next) => {
+    Promise.resolve().then(async () => {
+        const email = new Buffer(req.params.email, 'base64').toString();
+
+        const anon = await user.getAnonymousUser();
+        const anonEngine = await EngineManager.get().getEngine(anon.id);
+        await anonEngine.deleteAllApps('email', { to: email });
+
+        const loggedIn = await db.withClient((dbClient) => {
+            const users = userModel.getByEmail(dbClient, email);
+            if (users.length > 0)
+                return users[0];
+            else
+                return undefined;
+        });
+        if (loggedIn) {
+            const engine = await EngineManager.get().getEngine(loggedIn.id);
+            await engine.deleteAllApps();
+        }
+
+        res.redirect(303, '/');
+    }).catch(next);
+});
 
 // /me/api/oauth2/authorize is handled later because it needs session support and also
 // it is not OAuth authenticated, so exit this router
