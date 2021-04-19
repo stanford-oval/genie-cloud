@@ -51,7 +51,7 @@ async function getInfo(req) {
 
 router.get('/', (req, res, next) => {
     getInfo(req).then(([isRunning, appinfo, devinfo]) => {
-        res.render('my_stuff', { page_title: req._("Thingpedia - My Almond"),
+        res.render('my_stuff', { page_title: req._("My Genie"),
                                  messages: req.flash('app-message'),
                                  csrfToken: req.csrfToken(),
                                  isRunning: isRunning,
@@ -64,7 +64,7 @@ router.get('/', (req, res, next) => {
 
 router.post('/', iv.validatePOST({ command: 'string' }), (req, res, next) => {
     getInfo(req).then(([isRunning, appinfo, devinfo]) => {
-        res.render('my_stuff', { page_title: req._("Thingpedia - My Almond"),
+        res.render('my_stuff', { page_title: req._("My Genie"),
             messages: req.flash('app-message'),
             csrfToken: req.csrfToken(),
             isRunning: isRunning,
@@ -90,11 +90,11 @@ router.post('/apps/delete', iv.validatePOST({ id: 'string' }), (req, res, next) 
 });
 
 router.get('/conversation', (req, res, next) => {
-    res.render('my_conversation', { page_title: req._("Thingpedia - Web Almond") });
+    res.render('my_conversation', { page_title: req._("My Genie") });
 });
 
 router.post('/conversation', iv.validatePOST({ command: 'string' }), (req, res) => {
-    res.render('my_conversation', { page_title: req._("Thingpedia - Web Almond"), command: req.body.command });
+    res.render('my_conversation', { page_title: req._("My Genie"), command: req.body.command });
 });
 
 module.exports = router;
