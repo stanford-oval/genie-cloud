@@ -178,6 +178,7 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
         'getAppInfo',
         'deleteApp',
         'createAppAndReturnResults',
+        'deleteAllApps',
 
         'setCloudId',
         'addServerAddress',
@@ -240,5 +241,28 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
     async createDeviceAndReturnInfo(data : { kind : string }) {
         const device = await this.createDevice(data);
         return this.getDeviceInfo(device.uniqueId!);
+    }
+
+    async deleteAllApps(forNotificationBackend ?: keyof Genie.DialogueAgent.NotificationConfig, forNotificationConfig ?: Record<string, unknown>) {
+        const apps = this.apps.getAllApps();
+        for (const app of apps) {
+            if (forNotificationBackend) {
+                if (!app.notifications)
+                    continue;
+                if (app.notifications.backend !== forNotificationBackend)
+                    continue;
+                let good = true;
+                for (const key in forNotificationConfig) {
+                    if (forNotificationConfig[key] !== app.notifications.config[key]) {
+                        good = false;
+                        break;
+                    }
+                }
+                if (!good)
+                    continue;
+            }
+
+            await this.apps.removeApp(app);
+        }
     }
 }
