@@ -78,6 +78,14 @@ block content
                 input(type='hidden',name='_csrf',value=csrfToken)
                 button(type='submit').btn.btn-sm.new-msg-button.btn-danger= _("Stop")
               p= app.description
+              if app.notifications
+                p
+                  = _("This app delivers notifications using %s").format(app.notifications.backend)
+                  for value, key in app.notifications.config
+                    |
+                    |
+                    = _("%s %s").format(key, value)
+                  | .
               if app.error
                 p= _("This rule had an error: %s").format(app.error)
 
