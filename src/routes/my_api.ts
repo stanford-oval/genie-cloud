@@ -20,6 +20,7 @@
 
 import express from 'express';
 import passport from 'passport';
+import { twiml } from 'twilio';
 
 import * as db from '../util/db';
 import * as user from '../util/user';
@@ -51,6 +52,45 @@ router.use((req, res, next) => {
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Vary', 'Origin');
     next();
+});
+
+router.post('/sms', (req, res, next) => {
+    Promise.resolve().then(async () => {
+        const phone = req.body.From;
+        const message = req.body.Body;
+
+        const anon = await user.getAnonymousUser();
+        const engine = await EngineManager.get().getEngine(anon.id);
+
+        let reply;
+        if (message.toLowerCase() === 'stop' || message.toLowerCase() === 'stop.') {
+            await engine.deleteAllApps('twilio', { to: phone });
+            reply = req._("Okay, I will stop sending you notifications.");
+        } else {
+            const conversationId = 'sms' + phone;
+            const result = await engine.converse({ type: 'command', text: message, from: 'phone:'+phone }, conversationId);
+            reply = result.messages.filter((msg) => ['text', 'picture', 'rdl', 'audio', 'video'].includes(msg.type)).map((msg) => {
+                if (msg.type === 'text')
+                    return msg.text;
+                if (msg.type === 'picture')
+                    return msg.alt || req._("Picture: %s").format(msg.url);
+                if (msg.type === 'audio')
+                    return msg.alt || req._("Audio: %s").format(msg.url);
+                if (msg.type === 'video')
+                    return msg.alt || req._("Video: %s").format(msg.url);
+                if (msg.type === 'rdl')
+                    return msg.rdl.displayTitle + ' ' + msg.rdl.webCallback;
+                return '';
+            }).join('\n');
+            if (result.askSpecial === 'yesno')
+                reply += req._(" [yes/no]");
+        }
+
+        const twres = new twiml.MessagingResponse();
+        twres.message(reply);
+        res.type('text/xml');
+        res.end(twres.toString());
+    }).catch(next);
 });
 
 router.post('/oauth2/token',
