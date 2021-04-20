@@ -59,15 +59,15 @@ router.use((req, res, next) => {
 router.post('/sms', (req, res, next) => {
     Promise.resolve().then(async () => {
         let phone = req.body.From;
-        // let message = req.body.Body;
-        let message = 'hello';
+        let message = req.body.Body;
 
         const anon = await user.getAnonymousUser();
         const engine = await EngineManager.get().getEngine(anon.id);
         const result = await engine.converse({type: 'command', text: message}, 'sms' + phone);
         
         const twiml = new MessagingResponse();
-        result.messages.forEach(element => twiml.message(element));
+        const genieMessages = result.messages.filter(msg => msg.type == 'text');
+        genieMessages.forEach(msg => twiml.message(msg.text));
         res.type('text/xml');
         res.end(twiml.toString());
     }).catch(next);    
