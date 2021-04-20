@@ -26,7 +26,6 @@ const MessagingResponse = require('twilio').twiml.MessagingResponse;
 
 const user = require('../util/user');
 const userModel = require('../model/user');
-const db = require('../util/db');
 const EngineManager = require('../almond/enginemanagerclient');
 const iv = require('../util/input_validation');
 const { NotFoundError, BadRequestError } = require('../util/errors');
@@ -38,6 +37,7 @@ const Config = require('../config');
 
 const CloudSync = require('./cloud-sync');
 const MyConversation = require('./my_conversation');
+const db = require('../util/db');
 
 var router = express.Router();
 
@@ -60,12 +60,12 @@ router.use((req, res, next) => {
 
 router.post('/sms', (req, res, next) => {
     Promise.resolve().then(async () => {
+        let phone = `${req.body.From}`
         let message = `${req.body.Body}`;
 
-        const me = await user.getAnonymousUser();
-        const engine = await EngineManager.get().getEngine(me.id);
-        const assistantUser = { name: me.human_name || me.username, isOwner: true };
-        const result = await engine.converse(message, assistantUser, req.body.conversationId ? req.body.conversationId : 'stateless-' + makeRandom(4));
+        const anon = await user.getAnonymousUser();
+        const engine = await EngineManager.get().getEngine(anon.id);
+        const result = await engine.converse(message, 'sms' + phone);
         
         const twiml = new MessagingResponse();
         result.messages.forEach(element => twiml.message(element));
