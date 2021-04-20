@@ -679,3 +679,8 @@ module.exports.MS_SPEECH_SERVICE_REGION = null;
  * Configuration parameters for builtin notification modules.
  */
 module.exports.NOTIFICATION_CONFIG = {};
+
+/**
+ * Additional environment variables to set for the almond workers.
+ */
+module.exports.EXTRA_ENVIRONMENT = {};

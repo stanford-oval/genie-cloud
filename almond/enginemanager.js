@@ -231,8 +231,7 @@ class EngineProcess extends events.EventEmitter {
     start() {
         const ALLOWED_ENVS = ['LANG', 'LOGNAME', 'USER', 'PATH',
                               'HOME', 'SHELL', 'THINGENGINE_PROXY',
-                              'CI', 'THINGENGINE_DISABLE_SYSTEMD',
-                              'MONGODB_URL'];
+                              'CI', 'THINGENGINE_DISABLE_SYSTEMD'];
         function envIsAllowed(name) {
             if (name.startsWith('LC_'))
                 return true;
@@ -242,10 +241,12 @@ class EngineProcess extends events.EventEmitter {
         }
 
         const env = {};
-        for (var name in process.env) {
+        for (const name in process.env) {
             if (envIsAllowed(name))
                 env[name] = process.env[name];
         }
+        for (const key in Config.EXTRA_ENVIRONMENT)
+            env[key] = Config.EXTRA_ENVIRONMENT[key];
         env.THINGENGINE_USER_ID = this._id;
 
         const managerPath = path.dirname(module.filename);

@@ -9,7 +9,7 @@ mixin conversation_mixin(target)
         div.form-group.has-feedback#input-form-group
           label(for='#chat-input').sr-only= _("Command:")
           input(type='text', placeholder=_("Write your command or answer here"), value=command ? command : '').form-control#input
-          button(type='button').btn.btn-primary#record-button= _("Say a command!")
+          //-button(type='button').btn.btn-primary#record-button= _("Say a command!")
           span.spinner-container.form-control-feedback.hidden
             span.spinner= _("Genie is thinking…")
           span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden
