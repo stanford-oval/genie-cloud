@@ -21,7 +21,6 @@
 
 const express = require('express');
 const passport = require('passport');
-const { urlencoded } = require('body-parser');
 const MessagingResponse = require('twilio').twiml.MessagingResponse;
 
 const user = require('../util/user');
