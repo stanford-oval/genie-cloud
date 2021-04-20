@@ -41,8 +41,6 @@ const db = require('../util/db');
 
 var router = express.Router();
 
-router.use(urlencoded({extended:false}));
-
 router.options('/[^]{0,}', (req, res, next) => {
     res.set('Access-Control-Max-Age', '86400');
     res.set('Access-Control-Allow-Methods', 'GET, POST');
@@ -60,12 +58,13 @@ router.use((req, res, next) => {
 
 router.post('/sms', (req, res, next) => {
     Promise.resolve().then(async () => {
-        let phone = `${req.body.From}`
-        let message = `${req.body.Body}`;
+        let phone = req.body.From;
+        // let message = req.body.Body;
+        let message = 'hello';
 
         const anon = await user.getAnonymousUser();
         const engine = await EngineManager.get().getEngine(anon.id);
-        const result = await engine.converse(message, 'sms' + phone);
+        const result = await engine.converse({type: 'command', text: message}, 'sms' + phone);
         
         const twiml = new MessagingResponse();
         result.messages.forEach(element => twiml.message(element));
