@@ -26,6 +26,7 @@ const MessagingResponse = require('twilio').twiml.MessagingResponse;
 
 const user = require('../util/user');
 const userModel = require('../model/user');
+const db = require('../util/db');
 const EngineManager = require('../almond/enginemanagerclient');
 const iv = require('../util/input_validation');
 const { NotFoundError, BadRequestError } = require('../util/errors');
@@ -37,7 +38,6 @@ const Config = require('../config');
 
 const CloudSync = require('./cloud-sync');
 const MyConversation = require('./my_conversation');
-const db = require('../util/db');
 
 var router = express.Router();
 
