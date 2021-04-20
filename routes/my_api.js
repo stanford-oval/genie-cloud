@@ -21,6 +21,8 @@
 
 const express = require('express');
 const passport = require('passport');
+const { urlencoded } = require('body-parser');
+const MessagingResponse = require('twilio').twiml.MessagingResponse;
 
 const user = require('../util/user');
 const userModel = require('../model/user');
@@ -52,6 +54,23 @@ router.use((req, res, next) => {
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Vary', 'Origin');
     next();
+});
+
+router.post('/sms', (req, res, next) => {
+    Promise.resolve().then(async () => {
+        let phone = req.body.From;
+        let message = req.body.Body;
+
+        const anon = await user.getAnonymousUser();
+        const engine = await EngineManager.get().getEngine(anon.id);
+        const result = await engine.converse({type: 'command', text: message}, 'sms' + phone);
+        
+        const twiml = new MessagingResponse();
+        const genieMessages = result.messages.filter(msg => msg.type == 'text');
+        genieMessages.forEach(msg => twiml.message(msg.text));
+        res.type('text/xml');
+        res.end(twiml.toString());
+    }).catch(next);    
 });
 
 router.post('/oauth2/token',
