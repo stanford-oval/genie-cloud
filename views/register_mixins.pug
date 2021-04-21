@@ -35,7 +35,7 @@ mixin registration_form(include_consent_form)
     else
       input(type='hidden',name='locale',value=Config.SUPPORTED_LANGUAGES[0])
 
-    if include_consent_form
+    if include_consent_form && false
       +consent_form
 
       div.form-group
@@ -46,11 +46,12 @@ mixin registration_form(include_consent_form)
     else
       input(type='hidden',name='agree_consent',id='register-agree-consent',value='1')
 
-    div.form-group
+    //-div.form-group
       div.checkbox
         label.control-label
           input(type='checkbox',name='agree_terms',id='register-agree-terms',value='1',required=true)
           != _("I agree to the <a href='/about/tos'>terms of service</a> of the Genie service.")
+    input(type='hidden',name='agree_terms',id='register-agree-terms',value='1')
 
     div.form-group
       button(type='submit').btn.btn-primary= _("Register")

@@ -3,6 +3,8 @@
     ThingEngine.setCloudIdWhenReady();
 })();
 $(() => {
+    var NEED_CONSENT = false;
+
     function openConversation() {
         $('#try-almond-now-consent-form').addClass('hidden');
         const section = $('#try-almond-now-conversation').removeClass('hidden')[0];
@@ -26,16 +28,19 @@ $(() => {
         event.preventDefault();
         $('#try-almond-now-row').addClass('expanded');
 
-        const cookies = parseCookies();
-        if (cookies.agreed_consent === '1')
+        if (NEED_CONSENT) {
+            const cookies = parseCookies();
+            if (cookies.agreed_consent === '1')
+                openConversation();
+            else
+                $('#try-almond-now-consent-form').removeClass('hidden');
+        } else {
             openConversation();
-        else
-            $('#try-almond-now-consent-form').removeClass('hidden');
+        }
     });
 
     $('#try-almond-now-agree-consent').click((event) => {
         event.preventDefault();
-        document.cookie = 'agreed_consent=1;max-age=31536000;SameSite=Strict';
         openConversation();
     });
 });
