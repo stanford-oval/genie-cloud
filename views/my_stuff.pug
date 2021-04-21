@@ -77,10 +77,10 @@ block content
                 input(type='hidden',name='_csrf',value=csrfToken)
                 button(type='submit').btn.btn-sm.btn-danger= _("Stop")
               p= app.description
-              if app.notifications
+              for config in app.notifications
                 p
-                  = _("This app delivers notifications using %s").format(app.notifications.backend)
-                  for value, key in app.notifications.config
+                  = _("This app delivers notifications using %s").format(config.backend)
+                  for value, key in config.config
                     |
                     |
                     = _("%s %s").format(key, value)

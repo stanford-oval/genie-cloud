@@ -184,22 +184,29 @@ class Engine extends Genie.AssistantEngine {
         const apps = this.apps.getAllApps();
         for (const app of apps) {
             if (forNotificationBackend) {
-                if (!app.notifications)
-                    continue;
-                if (app.notifications.backend !== forNotificationBackend)
-                    continue;
-                let good = true;
-                for (let key in forNotificationConfig) {
-                    if (forNotificationConfig[key] !== app.notifications.config[key]) {
-                        good = false;
-                        break;
-                    }
-                }
-                if (!good)
-                    continue;
-            }
+                const before = app.notifications.length;
 
-            await this.apps.removeApp(app);
+                app.notifications = app.notifications.filter((config) => {
+                    if (config.backend !== forNotificationBackend)
+                        return true;
+                    let found = true;
+                    for (let key in forNotificationConfig) {
+                        if (forNotificationConfig[key] !== config.config[key]) {
+                            found = false;
+                            break;
+                        }
+                    }
+                    return !found;
+                });
+                if (app.notifications.length !== before) {
+                    if (app.notifications.length === 0)
+                        await this.apps.removeApp(app);
+                    else
+                        await this.apps.saveApp(app);
+                }
+            } else {
+                await this.apps.removeApp(app);
+            }
         }
     }
 }
