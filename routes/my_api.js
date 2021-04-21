@@ -62,11 +62,19 @@ router.post('/sms', (req, res, next) => {
 
         const anon = await user.getAnonymousUser();
         const engine = await EngineManager.get().getEngine(anon.id);
-        const result = await engine.converse({type: 'command', text: message}, 'sms' + phone);
+
+        let reply;
+        if (message.toLowerCase() === 'stop' || message.toLowerCase() === 'stop.') {
+            await engine.deleteAllApps('phone', { to: phone });
+            reply = req._("Okay, I will stop sending you notifications.");
+        } else {
+            const result = await engine.converse({type: 'command', text: message}, 'sms' + phone);
+            reply = result.messages.filter((msg) => msg.type === 'text')
+                .map((msg) => msg.text).join('\n');
+        }
         
         const twiml = new MessagingResponse();
-        const genieMessages = result.messages.filter(msg => msg.type == 'text');
-        genieMessages.forEach(msg => twiml.message(msg.text));
+        twiml.message(reply);
         res.type('text/xml');
         res.end(twiml.toString());
     }).catch(next);    
