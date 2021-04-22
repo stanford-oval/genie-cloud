@@ -68,9 +68,30 @@ router.post('/sms', (req, res, next) => {
             await engine.deleteAllApps('phone', { to: phone });
             reply = req._("Okay, I will stop sending you notifications.");
         } else {
-            const result = await engine.converse({type: 'command', text: message}, 'sms' + phone);
-            reply = result.messages.filter((msg) => msg.type === 'text')
-                .map((msg) => msg.text).join('\n');
+            const conversationId = 'sms' + phone;
+            const existing = await engine.hasConversation(conversationId);
+            if (existing) {
+                const result = await engine.converse({ type: 'command', text: message }, conversationId);
+                reply = result.messages.filter((msg) => ['text', 'picture', 'rdl', 'audio', 'video'].includes(msg.type)).map((msg) => {
+                    if (msg.type === 'text')
+                        return msg.text;
+                    if (msg.type === 'picture')
+                        return msg.alt || req._("Picture: %s").format(msg.url);
+                    if (msg.type === 'audio')
+                        return msg.alt || req._("Audio: %s").format(msg.url);
+                    if (msg.type === 'video')
+                        return msg.alt || req._("Video: %s").format(msg.url);
+                    if (msg.type === 'rdl')
+                        return msg.rdl.displayTitle + ' ' + msg.rdl.webCallback;
+                    return '';
+                }).join('\n');
+            } else {
+                // start the conversation and pass showWelcome true which will set the state
+                // correctly, but discard the reply, which we override here
+                await engine.getOrOpenConversation(conversationId, undefined, { showWelcome: true, anonymous: true });
+
+                reply = req._("Hello! This is Covid Genie, a social-good chatbot at Stanford University. I’m here to help you find a covid vaccine appointment. What is your zipcode?");
+            }
         }
         
         const twiml = new MessagingResponse();

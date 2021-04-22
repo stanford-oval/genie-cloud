@@ -150,13 +150,17 @@ class Engine extends Genie.AssistantEngine {
         return prefs.get('recording-warning-shown') === 'yes';
     }
 
-    async converse(...args) {
-        return this.assistant.converse(...args);
+    async converse(command, conversationId) {
+        return this.assistant.converse(command, conversationId);
     }
 
     getConversation(id) {
         const conversation = this.assistant.getConversation(id);
         return new RecordingController(conversation);
+    }
+
+    hasConversation(id) {
+        return !!this.assistant.getConversation(id);
     }
 
     async getOrOpenConversation(id, delegate, options, initialState) {
@@ -219,6 +223,7 @@ Engine.prototype.$rpcMethods = [
 
     'getConversation',
     'getOrOpenConversation',
+    'hasConversation',
     'addNotificationOutput',
     'removeNotificationOutput',
     'converse',
