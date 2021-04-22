@@ -71,7 +71,7 @@ router.post('/sms', (req, res, next) => {
             const conversationId = 'sms' + phone;
             const existing = await engine.hasConversation(conversationId);
             if (existing) {
-                const result = await engine.converse({ type: 'command', text: message }, conversationId);
+                const result = await engine.converse({ type: 'command', text: message, from: 'phone:'+phone }, conversationId);
                 reply = result.messages.filter((msg) => ['text', 'picture', 'rdl', 'audio', 'video'].includes(msg.type)).map((msg) => {
                     if (msg.type === 'text')
                         return msg.text;
