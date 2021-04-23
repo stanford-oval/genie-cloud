@@ -35,7 +35,7 @@ mixin registration_form(include_consent_form)
     else
       input(type='hidden',name='locale',value=Config.SUPPORTED_LANGUAGES[0])
 
-    if include_consent_form && false
+    if include_consent_form
       +consent_form
 
       div.form-group
