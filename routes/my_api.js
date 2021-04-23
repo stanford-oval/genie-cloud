@@ -85,12 +85,14 @@ router.post('/sms', (req, res, next) => {
                         return msg.rdl.displayTitle + ' ' + msg.rdl.webCallback;
                     return '';
                 }).join('\n');
+                if (result.askSpecial === 'yesno')
+                    reply += req._(" [yes/no]");
             } else {
                 // start the conversation and pass showWelcome true which will set the state
                 // correctly, but discard the reply, which we override here
                 await engine.getOrOpenConversation(conversationId, undefined, { showWelcome: true, anonymous: true });
 
-                reply = req._("Hello! This is Covid Genie, a social-good chatbot at Stanford University. I’m here to help you find a covid vaccine appointment. What is your zipcode?");
+                reply = req._("Hello! This is Covid Genie. I’m here to help you find a covid vaccine appointment. What is your zipcode?");
             }
         }
         
