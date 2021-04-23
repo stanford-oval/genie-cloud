@@ -43,8 +43,7 @@ msgstr ""
 #: routes/my_api.js:95
 msgid ""
 "Hello! This is COVID Genie from Stanford University. I’m here to help you find a covid vaccine appointment near you.  What is your zipcode?"
-msgstr "¡Hola! Soy la COVID Genio de la Universidad de Stanford. Estoy aquí para ayudarle a encontrar una cita para la vacuna para covid. ¿Cuál es su código postal?
-"
+msgstr "¡Hola! Soy la COVID Genio de la Universidad de Stanford. Estoy aquí para ayudarle a encontrar una cita para la vacuna para covid. ¿Cuál es su código postal?"
 
 #: routes/my_api.js:132
 #, javascript-format
