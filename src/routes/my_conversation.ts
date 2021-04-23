@@ -38,7 +38,7 @@ export function anonymous(ws : WebSocket, req : express.Request) {
         return;
     }
 
-    user.getAnonymousUser().then((user) => {
+    user.getAnonymousUser(req.locale).then((user) => {
         return doConversation(user, true, ws, req.query);
     });
 }

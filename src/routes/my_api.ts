@@ -59,7 +59,7 @@ router.post('/sms', (req, res, next) => {
         const phone = req.body.From;
         const message = req.body.Body;
 
-        const anon = await user.getAnonymousUser();
+        const anon = await user.getAnonymousUser(req.locale);
         const engine = await EngineManager.get().getEngine(anon.id);
 
         let reply;
@@ -101,7 +101,7 @@ router.get('/notifications/unsubscribe/:email', (req, res, next) => {
     Promise.resolve().then(async () => {
         const email = new Buffer(req.params.email, 'base64').toString();
 
-        const anon = await user.getAnonymousUser();
+        const anon = await user.getAnonymousUser(req.locale);
         const anonEngine = await EngineManager.get().getEngine(anon.id);
         await anonEngine.deleteAllApps('email', { to: email });
 
