@@ -40,6 +40,8 @@ const ALLOWED_LANGUAGES = {
     'zh': N_("Chinese"),
     'zh-CN': N_("Chinese (Simplified)"),
     'zh-TW': N_("Chinese (Traditional)"),
+    'es': N_("Spanish"),
+    'es-ES': N_("Spanish"),
 };
 
 let _enabledLanguages;

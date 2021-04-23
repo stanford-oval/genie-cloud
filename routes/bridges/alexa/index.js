@@ -134,7 +134,7 @@ async function handle(modelTag, req, res) {
             user = await userModel.get(dbClient, alexaModel.anonymous_user);
             anonymous = true;
         } else {
-            user = await userUtils.getAnonymousUser();
+            user = await userUtils.getAnonymousUser(req.body.locale);
             anonymous = true;
         }
 

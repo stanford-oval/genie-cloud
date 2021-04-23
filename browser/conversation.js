@@ -24,11 +24,15 @@ $(() => {
     var conversationId = null;
     var url;
     var target = $('#conversation').attr('data-target');
-    var isAnonymous = target === '/me/ws/anonymous';
+    var isAnonymous = target.startsWith('/me/ws/anonymous');
     function updateUrl() {
         url = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + target;
-        if (conversationId)
-            url += '?id=' + conversationId;
+        if (conversationId) {
+            if (url.indexOf('?') >= 0)
+                url += '&id=' + conversationId;
+            else
+                url += '?id=' + conversationId;
+        }
     }
     updateUrl();
 

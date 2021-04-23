@@ -25,7 +25,7 @@ const util = require('util');
 const db = require('./db');
 const model = require('../model/user');
 const { makeRandom } = require('./random');
-const { ForbiddenError, BadRequestError, InternalError } = require('./errors');
+const { NotFoundError, ForbiddenError, BadRequestError, InternalError } = require('./errors');
 
 const Config = require('../config');
 
@@ -268,9 +268,17 @@ module.exports = {
         };
     },
 
-    getAnonymousUser() {
+    getAnonymousUser(locale = 'en-US') {
+        const I18n = require('./i18n');
+
+        if (!I18n.get(locale, false))
+            throw new NotFoundError();
+
         return db.withClient((dbClient) => {
-            return model.getByName(dbClient, 'anonymous');
+            const lang = I18n.localeToLanguage(locale);
+        console.log('getAnonymousUser', locale, lang);
+            return model.getByName(dbClient, 'anonymous' +
+                (lang === 'en' ? '': '-' + lang));
         }).then(([user]) => user);
     },
 
@@ -286,7 +294,7 @@ module.exports = {
             return;
         }
 
-        this.getAnonymousUser().then((user) => {
+        this.getAnonymousUser(req.locale).then((user) => {
             if (!user)
                 throw new InternalError('E_INVALID_CONFIG', 'Invalid configuration (missing anonymous user)');
             req.login(user, next);

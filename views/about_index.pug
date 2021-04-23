@@ -69,7 +69,7 @@ block content
 
           div.row.hidden#try-almond-now-conversation
             div.col-lg-6.col-lg-offset-3
-              +conversation_mixin('/me/ws/anonymous')(class='')
+              +conversation_mixin('/me/ws/anonymous?locale=' + locale)(class='')
 
         else
           div.row

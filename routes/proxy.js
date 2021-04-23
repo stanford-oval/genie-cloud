@@ -29,7 +29,7 @@ router.get('/', (req, res, next) => {
 
 router.post('/oauth2', (req, res, next) => {
     const kind = req.body.device_type;
-    user.getAnonymousUser().then((new_user) => {
+    user.getAnonymousUser(req.locale).then((new_user) => {
         EngineManager.get().getEngine(new_user.id).then(async (engine) => {
             const [redirect, session] = await engine.startOAuth(kind);
             for (const key in session)
