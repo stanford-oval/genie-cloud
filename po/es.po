@@ -40,10 +40,6 @@ msgstr ""
 msgid " [yes/no]"
 msgstr " [sí/no]"
 
-#: routes/my_api.js:90
-msgid "Okay, I will stop sending you notifications."
-msgstr ""
-
 #: routes/my_api.js:101
 msgid ""
 "Hello! This is COVID Genie from Stanford University. I’m here to help you "

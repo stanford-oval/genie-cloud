@@ -57,7 +57,12 @@ router.use((req, res, next) => {
 
 async function handleSMSMessage(req, engine, message, phone) {
     const conversationId = 'sms' + phone;
-    const result = await engine.converse({ type: 'command', text: message, from: 'phone:'+phone }, conversationId);
+    let msg;
+    if (message.startsWith('\\t'))
+        msg = { type: 'tt', code: message.substring(2).trim(), from: 'phone:'+phone };
+    else
+        msg = { type: 'command', text: message, from: 'phone:'+phone };
+    const result = await engine.converse(msg, conversationId);
     let reply = result.messages.filter((msg) => ['text', 'picture', 'rdl', 'audio', 'video'].includes(msg.type)).map((msg) => {
         if (msg.type === 'text')
             return msg.text;
@@ -86,7 +91,7 @@ router.post('/sms', (req, res, next) => {
 
         let reply;
         if (message.toLowerCase() === 'stop' || message.toLowerCase() === 'stop.') {
-            await engine.deleteAllApps('phone', { to: phone });
+            await engine.deleteAllApps('twilio', { to: phone });
             reply = req._("Okay, I will stop sending you notifications.");
         } else {
             const conversationId = 'sms' + phone;

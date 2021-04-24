@@ -189,7 +189,6 @@ class Engine extends Genie.AssistantEngine {
         for (const app of apps) {
             if (forNotificationBackend) {
                 const before = app.notifications.length;
-
                 app.notifications = app.notifications.filter((config) => {
                     if (config.backend !== forNotificationBackend)
                         return true;
@@ -202,6 +201,7 @@ class Engine extends Genie.AssistantEngine {
                     }
                     return !found;
                 });
+
                 if (app.notifications.length !== before) {
                     if (app.notifications.length === 0)
                         await this.apps.removeApp(app);
