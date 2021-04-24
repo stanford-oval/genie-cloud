@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: almond-cloud 2.0.0-alpha.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-23 22:09+0000\n"
+"POT-Creation-Date: 2021-04-24 19:04+0000\n"
 "PO-Revision-Date: 2021-04-23 13:43-0700\n"
 "Last-Translator: gcampagn <gcampagn@cs.stanford.edu>\n"
 "Language-Team: Spanish\n"
@@ -21,31 +21,47 @@ msgstr ""
 msgid "Okay, I will stop sending you notifications."
 msgstr ""
 
-#: routes/my_api.js:79
+#: routes/my_api.js:65
 #, javascript-format
 msgid "Picture: %s"
 msgstr ""
 
-#: routes/my_api.js:81
+#: routes/my_api.js:67
 #, javascript-format
 msgid "Audio: %s"
 msgstr ""
 
-#: routes/my_api.js:83
+#: routes/my_api.js:69
 #, javascript-format
 msgid "Video: %s"
 msgstr ""
 
-#: routes/my_api.js:89
+#: routes/my_api.js:75
 msgid " [yes/no]"
+msgstr " [sí/no]"
+
+#: routes/my_api.js:90
+msgid "Okay, I will stop sending you notifications."
 msgstr ""
 
-#: routes/my_api.js:95
+#: routes/my_api.js:101
 msgid ""
-"Hello! This is COVID Genie from Stanford University. I’m here to help you find a covid vaccine appointment near you.  What is your zipcode?"
-msgstr "¡Hola! Soy la COVID Genio de la Universidad de Stanford. Estoy aquí para ayudarle a encontrar una cita para la vacuna para covid. ¿Cuál es su código postal?"
+"Hello! This is COVID Genie from Stanford University. I’m here to help you "
+"find a covid vaccine appointment near you."
+msgstr ""
+"¡Hola! Soy la COVID Genio de la Universidad de Stanford. Estoy aquí para "
+"ayudarle a encontrar una cita para la vacuna para covid."
 
-#: routes/my_api.js:132
+#: routes/my_api.js:106
+msgid ""
+"Hello! This is COVID Genie from Stanford University. I’m here to help you "
+"find a covid vaccine appointment near you. What is your zipcode?"
+msgstr ""
+"¡Hola! Soy la COVID Genio de la Universidad de Stanford. Estoy aquí para "
+"ayudarle a encontrar una cita para la vacuna para covid. ¿Cuál es su código "
+"postal?"
+
+#: routes/my_api.js:146
 #, javascript-format
 msgid "You have successfully unsubscribed %s from all notifications."
 msgstr ""
