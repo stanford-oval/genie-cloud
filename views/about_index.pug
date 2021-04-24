@@ -41,16 +41,20 @@ block content
         div.index_row
           div.index_cl_sx
             #genie-covid-title
-              | Find a vaccine appointment near you.
+              = _("Find a vaccine appointment near you.")
             
             p.index_sx_p
-              | Click for Spanish.
+              //- these two should not be translated, everything else should be
+              if locale === 'en-US'
+                a(href='/?locale=es-ES') Haga clic para Español.
+              else
+                a(href='/?locale=en-US') Click for English
                
           div.index_cl_dx
             p.index_dx_p
-              | COVID Genie is a Stanford University effort to help get people vaccinated nationwide.
+              = _("COVID Genie is a Stanford University effort to help get people vaccinated nationwide.")
             p.index_dx_p
-              | Chat with Genie to find a COVID-19 vaccine appointment near you, or get notified when appointments become available.
+              = _("Chat with Genie to find a COVID-19 vaccine appointment near you, or get notified when appointments become available.")
               div.index_btn
                 button.btn.btn-primary.btn-block.call-to-action#try-almond-now= _("Get Your Vaccine Now")
 

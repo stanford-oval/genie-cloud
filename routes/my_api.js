@@ -55,6 +55,27 @@ router.use((req, res, next) => {
     next();
 });
 
+async function handleSMSMessage(req, engine, message, phone) {
+    const conversationId = 'sms' + phone;
+    const result = await engine.converse({ type: 'command', text: message, from: 'phone:'+phone }, conversationId);
+    let reply = result.messages.filter((msg) => ['text', 'picture', 'rdl', 'audio', 'video'].includes(msg.type)).map((msg) => {
+        if (msg.type === 'text')
+            return msg.text;
+        if (msg.type === 'picture')
+            return msg.alt || req._("Picture: %s").format(msg.url);
+        if (msg.type === 'audio')
+            return msg.alt || req._("Audio: %s").format(msg.url);
+        if (msg.type === 'video')
+            return msg.alt || req._("Video: %s").format(msg.url);
+        if (msg.type === 'rdl')
+            return msg.rdl.displayTitle + ' ' + msg.rdl.webCallback;
+        return '';
+    }).join('\n');
+    if (result.askSpecial === 'yesno')
+        reply += req._(" [yes/no]");
+    return reply;
+}
+
 router.post('/sms', (req, res, next) => {
     Promise.resolve().then(async () => {
         let phone = req.body.From;
@@ -70,29 +91,22 @@ router.post('/sms', (req, res, next) => {
         } else {
             const conversationId = 'sms' + phone;
             const existing = await engine.hasConversation(conversationId);
-            if (existing) {
-                const result = await engine.converse({ type: 'command', text: message, from: 'phone:'+phone }, conversationId);
-                reply = result.messages.filter((msg) => ['text', 'picture', 'rdl', 'audio', 'video'].includes(msg.type)).map((msg) => {
-                    if (msg.type === 'text')
-                        return msg.text;
-                    if (msg.type === 'picture')
-                        return msg.alt || req._("Picture: %s").format(msg.url);
-                    if (msg.type === 'audio')
-                        return msg.alt || req._("Audio: %s").format(msg.url);
-                    if (msg.type === 'video')
-                        return msg.alt || req._("Video: %s").format(msg.url);
-                    if (msg.type === 'rdl')
-                        return msg.rdl.displayTitle + ' ' + msg.rdl.webCallback;
-                    return '';
-                }).join('\n');
-                if (result.askSpecial === 'yesno')
-                    reply += req._(" [yes/no]");
-            } else {
+            if (!existing) {
                 // start the conversation and pass showWelcome true which will set the state
                 // correctly, but discard the reply, which we override here
                 await engine.getOrOpenConversation(conversationId, undefined, { showWelcome: true, anonymous: true });
 
-                reply = req._("Hello! This is COVID Genie from Stanford University. I’m here to help you find a covid vaccine appointment near you.  What is your zipcode?");
+                // if we're given a zip code, pass it down to genie
+                if (/^\s*[0-9]{5}\s*$/.test(message)) {
+                    reply = req._("Hello! This is COVID Genie from Stanford University. I’m here to help you find a covid vaccine appointment near you.");
+                    reply += ' ';
+                    reply += await handleSMSMessage(req, engine, message, phone);
+                } else {
+                    // eat the message and reply with some intro text
+                    reply = req._("Hello! This is COVID Genie from Stanford University. I’m here to help you find a covid vaccine appointment near you.  What is your zipcode?");
+                }
+            } else {
+                reply = await handleSMSMessage(req, engine, message, phone);
             }
         }
         
