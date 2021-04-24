@@ -1,0 +1,4613 @@
+# Spanish translations for almond-cloud package.
+# Copyright (C) 2021 THE almond-cloud'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the almond-cloud package.
+# gcampagn <gcampagn@cs.stanford.edu>, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: almond-cloud 2.0.0-alpha.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-04-28 01:39+0000\n"
+"PO-Revision-Date: 2021-04-23 13:43-0700\n"
+"Last-Translator: gcampagn <gcampagn@cs.stanford.edu>\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: routes/thingpedia_strings.js:55
+#, fuzzy
+msgid "Thingpedia - String Types"
+msgstr "Thingpedia - Perfil de usuario"
+
+#: routes/my_api.js:70
+#, javascript-format
+msgid "Picture: %s"
+msgstr "Fotos: %s"
+
+#: routes/my_api.js:72
+#, javascript-format
+msgid "Audio: %s"
+msgstr "Audio: %s"
+
+#: routes/my_api.js:74
+#, javascript-format
+msgid "Video: %s"
+msgstr "Video: %s"
+
+#: routes/my_api.js:80
+msgid " [yes/no]"
+msgstr " [sí/no]"
+
+#: routes/my_api.js:95
+msgid "Okay, I will stop sending you notifications."
+msgstr "Bueno, dejaré de enviarte notificaciones."
+
+#: routes/my_api.js:106
+msgid ""
+"Hello! This is COVID Genie from Stanford University. I’m here to help you "
+"find a covid vaccine appointment near you."
+msgstr ""
+"¡Hola! Soy la COVID Genie de la Universidad de Stanford. Estoy aquí para "
+"ayudarle a encontrar una cita para la vacuna para covid."
+
+#: routes/my_api.js:111
+msgid ""
+"Hello! This is COVID Genie from Stanford University. I’m here to help you "
+"find a covid vaccine appointment near you. What is your zipcode?"
+msgstr ""
+"¡Hola! Soy la COVID Genie de la Universidad de Stanford. Estoy aquí para "
+"ayudarle a encontrar una cita para la vacuna para covid. ¿Cuál es su código "
+"postal?"
+
+#: routes/my_api.js:151
+#, javascript-format
+msgid "You have successfully unsubscribed %s from all notifications."
+msgstr ""
+"Has cancelado correctamente la suscripción %s de todas las notificaciones."
+
+#: routes/thingpedia_upload.js:51 routes/thingpedia_upload.js:72
+#, fuzzy
+msgid "Thingpedia - Create New Device"
+msgstr "Thingpedia - Perfil de usuario"
+
+#: routes/thingpedia_upload.js:73 routes/thingpedia_upload.js:120
+#, fuzzy
+msgid "Thingpedia - Edit Device"
+msgstr "Thingpedia - Perfil de usuario"
+
+#: routes/thingpedia_upload.js:136 routes/status.js:122 routes/status.js:137
+#: routes/devices.js:59 routes/devices.js:69 routes/devices.js:105
+#: routes/thingpedia_translate.js:123 routes/thingpedia_translate.js:271
+#: routes/thingpedia_translate.js:276 routes/thingpedia_translate.js:298
+#: routes/thingpedia_schemas.js:59 routes/admin.js:187 routes/admin.js:232
+#: routes/admin.js:250 routes/user.js:831 routes/user.js:836 routes/user.js:849
+#: routes/user.js:855 routes/user.js:861 routes/my_stuff.js:83
+#: routes/thingpedia_devices.js:261 routes/developer_mturk.js:106
+#: routes/proxy.js:40 util/user.js:206 util/user.js:216 util/user.js:229
+#: util/user.js:245 util/user.js:292
+#, fuzzy
+msgid "Thingpedia - Error"
+msgstr "Thingpedia - Perfil de usuario"
+
+#: routes/status.js:72
+#, fuzzy
+msgid "Thingpedia - Status"
+msgstr "Thingpedia - Perfil de usuario"
+
+#: routes/status.js:123 routes/status.js:138
+msgid "Your engine is running, kill it before attempting recovery"
+msgstr ""
+
+#: routes/devices.js:33
+#, fuzzy
+msgid "Thingpedia - Configure device"
+msgstr "Thingpedia - Perfil de usuario"
+
+#: routes/devices.js:70 routes/my_stuff.js:84
+msgid "Not found."
+msgstr "Extraviado."
+
+#: routes/thingpedia_translate.js:41
+msgid "Translate Thingpedia"
+msgstr ""
+
+#: routes/thingpedia_translate.js:124 routes/thingpedia_translate.js:272
+msgid "Translations for English cannot be contributed."
+msgstr ""
+
+#: routes/thingpedia_translate.js:166
+#, fuzzy
+msgid "Thingpedia - Translate Device"
+msgstr "Thingpedia - Perfil de usuario"
+
+#: routes/thingpedia_translate.js:277
+#, javascript-format
+msgid "Invalid language identifier %s."
+msgstr ""
+
+#: routes/mturk.js:106 routes/mturk.js:148
+msgid "The HIT you're trying to submit was already closed."
+msgstr ""
+
+#: routes/mturk.js:138 routes/mturk.js:243
+msgid "Thank you"
+msgstr ""
+
+#: routes/mturk.js:181 views/mturk.pug:11
+msgid "Paraphrase"
+msgstr ""
+
+#: routes/mturk.js:204 routes/mturk.js:253
+msgid "The HIT you're trying to submit is not open yet, or was already closed."
+msgstr ""
+
+#: routes/mturk.js:215 util/input_validation.js:90
+#, javascript-format
+msgid "Missing or invalid parameter %s"
+msgstr ""
+
+#: routes/mturk.js:235
+msgid "You have made too many mistakes. Please go back and try again."
+msgstr ""
+
+#: routes/mturk.js:282
+msgid "Genie - Paraphrase Validation"
+msgstr ""
+
+#: routes/thingpedia_cheatsheet.js:37
+msgid "Thingpedia - Supported Operations"
+msgstr ""
+
+#: routes/thingpedia_schemas.js:60
+#, fuzzy
+msgid "Not Found."
+msgstr "Extraviado."
+
+#: routes/thingpedia_schemas.js:93
+#, fuzzy
+msgid "Thingpedia - Type detail"
+msgstr "Thingpedia - Perfil de usuario"
+
+#: routes/admin.js:69
+#, fuzzy
+msgid "Thingpedia - Administration"
+msgstr "Thingpedia - Perfil de usuario"
+
+#: routes/admin.js:87 routes/admin.js:277
+#, fuzzy
+msgid "Genie - Administration"
+msgstr "Genie - Verificación enviada"
+
+#: routes/admin.js:104
+#, fuzzy
+msgid "Genie - User List"
+msgstr "Genie - Registrarse"
+
+#: routes/admin.js:161
+msgid "Thingpedia - Administration - Natural Language Training"
+msgstr ""
+
+#: routes/admin.js:188
+msgid "You cannot delete yourself"
+msgstr ""
+
+#: routes/admin.js:233
+msgid "You cannot demote yourself"
+msgstr ""
+
+#: routes/admin.js:251
+msgid "You cannot revoke your own dev credentials yourself"
+msgstr ""
+
+#: routes/admin.js:298 routes/admin.js:315
+msgid "Genie - Developer Organizations"
+msgstr ""
+
+#: routes/admin.js:331 routes/thingpedia_profiles.js:42
+msgid "Genie - Developer Organization"
+msgstr ""
+
+#: routes/admin.js:344 routes/developer_console.js:120
+#: routes/developer_alexa.js:70
+#, javascript-format
+msgid "No such user %s"
+msgstr ""
+
+#: routes/admin.js:346 routes/developer_console.js:122
+#, javascript-format
+msgid "%s is already a member of another developer organization."
+msgstr ""
+
+#: routes/admin.js:382
+#, fuzzy
+msgid "Genie - Blog Archive"
+msgstr "Genie - Iniciar sesión"
+
+#: routes/admin.js:393 routes/admin.js:403
+#, fuzzy
+msgid "Genie - Blog Editor"
+msgstr "Genie - Iniciar sesión"
+
+#: routes/admin.js:445 routes/admin.js:478
+msgid "Saved"
+msgstr ""
+
+#: routes/luinet_models.js:60 routes/luinet_templates.js:76
+#: routes/developer_alexa.js:54 routes/luinet_custom_datasets.js:59
+msgid "Unsupported language"
+msgstr ""
+
+#: routes/luinet_models.js:70 routes/developer_alexa.js:62
+#, fuzzy
+msgid "A model with this ID already exists."
+msgstr "Un usuario con este nombre ya existe."
+
+#: routes/luinet_models.js:89 routes/luinet_custom_datasets.js:71
+#, javascript-format
+msgid "No such template pack %s"
+msgstr ""
+
+#: routes/luinet_models.js:93 routes/luinet_templates.js:79
+#: routes/luinet_custom_datasets.js:75
+#, fuzzy
+msgid "Invalid flags"
+msgstr "Solicitud no válida"
+
+#: routes/luinet_models.js:105 routes/luinet_custom_datasets.js:87
+#, javascript-format
+msgid "The template %s does not support the flag %s"
+msgstr ""
+
+#: routes/luinet_models.js:109 routes/developer_alexa.js:73
+#: routes/luinet_custom_datasets.js:91
+#, fuzzy
+msgid "Invalid device list"
+msgstr "Solicitud no válida"
+
+#: routes/luinet_models.js:114 routes/developer_alexa.js:78
+#: routes/luinet_custom_datasets.js:96
+#, javascript-format
+msgid "The following devices do not exist or are not visible: %s"
+msgstr ""
+
+#: routes/luinet_models.js:114 routes/developer_alexa.js:78
+#: routes/luinet_custom_datasets.js:96 views/mturk.pug:105
+#: views/luinet_template_list.pug:16 views/luinet_model_list.pug:17
+#: views/dev_nlp_models.pug:92 views/dev_nlp_models.pug:201
+msgid ", "
+msgstr ", "
+
+#: routes/luinet_models.js:144
+msgid "LUInet - Available Models"
+msgstr ""
+
+#: routes/user.js:58
+msgid ""
+"Welcome to Genie! You are now ready to start using Genie to receive "
+"notifications."
+msgstr ""
+"¡Bienvenido a Genie! Ahora está listo para comenzar a usar Genie para "
+"recibir notificaciones."
+
+#: routes/user.js:60
+msgid ""
+"Welcome to Genie! A verification email has been sent to your address. Some "
+"functionality on your account, such as receiving notifications, will be "
+"limited until you verify your email. You must click on the verification link "
+"to enable your account in full."
+msgstr ""
+"¡Bienvenido a Genie! Hemos enviado un correo electrónico de verificación a "
+"su dirección. Algunas funciones en su cuenta, como recibir notificaciones, "
+"serán limitados hasta que verifiques su correo electrónico. Debes usar el "
+"enlace de verificación para habilitar su cuenta en su totalidad."
+
+#: routes/user.js:62
+msgid ""
+"Welcome to Genie! You did not provide an email address. Some functionality "
+"on your account, such as receiving notifications, will be limited until you "
+"provide and verify your email. You can do so from your user settings."
+msgstr ""
+"¡Bienvenido a Genie! No proporcionaste una dirección de correo electrónico. "
+"Algunans funcionalidades en su cuenta, como recibir notificaciones, serán "
+"limitado hasta que proporciones y verifiques su correo electrónico. Puedes "
+"hacerlo desde tu configuración de usuario."
+
+#: routes/user.js:127 routes/user.js:163
+msgid "Genie - Login"
+msgstr "Genie - Iniciar sesión"
+
+#: routes/user.js:190 routes/user.js:435 routes/user.js:451 routes/user.js:458
+#: routes/user.js:522 routes/user.js:546 routes/user.js:576 routes/user.js:599
+#: routes/user.js:914 routes/user.js:922 routes/developer_oauth2.js:100
+#: routes/developer_console.js:126 routes/developer_console.js:187
+#: routes/developer_console.js:277 util/error_handling.js:29
+#: util/error_handling.js:34 util/error_handling.js:39
+#: util/error_handling.js:45 util/error_handling.js:70
+#: util/error_handling.js:91 util/input_validation.js:89
+#: util/input_validation.js:101
+msgid "Genie - Error"
+msgstr "Genio - Error"
+
+#: routes/user.js:191
+msgid "You already configured two-factor authentication."
+msgstr "Ya configuraste la autenticación de dos factores."
+
+#: routes/user.js:210 routes/user.js:227 routes/user.js:240
+msgid "Genie - Two-Factor Authentication"
+msgstr "Genie - La Autenticación de Dos Factores"
+
+#: routes/user.js:228
+msgid ""
+"Invalid OTP Code. Please check that your Authenticator app is properly "
+"configured."
+msgstr ""
+"El código OTP no fue válido. Por favor comprueba si su aplicación de "
+"Authenticación esta correctamente configurado."
+
+#: routes/user.js:241
+msgid ""
+"Two-factor authentication was set up successfully. You will need to use your "
+"Authenticator app at the next login."
+msgstr ""
+"La autenticación de dos factores se configuró correctamente. Deberá utilizar "
+"su Aplicación de autenticación en el próximo inicio de sesión."
+
+#: routes/user.js:249 routes/user.js:351 routes/user.js:366
+msgid "Genie - Register"
+msgstr "Genie - Registrarse"
+
+#: routes/user.js:318
+msgid ""
+"You must specify a valid username of at most 60 characters. Special "
+"characters or spaces are not allowed."
+msgstr ""
+"Debe especificar un nombre de usuario válido de 60 caracteres como máximo. "
+"Caracteres especiales o espacios no se permiten."
+
+#: routes/user.js:322
+msgid "You must specify a valid email."
+msgstr "Necesita especificar un correo electrónico válido."
+
+#: routes/user.js:327
+msgid "You must specifiy a valid password, of at least 8 characters."
+msgstr "Necesita especificar una contraseña válida, de al menos 8 caracteres."
+
+#: routes/user.js:330
+msgid "The password and the confirmation do not match."
+msgstr "La contraseña y la confirmación no coinciden."
+
+#: routes/user.js:346
+msgid "You must agree to the consent form to sign-up."
+msgstr "Necesita aceptar el formulario de consentimiento para registrarse."
+
+#: routes/user.js:436
+msgid ""
+"The verification link you have clicked is not valid. You might be logged-in "
+"as the wrong user, or the link might have expired."
+msgstr ""
+"El enlace de verificación que usaste no es válido. Puede ser que hayas "
+"iniciado sesión como un usuario equivocado, o el enlace podría haber "
+"caducado."
+
+#: routes/user.js:443
+msgid "Genie - Verification Successful"
+msgstr "Genie - Verificación exitosa"
+
+#: routes/user.js:452
+msgid "Your email address was already verified."
+msgstr "Su dirección de correo electrónico ya fue verificada."
+
+#: routes/user.js:459
+msgid "You must set an email address before sending a verification email."
+msgstr ""
+"Necesitas establecer una dirección de correo electrónico antes de enviar un "
+"correo electrónico de verificación."
+
+#: routes/user.js:466
+msgid "Genie - Verification Sent"
+msgstr "Genie - Verificación enviada"
+
+#: routes/user.js:467
+#, javascript-format
+msgid ""
+"A verification email was sent to %s. If you did not receive it, please check "
+"your Spam folder."
+msgstr ""
+"Se envió un correo electrónico de verificación a %s. Si no lo recibió, "
+"marque su carpeta de correo no deseado."
+
+#: routes/user.js:474 routes/user.js:553 routes/user.js:560 routes/user.js:590
+#: routes/user.js:610 routes/user.js:627
+msgid "Genie - Password Reset"
+msgstr "Genie - Restablecimiento de contraseña"
+
+#: routes/user.js:514 routes/user.js:531
+msgid "Genie - Password Reset Sent"
+msgstr "Genie - Restablecimiento de contraseña enviado"
+
+#: routes/user.js:515 routes/user.js:532
+#, javascript-format
+msgid ""
+"A recovery email was sent to the address on file for %s. If you did not "
+"receive it, please check the spelling of your username, and check your Spam "
+"folder."
+msgstr ""
+"Se envió un correo electrónico de recuperación a la dirección registrada "
+"para %s. Si no lo recibiste, compruebe la ortografía de su nombre de usuario "
+"y compruebe su correo no deseado carpeta."
+
+#: routes/user.js:523
+msgid ""
+"You did not verify your email address, hence you cannot recover your "
+"password automatically. Please contact the website adminstrators to recover "
+"your password."
+msgstr ""
+"No verificó su dirección de correo electrónico, por lo que no puede "
+"recuperar su contraseña automáticamente. Por favor póngase en contacto con "
+"los administradores del sitio web para recuperar tu contraseña."
+
+#: routes/user.js:547 routes/user.js:600
+msgid "The user for which you're resetting the password no longer exists."
+msgstr "El usuario para el que está restableciendo la contraseña ya no existe."
+
+#: routes/user.js:561
+msgid "The verification link you have clicked is not valid."
+msgstr "El enlace de verificación que usaste no es válido."
+
+#: routes/user.js:584 routes/user.js:769
+msgid "You must specifiy a valid password (of at least 8 characters)"
+msgstr "Necesita especificar una contraseña válida (de al menos 8 caracteres)"
+
+#: routes/user.js:587 routes/user.js:772
+msgid "The password and the confirmation do not match"
+msgstr "La contraseña y la confirmación no coinciden"
+
+#: routes/user.js:612
+msgid "Invalid OTP code"
+msgstr "Código OTP no fue válido"
+
+#: routes/user.js:628
+msgid "Your password was reset successfully."
+msgstr "Tu contraseña se restableció correctamente."
+
+#: routes/user.js:667
+msgid "Thingpedia - User Profile"
+msgstr "Thingpedia - Perfil de usuario"
+
+#: routes/user.js:745
+msgid ""
+"A verification email was sent to your new email address. Account "
+"functionality will be limited until you verify your new address."
+msgstr ""
+"Se envió un correo electrónico de verificación a su nueva dirección de "
+"correo electrónico. La funcionalidad de su cuenta estará limitada hasta que "
+"verifique su nueva dirección."
+
+#: routes/user.js:777
+msgid "You must specifiy your old password"
+msgstr "Necesita especificar su contraseña pasada"
+
+#: routes/user.js:832 routes/user.js:850
+msgid "You are already an enrolled developer."
+msgstr ""
+
+#: routes/user.js:837
+msgid ""
+"You must validate your email address before you can apply to be a Thingpedia "
+"developer."
+msgstr ""
+
+#: routes/user.js:842 routes/user.js:885
+#, fuzzy
+msgid "Thingpedia - Developer Program"
+msgstr "Clave de Desarrollador por Thingpedia"
+
+#: routes/user.js:843 views/thingpedia_portal.pug:57
+#, fuzzy
+msgid "Become a Thingpedia Developer"
+msgstr "Clave de Desarrollador por Thingpedia"
+
+#: routes/user.js:856 routes/developer_console.js:278
+#, javascript-format
+msgid "You cannot use the word “%s” in your organization name."
+msgstr ""
+
+#: routes/user.js:862
+msgid "You must acknowledge that you read the Terms of Service."
+msgstr "Necesita reconocer que leyó los Términos de servicio."
+
+#: routes/user.js:923
+msgid "You must verify your email before accessing Genie's Discourse."
+msgstr ""
+
+#: routes/luinet_templates.js:68
+msgid "index.genie missing from template zip file"
+msgstr ""
+
+#: routes/luinet_templates.js:90
+msgid "Zip file missing"
+msgstr ""
+
+#: routes/luinet_templates.js:99
+#, fuzzy
+msgid "A template pack with this ID already exists."
+msgstr "Un usuario con este nombre ya existe."
+
+#: routes/luinet_templates.js:149
+msgid "LUInet - Available Genie Templates"
+msgstr ""
+
+#: routes/developer_oauth2.js:61
+#, fuzzy
+msgid "Invalid scope"
+msgstr "Código OTP no fue válido"
+
+#: routes/developer_oauth2.js:71
+msgid "Invalid redirect URI (must be an absolute https: URL)"
+msgstr ""
+
+#: routes/developer_oauth2.js:85
+msgid "Name must be provided"
+msgstr ""
+
+#: routes/developer_oauth2.js:87
+msgid "Must upload an icon"
+msgstr ""
+
+#: routes/developer_oauth2.js:96
+msgid "user-sync scope is valid only for administrators"
+msgstr ""
+
+#: routes/luinet_dataset.js:37
+msgid "LUInet - Datasets"
+msgstr ""
+
+#: routes/luinet_dataset.js:57
+#, javascript-format
+msgid "LUInet - Dataset: %s/%s"
+msgstr ""
+
+#: routes/thingpedia_profiles.js:50 routes/thingpedia_profiles.js:81
+#, fuzzy
+msgid "Genie - Not Found"
+msgstr "Genie - Página no Encontrada"
+
+#: routes/thingpedia_profiles.js:51
+#, fuzzy
+msgid "The requested organization does not exist."
+msgstr "La página solicitada no existe."
+
+#: routes/thingpedia_profiles.js:75
+#, javascript-format
+msgid "Genie - Public Profile of %s"
+msgstr ""
+
+#: routes/thingpedia_profiles.js:82
+#, fuzzy
+msgid "The requested user does not exist."
+msgstr "La página solicitada no existe."
+
+#: routes/my_stuff.js:54 routes/my_stuff.js:67 routes/my_stuff.js:93
+#: routes/my_stuff.js:97 views/my_stuff.pug:9
+msgid "My Genie"
+msgstr "Mi Genie"
+
+#: routes/thingpedia_entities.js:51
+#, fuzzy
+msgid "Thingpedia - Entity Types"
+msgstr "Thingpedia - Perfil de usuario"
+
+#: routes/thingpedia_entities.js:64
+#, fuzzy
+msgid "Thingpedia - Entity Values"
+msgstr "Thingpedia - Perfil de usuario"
+
+#: routes/developer_console.js:92
+msgid "Genie Developer Console"
+msgstr ""
+
+#: routes/developer_console.js:108
+msgid "Genie Developer Console - OAuth 2.0 Applications"
+msgstr ""
+
+#: routes/developer_console.js:124
+#, javascript-format
+msgid "%s has not verified their email address yet."
+msgstr ""
+
+#: routes/developer_console.js:179
+msgid "You are already a member of another developer organization."
+msgstr ""
+
+#: routes/developer_console.js:185
+msgid ""
+"The invitation is no longer valid. It might have expired or might have been "
+"rescinded by the organization administrator."
+msgstr ""
+
+#: routes/developer_console.js:199
+#, fuzzy
+msgid "Genie - Developer Invitation"
+msgstr "Genie - Verificación enviada"
+
+#: routes/developer_console.js:200
+#, javascript-format
+msgid "You're now a member of the %s organization."
+msgstr ""
+
+#: routes/developer_console.js:210 routes/developer_console.js:224
+#: routes/developer_console.js:239 routes/developer_console.js:259
+msgid "No such user"
+msgstr ""
+
+#: routes/developer_console.js:222
+msgid "You cannot remove yourself from your developer organization."
+msgstr ""
+
+#: routes/developer_console.js:226 routes/developer_console.js:241
+#: routes/developer_console.js:261
+#, fuzzy
+msgid "The user is not a member of your developer organization."
+msgstr ""
+"Incluye mi nombre en el perfil público de mi organización de desarrolladores."
+
+#: routes/developer_console.js:257
+msgid "You cannot demote yourself."
+msgstr ""
+
+#: routes/developer_console.js:292
+#, fuzzy
+msgid "Genie - Train Almond"
+msgstr "Genie - Verificación enviada"
+
+#: routes/developer_console.js:325
+msgid "Genie Developer Console - Models"
+msgstr ""
+
+#: routes/developer_console.js:341
+msgid "Genie Developer Console - Devices"
+msgstr ""
+
+#: routes/my_oauth2.js:83
+msgid "Genie - Authorize Access"
+msgstr ""
+
+#: routes/thingpedia_portal.js:34
+#, fuzzy
+msgid "Thingpedia - The Open API Collection"
+msgstr "Thingpedia - Perfil de usuario"
+
+#: routes/thingpedia_snapshots.js:42
+#, fuzzy
+msgid "Thingpedia - List of Snapshots"
+msgstr "Thingpedia - Perfil de usuario"
+
+#: routes/thingpedia_devices.js:76
+#, fuzzy, javascript-format
+msgid "list of %s"
+msgstr "Administrador de %s"
+
+#: routes/thingpedia_devices.js:99
+msgid "free-form text"
+msgstr ""
+
+#: routes/thingpedia_devices.js:101
+#, fuzzy
+msgid "number"
+msgstr "Número de Teléfono"
+
+#: routes/thingpedia_devices.js:103
+msgid "true or false"
+msgstr ""
+
+#: routes/thingpedia_devices.js:105
+msgid "currency amount"
+msgstr ""
+
+#: routes/thingpedia_devices.js:109
+#, fuzzy, javascript-format
+msgid "one of %s"
+msgstr "Miembro de %s"
+
+#: routes/thingpedia_devices.js:111
+msgid "time of day"
+msgstr ""
+
+#: routes/thingpedia_devices.js:113
+msgid "point in time"
+msgstr ""
+
+#: routes/thingpedia_devices.js:115
+msgid "location"
+msgstr ""
+
+#: routes/thingpedia_devices.js:143
+#, javascript-format
+msgid "%d milliseconds"
+msgstr ""
+
+#: routes/thingpedia_devices.js:157
+#, javascript-format
+msgid "%d hours %d minutes %d seconds"
+msgstr ""
+
+#: routes/thingpedia_devices.js:159
+#, javascript-format
+msgid "%d minutes %d seconds"
+msgstr ""
+
+#: routes/thingpedia_devices.js:162
+#, javascript-format
+msgid "%d hours %d seconds"
+msgstr ""
+
+#: routes/thingpedia_devices.js:164
+#, javascript-format
+msgid "second"
+msgid_plural "%d seconds"
+msgstr[0] ""
+msgstr[1] ""
+
+#: routes/thingpedia_devices.js:169
+#, javascript-format
+msgid "%d hours %d minutes"
+msgstr ""
+
+#: routes/thingpedia_devices.js:171
+#, javascript-format
+msgid "minute"
+msgid_plural "%d minutes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: routes/thingpedia_devices.js:173
+#, javascript-format
+msgid "hour"
+msgid_plural "%d hours"
+msgstr[0] ""
+msgstr[1] ""
+
+#: routes/thingpedia_devices.js:241
+#, fuzzy
+msgid "Thingpedia - Account details"
+msgstr "Thingpedia - Perfil de usuario"
+
+#: routes/thingpedia_devices.js:243
+#, fuzzy
+msgid "Thingpedia - Device details"
+msgstr "Clave de Desarrollador por Thingpedia"
+
+#: routes/admin_mturk.js:39
+#, fuzzy
+msgid "Thingpedia - MTurk Batches"
+msgstr "Thingpedia - Perfil de usuario"
+
+#: routes/developer_mturk.js:107
+msgid "Must upload the CSV file"
+msgstr ""
+
+#: routes/developer_mturk.js:131
+msgid "Almond Developer Console - MTurk Batches"
+msgstr ""
+
+#: routes/proxy.js:16
+#, fuzzy
+msgid "Invalid Query"
+msgstr "Solicitud no válida"
+
+#: routes/proxy.js:22
+msgid "Oauth Confirmation"
+msgstr ""
+
+#: routes/developer_alexa.js:45 routes/developer_alexa.js:301
+msgid "Almond Developer Console - Alexa Skills"
+msgstr ""
+
+#: routes/developer_alexa.js:164
+#, javascript-format
+msgid "get %s"
+msgstr ""
+
+#: routes/developer_alexa.js:165 util/commandpedia.js:35
+#, javascript-format
+msgid "show me %s"
+msgstr ""
+
+#: routes/developer_alexa.js:166
+#, javascript-format
+msgid "tell me %s"
+msgstr ""
+
+#: routes/developer_alexa.js:167
+#, javascript-format
+msgid "what are %s"
+msgstr ""
+
+#: routes/developer_alexa.js:168
+#, javascript-format
+msgid "list %s"
+msgstr ""
+
+#: routes/developer_alexa.js:177
+#, javascript-format
+msgid "please %s"
+msgstr ""
+
+#: routes/developer_alexa.js:206
+msgid "Alexa does not support monitoring or notifications"
+msgstr ""
+
+#: routes/developer_alexa.js:217
+#, javascript-format
+msgid "Unsupported slot %s of type %s"
+msgstr ""
+
+#: routes/blog.js:50 views/admin_blog_archive.pug:7 views/blog_post.pug:5
+#, fuzzy
+msgid "Genie Blog"
+msgstr "Genie - Iniciar sesión"
+
+#: routes/blog.js:96
+#, javascript-format
+msgid "Almond Blog - %s"
+msgstr ""
+
+#: routes/about.js:39 views/about_index.pug:22 views/register_success.pug:8
+msgid "Genie"
+msgstr "Genie"
+
+#: routes/about.js:58
+msgid "About - Covid Genie"
+msgstr "Sobre - Genie de Covid"
+
+#: routes/about.js:65
+msgid "Contact - Covid Genie"
+msgstr "Contacto - Genie de Covid"
+
+#: routes/about.js:72
+msgid "Terms of Service for Genie & Thingpedia"
+msgstr "Terminos de Servicio para Genio y Thingpedia"
+
+#: routes/about.js:85
+msgid "Genie Privacy Policy"
+msgstr "Póliza de privacidad de Genie"
+
+#: routes/luinet_custom_datasets.js:117
+msgid "The dataset is not yet ready for download."
+msgstr ""
+
+#: util/i18n.js:35 views/admin_training.pug:29
+#: views/thingpedia_translate_schema.pug:56
+msgid "English"
+msgstr "Ingles"
+
+#: util/i18n.js:36
+msgid "English (United States)"
+msgstr "Ingles (EEUU)"
+
+#: util/i18n.js:37
+msgid "English (United Kingdom)"
+msgstr "Ingles (Inglaterra)"
+
+#: util/i18n.js:38 util/i18n.js:39 views/admin_training.pug:30
+msgid "Italian"
+msgstr "Italiano"
+
+#: util/i18n.js:40 views/admin_training.pug:31
+msgid "Chinese"
+msgstr "Chino"
+
+#: util/i18n.js:41
+msgid "Chinese (Simplified)"
+msgstr "Chino (Simplificado)"
+
+#: util/i18n.js:42
+msgid "Chinese (Traditional)"
+msgstr "China (Tradiciónal)"
+
+#: util/i18n.js:43 util/i18n.js:44
+msgid "Spanish"
+msgstr "Español"
+
+#: util/import_device.js:244
+msgid "package.json missing from device zip file"
+msgstr ""
+
+#: util/import_device.js:254
+msgid "Invalid package.json (missing name or main)"
+msgstr ""
+
+#: util/import_device.js:478
+msgid "An icon must be specified for new devices"
+msgstr ""
+
+#: util/import_device.js:563
+#, fuzzy
+msgid "Invalid zip file"
+msgstr "Código OTP no fue válido"
+
+#: util/error_handling.js:30
+#, javascript-format
+msgid ""
+"There is a problem with the Thingpedia account or device you are trying to "
+"configure: %s. Please report this issue to the developer of Thingpedia "
+"device."
+msgstr ""
+"Hay un problema con la cuenta de Thingpedia o el dispositivo que estás intentando "
+"configurar: %s. Por favor informe este problema al dispositivo de desarrollador de "
+"Thingpedia."
+
+#: util/error_handling.js:46
+#, javascript-format
+msgid "Code: %d"
+msgstr "Código: %d"
+
+#: util/error_handling.js:51
+msgid "Genie - Forbidden"
+msgstr "Genie - Prohibido"
+
+#: util/error_handling.js:63
+msgid "Genie - Page Not Found"
+msgstr "Genie - Página no Encontrada"
+
+#: util/error_handling.js:64
+msgid "The requested page does not exist."
+msgstr "La página solicitada no existe."
+
+#: util/error_handling.js:71
+msgid "The identifier you selected is already in use."
+msgstr "El identificador que seleccionó ya está en uso."
+
+#: util/error_handling.js:92
+msgid "You do not have permission to perform the requested operation."
+msgstr "No tienes permiso para realizar la operación solicitada."
+
+#: util/error_handling.js:98
+msgid "Genie - Internal Server Error"
+msgstr "Genie - Error interno del servidor"
+
+#: util/error_handling.js:99
+#, javascript-format
+msgid "Code: %s"
+msgstr "Código: %s"
+
+#: util/validation.js:113
+#, javascript-format
+msgid "Invalid device category %s"
+msgstr ""
+
+#: util/validation.js:120
+msgid "Loader mixin missing from class declaration"
+msgstr ""
+
+#: util/validation.js:131
+#, javascript-format
+msgid "A description is required for entity %s"
+msgstr ""
+
+#: util/commandpedia.js:33
+#, javascript-format
+msgid "notify me %s"
+msgstr ""
+
+#: util/mturk.js:123
+msgid "Cannot start validation: no paraphrases have been submitted yet."
+msgstr ""
+
+#: util/mturk.js:131
+msgid "Cannot start validation: the batch is already closed."
+msgstr ""
+
+#: util/user.js:120
+msgid "A user with this name already exists."
+msgstr "Un usuario con este nombre ya existe."
+
+#: util/user.js:123
+msgid "A user with this email already exists."
+msgstr "Ya existe un usuario con este correo electrónico."
+
+#: util/user.js:217 util/user.js:230 util/user.js:246
+msgid "You do not have permission to perform this operation."
+msgstr "No tienes permiso para realizar esta operación."
+
+#: util/input_validation.js:102
+msgid "Invalid request"
+msgstr "Solicitud no válida"
+
+#: util/passport.js:114 util/passport.js:195
+msgid ""
+"A user with this email already exist, but the email was not verified before."
+msgstr ""
+"Ya existe un usuario con este correo electrónico, pero el correo electrónico "
+"no se verificó antes."
+
+#: util/upload_dataset.js:112
+msgid "Invalid entity type ID."
+msgstr ""
+
+#: util/upload_dataset.js:125
+msgid ""
+"The prefix of the entity ID must correspond to the ID of a Thingpedia device "
+"owned by your organization."
+msgstr ""
+
+#: util/upload_dataset.js:151
+msgid "You must upload a CSV file with the entity values."
+msgstr ""
+
+#: util/upload_dataset.js:223
+msgid "Invalid string type ID."
+msgstr ""
+
+#: util/upload_dataset.js:225
+#, fuzzy
+msgid "Invalid license."
+msgstr "Solicitud no válida"
+
+#: util/upload_dataset.js:238
+msgid ""
+"The prefix of the dataset ID must correspond to the ID of a Thingpedia "
+"device owned by your organization."
+msgstr ""
+
+#: util/upload_dataset.js:242
+msgid "You must upload a TSV file with the string values."
+msgstr ""
+
+#: util/credit_system.js:51
+#, fuzzy, javascript-format
+msgid ""
+"You do not have enough credits to complete this operation, you need at least "
+"%d."
+msgid_plural ""
+"You do not have enough credits to complete this operation, you need at least "
+"%d."
+msgstr[0] "No tienes permiso para realizar esta operación."
+msgstr[1] "No tienes permiso para realizar esta operación."
+
+#: views/admin_training.pug:10 views/admin_portal.pug:33
+msgid "Natural Language Training"
+msgstr ""
+
+#: views/admin_training.pug:20
+msgid "New Training Job"
+msgstr ""
+
+#: views/admin_training.pug:27 views/admin_training.pug:73
+#: views/luinet_dataset_list.pug:13 views/register_mixins.pug:31
+#: views/dev_alexa.pug:59 views/dev_nlp_models.pug:148
+#: views/dev_nlp_models.pug:238 views/dev_nlp_models.pug:329
+#: views/user_profile.pug:80
+msgid "Language"
+msgstr "Lenguaje"
+
+#: views/admin_training.pug:34
+msgid "Job Type"
+msgstr ""
+
+#: views/admin_training.pug:36
+msgid "Update dataset"
+msgstr ""
+
+#: views/admin_training.pug:37
+msgid "Train model"
+msgstr ""
+
+#: views/admin_training.pug:38
+msgid "Update & Train"
+msgstr ""
+
+#: views/admin_training.pug:41
+msgid "Queue Job"
+msgstr ""
+
+#: views/admin_training.pug:45
+msgid "Queue a new training job"
+msgstr ""
+
+#: views/admin_training.pug:47
+msgid "Current Metrics"
+msgstr ""
+
+#: views/admin_training.pug:50
+#, fuzzy
+msgid "Model: %s"
+msgstr "Código: %s"
+
+#: views/admin_training.pug:61
+msgid "%s: %.1f%%"
+msgstr ""
+
+#: views/admin_training.pug:67
+#, fuzzy
+msgid "Queue: %s"
+msgstr "Fotos: %s"
+
+#: views/admin_training.pug:72 views/thingpedia_device_create_or_edit.pug:72
+#: views/dev_alexa.pug:54 views/dev_nlp_models.pug:143
+#: views/dev_nlp_models.pug:228
+msgid "ID"
+msgstr ""
+
+#: views/admin_training.pug:75
+msgid "Model"
+msgstr ""
+
+#: views/admin_training.pug:77 views/admin_org_details.pug:99
+#: views/public_org_profile.pug:33 views/dev_alexa.pug:69
+#: views/dev_nlp_models.pug:163 views/dev_nlp_models.pug:344
+msgid "Devices"
+msgstr ""
+
+#: views/admin_training.pug:78 views/admin_mturk_batch_list.pug:16
+#: views/status.pug:13 views/dev_mturk_batch_list.pug:29
+#: views/dev_nlp_models.pug:273
+msgid "Status"
+msgstr ""
+
+#: views/admin_training.pug:79
+msgid "Progress"
+msgstr ""
+
+#: views/admin_training.pug:80
+msgid "Start Time"
+msgstr ""
+
+#: views/admin_training.pug:81
+msgid "ETA"
+msgstr ""
+
+#: views/admin_training.pug:82 views/admin_mturk_batch_list.pug:17
+#: views/status.pug:84 views/admin_user_list.pug:90
+#: views/admin_user_list.pug:141 views/dev_mturk_batch_list.pug:30
+#: views/dev_nlp_models.pug:275
+#, fuzzy
+msgid "Actions"
+msgstr "Comandos activos"
+
+#: views/admin_training.pug:93
+msgid "all"
+msgstr ""
+
+#: views/admin_training.pug:98
+msgid "waiting for %d"
+msgstr ""
+
+#: views/admin_training.pug:114 views/status.pug:35
+msgid "Kill"
+msgstr ""
+
+#: views/developer_access_required.pug:9
+msgid "Thanks for your interest in Thingpedia!"
+msgstr ""
+
+#: views/developer_access_required.pug:10
+msgid ""
+"The process of becoming a contributor to Thingpedia involves creating a "
+"<i>developer organization</i>. This organization will be the public face of "
+"all your contributions, whether third-party services, integrations, or "
+"natural language models. After the organization is created, you can invite "
+"collaborators and testers."
+msgstr ""
+
+#: views/developer_access_required.pug:11
+msgid ""
+"To create a new organization, fill the following form. If you instead would "
+"like to join an existing organization, you should contact an administrator "
+"and ask to be invited."
+msgstr ""
+
+#: views/developer_access_required.pug:19
+msgid "Organization Name"
+msgstr ""
+
+#: views/developer_access_required.pug:21
+msgid ""
+"This will be visible to other users in your public profile and in all the "
+"devices you contribute to. You can change it later. Please do not use a name "
+"that implies affiliation with Stanford or Genie, unless you have prior "
+"permission."
+msgstr ""
+
+#: views/developer_access_required.pug:23
+msgid ""
+"The following is just for us, to know more about our users. You can leave "
+"all fields blank."
+msgstr ""
+
+#: views/developer_access_required.pug:25
+msgid "Company Name"
+msgstr ""
+
+#: views/developer_access_required.pug:29
+msgid "Reason to use Thingpedia"
+msgstr ""
+
+#: views/developer_access_required.pug:33
+msgid "Additional comments"
+msgstr ""
+
+#: views/developer_access_required.pug:40
+msgid ""
+"I have read and accept the <a href='/about/tos'>Terms of Service</a>, "
+"including the additional sections pertaining to the Thingpedia Developer "
+"program."
+msgstr ""
+
+#: views/developer_access_required.pug:43
+msgid "Create Organization"
+msgstr ""
+
+#: views/register.pug:8 views/register_mixins.pug:57
+msgid "Register"
+msgstr "Registrarse"
+
+#: views/admin_org_list.pug:4
+#, fuzzy
+msgid "Thingpedia Developer Organizations"
+msgstr "Clave de Desarrollador por Thingpedia"
+
+#: views/admin_org_list.pug:15 views/admin_org_list.pug:40
+#: views/luinet_dataset.pug:14 views/luinet_dataset.pug:50
+#: views/blog_archive.pug:30 views/thingpedia_snapshot_list.pug:28
+#: views/admin_blog_archive.pug:53 views/admin_review_queue.pug:17
+#: views/admin_review_queue.pug:50 views/admin_user_list.pug:23
+#: views/admin_user_list.pug:176
+msgid "Previous"
+msgstr "Previo"
+
+#: views/admin_org_list.pug:19 views/admin_org_list.pug:44
+#: views/luinet_dataset.pug:18 views/luinet_dataset.pug:54
+#: views/blog_archive.pug:33 views/thingpedia_snapshot_list.pug:31
+#: views/admin_blog_archive.pug:56 views/admin_review_queue.pug:20
+#: views/admin_review_queue.pug:53 views/admin_user_list.pug:26
+#: views/admin_user_list.pug:179
+msgid "Next"
+msgstr "Proximo"
+
+#: views/admin_org_list.pug:25 views/thingpedia_portal.pug:42
+#: views/commandpedia.pug:6 views/admin_user_list.pug:17
+msgid "Search"
+msgstr "Buscador"
+
+#: views/luinet_dataset.pug:4
+msgid "Dataset: %s/%s"
+msgstr ""
+
+#: views/luinet_dataset.pug:23
+#, fuzzy
+msgid "%d: %s"
+msgstr "Código: %s"
+
+#: views/luinet_dataset.pug:31 views/dev_devices.pug:35
+#: views/admin_blog_archive.pug:35 views/thingpedia_schema.pug:78
+#: views/thingpedia_device_details.pug:241
+#, fuzzy
+msgid "Delete"
+msgstr "Borra su cuenta"
+
+#: views/luinet_dataset.pug:37
+msgid "Upvote"
+msgstr ""
+
+#: views/luinet_dataset.pug:43
+msgid "Downvote"
+msgstr ""
+
+#: views/proxy_confirmation.pug:5
+msgid "Oauth request for %s from: %s"
+msgstr ""
+
+#: views/proxy_confirmation.pug:8
+msgid ""
+"Are you sure you would like to grant %s access to the credentials of device: "
+"%s"
+msgstr ""
+
+#: views/proxy_confirmation.pug:15
+msgid "Continue"
+msgstr ""
+
+#: views/proxy_confirmation.pug:18 views/conversation_mixin.pug:9
+#: views/my_stuff.pug:123
+msgid "Cancel"
+msgstr "Cancele"
+
+#: views/dev_sidebar.pug:4
+msgid "Overview"
+msgstr ""
+
+#: views/dev_sidebar.pug:6 views/dev_train_almond.pug:23
+#, fuzzy
+msgid "Train Genie"
+msgstr "Mi Genie"
+
+#: views/dev_sidebar.pug:8 views/status.pug:23
+msgid "Genie Status and Logs"
+msgstr ""
+
+#: views/dev_sidebar.pug:12
+#, fuzzy
+msgid "Thingpedia Devices"
+msgstr "Clave de Desarrollador por Thingpedia"
+
+#: views/dev_sidebar.pug:14
+msgid "OAuth Applications"
+msgstr ""
+
+#: views/dev_sidebar.pug:17
+msgid "LUInet Models (Beta)"
+msgstr ""
+
+#: views/dev_sidebar.pug:20
+msgid "Alexa Skills (Beta)"
+msgstr ""
+
+#: views/dev_sidebar.pug:23
+msgid "MTurk Paraphrasing (Beta)"
+msgstr ""
+
+#: views/blog_archive.pug:4
+#, fuzzy
+msgid "Genie News"
+msgstr "Genie"
+
+#: views/blog_archive.pug:23
+#, fuzzy
+msgid "By %s. "
+msgstr "Por %s"
+
+#: views/blog_archive.pug:24 views/admin_blog_archive.pug:45
+msgid "Published %s."
+msgstr ""
+
+#: views/thingpedia_snapshot_list.pug:8 views/admin_portal.pug:43
+msgid "Thingpedia Snapshots"
+msgstr ""
+
+#: views/thingpedia_snapshot_list.pug:14
+msgid "[%d] %s"
+msgstr ""
+
+#: views/thingpedia_snapshot_list.pug:15
+msgid "Created on %s"
+msgstr ""
+
+#: views/thingpedia_snapshot_list.pug:18
+msgid "Download types"
+msgstr ""
+
+#: views/thingpedia_snapshot_list.pug:22
+msgid "Download metadata"
+msgstr ""
+
+#: views/thingpedia_snapshot_list.pug:35
+msgid "Create a new snapshot"
+msgstr ""
+
+#: views/thingpedia_snapshot_list.pug:40 views/thingpedia_entity_list.pug:32
+#: views/thingpedia_string_type_list.pug:36
+#: views/thingpedia_device_create_or_edit.pug:85 views/dev_nlp_models.pug:233
+#, fuzzy
+msgid "Description"
+msgstr "No discriminación"
+
+#: views/thingpedia_snapshot_list.pug:44 views/thingpedia_entity_list.pug:47
+#: views/dev_oauth.pug:102 views/dev_mturk_batch_list.pug:85
+#: views/thingpedia_device_create_or_edit.pug:29 views/dev_alexa.pug:84
+#: views/dev_nlp_models.pug:190
+msgid "Create"
+msgstr ""
+
+#: views/thingpedia_portal.pug:11 views/thingpedia_portal.pug:16
+msgid "Thingpedia"
+msgstr ""
+
+#: views/thingpedia_portal.pug:17
+msgid "The Open API Repository"
+msgstr ""
+
+#: views/thingpedia_portal.pug:19
+msgid ""
+"<big>%d</big> devices &amp; services, <big>%d</big> functions supported, and "
+"growing!"
+msgstr ""
+
+#: views/thingpedia_portal.pug:23
+msgid "What is Thingpedia?"
+msgstr ""
+
+#: views/thingpedia_portal.pug:28
+msgid ""
+"Thingpedia is an encyclopedia of applications for the Internet of Things. "
+"Just like how Wikipedia stores knowledge about the world, Thingpedia stores "
+"knowledge about devices in the world. Wikipedia is organized around "
+"articles; Thingpedia is organized around <i>devices</i>, such as Twitter, a "
+"light bulb, or a thermostat."
+msgstr ""
+
+#: views/thingpedia_portal.pug:30
+msgid ""
+"Each device has a entry on Thingpedia. A Thingpedia entry stores the natural "
+"language interface that represent how humans refer to and interact with the "
+"device, and the executable specification corresponding to the device API."
+msgstr ""
+
+#: views/thingpedia_portal.pug:33
+msgid "Supported Devices & Services"
+msgstr ""
+
+#: views/thingpedia_portal.pug:41
+msgid "I want to find a device..."
+msgstr ""
+
+#: views/thingpedia_portal.pug:44 views/commandpedia.pug:8
+msgid "Reset"
+msgstr ""
+
+#: views/thingpedia_portal.pug:49
+msgid "Contribute to Thingpedia"
+msgstr ""
+
+#: views/thingpedia_portal.pug:55 views/dev_devices.pug:42
+msgid "Upload a new device"
+msgstr ""
+
+#: views/dev_devices.pug:10 views/dev_train_almond.pug:13
+#: views/dev_overview.pug:13 views/dev_alexa_model.pug:15
+#: views/dev_oauth.pug:10 views/dev_mturk_batch_list.pug:10
+#: views/dev_alexa.pug:14 views/dev_nlp_models.pug:16
+#, fuzzy
+msgid "Developer Console"
+msgstr "Aceso de Desarrollador"
+
+#: views/dev_devices.pug:20
+#, fuzzy
+msgid "Your Thingpedia Devices"
+msgstr "Clave de Desarrollador por Thingpedia"
+
+#: views/dev_devices.pug:31 views/status.pug:93
+#: views/thingpedia_device_details.pug:230
+msgid "Update"
+msgstr ""
+
+#: views/dev_devices.pug:37
+msgid "Your organization does not own any device yet."
+msgstr ""
+
+#: views/about_index.pug:34
+msgid "Register for Genie"
+msgstr "Registrarse por Genie"
+
+#: views/about_index.pug:44
+msgid "Find a vaccine appointment near you."
+msgstr "Encuentre una cita de vacunación cerca de usted."
+
+#: views/about_index.pug:55
+msgid ""
+"COVID Genie is a Stanford University effort to help get people vaccinated "
+"nationwide."
+msgstr ""
+"COVID Genie es un esfuerzo de la Universidad de Stanford para ayudar a que "
+"las personas se vacunen en todo el país. "
+
+#: views/about_index.pug:57
+msgid ""
+"Chat with Genie to find a COVID-19 vaccine appointment near you, or get "
+"notified when appointments become available."
+msgstr ""
+"Chatee con Genie para encontrar una cita para la vacuna COVID-19 cerca de "
+"usted o reciba una notificación cuando haya citas disponibles. "
+
+#: views/about_index.pug:59 views/about_index.pug:85
+msgid "Get Your Vaccine Now"
+msgstr "Agarra Su Vacuna Ahora"
+
+#: views/about_index.pug:61
+msgid ""
+"You can also text your zipcode to COVID Genie at +1(866)301-0127 for English "
+"and +1(866)301-0129 for Spanish."
+msgstr ""
+"También puede enviar un mensaje de texto con su código postal a COVID Genie "
+"al +1(866)301-0127 para inglés y +1(866)301-0129 para español."
+
+#: views/about_index.pug:76
+msgid "I agree"
+msgstr "Estoy de acuerdo"
+
+#: views/about_index.pug:90
+msgid "Popular Commands"
+msgstr ""
+
+#: views/about_index.pug:95
+msgid "Still Not Seeing What You Want?"
+msgstr ""
+
+#: views/about_index.pug:99
+msgid "Explore Thingpedia"
+msgstr ""
+
+#: views/admin_org_details.pug:5 views/user_profile.pug:88
+msgid "Developer Organization"
+msgstr ""
+
+#: views/admin_org_details.pug:14
+msgid "Developer Organization: %s (%s)"
+msgstr ""
+
+#: views/admin_org_details.pug:16 views/public_org_profile.pug:7
+msgid "Developer Organization: %s"
+msgstr ""
+
+#: views/admin_org_details.pug:20 views/admin_org_details.pug:35
+msgid "Change"
+msgstr ""
+
+#: views/admin_org_details.pug:26
+#, fuzzy
+msgid "New name"
+msgstr "Nombre real"
+
+#: views/admin_org_details.pug:28
+msgid ""
+"This name will be visible to the organization members in their developer "
+"page."
+msgstr ""
+
+#: views/admin_org_details.pug:30
+#, fuzzy
+msgid "New comment"
+msgstr "Comentario"
+
+#: views/admin_org_details.pug:32
+msgid "Text entered here is only visible to the administrators on this page."
+msgstr ""
+
+#: views/admin_org_details.pug:39 views/dev_console.pug:44
+#: views/public_org_profile.pug:12
+#, fuzzy
+msgid "Members"
+msgstr "Miembro de %s"
+
+#: views/admin_org_details.pug:48 views/admin_org_details.pug:60
+#: views/dev_console.pug:53 views/dev_console.pug:114
+#: views/public_org_profile.pug:21
+#, fuzzy
+msgid "Administrator"
+msgstr "Administrador de %s"
+
+#: views/admin_org_details.pug:50 views/admin_org_details.pug:62
+#: views/dev_console.pug:55 views/dev_console.pug:113
+#: views/admin_user_list.pug:128 views/public_org_profile.pug:23
+#: views/user_profile.pug:122
+#, fuzzy
+msgid "Developer"
+msgstr "Aceso de Desarrollador"
+
+#: views/admin_org_details.pug:52 views/admin_org_details.pug:64
+#: views/dev_console.pug:57 views/dev_console.pug:112
+#: views/admin_user_list.pug:131 views/public_org_profile.pug:25
+#: views/user_profile.pug:125
+#, fuzzy
+msgid "Tester"
+msgstr "Registrarse"
+
+#: views/admin_org_details.pug:67 views/dev_console.pug:92
+msgid "Add a member"
+msgstr ""
+
+#: views/admin_org_details.pug:76 views/admin_org_details.pug:94
+msgid "Add member"
+msgstr ""
+
+#: views/admin_org_details.pug:83 views/register_mixins.pug:11
+#: views/dev_console.pug:106 views/password_recovery_start.pug:11
+#: views/login.pug:16 views/user_profile.pug:34
+msgid "Username"
+msgstr ""
+
+#: views/admin_org_details.pug:90
+msgid "Add as a developer"
+msgstr ""
+
+#: views/admin_org_details.pug:110
+msgid "This organization does not own any device yet."
+msgstr ""
+
+#: views/luinet_dataset_list.pug:4
+msgid "Datasets"
+msgstr ""
+
+#: views/luinet_dataset_list.pug:14
+msgid "Type"
+msgstr ""
+
+#: views/luinet_dataset_list.pug:15 views/dev_nlp_models.pug:274
+msgid "Size"
+msgstr ""
+
+#: views/register_mixins.pug:14 views/user_profile.pug:38
+msgid "E-Mail"
+msgstr "Correo electrónico"
+
+#: views/register_mixins.pug:17 views/user_profile.pug:50
+msgid "Phone Number"
+msgstr "Número de Teléfono"
+
+#: views/register_mixins.pug:19
+msgid ""
+"Enter your a mobile phone number if you would like to receive notifications "
+"over SMS."
+msgstr ""
+"Ingrese su número de teléfono móvil si desea recibir notificaciones por SMS."
+
+#: views/register_mixins.pug:21 views/login.pug:19 views/user_profile.pug:162
+#: views/user_profile.pug:174
+msgid "Password"
+msgstr "Contraseña"
+
+#: views/register_mixins.pug:23 views/user_profile.pug:164
+#: views/user_profile.pug:176 views/password_recovery_continue.pug:24
+msgid "Minimum of 8 characters"
+msgstr "Mínimo de 8 caracteres"
+
+#: views/register_mixins.pug:25 views/user_profile.pug:166
+#: views/user_profile.pug:178 views/password_recovery_continue.pug:26
+msgid "Confirm password"
+msgstr "Confirme contraseña"
+
+#: views/register_mixins.pug:26 views/user_profile.pug:167
+#: views/user_profile.pug:179 views/password_recovery_continue.pug:27
+msgid "The password and the confirmation must match"
+msgstr "La contraseña y la confirmación deben coincidir"
+
+#: views/register_mixins.pug:45
+msgid "I agree to grant consent to this research."
+msgstr "Acepto otorgar mi consentimiento para esta investigación."
+
+#: views/register_mixins.pug:53
+msgid ""
+"I agree to the <a href='/about/tos'>terms of service</a> of the Genie "
+"service."
+msgstr ""
+"Acepto <a href='/about/tos'>terms of service</a> del servicio de Genie."
+
+#: views/register_mixins.pug:60
+msgid "Consent Form"
+msgstr "Formulario de Consientimiento"
+
+#: views/register_success.pug:14 views/email_verified.pug:9
+msgid "Welcome to Genie, %s!"
+msgstr "¡Bienvenido a Genie, %s!"
+
+#: views/register_success.pug:17
+msgid "You are now ready to start using Genie for your own accounts."
+msgstr "Ahora está listo para comenzar a usar Genie para sus propias cuentas."
+
+#: views/register_success.pug:20 views/register_success.pug:34
+#: views/register_success.pug:46 views/email_verified.pug:15
+msgid "Go to My Genie"
+msgstr "Ve a Mi Genie"
+
+#: views/register_success.pug:23 views/register_success.pug:37
+#: views/register_success.pug:49
+msgid "Join the Community"
+msgstr "Juntase con la Comunidad"
+
+#: views/register_success.pug:26
+msgid ""
+"A verification email has been sent to your address. Some functionality on "
+"your account, such as developer access, will be limited until you verify "
+"your email. You must click on the verification link to enable your account "
+"in full."
+msgstr ""
+"Se ha enviado un correo electrónico de verificación a su dirección. Algunas "
+"funciones en su cuenta, como el acceso de desarrollador, estará limitada "
+"hasta que verifiques su correo electrónico. Debe usar el enlace de "
+"verificación para habilitar su cuenta en su totalidad."
+
+#: views/register_success.pug:31
+msgid "Resend verification email"
+msgstr "Reenvíe correo electrónico de verificación"
+
+#: views/register_success.pug:40
+msgid ""
+"You did not provide an email address. Some functionality on your account, "
+"such as developer access, will be limited until you provide and verify your "
+"email. You can do so from your user settings."
+msgstr ""
+"No proporcionaste una dirección de correo electrónico. Algunas funciones en "
+"su cuenta, como el acceso de desarrollador, será limitado hasta que "
+"proporciones y verifiques sucorreo electrónico. Puede hacerlo desde la "
+"configuración de usuario."
+
+#: views/register_success.pug:43
+msgid "User Settings"
+msgstr "Configuración de usuario"
+
+#: views/oauth2_authorize.pug:8 views/my_conversation.pug:12
+#, fuzzy
+msgid "Web Genie"
+msgstr "Web Genie"
+
+#: views/oauth2_authorize.pug:11
+msgid "Authorize %s to access your Genie?"
+msgstr ""
+
+#: views/oauth2_authorize.pug:16
+msgid "Authorizing this application will grant the following permissions:"
+msgstr ""
+
+#: views/oauth2_authorize.pug:19
+msgid "Read your user profile (name, email)."
+msgstr ""
+
+#: views/oauth2_authorize.pug:21
+msgid ""
+"Read the list of your active commands, and the list of configured devices."
+msgstr ""
+
+#: views/oauth2_authorize.pug:23
+msgid "Execute commands on your behalf."
+msgstr ""
+
+#: views/oauth2_authorize.pug:25
+msgid "Access all your stored credentials."
+msgstr ""
+
+#: views/oauth2_authorize.pug:28
+msgid ""
+"See the devices you uploaded to Thingpedia before they are approved, and "
+"access their code."
+msgstr ""
+
+#: views/oauth2_authorize.pug:30
+msgid "Upload new devices to Thingpedia, and update existing devices."
+msgstr ""
+
+#: views/oauth2_authorize.pug:32
+msgid "Modify the settings of your Thingpedia developer organization."
+msgstr ""
+
+#: views/oauth2_authorize.pug:35
+msgid ""
+"%s is not affiliated or verified by Genie. We make no representation as to "
+"the quality of this application. Please only grant access to applications "
+"you trust."
+msgstr ""
+
+#: views/oauth2_authorize.pug:37
+msgid "This app is developed by %s (%s)"
+msgstr ""
+
+#: views/oauth2_authorize.pug:45
+msgid "Allow"
+msgstr ""
+
+#: views/oauth2_authorize.pug:47
+msgid "Deny"
+msgstr ""
+
+#: views/login_required.pug:4 views/qrcode.pug:5 views/error.pug:4
+msgid "Error"
+msgstr "Error"
+
+#: views/login_required.pug:7
+msgid "Login required"
+msgstr "Inicio de sesión Requerido "
+
+#: views/login_required.pug:8
+msgid "Sorry but you must log in before opening this page"
+msgstr "Lo siento, pero debes iniciar sesión antes de abrir esta página."
+
+#: views/login_required.pug:10 views/error.pug:16
+msgid "Go back"
+msgstr "Regresa"
+
+#: views/login_required.pug:12 views/2fa_login.pug:25 views/login.pug:22
+msgid "Log in"
+msgstr "Inciar sesión"
+
+#: views/dev_train_almond.pug:24
+msgid ""
+"If Genie is misbehaving or misinterpreting your input, you can correct it "
+"here."
+msgstr ""
+
+#: views/dev_train_almond.pug:27
+msgid ""
+"Try entering a verbal command by clicking the button below to start and stop "
+"the recording! Then, just correct the transcription in the input box and "
+"press <kbd>Enter</kbd>. Alternatively, type a sentence and then press "
+"<kbd>Enter</kbd>."
+msgstr ""
+
+#: views/dev_train_almond.pug:28
+msgid ""
+"Then click on the corresponding interpretation, or use the ThingTalk options "
+"to write the corresponding code manually."
+msgstr ""
+
+#: views/dev_train_almond.pug:34
+msgid "Edit ThingTalk before learning."
+msgstr ""
+
+#: views/dev_train_almond.pug:37
+msgid "Input:"
+msgstr ""
+
+#: views/dev_train_almond.pug:39
+msgid "Say a command!"
+msgstr ""
+
+#: views/dev_train_almond.pug:42
+#, fuzzy
+msgid "Code:"
+msgstr "Código: %d"
+
+#: views/dev_train_almond.pug:46
+msgid "Learn"
+msgstr ""
+
+#: views/dev_train_almond.pug:48
+msgid "Genie's choice: "
+msgstr ""
+
+#: views/dev_train_almond.pug:50
+msgid "Your choice:"
+msgstr ""
+
+#: views/dev_train_almond.pug:54
+msgid ""
+"You have trained Genie with <span id=counter></span> sentences. Thank you!"
+msgstr ""
+
+#: views/email_verified.pug:12
+msgid ""
+"Thank you for verifying your email. You can now use the full functionality "
+"of your account."
+msgstr ""
+
+#: views/thingpedia_entity_list.pug:8
+msgid "Entity Types"
+msgstr ""
+
+#: views/thingpedia_entity_list.pug:14
+msgid "Create a new entity type"
+msgstr ""
+
+#: views/thingpedia_entity_list.pug:22
+msgid "New Entity Type"
+msgstr ""
+
+#: views/thingpedia_entity_list.pug:28
+msgid "Entity ID"
+msgstr ""
+
+#: views/thingpedia_entity_list.pug:30
+msgid ""
+"Entity ID, used to form type references in ThingTalk. Must be of the form "
+"<i>prefix</i>:<i>suffix</i>, where <i>prefix</i> is the ID of a device entry "
+"you control, and <i>suffix</i> is an identifier."
+msgstr ""
+
+#: views/thingpedia_entity_list.pug:34 views/thingpedia_string_type_list.pug:38
+#: views/dev_nlp_models.pug:235
+msgid "This description will be shown on the documentation"
+msgstr ""
+
+#: views/thingpedia_entity_list.pug:39
+msgid ""
+" This entity is an opaque identifier that cannot be used from natural "
+"language."
+msgstr ""
+
+#: views/thingpedia_entity_list.pug:41 views/thingpedia_string_type_list.pug:40
+msgid "List of values"
+msgstr ""
+
+#: views/thingpedia_entity_list.pug:43
+msgid ""
+"Upload a CSV file with all the values for this entity, one per line. The "
+"file should be formatted as <samp><i>value</i>,<i>name</i></samp>, where "
+"<i>value</i> is the API identifier and <i>name</i> is the name that will be "
+"available in natural language. If an entity can have multiple names (e.g. "
+"the stock ticker symbol ‘goog’ can be recalled as Google or Alphabet), use "
+"multiple lines with different names and same value."
+msgstr ""
+
+#: views/thingpedia_entity_list.pug:57
+msgid "This is a builtin entity with special natural language support."
+msgstr ""
+
+#: views/thingpedia_entity_list.pug:57
+msgid "This is a built-in entity type with special natural language support."
+msgstr ""
+
+#: views/thingpedia_entity_list.pug:59 views/thingpedia_entity_list.pug:60
+msgid "This entity can used in natural language"
+msgstr ""
+
+#: views/2fa_setup.pug:8
+msgid "Two-Factor Authentication"
+msgstr "Autenticación de Dos Factores"
+
+#: views/2fa_setup.pug:9
+#, fuzzy
+msgid "2-Factor Auth"
+msgstr "Autenticación de Dos Factores"
+
+#: views/2fa_setup.pug:12
+msgid ""
+"To set up two-factor authentication, open your Authenticator app (e.g. "
+"Google Authenticator, or Duo Mobile), then scan the following QR code. When "
+"you are ready, input one OTP code in the form, to verify that the "
+"configuration was correct."
+msgstr ""
+
+#: views/2fa_setup.pug:16
+#, fuzzy
+msgid ""
+"It appears that you have configured two-factor authentication previously."
+msgstr "Ya configuraste la autenticación de dos factores."
+
+#: views/2fa_setup.pug:19
+msgid ""
+"If you complete the form here, your previous configuration will become "
+"invalid."
+msgstr ""
+
+#: views/2fa_setup.pug:22
+msgid ""
+"Use this form only to transfer your two-factor configuration to a new phone "
+"or app."
+msgstr ""
+
+#: views/2fa_setup.pug:32 views/password_recovery_continue.pug:31
+msgid "OTP Code"
+msgstr ""
+
+#: views/2fa_setup.pug:35
+#, fuzzy
+msgid "Enable Two-Factor Authentication"
+msgstr "Autenticación de Dos Factores"
+
+#: views/admin_blog_archive.pug:11
+msgid "Create a new post"
+msgstr ""
+
+#: views/admin_blog_archive.pug:17 views/thingpedia_schema.pug:73
+#: views/blog_post.pug:31
+msgid "Edit"
+msgstr ""
+
+#: views/admin_blog_archive.pug:24
+#, fuzzy
+msgid "Unpublish"
+msgstr "Ingles"
+
+#: views/admin_blog_archive.pug:29
+msgid "Publish"
+msgstr ""
+
+#: views/admin_blog_archive.pug:47
+msgid "Not published yet."
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:8
+msgid "String Datasets"
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:14
+msgid "Upload a new string dataset"
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:22
+msgid "New String Dataset"
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:28
+msgid "Dataset ID"
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:31
+msgid ""
+"The ID is used to refer to the dataset in a <code>#[string_values='']</code> "
+"annotation."
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:34
+msgid ""
+"It must be of the form <var>prefix</var>:<var>suffix</var>, where "
+"<var>prefix</var> is the ID of a device you control, and <var>suffix</var> "
+"is an identifier."
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:43
+msgid ""
+"Upload a TSV (tab separated) file with all the values for this entity, one "
+"per line. The file should be formatted as <code><var>value</var>&lt;tab&gt;"
+"<var>weight</var></code>, where <var>value</var> is the string value and "
+"<var>weight</var> is the unnormalized sampling probability for this value. "
+"Including weights in the file is optional. If the weights are provided, the "
+"dataset used for training will reflect the given distribution. If weights "
+"are omitted for any row, they default to 1.0."
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:48
+#, fuzzy
+msgid " The input file is already tokenized."
+msgstr "El identificador que seleccionó ya está en uso."
+
+#: views/thingpedia_string_type_list.pug:50
+#: views/thingpedia_device_create_or_edit.pug:100
+msgid "License"
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:52
+msgid "Public domain"
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:53
+msgid "Free (permissive)"
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:54
+msgid "Free (GPL-compatible copyleft)"
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:55
+msgid "Non Commercial (incl. academic licenses)"
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:56
+#: views/thingpedia_device_details.pug:126
+msgid "Proprietary"
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:58
+msgid ""
+"By submitting this dataset, you agree to license it with the above choice of "
+"license, in accordance with the <a href='/about/tos'>Terms of Service</a>. "
+"You must not upload datasets for which you do not have the relevant "
+"licenses. Proprietary datasets will not be downloadable, and will only be "
+"used to train the natural language model for Genie."
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:60
+msgid "Attribution"
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:62
+msgid ""
+"Use this field to provide details of the copyright and attribution, "
+"including any citations of relevant papers."
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:65 views/blog_create_or_edit.pug:73
+#: views/dev_nlp_models.pug:261
+msgid "Upload"
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:76
+msgid "This dataset is proprietary and cannot be downloaded"
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:76
+#: views/thingpedia_string_type_list.pug:79
+#: views/thingpedia_string_type_list.pug:105 views/luinet_model_list.pug:38
+#: views/my_stuff.pug:142 views/dev_nlp_models.pug:304
+msgid "Download"
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:84
+msgid "Close"
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:87
+msgid "Download Dataset"
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:90
+msgid "You are about to download the “%s” dataset."
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:94
+msgid ""
+"This dataset is available only for non-commercial research use. By "
+"downloading this dataset, you agree to be bound by license agreement, "
+"including any attribution clause."
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:96
+msgid "Please review the license of this dataset before downloading it."
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:97
+msgid "License & Attribution"
+msgstr ""
+
+#: views/thingpedia_string_type_list.pug:101
+msgid ""
+"While this dataset is in the public domain, the author of this dataset has "
+"asked that you provide attribution if you use it:"
+msgstr ""
+
+#: views/2fa_login.pug:4 views/login.pug:4
+msgid "Login"
+msgstr "Incio de sesión"
+
+#: views/2fa_login.pug:13
+msgid ""
+"You have configured two-factor authentication for this user. Please enter "
+"the One Time Password generated from your Authenticator app."
+msgstr ""
+"Ha configurado la autenticación de dos factores para este usuario. Por favor "
+"escribe la contraseña de un solo uso generada desde su aplicación "
+"Authenticator."
+
+#: views/2fa_login.pug:17
+msgid "OTP"
+msgstr "OTP"
+
+#: views/2fa_login.pug:23
+msgid "Remember me on this computer."
+msgstr "Recuerdame en esta computadora"
+
+#: views/2fa_login.pug:27
+msgid ""
+"Having trouble? If you have lost access to your authenticator app, please "
+"contact us to regain access to your account."
+msgstr ""
+"¿Teniendo problemas? Si ha perdido el acceso a su aplicación de "
+"autenticación, contáctenos para recuperar el acceso a su cuenta."
+
+#: views/thingpedia_cheatsheet.pug:10
+msgid "Genie Cheatsheet"
+msgstr ""
+
+#: views/thingpedia_cheatsheet.pug:17 views/thingpedia_device_details.pug:149
+msgid "WHEN: "
+msgstr ""
+
+#: views/thingpedia_cheatsheet.pug:19 views/thingpedia_device_details.pug:151
+#: views/thingpedia_device_details.pug:173
+msgid "GET: "
+msgstr ""
+
+#: views/thingpedia_cheatsheet.pug:21 views/thingpedia_device_details.pug:153
+#: views/thingpedia_device_details.pug:175
+msgid "DO: "
+msgstr ""
+
+#: views/mturk-submit.pug:7
+msgid "Thank You!"
+msgstr ""
+
+#: views/mturk-submit.pug:11
+msgid ""
+"You paraphrases has been submitted. Thank you a lot for contributing to "
+"Genie. We will mark your submission once we finish this batch."
+msgstr ""
+
+#: views/mturk-submit.pug:12
+msgid ""
+"Here is your submission code. Make sure you copy and paste it into your "
+"Mechanical Turk submission."
+msgstr ""
+
+#: views/dev_alexa_model.pug:25
+#, fuzzy
+msgid "Alexa Skill: %s"
+msgstr "Habilidades Activadas"
+
+#: views/dev_alexa_model.pug:27
+msgid "ID: %s"
+msgstr ""
+
+#: views/dev_alexa_model.pug:28
+msgid "Language: %s"
+msgstr "Lenguaje: %s"
+
+#: views/dev_alexa_model.pug:30
+msgid "Intents"
+msgstr ""
+
+#: views/dev_alexa_model.pug:42
+msgid "This intent cannot be used in Alexa: %s"
+msgstr ""
+
+#: views/dev_alexa_model.pug:48
+msgid "Interaction Model"
+msgstr ""
+
+#: views/dev_alexa_model.pug:50
+msgid "Show/Hide Code"
+msgstr ""
+
+#: views/admin_mturk_batch_list.pug:4 views/admin_portal.pug:49
+msgid "MTurk Batches"
+msgstr ""
+
+#: views/admin_mturk_batch_list.pug:10 views/admin_review_queue.pug:25
+#: views/thingpedia_entity_values.pug:36 views/dev_console.pug:14
+#: views/dev_console.pug:24 views/status.pug:82 views/dev_oauth.pug:59
+#: views/dev_mturk_batch_list.pug:24 views/dev_mturk_batch_list.pug:73
+#: views/thingpedia_device_create_or_edit.pug:80
+msgid "Name"
+msgstr ""
+
+#: views/admin_mturk_batch_list.pug:11 views/admin_review_queue.pug:26
+msgid "Owner"
+msgstr ""
+
+#: views/admin_mturk_batch_list.pug:12 views/dev_mturk_batch_list.pug:25
+msgid "# inputs"
+msgstr ""
+
+#: views/admin_mturk_batch_list.pug:13 views/dev_mturk_batch_list.pug:26
+msgid "Target size"
+msgstr ""
+
+#: views/admin_mturk_batch_list.pug:14 views/dev_mturk_batch_list.pug:27
+msgid "# submissions"
+msgstr ""
+
+#: views/admin_mturk_batch_list.pug:15 views/dev_mturk_batch_list.pug:28
+msgid "# validated"
+msgstr ""
+
+#: views/admin_mturk_batch_list.pug:28 views/admin_mturk_batch_list.pug:30
+#: views/dev_mturk_batch_list.pug:39 views/dev_mturk_batch_list.pug:41
+msgid "%d (%.0f %%)"
+msgstr ""
+
+#: views/admin_mturk_batch_list.pug:33 views/dev_mturk_batch_list.pug:44
+msgid "Not Started"
+msgstr ""
+
+#: views/admin_mturk_batch_list.pug:36 views/dev_mturk_batch_list.pug:47
+msgid "Paraphrasing"
+msgstr ""
+
+#: views/admin_mturk_batch_list.pug:38 views/dev_mturk_batch_list.pug:49
+msgid "Ready to Validate"
+msgstr ""
+
+#: views/admin_mturk_batch_list.pug:40 views/dev_mturk_batch_list.pug:51
+msgid "Validation"
+msgstr ""
+
+#: views/admin_mturk_batch_list.pug:42 views/dev_mturk_batch_list.pug:53
+msgid "Complete"
+msgstr ""
+
+#: views/admin_mturk_batch_list.pug:45 views/admin_mturk_batch_list.pug:47
+#: views/dev_mturk_batch_list.pug:56 views/dev_mturk_batch_list.pug:58
+msgid "Downloads CSV"
+msgstr ""
+
+#: views/admin_mturk_batch_list.pug:53 views/dev_mturk_batch_list.pug:64
+msgid "Start Validation"
+msgstr ""
+
+#: views/blog_create_or_edit.pug:11
+#, fuzzy
+msgid "Genie Blog Editor"
+msgstr "Genie - Error"
+
+#: views/blog_create_or_edit.pug:25
+msgid "Title"
+msgstr ""
+
+#: views/blog_create_or_edit.pug:28
+msgid "Image"
+msgstr ""
+
+#: views/blog_create_or_edit.pug:31
+msgid "Blurb"
+msgstr ""
+
+#: views/blog_create_or_edit.pug:33
+msgid "A short text that will be shown in the front page and archive."
+msgstr ""
+
+#: views/blog_create_or_edit.pug:36
+msgid "Body"
+msgstr ""
+
+#: views/blog_create_or_edit.pug:40
+#, fuzzy
+msgid "Preview"
+msgstr "Previo"
+
+#: views/blog_create_or_edit.pug:43 views/thingpedia_translate_schema.pug:69
+#: views/thingpedia_device_create_or_edit.pug:29
+msgid "Save"
+msgstr ""
+
+#: views/blog_create_or_edit.pug:46 views/blog_create_or_edit.pug:65
+msgid "Upload a picture"
+msgstr ""
+
+#: views/blog_create_or_edit.pug:70
+msgid "File"
+msgstr ""
+
+#: views/mturk.pug:17 views/mturk_validate.pug:14
+msgid "Instructions"
+msgstr ""
+
+#: views/mturk.pug:46 views/mturk_validate.pug:33
+msgid "Examples"
+msgstr ""
+
+#: views/mturk.pug:90 views/mturk_validate.pug:69
+#, fuzzy
+msgid "Your Turn Now"
+msgstr "Agarra Su Vacuna Ahora"
+
+#: views/mturk.pug:99
+#, fuzzy
+msgid "Command "
+msgstr "Comando:"
+
+#: views/mturk.pug:105
+msgid "Hint: this command uses %s."
+msgstr ""
+
+#: views/mturk.pug:115
+msgid "Paraphrase "
+msgstr ""
+
+#: views/mturk.pug:116
+msgid "Something wrong for this paraphrase"
+msgstr ""
+
+#: views/mturk.pug:119 views/mturk_validate.pug:94
+msgid "Worker ID "
+msgstr ""
+
+#: views/mturk.pug:123 views/mturk_validate.pug:97
+msgid "Submit"
+msgstr ""
+
+#: views/mturk.pug:124
+msgid "You cannot submit until you finish the tasks."
+msgstr ""
+
+#: views/commandpedia.pug:5
+msgid "I want to find a command..."
+msgstr ""
+
+#: views/commandpedia.pug:10
+#, fuzzy
+msgid "Add a New Command"
+msgstr "Comandos activos"
+
+#: views/commandpedia.pug:18
+#, fuzzy
+msgid "Add New Command"
+msgstr "Comandos activos"
+
+#: views/commandpedia.pug:25
+#, fuzzy
+msgid "Command"
+msgstr "Comando:"
+
+#: views/commandpedia.pug:26
+msgid "What does the command accomplish?"
+msgstr ""
+
+#: views/commandpedia.pug:28
+msgid "Do you mean:"
+msgstr ""
+
+#: views/commandpedia.pug:31
+msgid "Sorry, I did not understand that."
+msgstr ""
+
+#: views/commandpedia.pug:34
+msgid "Write ThingTalk code manually."
+msgstr ""
+
+#: views/commandpedia.pug:36
+msgid "ThingTalk Code"
+msgstr ""
+
+#: views/commandpedia.pug:37
+msgid " (How to write ThingTalk?)"
+msgstr ""
+
+#: views/commandpedia.pug:38
+msgid "Code Here..."
+msgstr ""
+
+#: views/commandpedia.pug:41
+msgid ""
+"Don't know how to write ThingTalk, or do you suspect this command is not "
+"supported?"
+msgstr ""
+
+#: views/commandpedia.pug:44
+msgid "Suggest this command for future inclusion instead."
+msgstr ""
+
+#: views/commandpedia.pug:47
+msgid "Please confirm this is what you would like your command to do:"
+msgstr ""
+
+#: views/commandpedia.pug:50
+msgid "You command has been added. Thank you for your contribution!"
+msgstr ""
+
+#: views/commandpedia.pug:54
+msgid "Add"
+msgstr ""
+
+#: views/commandpedia.pug:60
+#, fuzzy
+msgid "Find More Commands"
+msgstr "Comandos activos"
+
+#: views/thingpedia_schema.pug:11
+msgid "Class: %s"
+msgstr ""
+
+#: views/thingpedia_schema.pug:21
+msgid "This type is not yet approved."
+msgstr ""
+
+#: views/thingpedia_schema.pug:23 views/thingpedia_schema.pug:36
+#: views/thingpedia_device_details.pug:28
+#: views/thingpedia_device_details.pug:40
+msgid "Approve it"
+msgstr ""
+
+#: views/thingpedia_schema.pug:25
+msgid "This type belongs to a device that was not yet approved."
+msgstr ""
+
+#: views/thingpedia_schema.pug:27
+msgid ""
+"This type is not yet approved for general use. You need a developer key to "
+"use it."
+msgstr ""
+
+#: views/thingpedia_schema.pug:33
+msgid "A newer version of this schema was submitted."
+msgstr ""
+
+#: views/thingpedia_schema.pug:38
+msgid " Go to the corresponding device page to approve it."
+msgstr ""
+
+#: views/thingpedia_schema.pug:43
+msgid "The translation for this type in your language is incomplete. "
+msgstr ""
+
+#: views/thingpedia_schema.pug:44 views/thingpedia_device_details.pug:49
+msgid "Contribute translation"
+msgstr ""
+
+#: views/thingpedia_schema.pug:48
+msgid "This type is a marker for discovery. "
+msgstr ""
+
+#: views/thingpedia_schema.pug:49
+msgid ""
+"It is used by a device to indicate a certain low-level capability, and has "
+"no actions of its own. "
+msgstr ""
+
+#: views/thingpedia_schema.pug:50
+msgid ""
+"Most likely, you will find this type together with another more generic "
+"type, eg. <i>bluetooth-uuid-0000110b-0000-1000-8000-00805f9b34fb</i>, "
+"indicating the A2DP Speaker capability, would be accompanied by <i>speaker</"
+"i>."
+msgstr ""
+
+#: views/thingpedia_schema.pug:55
+msgid "Version: none (approved), %d (developer)"
+msgstr ""
+
+#: views/thingpedia_schema.pug:57
+msgid "Version: %d (approved), %d (developer)"
+msgstr ""
+
+#: views/thingpedia_schema.pug:59 views/luinet_template_list.pug:17
+#: views/dev_nlp_models.pug:202
+msgid "Version: %d"
+msgstr ""
+
+#: views/thingpedia_schema.pug:61
+msgid "Class Definition"
+msgstr ""
+
+#: views/thingpedia_schema.pug:65 views/thingpedia_translate_schema.pug:64
+msgid "Dataset"
+msgstr ""
+
+#: views/thingpedia_schema.pug:81 views/thingpedia_device_details.pug:257
+msgid "Translate"
+msgstr ""
+
+#: views/about_privacy.pug:4 views/stanford/about_privacy.pug:4
+#: views/footer.pug:17
+msgid "Privacy Policy"
+msgstr "Póliza de privacidad"
+
+#: views/contact.pug:4 views/navbar.pug:7
+msgid "Contact"
+msgstr "Contacto"
+
+#: views/contact.pug:8
+msgid ""
+"Please send us feedback at <a href='mailto:covid-genie-feedback@lists."
+"stanford.edu'>covid-genie-feedback@lists.stanford.edu</a>."
+msgstr ""
+"Envíenos sus comentarios a <a href='mailto:covid-genie-feedback@lists."
+"stanford.edu'>covid-genie-feedback@lists.stanford.edu</a>."
+
+#: views/contact.pug:9
+msgid "We welcome volunteers to help in all these areas:"
+msgstr "Damos la bienvenida a voluntarios para ayudar en todas estas áreas:"
+
+#: views/contact.pug:11
+msgid ""
+"A real-time database of Covid appointments. We have a standard API for "
+"submitting data to our database. Please contact us if you wish to contribute "
+"to this effort."
+msgstr ""
+"Una base de datos en tiempo real de citas de Covid. Tenemos una API estándar "
+"para enviar datos a nuestra base de datos. Por favor contáctenos si desea "
+"contribuir a este esfuerzo."
+
+#: views/contact.pug:12
+msgid ""
+"A Covid questions repository. We are curating a set of questions about Covid "
+"vaccines. Please contact us if you wish to contribute to the repository."
+msgstr ""
+"Un repositorio de preguntas de Covid. Estamos curando una serie de preguntas "
+"sobre las vacunas Covid. Por favor contáctenos si desea contribuir al "
+"repositorio."
+
+#: views/contact.pug:13
+msgid ""
+"Outreach. We are particularly interested in reaching communities that have "
+"been disproportionately affected by COVID-19 and have less access to "
+"information about COVID. We welcome collaborators in reaching out to these "
+"communities."
+msgstr ""
+"Divulgación. Estamos particularmente interesados en llegar a las comunidades "
+"que se han visto afectadas de manera desproporcionada por COVID-19 y tienen "
+"menos acceso a la información sobre COVID. Damos la bienvenida a los "
+"colaboradores para llegar a estas comunidades."
+
+#: views/admin_review_queue.pug:4 views/admin_portal.pug:37
+msgid "Unreviewed Devices"
+msgstr ""
+
+#: views/admin_review_queue.pug:27
+msgid "Approved version"
+msgstr ""
+
+#: views/admin_review_queue.pug:28
+msgid "Approval time"
+msgstr ""
+
+#: views/admin_review_queue.pug:29
+#, fuzzy
+msgid "Dev version"
+msgstr "Grabe conversación"
+
+#: views/admin_review_queue.pug:30
+msgid "Last modified"
+msgstr ""
+
+#: views/admin_review_queue.pug:41
+msgid "Never"
+msgstr ""
+
+#: views/blog_post.pug:15
+msgid "Permalink"
+msgstr ""
+
+#: views/blog_post.pug:21
+msgid "By %s. Not published yet."
+msgstr ""
+
+#: views/blog_post.pug:23
+msgid "By %s. Published %s."
+msgstr ""
+
+#: views/blog_post.pug:25
+msgid "By %s. Published %s, updated %s."
+msgstr ""
+
+#: views/thingpedia_entity_values.pug:8
+msgid "Entity: %s"
+msgstr ""
+
+#: views/thingpedia_entity_values.pug:13
+msgid ""
+"This entity type refers to the ID of a device in Thingpedia (e.g. com."
+"twitter or com.hue)."
+msgstr ""
+
+#: views/thingpedia_entity_values.pug:15
+msgid ""
+"In natural language, this entity is represented using the Thingpedia device "
+"name (e.g. Twitter or Philips Hue)."
+msgstr ""
+
+#: views/thingpedia_entity_values.pug:18
+msgid "Go to the list of all devices."
+msgstr ""
+
+#: views/thingpedia_entity_values.pug:20
+msgid ""
+"This entity type refers to a Thingpedia function, using the syntax "
+"<i>classname</i>:<i>functionname</i>, e.g. <code>com.twitter:post</code>. "
+"This entity type is not accessible from natural language."
+msgstr ""
+
+#: views/thingpedia_entity_values.pug:22
+msgid ""
+"This entity type refers to a full ThingTalk program. It is used by <code>@<a "
+"href='/thingpedia/devices/by-id/org.thingpedia.builtin.thingengine."
+"builtin'>org.thingpedia.builtin.thingengine.builtin</a>.get_commands</code> "
+"to return the example commands. This entity type is not accessible from "
+"natural language."
+msgstr ""
+
+#: views/thingpedia_entity_values.pug:24
+msgid ""
+"This entity type refers to the identifier of a <i>flow</i>, which connects "
+"two communicating ThingTalk programs. It is used by Communicating Genie, and "
+"is not accessible from natural language."
+msgstr ""
+
+#: views/thingpedia_entity_values.pug:26
+msgid ""
+"This entity type refers to the URL of a picture. Constants of this entity "
+"type cannot be expressed in natural language."
+msgstr ""
+
+#: views/thingpedia_entity_values.pug:28
+msgid "This entity type uses special syntax in the semantic parser."
+msgstr ""
+
+#: views/thingpedia_entity_values.pug:30
+msgid ""
+"This entity is an opaque identifier and is not accessible from natural "
+"language."
+msgstr ""
+
+#: views/thingpedia_entity_values.pug:35
+msgid "Value"
+msgstr ""
+
+#: views/about_tos.pug:4
+msgid "Terms & Conditions"
+msgstr "Términos y Condiciónes"
+
+#: views/dev_console.pug:2
+msgid "Your developer organization"
+msgstr ""
+
+#: views/dev_console.pug:6
+#, fuzzy
+msgid "Profile"
+msgstr "Perfil de Usario"
+
+#: views/dev_console.pug:18 views/user_profile.pug:135
+#, fuzzy
+msgid "Update profile"
+msgstr "Perfil de Usario"
+
+#: views/dev_console.pug:21 views/dev_console.pug:27
+#, fuzzy
+msgid "Show my organization's public profile"
+msgstr "Muestra mi nombre real en mi perfil público."
+
+#: views/dev_console.pug:31
+msgid "Statistics"
+msgstr ""
+
+#: views/dev_console.pug:35
+msgid "Your organization owns <strong>%d</strong> Thingpedia device."
+msgid_plural "Your organization owns <strong>%d</strong> Thingpedia devices."
+msgstr[0] ""
+msgstr[1] ""
+
+#: views/dev_console.pug:36
+msgid " Of these, <strong>%d</strong> is approved."
+msgid_plural " Of these, <strong>%d</strong> are approved."
+msgstr[0] ""
+msgstr[1] ""
+
+#: views/dev_console.pug:39
+msgid "You have <strong>%d</strong> credit."
+msgid_plural "You have <strong>%d</strong> credits."
+msgstr[0] ""
+msgstr[1] ""
+
+#: views/dev_console.pug:40
+msgid " You will receive <strong>%d</strong> credit on %s."
+msgid_plural " You will receive <strong>%d</strong> credits on %s."
+msgstr[0] ""
+msgstr[1] ""
+
+#: views/dev_console.pug:65
+msgid "Promote"
+msgstr ""
+
+#: views/dev_console.pug:71
+msgid "Demote"
+msgstr ""
+
+#: views/dev_console.pug:76
+msgid "Remove"
+msgstr ""
+
+#: views/dev_console.pug:80
+msgid "Invited (pending)"
+msgstr ""
+
+#: views/dev_console.pug:86
+#, fuzzy
+msgid "Rescind invitation"
+msgstr "Reenvíe verificación"
+
+#: views/dev_console.pug:100
+msgid "Invite a member to your organization"
+msgstr ""
+
+#: views/dev_console.pug:110
+msgid "Role"
+msgstr ""
+
+#: views/dev_console.pug:118
+msgid "Invite member"
+msgstr ""
+
+#: views/status.pug:24
+msgid "Status of your Genie Engine: "
+msgstr ""
+
+#: views/status.pug:26 views/admin_user_list.pug:136
+msgid "Running"
+msgstr ""
+
+#: views/status.pug:28
+msgid "Killed"
+msgstr ""
+
+#: views/status.pug:39
+msgid "Start"
+msgstr ""
+
+#: views/status.pug:42
+#, fuzzy
+msgid "Recovery Options"
+msgstr "Grabe conversación"
+
+#: views/status.pug:48
+msgid "Clear cache"
+msgstr ""
+
+#: views/status.pug:51
+msgid "Clear data"
+msgstr ""
+
+#: views/status.pug:60
+#, fuzzy
+msgid "Are you sure you want to delete all your data?"
+msgstr "¿Estás seguro de que quieres borrar su cuenta?"
+
+#: views/status.pug:64
+msgid ""
+"This operation will remove all your configured accounts, and stop all active "
+"commands. Use this option only as a last resort to recover a broken engine."
+msgstr ""
+
+#: views/status.pug:68
+msgid "Your submissions to Thingpedia will not be affected."
+msgstr ""
+
+#: views/status.pug:74
+msgid "Clear Data"
+msgstr ""
+
+#: views/status.pug:76
+msgid "Cached Modules"
+msgstr ""
+
+#: views/status.pug:83
+msgid "Version"
+msgstr ""
+
+#: views/status.pug:95
+msgid ""
+"The list of cached modules is not available when the engine is not running."
+msgstr ""
+
+#: views/status.pug:98
+msgid "Logs"
+msgstr ""
+
+#: views/status.pug:101
+msgid ""
+"You are not an approved developer, so you cannot see the logs of your "
+"engine. "
+msgstr ""
+
+#: views/status.pug:102
+msgid "Apply to be a developer"
+msgstr ""
+
+#: views/stanford/about_privacy.pug:7
+msgid "Stanford Covid Genie Privacy Policy"
+msgstr "Póliza de privacidad de Stanford Covid Genie"
+
+#: views/stanford/about_privacy.pug:10
+msgid ""
+"Stanford Covid Genie collects your zip code, phone number and optionally "
+"email address for the purposes of informing you about available COVID "
+"vaccine appointments."
+msgstr ""
+"Stanford Covid Genie recopila su código postal, número de teléfono y, "
+"opcionalmente, dirección de correo electrónico con el fin de informarle "
+"sobre las citas disponibles para la vacuna COVID."
+
+#: views/stanford/about_privacy.pug:13
+msgid "Your personal information is stored in a secure server we administer."
+msgstr ""
+"Su información personal se almacena en un servidor seguro que administramos."
+
+#: views/stanford/about_privacy.pug:16
+#, fuzzy
+msgid ""
+"We do not share your information with third parties, and we do not sell your "
+"personal information."
+msgstr "No compartimos su información privada con terceros."
+
+#: views/stanford/about_privacy.pug:19
+msgid ""
+"Your phone number is automatically deleted when you text STOP to our phone "
+"number."
+msgstr ""
+"Su número de teléfono se elimina automáticamente cuando envía un mensaje de "
+"texto con STOP a nuestro número de teléfono."
+
+#: views/stanford/about_privacy.pug:22
+msgid ""
+"Your email address is deleted when you unsubscribe from email notifications "
+"using the link at the bottom of the email."
+msgstr ""
+"Su dirección de correo electrónico se elimina cuando se da de baja de las "
+"notificaciones por correo electrónico utilizando el enlace en la parte "
+"inferior del correo electrónico."
+
+#: views/stanford/about_privacy.pug:25
+msgid ""
+"Alternatively, you can request the permanent deletion of your personal "
+"information by sending an email to <a href='mailto:covid-genie-"
+"feedback@lists.stanford.edu'>covid-genie-feedback@lists.stanford.edu</a>."
+msgstr ""
+"Alternativamente, puede solicitar la eliminación permanente de su "
+"información personal enviando un correo electrónico a <a href='mailto:covid-"
+"genie-feedback@lists.stanford.edu'>covid-genie-feedback@lists.stanford.edu</"
+"a>."
+
+#: views/stanford/footer.pug:4
+msgid "Stanford University"
+msgstr "La Universidad de Stanford"
+
+#: views/stanford/footer.pug:8
+msgid "Stanford Home"
+msgstr "Pagina Principal de Stanford"
+
+#: views/stanford/footer.pug:10
+msgid "Maps & Directions"
+msgstr "Mapas e Indicaciones"
+
+#: views/stanford/footer.pug:12
+msgid "Search Stanford"
+msgstr "Busque Stanford"
+
+#: views/stanford/footer.pug:14
+msgid "Emergency Info"
+msgstr "Info de Emergencia"
+
+#: views/stanford/footer.pug:16
+msgid "Non-Discrimination"
+msgstr "No discriminación"
+
+#: views/stanford/footer.pug:19
+msgid "Terms of Service"
+msgstr "Términos de Servicio"
+
+#: views/stanford/footer.pug:21
+msgid "Privacy"
+msgstr "Privacía"
+
+#: views/stanford/footer.pug:23
+msgid "Accessibility"
+msgstr "Acesibilidad"
+
+#: views/stanford/footer.pug:25 views/thingpedia_device_details.pug:260
+msgid "Report a bug"
+msgstr "Reporta un error"
+
+#: views/stanford/footer.pug:28 views/footer.pug:6 views/footer.pug:7
+msgid "Connect with us on Twitter"
+msgstr "Conecta con nosotros en Twitter"
+
+#: views/stanford/footer.pug:31
+msgid "Subscribe to our RSS Feed"
+msgstr "Suscríbete a nuestro RSS Feed"
+
+#: views/stanford/footer.pug:34
+msgid "Fork me on GitHub"
+msgstr "Fork a mí en Github"
+
+#: views/stanford/footer.pug:37 views/footer.pug:9 views/footer.pug:10
+msgid "Contact us via email"
+msgstr "Contáctanos por correo electrónico"
+
+#: views/password_recovery_start.pug:4 views/password_recovery_continue.pug:4
+msgid "Password Reset"
+msgstr "Restablecimiento de contraseña"
+
+#: views/password_recovery_start.pug:7
+msgid ""
+"To reset your Genie password, please enter your username. An email with "
+"instructions will be sent to the address associated with it."
+msgstr ""
+"Para restablecer su contraseña de Genie, ingrese su nombre de usuario. Un "
+"correo electrónico con instrucciones se enviarán a la dirección asociada."
+
+#: views/password_recovery_start.pug:14 views/password_recovery_continue.pug:36
+msgid "Reset Password"
+msgstr "Restablece Contraseña"
+
+#: views/conversation_mixin.pug:2
+msgid "Stanford COVID Genie"
+msgstr "Stanford COVID Genie"
+
+#: views/conversation_mixin.pug:12
+msgid "Command:"
+msgstr "Comando:"
+
+#: views/conversation_mixin.pug:13
+msgid "Write your command or answer here"
+msgstr "Escribe su comando or repuesta aquí"
+
+#: views/conversation_mixin.pug:16
+msgid "Genie is thinking…"
+msgstr "Genie está pensando..."
+
+#: views/conversation_mixin.pug:18
+msgid "Lost connection to the server."
+msgstr "Conexión perdida con el servidor."
+
+#: views/admin_user_list.pug:4
+#, fuzzy
+msgid "Genie User List"
+msgstr "Genie - Registrarse"
+
+#: views/admin_user_list.pug:37
+msgid "Sort by ID (decreasing)"
+msgstr ""
+
+#: views/admin_user_list.pug:40
+msgid "Sort by ID (increasing)"
+msgstr ""
+
+#: views/admin_user_list.pug:43
+#, fuzzy
+msgid "User name"
+msgstr "Nombre real"
+
+#: views/admin_user_list.pug:48
+msgid "Sort by user name (decreasing)"
+msgstr ""
+
+#: views/admin_user_list.pug:51
+msgid "Sort by user name (increasing)"
+msgstr ""
+
+#: views/admin_user_list.pug:54
+#, fuzzy
+msgid "Human name"
+msgstr "Nombre real"
+
+#: views/admin_user_list.pug:59
+msgid "Sort by human name (decreasing)"
+msgstr ""
+
+#: views/admin_user_list.pug:62
+msgid "Sort by human name (increasing)"
+msgstr ""
+
+#: views/admin_user_list.pug:64
+msgid "Locale"
+msgstr ""
+
+#: views/admin_user_list.pug:65
+msgid "Timezone"
+msgstr ""
+
+#: views/admin_user_list.pug:67
+#, fuzzy
+msgid "Registered"
+msgstr "Registrarse"
+
+#: views/admin_user_list.pug:72
+msgid "Sort by registration time (newest first)"
+msgstr ""
+
+#: views/admin_user_list.pug:75
+msgid "Sort by registration time (oldest first)"
+msgstr ""
+
+#: views/admin_user_list.pug:78
+#, fuzzy
+msgid "Last login"
+msgstr "Incio de sesión"
+
+#: views/admin_user_list.pug:83
+msgid "Sort by last login time (newest first)"
+msgstr ""
+
+#: views/admin_user_list.pug:86
+msgid "Sort by last login time (oldest first)"
+msgstr ""
+
+#: views/admin_user_list.pug:88
+msgid "Roles"
+msgstr ""
+
+#: views/admin_user_list.pug:89
+msgid "Engine?"
+msgstr ""
+
+#: views/admin_user_list.pug:109
+msgid "Site Admin"
+msgstr ""
+
+#: views/admin_user_list.pug:112
+msgid "Blog Editor"
+msgstr ""
+
+#: views/admin_user_list.pug:115
+msgid "Thingpedia Admin"
+msgstr ""
+
+#: views/admin_user_list.pug:118 views/user_profile.pug:119
+#, fuzzy
+msgid "Trusted Developer"
+msgstr "Clave de Desarrollador por Thingpedia"
+
+#: views/admin_user_list.pug:121
+msgid "Discourse Admin"
+msgstr ""
+
+#: views/admin_user_list.pug:124
+msgid "NLP Admin"
+msgstr ""
+
+#: views/admin_user_list.pug:133
+msgid "User"
+msgstr ""
+
+#: views/admin_user_list.pug:138
+msgid "Dead"
+msgstr ""
+
+#: views/admin_user_list.pug:149
+msgid "Kill user"
+msgstr ""
+
+#: views/admin_user_list.pug:153
+msgid "Start user"
+msgstr ""
+
+#: views/admin_user_list.pug:158
+msgid "Promote user"
+msgstr ""
+
+#: views/admin_user_list.pug:162
+msgid "Demote user"
+msgstr ""
+
+#: views/admin_user_list.pug:166
+msgid "Revoke developer key"
+msgstr ""
+
+#: views/admin_user_list.pug:170
+#, fuzzy
+msgid "Delete user"
+msgstr "Borra su cuenta"
+
+#: views/mturk_validate.pug:8
+msgid "Validate"
+msgstr ""
+
+#: views/mturk_validate.pug:78
+msgid "Original Sentence %d: %s"
+msgstr ""
+
+#: views/mturk_validate.pug:84
+msgid "Paraphrase %d: %s"
+msgstr ""
+
+#: views/mturk_validate.pug:88
+msgid " same "
+msgstr ""
+
+#: views/mturk_validate.pug:92
+msgid " different "
+msgstr ""
+
+#: views/admin_portal.pug:8 views/admin_portal.pug:13
+#, fuzzy
+msgid "Administration"
+msgstr "Administrador de %s"
+
+#: views/admin_portal.pug:23
+msgid "Users"
+msgstr ""
+
+#: views/admin_portal.pug:26
+msgid "Developer Organizations"
+msgstr ""
+
+#: views/admin_portal.pug:29
+msgid "Blog Archive"
+msgstr ""
+
+#: views/admin_portal.pug:39
+msgid "Thingpedia Entities"
+msgstr ""
+
+#: views/admin_portal.pug:41
+msgid "Thingpedia String Datasets"
+msgstr ""
+
+#: views/admin_portal.pug:47
+#, fuzzy
+msgid "Thingpedia Datasets"
+msgstr "Clave de Desarrollador por Thingpedia"
+
+#: views/admin_portal.pug:58
+msgid "Kill all users"
+msgstr ""
+
+#: views/luinet_template_list.pug:8
+msgid "Available NLP Templates"
+msgstr ""
+
+#: views/luinet_template_list.pug:14 views/luinet_model_list.pug:14
+#: views/dev_alexa.pug:33 views/dev_nlp_models.pug:35
+#: views/dev_nlp_models.pug:199
+msgid "%s (%s)"
+msgstr ""
+
+#: views/luinet_template_list.pug:16 views/dev_nlp_models.pug:201
+msgid "Available flags: %s"
+msgstr ""
+
+#: views/luinet_template_list.pug:19 views/dev_nlp_models.pug:204
+msgid "Public"
+msgstr ""
+
+#: views/luinet_template_list.pug:21 views/dev_nlp_models.pug:206
+#, fuzzy
+msgid "Private"
+msgstr "Privacía"
+
+#: views/login.pug:24
+msgid "Don't have a username and password yet? "
+msgstr "¿Aún no tienes nombre de usuario y contraseña? "
+
+#: views/login.pug:25
+msgid "Sign up now!"
+msgstr "¡Regístrase ahora!"
+
+#: views/login.pug:27
+msgid "I forgot my password"
+msgstr "Olvide mi contraseña"
+
+#: views/login.pug:30
+msgid "Log In with Google"
+msgstr "Inciar sesión con Google"
+
+#: views/login.pug:33
+msgid "Log In with Github"
+msgstr "Inciar sesión con Github"
+
+#: views/public_org_profile.pug:28
+msgid "This organization does not have any publicly visible member."
+msgstr ""
+
+#: views/public_org_profile.pug:44
+msgid "This organization does not have any approved device yet."
+msgstr ""
+
+#: views/device_selector.pug:13
+msgid "Selected"
+msgstr ""
+
+#: views/device_selector.pug:16
+msgid "Add new"
+msgstr ""
+
+#: views/device_selector.pug:17
+msgid "Type to search…"
+msgstr ""
+
+#: views/device_selector.pug:17
+msgid "Name of the new device"
+msgstr ""
+
+#: views/dev_oauth.pug:20
+msgid "Your OAuth Applications"
+msgstr ""
+
+#: views/dev_oauth.pug:22
+msgid ""
+"OAuth apps allow you to develop software that accesses Genie as a service, "
+"for example in a smart speaker. For further information, see the <a "
+"href='https://wiki.almond.stanford.edu/api-references/almond'>Web Genie API "
+"Guide</a>."
+msgstr ""
+
+#: views/dev_oauth.pug:32
+msgid "Client ID: "
+msgstr ""
+
+#: views/dev_oauth.pug:36
+msgid "Client Secret: "
+msgstr ""
+
+#: views/dev_oauth.pug:37 views/dev_nlp_models.pug:79
+msgid "Show/Hide"
+msgstr ""
+
+#: views/dev_oauth.pug:42
+msgid "Your organization does not have any OAuth apps yet."
+msgstr ""
+
+#: views/dev_oauth.pug:47
+msgid "Register a new OAuth app"
+msgstr ""
+
+#: views/dev_oauth.pug:54
+msgid "New OAuth App"
+msgstr ""
+
+#: views/dev_oauth.pug:61
+msgid "This name will be shown on the authorization page"
+msgstr ""
+
+#: views/dev_oauth.pug:64 views/thingpedia_device_create_or_edit.pug:125
+msgid "Icon"
+msgstr ""
+
+#: views/dev_oauth.pug:68
+msgid "Allowed Redirect URLs"
+msgstr ""
+
+#: views/dev_oauth.pug:70
+msgid "Multiple URLs can be separated by a space."
+msgstr ""
+
+#: views/dev_oauth.pug:73
+msgid "Additional Permissions"
+msgstr ""
+
+#: views/dev_oauth.pug:77
+msgid "Read the list of active commands and configured devices"
+msgstr ""
+
+#: views/dev_oauth.pug:81
+msgid "Observe the results of executed commands and read notifications"
+msgstr ""
+
+#: views/dev_oauth.pug:85
+msgid "Access Web Genie and execute ThingTalk code"
+msgstr ""
+
+#: views/dev_oauth.pug:90
+msgid "Read the user's Thingpedia devices."
+msgstr ""
+
+#: views/dev_oauth.pug:94
+msgid "Modify the user's Thingpedia devices and upload new ones."
+msgstr ""
+
+#: views/dev_oauth.pug:98
+msgid "Modify the user's Thingpedia organization settings (name, members)."
+msgstr ""
+
+#: views/devices_create.pug:7
+msgid "New Skill"
+msgstr "Habilidad Nueva"
+
+#: views/devices_create.pug:10
+msgid "What skill do you want to set up?"
+msgstr "¿Qué habilidad quieres configurar?"
+
+#: views/layout.pug:33
+msgid "Yes"
+msgstr "Sí"
+
+#: views/layout.pug:33
+msgid "No"
+msgstr "No"
+
+#: views/layout.pug:33
+msgid "Cancel."
+msgstr "Cancele."
+
+#: views/layout.pug:42
+msgid "COVID Genie at Stanford University"
+msgstr "COVID Genie de la Universidad de Stanford."
+
+#: views/layout.pug:44
+msgid "Toggle navigation"
+msgstr "Navegación de palanca"
+
+#: views/luinet_model_list.pug:8
+msgid "Available NLP Models"
+msgstr ""
+
+#: views/luinet_model_list.pug:16 views/dev_nlp_models.pug:91
+msgid "Template Pack: %s"
+msgstr ""
+
+#: views/luinet_model_list.pug:17 views/dev_nlp_models.pug:92
+msgid "Flags: %s"
+msgstr ""
+
+#: views/luinet_model_list.pug:21 views/dev_nlp_models.pug:96
+msgid "Devices: <i>all</i> (approved only)"
+msgstr ""
+
+#: views/luinet_model_list.pug:23 views/dev_nlp_models.pug:98
+msgid "Devices: <i>all</i>"
+msgstr ""
+
+#: views/luinet_model_list.pug:26 views/dev_nlp_models.pug:101
+msgid "Devices: "
+msgstr ""
+
+#: views/qrcode.pug:8
+msgid "This is not the page you're looking for"
+msgstr ""
+
+#: views/qrcode.pug:12
+msgid "You should not have this link."
+msgstr ""
+
+#: views/qrcode.pug:13
+msgid " This is a pairing link for a different Genie account than yours."
+msgstr ""
+
+#: views/qrcode.pug:15
+msgid ""
+"If you obtained it by mistake, you should destroy it immediately by clearing "
+"the browser history and cache, and you should contact whoever gave this link "
+"that they risk having their account compromised."
+msgstr ""
+
+#: views/qrcode.pug:18
+msgid ""
+"You must open the QR code link with the Genie app, not with your browser."
+msgstr ""
+
+#: views/qrcode.pug:22
+msgid ""
+"If you were trying to link your Genie account to your phone, you should <a "
+"href='/user/login'>log in</a> first."
+msgstr ""
+
+#: views/message.pug:4 views/developer_access_ok.pug:4
+msgid "Success"
+msgstr "Éxito"
+
+#: views/message.pug:9
+msgid "Go to the home page"
+msgstr "Ir a la pagina principal"
+
+#: views/navbar.pug:3 views/thingpedia_device_create_or_edit.pug:94
+msgid "Home"
+msgstr "Pagina Principal"
+
+#: views/navbar.pug:5 views/about.pug:4
+msgid "About"
+msgstr "Sobre nosotros"
+
+#: views/dev_mturk_batch_list.pug:20
+msgid "Your MTurk Paraphrasing Batches"
+msgstr ""
+
+#: views/dev_mturk_batch_list.pug:68
+msgid "Create a new batch"
+msgstr ""
+
+#: views/dev_mturk_batch_list.pug:77
+msgid "Submissions per HIT"
+msgstr ""
+
+#: views/dev_mturk_batch_list.pug:81
+msgid "TSV File"
+msgstr ""
+
+#: views/about.pug:8
+msgid ""
+"The COVID Genie is part of the Open Virtual Assistant Initiative led by the "
+"Open Virtual Assistant Lab (OVAL) at Stanford University. The COVID genie "
+"aims to help the American public get vaccinated against COVID-19. It is "
+"designed to ensure equitable access of COVID-19 vaccines for all Americans, "
+"including communities of color who have been disproportionately affected by "
+"COVID-19."
+msgstr ""
+"El COVID Genie es parte de la Open Virtual Assistant Initiative liderada por "
+"Open Virtual Assistant Lab (OVAL) en la Universidad de Stanford. El COVID Genie "
+"tiene como objetivo ayudar al público estadounidense a vacunarse "
+"contra COVID-19. Está diseñado para garantizar el acceso equitativo a las "
+"vacunas COVID-19 para todos los estadounidenses, incluidas las comunidades "
+"de color que se han visto afectadas de manera desproporcionada por COVID-19."
+
+#: views/about.pug:9
+msgid ""
+"We thank our collaborators who have graciously volunteered time, effort, and "
+"expertise to this project: Mukesh Aggarwal, Nick Muerdter (VaccineSpotter."
+"org), and Leah Russin."
+msgstr ""
+"Agradecemos a nuestros colaboradores que gentilmente han ofrecido tiempo, "
+"esfuerzo y experiencia a este proyecto: Mukesh Aggarwal, Nick Muerdter "
+"(VaccineSpotter.org) y Leah Russin."
+
+#: views/about.pug:10
+msgid "About the OVAL Lab at Stanford University"
+msgstr "Sobre el OVAL Lab en la Universidad de Stanford"
+
+#: views/about.pug:11
+msgid ""
+"The OVAL lab is a research laboratory in the Computer Science Department "
+"whose goal is to:"
+msgstr ""
+"El laboratorio OVAL es un laboratorio de investigación del Computer Science "
+"Department (departamento de informática) cuyo objetivo es:"
+
+#: views/about.pug:14
+msgid ""
+"Create virtual assistants that provide open, equitable access to all, while "
+"protecting their privacy, and "
+msgstr ""
+"Crear asistentes virtuales que brinden acceso abierto y equitativo a todos, "
+"al mismo tiempo que protegen su privacidad, y "
+
+#: views/about.pug:15
+msgid "create affordable, open-source virtual assistant technology."
+msgstr "crear tecnología de asistente virtual asequible y de código abierto."
+
+#: views/about.pug:16
+msgid ""
+"Learn more at <a href='https://oval.cs.stanford.edu'>oval.cs.stanford.edu</"
+"a>."
+msgstr ""
+"Obtenga más información en <a href='https://oval.cs.stanford.edu'>oval.cs."
+"stanford.edu</a>."
+
+#: views/about.pug:18
+msgid ""
+"We are supported in part by National Science Foundation and the Alfred P. "
+"Sloan Foundation."
+msgstr ""
+"Contamos con el apoyo en parte de la National Science Foundation y la Alfred "
+"P. Sloan Foundation."
+
+#: views/thingpedia_translate_schema.pug:13
+msgid "Translate %s"
+msgstr ""
+
+#: views/thingpedia_translate_schema.pug:46
+msgid "Import from previous version"
+msgstr ""
+
+#: views/thingpedia_translate_schema.pug:52
+msgid "Class Metadata"
+msgstr ""
+
+#: views/thingpedia_translate_schema.pug:57
+msgid "Translated"
+msgstr ""
+
+#: views/thingpedia_translate_schema.pug:60
+msgid "Query: "
+msgstr ""
+
+#: views/thingpedia_translate_schema.pug:62
+msgid "Action: "
+msgstr ""
+
+#: views/my_stuff.pug:40
+msgid "This device is owned by your %s."
+msgstr "Este dispositivo es propiedad de tu %s."
+
+#: views/my_stuff.pug:49
+msgid "Disable"
+msgstr "Desactive"
+
+#: views/my_stuff.pug:51
+msgid "Forget"
+msgstr "Olvide"
+
+#: views/my_stuff.pug:54
+msgid "Configure new skill"
+msgstr "Configure una nueva habilidad"
+
+#: views/my_stuff.pug:65
+msgid "Your Genie is dead. "
+msgstr "Su Genie se murió. "
+
+#: views/my_stuff.pug:66
+msgid "More Details"
+msgstr "Más Detalles"
+
+#: views/my_stuff.pug:70
+msgid "Active Commands"
+msgstr "Comandos activos"
+
+#: views/my_stuff.pug:78
+msgid "Stop"
+msgstr "Detiene"
+
+#: views/my_stuff.pug:86
+msgid "This app delivers notifications using %s"
+msgstr "Esta aplicación entrega notificaciones usando %s"
+
+#: views/my_stuff.pug:90
+msgid "%s %s"
+msgstr "%s %s"
+
+#: views/my_stuff.pug:93
+msgid "This rule had an error: %s"
+msgstr "Esta regla tuvo un error: %s"
+
+#: views/my_stuff.pug:96
+msgid "Enabled Skills"
+msgstr "Habilidades Activadas"
+
+#: views/my_stuff.pug:108
+msgid "Write your comment for the last response"
+msgstr "Escribe su comentario para la repuesta pasada"
+
+#: views/my_stuff.pug:112
+msgid "Comment"
+msgstr "Comentario"
+
+#: views/my_stuff.pug:118
+msgid "Warning:"
+msgstr "Advertencia:"
+
+#: views/my_stuff.pug:120
+msgid ""
+"While recording is active, all your commands and all the replies from Genie "
+"will be stored and reviewed by the Stanford Genie Team."
+msgstr "Mientras la grabación está activa, todos tus comandos y todas las respuestas de Genie serán almacenado y revisado por el Stanford Genie Team"
+
+#: views/my_stuff.pug:122
+msgid "Confirm"
+msgstr "Confirme"
+
+#: views/my_stuff.pug:130
+msgid "Record conversation"
+msgstr "Grabe conversación"
+
+#: views/my_stuff.pug:133
+msgid "Show recorded log"
+msgstr "Muestra Registro de conversaciones."
+
+#: views/my_stuff.pug:139
+msgid "Conversation log updated."
+msgstr "Registro de conversaciones actualizado."
+
+#: views/my_stuff.pug:143
+msgid "Done"
+msgstr "Terminado"
+
+#: views/thingpedia_device_details.pug:13
+#, fuzzy
+msgid "Account: %s"
+msgstr "Audio: %s"
+
+#: views/thingpedia_device_details.pug:15
+#, fuzzy
+msgid "Device: %s"
+msgstr "Fotos: %s"
+
+#: views/thingpedia_device_details.pug:17
+#, fuzzy
+msgid "Service: %s"
+msgstr "Fotos: %s"
+
+#: views/thingpedia_device_details.pug:26
+#, fuzzy
+msgid "This device is not yet approved."
+msgstr "Este dispositivo es propiedad de tu %s."
+
+#: views/thingpedia_device_details.pug:30
+msgid ""
+"This device is not yet approved for general use. Please open a new topic in "
+"the community forum if you would like to have it reviewed."
+msgstr ""
+
+#: views/thingpedia_device_details.pug:32
+msgid ""
+"This device is not yet approved for general use. You need a developer key to "
+"use it."
+msgstr ""
+
+#: views/thingpedia_device_details.pug:38
+msgid "A newer version of this device was submitted."
+msgstr ""
+
+#: views/thingpedia_device_details.pug:46
+msgid "The translation for this account in your language is incomplete. "
+msgstr ""
+
+#: views/thingpedia_device_details.pug:48
+msgid "The translation for this device in your language is incomplete. "
+msgstr ""
+
+#: views/thingpedia_device_details.pug:54
+msgid ""
+"The natural language dataset for this device is being updated. You should "
+"wait before testing."
+msgstr ""
+
+#: views/thingpedia_device_details.pug:59
+msgid ""
+"The natural language model for this device is being updated. Natural "
+"language support might be limited."
+msgstr ""
+
+#: views/thingpedia_device_details.pug:63
+msgid "Status: queued."
+msgstr ""
+
+#: views/thingpedia_device_details.pug:65 views/dev_nlp_models.pug:66
+msgid "Status: training (%.0f%%)."
+msgstr ""
+
+#: views/thingpedia_device_details.pug:69 views/dev_nlp_models.pug:70
+#, fuzzy
+msgid "ETA: %s"
+msgstr "Audio: %s"
+
+#: views/thingpedia_device_details.pug:79
+#: views/thingpedia_device_create_or_edit.pug:110
+msgid "Website"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:83
+msgid "This is a builtin device in any Genie."
+msgstr ""
+
+#: views/thingpedia_device_details.pug:86
+msgid "This is an internally created, system device in any Genie."
+msgstr ""
+
+#: views/thingpedia_device_details.pug:89
+msgid ""
+"This is a builtin device in certain versions of Genie. It may not be "
+"available in the Genie you are using."
+msgstr ""
+
+#: views/thingpedia_device_details.pug:92
+#, fuzzy
+msgid "This device extends the functionality of %s."
+msgstr "Este dispositivo es propiedad de tu %s."
+
+#: views/thingpedia_device_details.pug:95
+msgid "Class: "
+msgstr ""
+
+#: views/thingpedia_device_details.pug:99
+msgid ", version none (approved), %d (developer); this version: %d"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:101
+msgid ", version %d (approved), %d (developer); this version: %d"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:103
+msgid ", version %d; this version: %d"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:106
+msgid ", version none (approved), %d (developer)"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:108
+msgid ", version %d (approved), %d (developer)"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:110
+msgid ", version %d"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:113
+msgid "Uploaded By: "
+msgstr ""
+
+#: views/thingpedia_device_details.pug:119
+msgid "License:"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:124
+msgid "Free"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:128
+msgid "Unknown"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:133
+#, fuzzy
+msgid "Configures:"
+msgstr "Configura"
+
+#: views/thingpedia_device_details.pug:134
+msgid ""
+"Configuring this device will also configure one or more of the following:"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:142
+#, fuzzy
+msgid "Commands"
+msgstr "Comando:"
+
+#: views/thingpedia_device_details.pug:166
+#, fuzzy
+msgid "This device has no commands of its own."
+msgstr "Este dispositivo es propiedad de tu %s."
+
+#: views/thingpedia_device_details.pug:181
+msgid "Inputs:"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:188
+msgid "%s [%s]: %s"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:190
+#: views/thingpedia_device_details.pug:200
+msgid "%s [%s]"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:194
+msgid "Results:"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:205
+msgid "This operation returns a list of results."
+msgstr ""
+
+#: views/thingpedia_device_details.pug:207
+msgid "This operation returns a single result."
+msgstr ""
+
+#: views/thingpedia_device_details.pug:213
+msgid "The result can be monitored for changes, and will update in real-time."
+msgstr ""
+
+#: views/thingpedia_device_details.pug:215
+msgid "The result can be monitored for changes, and updates every %s."
+msgstr ""
+
+#: views/thingpedia_device_details.pug:218
+msgid "Available Operations"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:236
+msgid "Hide"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:247
+msgid "Start Training"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:251
+msgid "Download Code"
+msgstr ""
+
+#: views/thingpedia_device_details.pug:254
+#: views/thingpedia_device_create_or_edit.pug:115
+msgid "Source Code Repository"
+msgstr ""
+
+#: views/footer.pug:14
+msgid ""
+"Genie is part of a research project of the <a href='https://oval.cs.stanford."
+"edu'>Open Virtual Assistant Laboratory</a> at Stanford University."
+msgstr ""
+"Genie es parte de un proyecto de investigación del <a href='https://oval.cs."
+"stanford.edu'>Open Virtual Assistant Laboratory</a> en la Universidad de "
+"Stanford."
+
+#: views/footer.pug:21
+msgid ""
+"Genie is free software, distributed under the <a href='https://opensource."
+"org/licenses/Apache-2.0'>Apache license, version 2.0</a>. "
+msgstr ""
+"Genie es software libre, distribuido bajo la <a href='https://opensource.org/"
+"licenses/Apache-2.0'>licencia Apache, versión 2.0</a>."
+
+#: views/thingpedia_device_create_or_edit.pug:16
+msgid "Create Device"
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:18
+msgid "Device Editor"
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:36
+msgid "Approve immediately"
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:47 views/error.pug:11
+msgid "Syntax error at %s line %d: %s"
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:59
+msgid "Metadata"
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:63
+msgid "manifest.tt"
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:67
+msgid "dataset.tt"
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:75
+msgid ""
+"The unique name of your device entry. This should be a namespaced name like "
+"“org.example” or “com.mything”."
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:82
+msgid "This will be shown in the Thingpedia catalog."
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:89
+msgid "Category"
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:91
+msgid "Media"
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:92
+msgid "Social Network"
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:93
+#, fuzzy
+msgid "Communication"
+msgstr "Comentario"
+
+#: views/thingpedia_device_create_or_edit.pug:95
+msgid "Health & Fitness"
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:96
+msgid "Data Management"
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:97
+msgid "Other"
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:102
+msgid ""
+"The copyright license for the uploaded code, as a <a href='https://spdx.org/"
+"licenses/'>SPDX expression</a>. We recommend <samp>MIT</samp> for open-"
+"source devices."
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:107
+msgid ""
+"This license is <a href='https://www.gnu.org/licenses/gpl-faq."
+"html#WhatDoesCompatMean'>GPL compatible</a>"
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:112
+msgid ""
+"A link to the website for service or device, describing it in more detail "
+"(optional)."
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:117
+msgid "Public repository for the uploaded JavaScript code (optional)."
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:120
+msgid "Issue Tracker"
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:122
+msgid ""
+"Link to a public issue tracker where users can report problems with this "
+"device (optional)."
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:129
+msgid "Upload ZIP file with JavaScript code"
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:133
+msgid "Manifest"
+msgstr ""
+
+#: views/thingpedia_device_create_or_edit.pug:137
+msgid "Default Dataset"
+msgstr ""
+
+#: views/error.pug:7
+msgid "Sorry that did not work"
+msgstr "Lo siento, eso no funcionó"
+
+#: views/dev_alexa.pug:24
+msgid "Your Alexa Skills"
+msgstr ""
+
+#: views/dev_alexa.pug:27
+msgid ""
+"Caution! Creating Alexa skills in Thingpedia is an experimental feature."
+msgstr ""
+
+#: views/dev_alexa.pug:37
+msgid "Your organization does not own any Alexa skills yet."
+msgstr ""
+
+#: views/dev_alexa.pug:42
+#, fuzzy
+msgid "Create a new skill"
+msgstr "Configure una nueva habilidad"
+
+#: views/dev_alexa.pug:49
+#, fuzzy
+msgid "New Alexa Skill"
+msgstr "Habilidad Nueva"
+
+#: views/dev_alexa.pug:56
+msgid ""
+"The identifier of your skill in the Genie system. This should be a "
+"namespaced name like “org.example” or “com.mything”."
+msgstr ""
+
+#: views/dev_alexa.pug:65
+msgid "Call phrase"
+msgstr ""
+
+#: views/dev_alexa.pug:67
+msgid ""
+"The name of the skill users will say to invoke your skill in Alexa. E.g. if "
+"you choose Banana as the call phrase, users will say “Ask Banana to …” or "
+"“Tell Banana to …”."
+msgstr ""
+
+#: views/dev_alexa.pug:69
+msgid ""
+"Choose which Thingpedia devices to include in your skill, or choose none to "
+"include all available devices."
+msgstr ""
+
+#: views/dev_alexa.pug:72
+msgid "Anonymous user"
+msgstr ""
+
+#: views/dev_alexa.pug:74
+msgid ""
+"The username associated with the Genie profile to use when Alexa users are "
+"not logged in to Genie."
+msgstr ""
+
+#: views/dev_alexa.pug:80
+msgid " This skill is public for everyone to use."
+msgstr ""
+
+#: views/public_user_profile.pug:8
+msgid "User: %s (%s)"
+msgstr ""
+
+#: views/public_user_profile.pug:10
+#, fuzzy
+msgid "User: %s"
+msgstr "Código: %s"
+
+#: views/public_user_profile.pug:15
+#, fuzzy
+msgid "Profile picture of %s"
+msgstr "Fotos: %s"
+
+#: views/public_user_profile.pug:20
+#, fuzzy
+msgid "Member of "
+msgstr "Miembro de %s"
+
+#: views/dev_nlp_models.pug:26
+msgid "Your LUInet Models"
+msgstr ""
+
+#: views/dev_nlp_models.pug:29
+msgid ""
+"Caution! Uploading custom template packs and training custom LUInet models "
+"is an experimental feature."
+msgstr ""
+
+#: views/dev_nlp_models.pug:38 views/dev_nlp_models.pug:59
+msgid "Train"
+msgstr ""
+
+#: views/dev_nlp_models.pug:45
+msgid "Train Model"
+msgstr ""
+
+#: views/dev_nlp_models.pug:52
+msgid "Would you like to train the model %s on the current %s dataset?"
+msgstr ""
+
+#: views/dev_nlp_models.pug:54 views/dev_nlp_models.pug:56
+msgid " Training will cost you %d credit."
+msgid_plural " Training will cost you %d credits."
+msgstr[0] ""
+msgstr[1] ""
+
+#: views/dev_nlp_models.pug:64
+msgid "Status: queued for training."
+msgstr ""
+
+#: views/dev_nlp_models.pug:72
+msgid "Status: deployed."
+msgstr ""
+
+#: views/dev_nlp_models.pug:74
+msgid "Status: not trained yet."
+msgstr ""
+
+#: views/dev_nlp_models.pug:78
+#, fuzzy
+msgid "Access Token: "
+msgstr "Emite un Token de Acceso"
+
+#: views/dev_nlp_models.pug:82
+#, fuzzy
+msgid "Show/Hide Details"
+msgstr "Más Detalles"
+
+#: views/dev_nlp_models.pug:85
+msgid "Current metrics: "
+msgstr ""
+
+#: views/dev_nlp_models.pug:86
+msgid "Accuracy: %.2f%%"
+msgstr ""
+
+#: views/dev_nlp_models.pug:87
+msgid "Function Accuracy: %.2f%%"
+msgstr ""
+
+#: views/dev_nlp_models.pug:88
+msgid "Device Accuracy: %.2f%%"
+msgstr ""
+
+#: views/dev_nlp_models.pug:89
+msgid "Syntax Accuracy: %.2f%%"
+msgstr ""
+
+#: views/dev_nlp_models.pug:112
+msgid "Hyper-parameters (next training):"
+msgstr ""
+
+#: views/dev_nlp_models.pug:115
+msgid "Hyper-parameters (last successful training):"
+msgstr ""
+
+#: views/dev_nlp_models.pug:119
+msgid "Hyper-parameters:"
+msgstr ""
+
+#: views/dev_nlp_models.pug:126
+msgid "Your organization does not own any LUInet model yet."
+msgstr ""
+
+#: views/dev_nlp_models.pug:131
+msgid "Create a new model"
+msgstr ""
+
+#: views/dev_nlp_models.pug:138
+msgid "New LUInet Model"
+msgstr ""
+
+#: views/dev_nlp_models.pug:145
+msgid ""
+"The unique name of your model. This should be a namespaced name like “org."
+"example” or “com.mything”."
+msgstr ""
+
+#: views/dev_nlp_models.pug:154 views/dev_nlp_models.pug:249
+#: views/dev_nlp_models.pug:335
+msgid "Template pack"
+msgstr ""
+
+#: views/dev_nlp_models.pug:156
+msgid ""
+"The ID of the template pack to use when generating the dataset for this "
+"model."
+msgstr ""
+
+#: views/dev_nlp_models.pug:159 views/dev_nlp_models.pug:244
+#: views/dev_nlp_models.pug:340
+msgid "Flags"
+msgstr ""
+
+#: views/dev_nlp_models.pug:161 views/dev_nlp_models.pug:342
+msgid "Template flags to enable."
+msgstr ""
+
+#: views/dev_nlp_models.pug:163
+msgid ""
+"Choose which devices to include in your model, or choose none to include all "
+"available devices."
+msgstr ""
+
+#: views/dev_nlp_models.pug:166 views/dev_nlp_models.pug:347
+msgid "Hyper-parameters"
+msgstr ""
+
+#: views/dev_nlp_models.pug:174
+msgid " Use approved version of the devices."
+msgstr ""
+
+#: views/dev_nlp_models.pug:180
+msgid ""
+" Include a match on the exact form of the primitive templates in addition to "
+"the predicted results from the neural network."
+msgstr ""
+
+#: views/dev_nlp_models.pug:186
+msgid " This model is public for everyone to use."
+msgstr ""
+
+#: views/dev_nlp_models.pug:193
+msgid "Your LUInet Template Packs"
+msgstr ""
+
+#: views/dev_nlp_models.pug:211
+msgid "Your organization does not own any LUInet template pack yet."
+msgstr ""
+
+#: views/dev_nlp_models.pug:216
+msgid "Upload a new template pack"
+msgstr ""
+
+#: views/dev_nlp_models.pug:223
+msgid "New LUInet Template Pack"
+msgstr ""
+
+#: views/dev_nlp_models.pug:230
+msgid ""
+"The unique name of your template pack. This should be a namespaced name like "
+"“org.example” or “com.mything”."
+msgstr ""
+
+#: views/dev_nlp_models.pug:246
+msgid "Multiple flags can be separated by a comma or space."
+msgstr ""
+
+#: views/dev_nlp_models.pug:251
+msgid ""
+"The zip file containing the Genie templates and all necessary support code. "
+"The primary template module should be called index.genie."
+msgstr ""
+
+#: views/dev_nlp_models.pug:257
+msgid " This template is public for everyone to use."
+msgstr ""
+
+#: views/dev_nlp_models.pug:264
+msgid "Custom Datasets"
+msgstr ""
+
+#: views/dev_nlp_models.pug:267
+msgid ""
+"Note: custom datasets are automatically deleted one week after generation."
+msgstr ""
+
+#: views/dev_nlp_models.pug:271
+msgid "Job ID"
+msgstr ""
+
+#: views/dev_nlp_models.pug:272 views/dev_nlp_models.pug:322
+msgid "Pipeline"
+msgstr ""
+
+#: views/dev_nlp_models.pug:283 views/dev_nlp_models.pug:324
+msgid "Synthetic only"
+msgstr ""
+
+#: views/dev_nlp_models.pug:285 views/dev_nlp_models.pug:325
+msgid "Synthetic + paraphrase + augmentation"
+msgstr ""
+
+#: views/dev_nlp_models.pug:287 views/dev_nlp_models.pug:326
+msgid "Synthetic for paraphrase"
+msgstr ""
+
+#: views/dev_nlp_models.pug:290
+msgid "queued"
+msgstr ""
+
+#: views/dev_nlp_models.pug:292
+msgid "in progress (%.0f%%)"
+msgstr ""
+
+#: views/dev_nlp_models.pug:294
+msgid "failed"
+msgstr ""
+
+#: views/dev_nlp_models.pug:296
+msgid "ready"
+msgstr ""
+
+#: views/dev_nlp_models.pug:301
+msgid "n/a"
+msgstr ""
+
+#: views/dev_nlp_models.pug:309
+msgid "Generate a new custom dataset"
+msgstr ""
+
+#: views/dev_nlp_models.pug:316
+msgid "New Custom Dataset"
+msgstr ""
+
+#: views/dev_nlp_models.pug:337
+msgid "The ID of the template pack to use when generating the dataset."
+msgstr ""
+
+#: views/dev_nlp_models.pug:344
+msgid ""
+"Choose which devices to include in your dataset, or choose none to include "
+"all available devices."
+msgstr ""
+
+#: views/dev_nlp_models.pug:353
+msgid "Generate"
+msgstr ""
+
+#: views/developer_access_ok.pug:6
+msgid ""
+"Your developer organization has been created. You can now start contributing!"
+msgstr ""
+
+#: views/developer_access_ok.pug:8
+msgid "Go to my developer console"
+msgstr ""
+
+#: views/user_profile.pug:8
+msgid "User Profile"
+msgstr "Perfil de Usario"
+
+#: views/user_profile.pug:13
+msgid "Personal information"
+msgstr "Información personal"
+
+#: views/user_profile.pug:43
+msgid "Your email was verified."
+msgstr "Su correo electrónico fue verificado."
+
+#: views/user_profile.pug:47
+msgid "Resend verification"
+msgstr "Reenvíe verificación"
+
+#: views/user_profile.pug:54
+msgid "Real name"
+msgstr "Nombre real"
+
+#: views/user_profile.pug:61
+msgid "Show my real name in my public profile."
+msgstr "Muestra mi nombre real en mi perfil público."
+
+#: views/user_profile.pug:67
+msgid "Show my profile picture in my public profile."
+msgstr "Muestra mi foto de perfil en mi perfil público."
+
+#: views/user_profile.pug:68
+msgid ""
+"Your profile picture is automatically retrieved from <a href='https://en."
+"gravatar.com'>Gravatar</a> using a secure hash of your email.</a>"
+msgstr ""
+"Tu foto de perfil se recupera automáticamente de <a href='https://en."
+"gravatar.com'>Gravatar</a> usando un hash seguro de su correo electrónico.</"
+"a>"
+
+#: views/user_profile.pug:74
+msgid "Send anonymized commands to the authors of Genie for training."
+msgstr "Envíe comandos anónimos a los autores de Genio para que los entrenen."
+
+#: views/user_profile.pug:76
+msgid ""
+"Genie is a research project from Stanford University. If you would like to "
+"participate to help us, you can allow us to collect the commands that you "
+"type. We only collect what you type, not your data, or what Genie replies. "
+"Please review the <a href='https://oval.cs.stanford.edu/almond-consent-form."
+"html'>Consent Form</a> and keep it for your records before agreeing."
+msgstr ""
+"Genie es un proyecto de investigación de la Universidad de Stanford. Si a ti "
+"te gustaría participar para ayudarnos, puedes permitirnos recopilar los "
+"comandos que túescribas. Solo recopilamos lo que escribes, no sus datos o lo "
+"que el Genio responde.Por favor revise el <a href='https://oval.cs.stanford."
+"edu/almond-consent-form.html'>Consent Form</a> y guárdelo para sus registros "
+"antes de aceptar."
+
+#: views/user_profile.pug:91
+msgid "Administrator of %s"
+msgstr "Administrador de %s"
+
+#: views/user_profile.pug:93
+msgid "Member of %s"
+msgstr "Miembro de %s"
+
+#: views/user_profile.pug:95
+msgid "None. You have been invited to the following organizations:"
+msgstr "Ninguno. Ha sido invitado a las siguientes organizaciones:"
+
+#: views/user_profile.pug:102
+msgid "Accept"
+msgstr "Acepto"
+
+#: views/user_profile.pug:105
+msgid "None (<a href='/user/request-developer'>apply to be a developer</a>)"
+msgstr ""
+"Ninguno (<a href='/user/request-developer'>apply to be a developer</a>)"
+
+#: views/user_profile.pug:107
+msgid "None"
+msgstr "Ninguno"
+
+#: views/user_profile.pug:114
+msgid "Include my name on my developer organization's public profile."
+msgstr ""
+"Incluye mi nombre en el perfil público de mi organización de desarrolladores."
+
+#: views/user_profile.pug:117
+msgid "Developer Access"
+msgstr "Aceso de Desarrollador"
+
+#: views/user_profile.pug:120
+msgid ""
+"All code you submit can go live to all Genies with no review. Be careful!"
+msgstr ""
+"Todo el código que envíe puede estar disponible para todos los Genios sin "
+"revisión. ¡Ten cuidado!"
+
+#: views/user_profile.pug:123
+msgid ""
+"You can submit new entries, but they have to be reviewed by an administrator "
+"before users can see them."
+msgstr ""
+"Puede enviar nuevas entradas, pero deben ser revisadas por un administrador "
+"antes de que los usuarios puedan verlos."
+
+#: views/user_profile.pug:126
+msgid ""
+"You can test the code submitted by other members of your organization, but "
+"you cannot modify it or upload new entries."
+msgstr ""
+"Puede probar el código enviado por otros miembros de su organización, pero "
+"no puedes modificarlo ni subir nuevas entradas"
+
+#: views/user_profile.pug:129
+msgid "Thingpedia Developer Key"
+msgstr "Clave de Desarrollador por Thingpedia"
+
+#: views/user_profile.pug:132
+msgid ""
+"You can use this developer key in other Genies (such as one you're running "
+"locally for testing) to access your devices before they are approved."
+msgstr ""
+"Puede utilizar esta clave de desarrollador en otros Genios (como una que "
+"esté ejecutando localmente para realizar pruebas) para acceder a sus "
+"dispositivos antes de que sean aprobados."
+
+#: views/user_profile.pug:142
+msgid "Access information"
+msgstr "Accede a su información"
+
+#: views/user_profile.pug:160
+msgid ""
+"You did not configure a password. You should provide one, in case you lose "
+"access to the account you logged in with."
+msgstr ""
+"No configuró una contraseña. Debe proporcionar una, en caso de que pierda "
+"acceso a la cuenta con la que inició sesión."
+
+#: views/user_profile.pug:171
+msgid "Old Password"
+msgstr "Contraseña Pasado"
+
+#: views/user_profile.pug:183
+msgid "Change password"
+msgstr "Combie su contraseña"
+
+#: views/user_profile.pug:191
+msgid "Two-factor authentication is enabled."
+msgstr "La autenticación de dos factores está habilitada."
+
+#: views/user_profile.pug:194
+msgid "Configure again."
+msgstr "Configura otra vez."
+
+#: views/user_profile.pug:199
+msgid "Two-factor authentication is not enabled."
+msgstr "La autenticación de dos factores no está habilitada."
+
+#: views/user_profile.pug:202
+msgid "Enable"
+msgstr "Permite"
+
+#: views/user_profile.pug:206
+msgid "Configure login with Google"
+msgstr "Configura el inicio de sesión con Google"
+
+#: views/user_profile.pug:210
+msgid "Delete account"
+msgstr "Borra su cuenta"
+
+#: views/user_profile.pug:219
+msgid "Are you sure you want to delete your account?"
+msgstr "¿Estás seguro de que quieres borrar su cuenta?"
+
+#: views/user_profile.pug:222
+msgid ""
+"Deleting the account is an irreversible operation. All the data stored on "
+"the server will be lost permanently."
+msgstr ""
+"Eliminando su cuenta es una operación irreversible. Todos los datos "
+"almacenados en el servidor se perderá de forma permanente."
+
+#: views/user_profile.pug:225
+msgid ""
+"You will need to relink your phone if you make a new account, but you will "
+"not lose the data stored in them."
+msgstr ""
+"Deberás volver a conectar su teléfono si crea una nueva cuenta, pero no "
+"perderás los datos almacenados en ellos."
+
+#: views/user_profile.pug:231
+msgid "Yes, I want to delete my account"
+msgstr "Sí, quiero borrar mi cuenta"
+
+#: views/user_profile.pug:233
+msgid "No, I changed my mind"
+msgstr "No, he cambiado mi mente"
+
+#: views/user_profile.pug:237
+msgid "Authorized third-party apps"
+msgstr "Aplicaciones de terceros autorizadas"
+
+#: views/user_profile.pug:247
+msgid "By %s"
+msgstr "Por %s"
+
+#: views/user_profile.pug:252
+msgid "Revoke"
+msgstr "Revocar"
+
+#: views/user_profile.pug:255
+msgid "You have not authorized any third-party app."
+msgstr "No has autorizado ninguna aplicación de terceros."
+
+#: views/user_profile.pug:262
+msgid "Issue an Access Token"
+msgstr "Emite un Token de Acceso"
+
+#: views/user_profile.pug:264
+msgid ""
+"The following token is valid anywhere an access token is expected. It is "
+"valid for one month, and enables all scopes. Treat it like a password!"
+msgstr ""
+"El siguiente token es válido en cualquier lugar donde se espere un token de "
+"acceso. Es válido por un mes y habilita todos los ámbitos. ¡Trátelo como una "
+"contraseña!"
+
+#: views/user_profile.pug:270
+msgid "Phone"
+msgstr "Teléfono"
+
+#: views/user_profile.pug:274
+msgid "You are running a Genie in your phone."
+msgstr "Estás ejecutando el Genie en tu teléfono."
+
+#: views/user_profile.pug:276
+msgid "You did not link the Genie in your phone to your account."
+msgstr "No conectaste el Genie en su teléfono a su cuenta."
+
+#: views/user_profile.pug:278
+msgid ""
+"If you are not running Genie already, first <a href='https://play.google.com/"
+"store/apps/details?id=edu.stanford.thingengine.engine'>download the app</a>."
+msgstr ""
+"Si aún no está ejecutando Genie, primero <a href='https://play.google.com/"
+"store/apps/details?id=edu.stanford.thingengine.engine'>download the app</a>."
+
+#: views/user_profile.pug:279
+msgid " Then visit this page on a mobile browser, or scan this QR code."
+msgstr ""
+" Luego, visite esta página en un navegador móvil o escanee este código QR."
+
+#: views/user_profile.pug:285
+msgid "Configure"
+msgstr "Configura"
+
+#: views/user_profile.pug:289
+msgid "Laptop"
+msgstr "Computadora"
+
+#: views/user_profile.pug:293
+msgid "You are running a Genie in your laptop."
+msgstr "Estás ejecutando el Genie en tu computadora"
+
+#: views/user_profile.pug:295
+msgid ""
+"You did not link the Genie in your laptop to your account. You should do so "
+"from the Settings page in the native Genie app."
+msgstr ""
+"No conectaste el Genie en su computadora a su cuenta. Deberías hacerlo en la "
+"página de Configuración en la aplicación nativa de Genio."
+
+#: views/password_recovery_continue.pug:22
+msgid "New password"
+msgstr "Nueva contraseña"
+
+#~ msgid ""
+#~ "Genie is an assistant that helps you find an available Covid vaccine "
+#~ "appointment near you.  We collect information from pharmacies and health "
+#~ "organizations.  if none is available, we will look out for appointments "
+#~ "and notify you when one is available."
+#~ msgstr ""
+#~ "Genie es un asistente que le ayuda a encontrar citas para una vacuna de "
+#~ "Covid disponibles cerca de ti. Recopilamos información de farmacias y "
+#~ "organizaciones de salud. Si no hay ninguna disponible, buscaremos citas y "
+#~ "lenotificamos cuando haya una disponible."
+
+#~ msgid "Docs"
+#~ msgstr "Docs"
+
+#~ msgid "Console"
+#~ msgstr "Consola"
+
+#~ msgid "Settings"
+#~ msgstr "Configuraciónes"
+
+#~ msgid "Log Out"
+#~ msgstr "Cerrar sesión"
+
+#~ msgid "Log In"
+#~ msgstr "Inciar sesión"
