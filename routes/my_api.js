@@ -103,7 +103,7 @@ router.post('/sms', (req, res, next) => {
                     reply += await handleSMSMessage(req, engine, message, phone);
                 } else {
                     // eat the message and reply with some intro text
-                    reply = req._("Hello! This is COVID Genie from Stanford University. I’m here to help you find a covid vaccine appointment near you.  What is your zipcode?");
+                    reply = req._("Hello! This is COVID Genie from Stanford University. I’m here to help you find a covid vaccine appointment near you. What is your zipcode?");
                 }
             } else {
                 reply = await handleSMSMessage(req, engine, message, phone);
