@@ -17,10 +17,6 @@ block scripts
   if !authenticated && ENABLE_ANONYMOUS_USER
     script(src=Config.ASSET_CDN + '/javascripts/register.js')
 
-block page_name
-  - stdlayout = false;
-  = _("Genie")
-
 block content
   if authenticated
     div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)

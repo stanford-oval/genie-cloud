@@ -111,6 +111,24 @@ body {
     width: 14em !important;
 }
 
+.icon-bar {
+    background-color: #000 !important;
+}
+
+.navbar-inverse .navbar-nav>li>a:hover {
+    text-decoration-line: revert !important;
+    background-color: unset;
+    text-decoration-color: #0A75C9;
+    text-decoration-style: dotted;
+}
+
+.navbar-inverse .navbar-nav>li>a:focus {
+    text-decoration-line: revert !important;
+    background-color: unset;
+    text-decoration-color: #0A75C9;
+    font-weight: 700;
+}
+
 
 /* ---- */
 
@@ -146,6 +164,21 @@ body {
     font-weight: 800;
 }
 
+#title_index {
+    width: 600px;
+    padding: 10px;
+    float: left;
+}
+
+#title_index>a,
+#title_index:hover,
+a:hover {
+    color: #000;
+    text-decoration: none;
+    font-size: 35px;
+    font-weight: 700;
+}
+
 .index_btn {
     width: 40%;
 }
@@ -174,6 +207,35 @@ body {
     font-size: 2em;
     font-weight: 700;
     line-height: 7em;
+    text-decoration: underline;
+}
+
+@media screen and (max-width: 805px) {
+    #title_index {
+        width: 330px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    ul.nav.navbar-nav.navbar-right {
+        padding-top: unset !important;
+    }
+    #page-nav {
+        border-color: #0A75C9;
+        background-color: rgba(255, 255, 255);
+        width: 230px;
+        position: absolute;
+        right: 60px;
+    }
+    .navbar-nav {
+        font-size: 25px !important;
+    }
+}
+
+@media screen and (max-width: 1200px) {
+    ul.nav.navbar-nav.navbar-right {
+        padding-top: 100px;
+    }
 }
 
 
@@ -182,11 +244,10 @@ body {
 .navbar-nav {
     font-size: 35px;
     font-weight: 500;
-    padding-top: 10px;
-    padding-bottom: 0;
+    padding: 10px;
 }
 
-.navbar-nav>li>a {
+.navbar-nav>a {
     color: #000 !important;
 }
 
@@ -198,6 +259,7 @@ body {
     min-width: 70px;
     margin-top: -20px;
     margin-right: 20px;
+    color: transparent;
 }
 
 .navbar-inverse {
@@ -205,13 +267,29 @@ body {
     color: #000 !important;
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1000px) {
     .navbar-header {
         padding-top: 0.9em;
     }
     .navbar-brand {
         margin-left: 0;
         margin-top: 0;
+    }
+    .index_cl_sx,
+    .index_cl_dx {
+        width: 100%;
+    }
+    .index_cl_sx {
+        padding-top: 110px;
+    }
+    .index_cl_dx {
+        padding-left: 8em;
+    }
+    .index_sx_p {
+        line-height: 1.5em;
+    }
+    #title_index>a {
+        font-size: 35px;
     }
 }
 
