@@ -32,6 +32,7 @@ module.exports.THINGENGINE_MANAGER_AUTHENTICATION = 'foo bar baz';
 module.exports.DISCOURSE_SSO_SECRET = 'd836444a9e4084d5b224a60c208dce14';
 module.exports.DISCOURSE_SSO_REDIRECT = 'https://discourse.almond.stanford.edu';
 module.exports.ENABLE_ANONYMOUS_USER = true;
+module.exports.SUPPORTED_LANGUAGES = ['en-US', 'es-ES'];
 EOF
 
 # clean the database and bootstrap

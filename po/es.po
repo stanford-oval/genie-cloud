@@ -1,0 +1,1040 @@
+# Spanish translations for almond-cloud package.
+# Copyright (C) 2021 THE almond-cloud'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the almond-cloud package.
+# gcampagn <gcampagn@cs.stanford.edu>, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: almond-cloud 2.0.0-alpha.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-04-23 22:09+0000\n"
+"PO-Revision-Date: 2021-04-23 13:43-0700\n"
+"Last-Translator: gcampagn <gcampagn@cs.stanford.edu>\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: routes/my_api.js:69
+msgid "Okay, I will stop sending you notifications."
+msgstr ""
+
+#: routes/my_api.js:79
+#, javascript-format
+msgid "Picture: %s"
+msgstr ""
+
+#: routes/my_api.js:81
+#, javascript-format
+msgid "Audio: %s"
+msgstr ""
+
+#: routes/my_api.js:83
+#, javascript-format
+msgid "Video: %s"
+msgstr ""
+
+#: routes/my_api.js:89
+msgid " [yes/no]"
+msgstr ""
+
+#: routes/my_api.js:95
+msgid ""
+"Hello! This is COVID Genie from Stanford University. I’m here to help you find a covid vaccine appointment near you.  What is your zipcode?"
+msgstr "¡Hola! Soy la COVID Genio de la Universidad de Stanford. Estoy aquí para ayudarle a encontrar una cita para la vacuna para covid. ¿Cuál es su código postal?"
+
+#: routes/my_api.js:132
+#, javascript-format
+msgid "You have successfully unsubscribed %s from all notifications."
+msgstr ""
+
+#: routes/devices.js:70 routes/my_stuff.js:84
+msgid "Not found."
+msgstr ""
+
+#: routes/luinet_models.js:114 routes/developer_alexa.js:78
+#: routes/luinet_custom_datasets.js:96 views/mturk.pug:105
+#: views/luinet_template_list.pug:16 views/luinet_model_list.pug:17
+#: views/dev_nlp_models.pug:92 views/dev_nlp_models.pug:201
+msgid ", "
+msgstr ", "
+
+#: routes/user.js:58
+msgid ""
+"Welcome to Genie! You are now ready to start using Genie to receive "
+"notifications."
+msgstr ""
+
+#: routes/user.js:60
+msgid ""
+"Welcome to Genie! A verification email has been sent to your address. Some "
+"functionality on your account, such as receiving notifications, will be "
+"limited until you verify your email. You must click on the verification link "
+"to enable your account in full."
+msgstr ""
+
+#: routes/user.js:62
+msgid ""
+"Welcome to Genie! You did not provide an email address. Some functionality "
+"on your account, such as receiving notifications, will be limited until you "
+"provide and verify your email. You can do so from your user settings."
+msgstr ""
+
+#: routes/user.js:127 routes/user.js:163
+msgid "Genie - Login"
+msgstr ""
+
+#: routes/user.js:190 routes/user.js:435 routes/user.js:451 routes/user.js:458
+#: routes/user.js:522 routes/user.js:546 routes/user.js:576 routes/user.js:599
+#: routes/user.js:914 routes/user.js:922 routes/developer_oauth2.js:100
+#: routes/developer_console.js:126 routes/developer_console.js:187
+#: routes/developer_console.js:277 util/error_handling.js:29
+#: util/error_handling.js:34 util/error_handling.js:39
+#: util/error_handling.js:45 util/error_handling.js:70
+#: util/error_handling.js:91 util/input_validation.js:89
+#: util/input_validation.js:101
+msgid "Genie - Error"
+msgstr ""
+
+#: routes/user.js:191
+msgid "You already configured two-factor authentication."
+msgstr ""
+
+#: routes/user.js:210 routes/user.js:227 routes/user.js:240
+msgid "Genie - Two-Factor Authentication"
+msgstr ""
+
+#: routes/user.js:228
+msgid ""
+"Invalid OTP Code. Please check that your Authenticator app is properly "
+"configured."
+msgstr ""
+
+#: routes/user.js:241
+msgid ""
+"Two-factor authentication was set up successfully. You will need to use your "
+"Authenticator app at the next login."
+msgstr ""
+
+#: routes/user.js:249 routes/user.js:351 routes/user.js:366
+msgid "Genie - Register"
+msgstr ""
+
+#: routes/user.js:318
+msgid ""
+"You must specify a valid username of at most 60 characters. Special "
+"characters or spaces are not allowed."
+msgstr ""
+
+#: routes/user.js:322
+msgid "You must specify a valid email."
+msgstr ""
+
+#: routes/user.js:327
+msgid "You must specifiy a valid password, of at least 8 characters."
+msgstr ""
+
+#: routes/user.js:330
+msgid "The password and the confirmation do not match."
+msgstr ""
+
+#: routes/user.js:346
+msgid "You must agree to the consent form to sign-up."
+msgstr ""
+
+#: routes/user.js:436
+msgid ""
+"The verification link you have clicked is not valid. You might be logged-in "
+"as the wrong user, or the link might have expired."
+msgstr ""
+
+#: routes/user.js:443
+msgid "Genie - Verification Successful"
+msgstr ""
+
+#: routes/user.js:452
+msgid "Your email address was already verified."
+msgstr ""
+
+#: routes/user.js:459
+msgid "You must set an email address before sending a verification email."
+msgstr ""
+
+#: routes/user.js:466
+msgid "Genie - Verification Sent"
+msgstr ""
+
+#: routes/user.js:467
+#, javascript-format
+msgid ""
+"A verification email was sent to %s. If you did not receive it, please check "
+"your Spam folder."
+msgstr ""
+
+#: routes/user.js:474 routes/user.js:553 routes/user.js:560 routes/user.js:590
+#: routes/user.js:610 routes/user.js:627
+msgid "Genie - Password Reset"
+msgstr ""
+
+#: routes/user.js:514 routes/user.js:531
+msgid "Genie - Password Reset Sent"
+msgstr ""
+
+#: routes/user.js:515 routes/user.js:532
+#, javascript-format
+msgid ""
+"A recovery email was sent to the address on file for %s. If you did not "
+"receive it, please check the spelling of your username, and check your Spam "
+"folder."
+msgstr ""
+
+#: routes/user.js:523
+msgid ""
+"You did not verify your email address, hence you cannot recover your "
+"password automatically. Please contact the website adminstrators to recover "
+"your password."
+msgstr ""
+
+#: routes/user.js:547 routes/user.js:600
+msgid "The user for which you're resetting the password no longer exists."
+msgstr ""
+
+#: routes/user.js:561
+msgid "The verification link you have clicked is not valid."
+msgstr ""
+
+#: routes/user.js:584 routes/user.js:769
+msgid "You must specifiy a valid password (of at least 8 characters)"
+msgstr ""
+
+#: routes/user.js:587 routes/user.js:772
+msgid "The password and the confirmation do not match"
+msgstr ""
+
+#: routes/user.js:612
+msgid "Invalid OTP code"
+msgstr ""
+
+#: routes/user.js:628
+msgid "Your password was reset successfully."
+msgstr ""
+
+#: routes/user.js:667
+msgid "Thingpedia - User Profile"
+msgstr ""
+
+#: routes/user.js:745
+msgid ""
+"A verification email was sent to your new email address. Account "
+"functionality will be limited until you verify your new address."
+msgstr ""
+
+#: routes/user.js:777
+msgid "You must specifiy your old password"
+msgstr ""
+
+#: routes/user.js:862
+msgid "You must acknowledge that you read the Terms of Service."
+msgstr ""
+
+#: routes/my_stuff.js:54 routes/my_stuff.js:67 routes/my_stuff.js:93
+#: routes/my_stuff.js:97 views/navbar.pug:8 views/my_stuff.pug:9
+msgid "My Genie"
+msgstr ""
+
+#: routes/about.js:39 views/about_index.pug:22 views/register_success.pug:8
+#: views/layout.pug:42
+msgid "Genie"
+msgstr ""
+
+#: routes/about.js:61
+msgid "Terms of Service for Genie & Thingpedia"
+msgstr ""
+
+#: routes/about.js:74
+msgid "Genie Privacy Policy"
+msgstr ""
+
+#: util/i18n.js:35 views/admin_training.pug:29
+#: views/thingpedia_translate_schema.pug:56
+msgid "English"
+msgstr ""
+
+#: util/i18n.js:36
+msgid "English (United States)"
+msgstr ""
+
+#: util/i18n.js:37
+msgid "English (United Kingdom)"
+msgstr ""
+
+#: util/i18n.js:38 util/i18n.js:39 views/admin_training.pug:30
+msgid "Italian"
+msgstr ""
+
+#: util/i18n.js:40 views/admin_training.pug:31
+msgid "Chinese"
+msgstr ""
+
+#: util/i18n.js:41
+msgid "Chinese (Simplified)"
+msgstr ""
+
+#: util/i18n.js:42
+msgid "Chinese (Traditional)"
+msgstr ""
+
+#: util/i18n.js:43 util/i18n.js:44
+msgid "Spanish"
+msgstr ""
+
+#: util/error_handling.js:46
+#, javascript-format
+msgid "Code: %d"
+msgstr ""
+
+#: util/error_handling.js:51
+msgid "Genie - Forbidden"
+msgstr ""
+
+#: util/error_handling.js:63
+msgid "Genie - Page Not Found"
+msgstr ""
+
+#: util/error_handling.js:64
+msgid "The requested page does not exist."
+msgstr ""
+
+#: util/error_handling.js:71
+msgid "The identifier you selected is already in use."
+msgstr ""
+
+#: util/error_handling.js:92
+msgid "You do not have permission to perform the requested operation."
+msgstr ""
+
+#: util/error_handling.js:98
+msgid "Genie - Internal Server Error"
+msgstr ""
+
+#: util/error_handling.js:99
+#, javascript-format
+msgid "Code: %s"
+msgstr ""
+
+#: util/user.js:120
+msgid "A user with this name already exists."
+msgstr ""
+
+#: util/user.js:123
+msgid "A user with this email already exists."
+msgstr ""
+
+#: util/user.js:217 util/user.js:230 util/user.js:246
+msgid "You do not have permission to perform this operation."
+msgstr ""
+
+#: util/input_validation.js:102
+msgid "Invalid request"
+msgstr ""
+
+#: util/passport.js:114 util/passport.js:195
+msgid ""
+"A user with this email already exist, but the email was not verified before."
+msgstr ""
+
+#: views/admin_training.pug:27 views/admin_training.pug:73
+#: views/luinet_dataset_list.pug:13 views/register_mixins.pug:31
+#: views/dev_alexa.pug:59 views/dev_nlp_models.pug:148
+#: views/dev_nlp_models.pug:238 views/dev_nlp_models.pug:329
+#: views/user_profile.pug:80
+msgid "Language"
+msgstr ""
+
+#: views/admin_org_list.pug:15 views/admin_org_list.pug:40
+#: views/luinet_dataset.pug:14 views/luinet_dataset.pug:50
+#: views/blog_archive.pug:30 views/thingpedia_snapshot_list.pug:28
+#: views/admin_blog_archive.pug:53 views/admin_review_queue.pug:17
+#: views/admin_review_queue.pug:50 views/admin_user_list.pug:23
+#: views/admin_user_list.pug:176
+msgid "Previous"
+msgstr ""
+
+#: views/admin_org_list.pug:19 views/admin_org_list.pug:44
+#: views/luinet_dataset.pug:18 views/luinet_dataset.pug:54
+#: views/blog_archive.pug:33 views/thingpedia_snapshot_list.pug:31
+#: views/admin_blog_archive.pug:56 views/admin_review_queue.pug:20
+#: views/admin_review_queue.pug:53 views/admin_user_list.pug:26
+#: views/admin_user_list.pug:179
+msgid "Next"
+msgstr ""
+
+#: views/admin_org_list.pug:25 views/thingpedia_portal.pug:42
+#: views/commandpedia.pug:6 views/admin_user_list.pug:17
+msgid "Search"
+msgstr ""
+
+#: views/about_index.pug:34
+msgid "Register for Genie"
+msgstr ""
+
+#: views/about_index.pug:40
+msgid "Covid Genie"
+msgstr ""
+
+#: views/about_index.pug:47
+msgid ""
+"Genie is an assistant that helps you find an available Covid vaccine "
+"appointment near you.  We collect information from pharmacies and health "
+"organizations.  if none is available, we will look out for appointments and "
+"notify you when one is available."
+msgstr ""
+
+#: views/about_index.pug:49
+msgid "Genie is developed at Stanford University."
+msgstr ""
+
+#: views/about_index.pug:51
+msgid "We do not share your private information with third parties."
+msgstr ""
+
+#: views/about_index.pug:60 views/about_index.pug:77
+msgid "Get Your Vaccine Now"
+msgstr ""
+
+#: views/about_index.pug:68
+msgid "I agree"
+msgstr ""
+
+#: views/register_mixins.pug:14 views/user_profile.pug:38
+msgid "E-Mail"
+msgstr ""
+
+#: views/register_mixins.pug:17 views/user_profile.pug:50
+msgid "Phone Number"
+msgstr ""
+
+#: views/register_mixins.pug:19
+msgid ""
+"Enter your a mobile phone number if you would like to receive notifications "
+"over SMS."
+msgstr ""
+
+#: views/register_mixins.pug:21 views/login.pug:19 views/user_profile.pug:162
+#: views/user_profile.pug:174
+msgid "Password"
+msgstr ""
+
+#: views/register_mixins.pug:23 views/user_profile.pug:164
+#: views/user_profile.pug:176 views/password_recovery_continue.pug:24
+msgid "Minimum of 8 characters"
+msgstr ""
+
+#: views/register_mixins.pug:25 views/user_profile.pug:166
+#: views/user_profile.pug:178 views/password_recovery_continue.pug:26
+msgid "Confirm password"
+msgstr ""
+
+#: views/register_mixins.pug:26 views/user_profile.pug:167
+#: views/user_profile.pug:179 views/password_recovery_continue.pug:27
+msgid "The password and the confirmation must match"
+msgstr ""
+
+#: views/register_mixins.pug:45
+msgid "I agree to grant consent to this research."
+msgstr ""
+
+#: views/register_mixins.pug:53
+msgid ""
+"I agree to the <a href='/about/tos'>terms of service</a> of the Genie "
+"service."
+msgstr ""
+
+#: views/register_mixins.pug:60
+msgid "Consent Form"
+msgstr ""
+
+#: views/register_success.pug:14 views/email_verified.pug:9
+msgid "Welcome to Genie, %s!"
+msgstr ""
+
+#: views/register_success.pug:17
+msgid "You are now ready to start using Genie for your own accounts."
+msgstr ""
+
+#: views/register_success.pug:20 views/register_success.pug:34
+#: views/register_success.pug:46 views/email_verified.pug:15
+msgid "Go to My Genie"
+msgstr ""
+
+#: views/register_success.pug:23 views/register_success.pug:37
+#: views/register_success.pug:49
+msgid "Join the Community"
+msgstr ""
+
+#: views/register_success.pug:26
+msgid ""
+"A verification email has been sent to your address. Some functionality on "
+"your account, such as developer access, will be limited until you verify "
+"your email. You must click on the verification link to enable your account "
+"in full."
+msgstr ""
+
+#: views/register_success.pug:31
+msgid "Resend verification email"
+msgstr ""
+
+#: views/register_success.pug:40
+msgid ""
+"You did not provide an email address. Some functionality on your account, "
+"such as developer access, will be limited until you provide and verify your "
+"email. You can do so from your user settings."
+msgstr ""
+
+#: views/register_success.pug:43
+msgid "User Settings"
+msgstr ""
+
+#: views/login_required.pug:4 views/qrcode.pug:5 views/error.pug:4
+msgid "Error"
+msgstr ""
+
+#: views/login_required.pug:7
+msgid "Login required"
+msgstr ""
+
+#: views/login_required.pug:8
+msgid "Sorry but you must log in before opening this page"
+msgstr ""
+
+#: views/login_required.pug:10 views/error.pug:16
+msgid "Go back"
+msgstr ""
+
+#: views/login_required.pug:12 views/2fa_login.pug:25 views/login.pug:22
+msgid "Log in"
+msgstr ""
+
+#: views/2fa_login.pug:4 views/login.pug:4
+msgid "Login"
+msgstr ""
+
+#: views/2fa_login.pug:13
+msgid ""
+"You have configured two-factor authentication for this user. Please enter "
+"the One Time Password generated from your Authenticator app."
+msgstr ""
+
+#: views/2fa_login.pug:17
+msgid "OTP"
+msgstr ""
+
+#: views/2fa_login.pug:23
+msgid "Remember me on this computer."
+msgstr ""
+
+#: views/2fa_login.pug:27
+msgid ""
+"Having trouble? If you have lost access to your authenticator app, please "
+"contact us to regain access to your account."
+msgstr ""
+
+#: views/about_tos.pug:4
+msgid "Terms & Conditions"
+msgstr ""
+
+#: views/stanford/footer.pug:4
+msgid "Stanford University"
+msgstr ""
+
+#: views/stanford/footer.pug:8
+msgid "Stanford Home"
+msgstr ""
+
+#: views/stanford/footer.pug:10
+msgid "Maps & Directions"
+msgstr ""
+
+#: views/stanford/footer.pug:12
+msgid "Search Stanford"
+msgstr ""
+
+#: views/stanford/footer.pug:14
+msgid "Emergency Info"
+msgstr ""
+
+#: views/stanford/footer.pug:16
+msgid "Non-Discrimination"
+msgstr ""
+
+#: views/stanford/footer.pug:19
+msgid "Terms of Service"
+msgstr ""
+
+#: views/stanford/footer.pug:21
+msgid "Privacy"
+msgstr ""
+
+#: views/stanford/footer.pug:23
+msgid "Accessibility"
+msgstr ""
+
+#: views/stanford/footer.pug:25 views/thingpedia_device_details.pug:260
+msgid "Report a bug"
+msgstr ""
+
+#: views/stanford/footer.pug:28
+msgid "Connect with us on Twitter"
+msgstr ""
+
+#: views/stanford/footer.pug:31
+msgid "Subscribe to our RSS Feed"
+msgstr ""
+
+#: views/stanford/footer.pug:34
+msgid "Fork me on GitHub"
+msgstr ""
+
+#: views/stanford/footer.pug:37
+msgid "Contact us via email"
+msgstr ""
+
+#: views/password_recovery_start.pug:4 views/password_recovery_continue.pug:4
+msgid "Password Reset"
+msgstr ""
+
+#: views/password_recovery_start.pug:7
+msgid ""
+"To reset your Genie password, please enter your username. An email with "
+"instructions will be sent to the address associated with it."
+msgstr ""
+
+#: views/password_recovery_start.pug:14 views/password_recovery_continue.pug:36
+msgid "Reset Password"
+msgstr ""
+
+#: views/conversation_mixin.pug:10
+msgid "Command:"
+msgstr ""
+
+#: views/conversation_mixin.pug:11
+msgid "Write your command or answer here"
+msgstr ""
+
+#: views/conversation_mixin.pug:14
+msgid "Genie is thinking…"
+msgstr ""
+
+#: views/conversation_mixin.pug:16
+msgid "Lost connection to the server."
+msgstr ""
+
+#: views/login.pug:24
+msgid "Don't have a username and password yet? "
+msgstr ""
+
+#: views/login.pug:25
+msgid "Sign up now!"
+msgstr ""
+
+#: views/login.pug:27
+msgid "I forgot my password"
+msgstr ""
+
+#: views/login.pug:30
+msgid "Log In with Google"
+msgstr ""
+
+#: views/login.pug:33
+msgid "Log In with Github"
+msgstr ""
+
+#: views/devices_create.pug:7
+msgid "New Skill"
+msgstr ""
+
+#: views/devices_create.pug:10
+msgid "What skill do you want to set up?"
+msgstr ""
+
+#: views/layout.pug:33
+msgid "Yes"
+msgstr ""
+
+#: views/layout.pug:33
+msgid "No"
+msgstr ""
+
+#: views/layout.pug:33
+msgid "Cancel."
+msgstr ""
+
+#: views/layout.pug:37
+msgid "Toggle navigation"
+msgstr ""
+
+#: views/message.pug:4 views/developer_access_ok.pug:4
+msgid "Success"
+msgstr ""
+
+#: views/message.pug:9
+msgid "Go to the home page"
+msgstr ""
+
+#: views/navbar.pug:3 views/thingpedia_device_create_or_edit.pug:94
+msgid "Home"
+msgstr ""
+
+#: views/navbar.pug:13
+msgid "Docs"
+msgstr ""
+
+#: views/navbar.pug:16
+msgid "Console"
+msgstr ""
+
+#: views/navbar.pug:19
+msgid "Admin"
+msgstr ""
+
+#: views/navbar.pug:24
+msgid "Settings"
+msgstr ""
+
+#: views/navbar.pug:27
+msgid "Log Out"
+msgstr ""
+
+#: views/navbar.pug:29
+msgid "Log In"
+msgstr ""
+
+#: views/my_stuff.pug:40
+msgid "This device is owned by your %s."
+msgstr ""
+
+#: views/my_stuff.pug:49
+msgid "Disable"
+msgstr ""
+
+#: views/my_stuff.pug:51
+msgid "Forget"
+msgstr ""
+
+#: views/my_stuff.pug:54
+msgid "Configure new skill"
+msgstr ""
+
+#: views/my_stuff.pug:65
+msgid "Your Genie is dead. "
+msgstr ""
+
+#: views/my_stuff.pug:66
+msgid "More Details"
+msgstr ""
+
+#: views/my_stuff.pug:70
+msgid "Active Commands"
+msgstr ""
+
+#: views/my_stuff.pug:78
+msgid "Stop"
+msgstr ""
+
+#: views/my_stuff.pug:82
+msgid "This app delivers notifications using %s"
+msgstr ""
+
+#: views/my_stuff.pug:86
+msgid "%s %s"
+msgstr ""
+
+#: views/my_stuff.pug:89
+msgid "This rule had an error: %s"
+msgstr ""
+
+#: views/my_stuff.pug:92
+msgid "Enabled Skills"
+msgstr ""
+
+#: views/my_stuff.pug:104
+msgid "Write your comment for the last response"
+msgstr ""
+
+#: views/my_stuff.pug:108
+msgid "Comment"
+msgstr ""
+
+#: views/my_stuff.pug:114
+msgid "Warning:"
+msgstr ""
+
+#: views/my_stuff.pug:119
+msgid "Confirm"
+msgstr ""
+
+#: views/my_stuff.pug:127
+msgid "Record conversation"
+msgstr ""
+
+#: views/my_stuff.pug:130
+msgid "Show recorded log"
+msgstr ""
+
+#: views/my_stuff.pug:136
+msgid "Conversation log updated."
+msgstr ""
+
+#: views/my_stuff.pug:140
+msgid "Done"
+msgstr ""
+
+#: views/footer.pug:5
+msgid ""
+"Genie is part of a research project of the <a href='https://oval.cs.stanford."
+"edu'>Open Virtual Assistant Laboratory</a> at Stanford University."
+msgstr ""
+
+#: views/user_profile.pug:8
+msgid "User Profile"
+msgstr ""
+
+#: views/user_profile.pug:13
+msgid "Personal information"
+msgstr ""
+
+#: views/user_profile.pug:43
+msgid "Your email was verified."
+msgstr ""
+
+#: views/user_profile.pug:47
+msgid "Resend verification"
+msgstr ""
+
+#: views/user_profile.pug:54
+msgid "Real name"
+msgstr ""
+
+#: views/user_profile.pug:61
+msgid "Show my real name in my public profile."
+msgstr ""
+
+#: views/user_profile.pug:67
+msgid "Show my profile picture in my public profile."
+msgstr ""
+
+#: views/user_profile.pug:68
+msgid ""
+"Your profile picture is automatically retrieved from <a href='https://en."
+"gravatar.com'>Gravatar</a> using a secure hash of your email.</a>"
+msgstr ""
+
+#: views/user_profile.pug:74
+msgid "Send anonymized commands to the authors of Genie for training."
+msgstr ""
+
+#: views/user_profile.pug:76
+msgid ""
+"Genie is a research project from Stanford University. If you would like to "
+"participate to help us, you can allow us to collect the commands that you "
+"type. We only collect what you type, not your data, or what Genie replies. "
+"Please review the <a href='https://oval.cs.stanford.edu/almond-consent-form."
+"html'>Consent Form</a> and keep it for your records before agreeing."
+msgstr ""
+
+#: views/user_profile.pug:91
+msgid "Administrator of %s"
+msgstr ""
+
+#: views/user_profile.pug:93
+msgid "Member of %s"
+msgstr ""
+
+#: views/user_profile.pug:95
+msgid "None. You have been invited to the following organizations:"
+msgstr ""
+
+#: views/user_profile.pug:102
+msgid "Accept"
+msgstr ""
+
+#: views/user_profile.pug:105
+msgid "None (<a href='/user/request-developer'>apply to be a developer</a>)"
+msgstr ""
+
+#: views/user_profile.pug:107
+msgid "None"
+msgstr ""
+
+#: views/user_profile.pug:114
+msgid "Include my name on my developer organization's public profile."
+msgstr ""
+
+#: views/user_profile.pug:117
+msgid "Developer Access"
+msgstr ""
+
+#: views/user_profile.pug:120
+msgid ""
+"All code you submit can go live to all Genies with no review. Be careful!"
+msgstr ""
+
+#: views/user_profile.pug:123
+msgid ""
+"You can submit new entries, but they have to be reviewed by an administrator "
+"before users can see them."
+msgstr ""
+
+#: views/user_profile.pug:126
+msgid ""
+"You can test the code submitted by other members of your organization, but "
+"you cannot modify it or upload new entries."
+msgstr ""
+
+#: views/user_profile.pug:129
+msgid "Thingpedia Developer Key"
+msgstr ""
+
+#: views/user_profile.pug:132
+msgid ""
+"You can use this developer key in other Genies (such as one you're running "
+"locally for testing) to access your devices before they are approved."
+msgstr ""
+
+#: views/user_profile.pug:142
+msgid "Access information"
+msgstr ""
+
+#: views/user_profile.pug:160
+msgid ""
+"You did not configure a password. You should provide one, in case you lose "
+"access to the account you logged in with."
+msgstr ""
+
+#: views/user_profile.pug:171
+msgid "Old Password"
+msgstr ""
+
+#: views/user_profile.pug:183
+msgid "Change password"
+msgstr ""
+
+#: views/user_profile.pug:191
+msgid "Two-factor authentication is enabled."
+msgstr ""
+
+#: views/user_profile.pug:194
+msgid "Configure again."
+msgstr ""
+
+#: views/user_profile.pug:199
+msgid "Two-factor authentication is not enabled."
+msgstr ""
+
+#: views/user_profile.pug:202
+msgid "Enable"
+msgstr ""
+
+#: views/user_profile.pug:206
+msgid "Configure login with Google"
+msgstr ""
+
+#: views/user_profile.pug:210
+msgid "Delete account"
+msgstr ""
+
+#: views/user_profile.pug:219
+msgid "Are you sure you want to delete your account?"
+msgstr ""
+
+#: views/user_profile.pug:222
+msgid ""
+"Deleting the account is an irreversible operation. All the data stored on "
+"the server will be lost permanently."
+msgstr ""
+
+#: views/user_profile.pug:225
+msgid ""
+"You will need to relink your phone if you make a new account, but you will "
+"not lose the data stored in them."
+msgstr ""
+
+#: views/user_profile.pug:231
+msgid "Yes, I want to delete my account"
+msgstr ""
+
+#: views/user_profile.pug:233
+msgid "No, I changed my mind"
+msgstr ""
+
+#: views/user_profile.pug:237
+msgid "Authorized third-party apps"
+msgstr ""
+
+#: views/user_profile.pug:247
+msgid "By %s"
+msgstr ""
+
+#: views/user_profile.pug:252
+msgid "Revoke"
+msgstr ""
+
+#: views/user_profile.pug:255
+msgid "You have not authorized any third-party app."
+msgstr ""
+
+#: views/user_profile.pug:262
+msgid "Issue an Access Token"
+msgstr ""
+
+#: views/user_profile.pug:264
+msgid ""
+"The following token is valid anywhere an access token is expected. It is "
+"valid for one month, and enables all scopes. Treat it like a password!"
+msgstr ""
+
+#: views/user_profile.pug:270
+msgid "Phone"
+msgstr ""
+
+#: views/user_profile.pug:274
+msgid "You are running a Genie in your phone."
+msgstr ""
+
+#: views/user_profile.pug:276
+msgid "You did not link the Genie in your phone to your account."
+msgstr ""
+
+#: views/user_profile.pug:278
+msgid ""
+"If you are not running Genie already, first <a href='https://play.google.com/"
+"store/apps/details?id=edu.stanford.thingengine.engine'>download the app</a>."
+msgstr ""
+
+#: views/user_profile.pug:279
+msgid " Then visit this page on a mobile browser, or scan this QR code."
+msgstr ""
+
+#: views/user_profile.pug:285
+msgid "Configure"
+msgstr ""
+
+#: views/user_profile.pug:289
+msgid "Laptop"
+msgstr ""
+
+#: views/user_profile.pug:293
+msgid "You are running a Genie in your laptop."
+msgstr ""
+
+#: views/user_profile.pug:295
+msgid ""
+"You did not link the Genie in your laptop to your account. You should do so "
+"from the Settings page in the native Genie app."
+msgstr ""
+
+#: views/password_recovery_continue.pug:22
+msgid "New password"
+msgstr ""

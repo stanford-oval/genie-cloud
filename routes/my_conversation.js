@@ -32,7 +32,7 @@ module.exports.anonymous = function(ws, req) {
         return;
     }
 
-    user.getAnonymousUser().then((user) => {
+    user.getAnonymousUser(req.locale).then((user) => {
         return doConversation(user, true, ws, req.query);
     });
 };

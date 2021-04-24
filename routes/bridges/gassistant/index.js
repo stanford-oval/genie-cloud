@@ -142,7 +142,7 @@ router.use(gAssistantUserUtils.requireScope('user-exec-command'));
 
 const app = actionssdk();
 
-async function retrieveUser(accessToken) {
+async function retrieveUser(accessToken, locale) {
     let anonymous, user;
     if (accessToken) {
         const decoded = await util.promisify(jwt.verify)(accessToken, secret.getJWTSigningKey(), {
@@ -154,14 +154,14 @@ async function retrieveUser(accessToken) {
             const rows = await gAssistantUserModel.getByCloudId(dbClient, decoded.sub);
             if (rows.length < 1) {
                 anonymous = true;
-                return await gAssistantUserUtils.getAnonymousUser();
+                return await gAssistantUserUtils.getAnonymousUser(locale);
             }
             anonymous = false;
             return rows[0];
         });
     } else {
         anonymous = true;
-        user = await gAssistantUserUtils.getAnonymousUser();
+        user = await gAssistantUserUtils.getAnonymousUser(locale);
     }
     return [anonymous, user];
 }

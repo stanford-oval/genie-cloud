@@ -21,7 +21,7 @@ prepare-bundles: $(foreach b,$(bundles),public/javascripts/$(b)-bundle.js)
 %.mo: %.po
 	msgfmt $< -o $@
 
-languages := it zh_CN
+languages := it zh_CN es
 prepare-mo: $(foreach l,$(languages),po/$(l).mo)
 
 install:

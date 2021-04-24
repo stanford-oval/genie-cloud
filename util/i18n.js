@@ -30,16 +30,18 @@ const Genie = require('genie-toolkit');
 const { InternalError } = require('./errors');
 const userUtils = require('./user');
 
-function N_(x) { return x; }
+function _(x) { return x; }
 const ALLOWED_LANGUAGES = {
-    'en': N_("English"),
-    'en-US': N_("English (United States)"),
-    'en-GB': N_("English (United Kingdom)"),
-    'it': N_("Italian"),
-    'it-IT': N_("Italian"),
-    'zh': N_("Chinese"),
-    'zh-CN': N_("Chinese (Simplified)"),
-    'zh-TW': N_("Chinese (Traditional)"),
+    'en': _("English"),
+    'en-US': _("English (United States)"),
+    'en-GB': _("English (United Kingdom)"),
+    'it': _("Italian"),
+    'it-IT': _("Italian"),
+    'zh': _("Chinese"),
+    'zh-CN': _("Chinese (Simplified)"),
+    'zh-TW': _("Chinese (Traditional)"),
+    'es': _("Spanish"),
+    'es-ES': _("Spanish"),
 };
 
 let _enabledLanguages;

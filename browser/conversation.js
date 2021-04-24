@@ -21,14 +21,20 @@
 const Recorder = require('./deps/recorder');
 
 $(() => {
+    var translations = JSON.parse(document.body.dataset.translations);
+
     var conversationId = null;
     var url;
     var target = $('#conversation').attr('data-target');
-    var isAnonymous = target === '/me/ws/anonymous';
+    var isAnonymous = target.startsWith('/me/ws/anonymous');
     function updateUrl() {
         url = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + target;
-        if (conversationId)
-            url += '?id=' + conversationId;
+        if (conversationId) {
+            if (url.indexOf('?') >= 0)
+                url += '&id=' + conversationId;
+            else
+                url += '?id=' + conversationId;
+        }
     }
     updateUrl();
 
@@ -363,18 +369,18 @@ $(() => {
     function yesnoMessage() {
         var holder = $('<div>').addClass('col-xs-6 col-sm-4 col-md-3');
         var btn = $('<a>').addClass('message message-yesno btn btn-default')
-            .attr('href', '#').text("Yes");
+            .attr('href', '#').text(translations.yes);
         btn.click((event) => {
-            handleSpecial('yes', "Yes");
+            handleSpecial('yes', translations.yes);
             event.preventDefault();
         });
         holder.append(btn);
         getGrid().append(holder);
         holder = $('<div>').addClass('col-xs-6 col-sm-4 col-md-3');
         btn = $('<a>').addClass('message message-yesno btn btn-default')
-            .attr('href', '#').text("No");
+            .attr('href', '#').text(translations.yes);
         btn.click((event) => {
-            handleSpecial('no', "No");
+            handleSpecial('no', translations.yes);
             event.preventDefault();
         });
         holder.append(btn);
@@ -530,7 +536,7 @@ $(() => {
         handleUtterance();
     });
     $('#cancel').click(() => {
-        handleSpecial('nevermind', "Cancel.");
+        handleSpecial('nevermind', translations.cancel);
     });
 
     $('#try-almond-btn').click(function(event) {

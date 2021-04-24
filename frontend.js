@@ -63,24 +63,9 @@ class Frontend {
         this._app.enable('trust proxy');
 
         // provide a very-early version of req._ in case something
-        // early in the request stack fails and we hit the error handler
-        this._app.use((req, res, next) => {
-            req.locale = 'en-US';
-            req.gettext = (x) => x;
-            req._ = (x) => x;
-            req.pgettext = (c, x) => x;
-            req.ngettext = (x, x2, n) => n === 1 ? x : x2;
-
-            res.locals.I18n = I18n;
-            res.locals.locale = 'en-US';
-            res.locals.gettext = req.gettext;
-            res.locals._ = req._;
-            res.locals.pgettext = req.pgettext;
-            res.locals.ngettext = req.ngettext;
-
-            res.locals.timezone = 'America/Los_Angeles';
-            next();
-        });
+        // early in the request stack fails and we hit the error handler,
+        // or if we hit a page that is not authenticated
+        this._app.use(I18n.handler);
         this._app.use((req, res, next) => {
             // Capital C so we don't conflict with other parameters
             // set by various pages

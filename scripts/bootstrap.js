@@ -38,6 +38,7 @@ const stringModel = require('../model/strings');
 const nlpModelsModel = require('../model/nlp_models');
 const templatePackModel = require('../model/template_files');
 const { makeRandom } = require('../util/random');
+const I18n = require('../util/i18n');
 
 const Importer = require('../util/import_device');
 const { clean } = require('../util/tokenize');
@@ -99,6 +100,23 @@ async function createDefaultUsers(dbClient, rootOrg) {
         developer_org: rootOrg.id,
         profile_flags: 0
     });
+
+    for (const locale of Config.SUPPORTED_LANGUAGES) {
+        const lang = I18n.localeToLanguage(locale);
+        if (lang === 'en')
+            continue;
+
+        await user.register(dbClient, req, {
+            username: 'anonymous-' + lang,
+            password: 'rootroot',
+            email: 'anonymous-' + lang + '@localhost',
+            email_verified: true,
+            locale: locale,
+            timezone: 'America/Los_Angeles',
+            developer_org: rootOrg.id,
+            profile_flags: 0
+        });
+    }
 }
 
 async function importStandardEntities(dbClient) {

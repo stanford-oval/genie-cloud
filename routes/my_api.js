@@ -60,7 +60,7 @@ router.post('/sms', (req, res, next) => {
         let phone = req.body.From;
         let message = req.body.Body;
 
-        const anon = await user.getAnonymousUser();
+        const anon = await user.getAnonymousUser(req.locale);
         const engine = await EngineManager.get().getEngine(anon.id);
 
         let reply;
@@ -92,7 +92,7 @@ router.post('/sms', (req, res, next) => {
                 // correctly, but discard the reply, which we override here
                 await engine.getOrOpenConversation(conversationId, undefined, { showWelcome: true, anonymous: true });
 
-                reply = req._("Hello! This is Covid Genie. I’m here to help you find a covid vaccine appointment. What is your zipcode?");
+                reply = req._("Hello! This is COVID Genie from Stanford University. I’m here to help you find a covid vaccine appointment near you.  What is your zipcode?");
             }
         }
         
@@ -111,7 +111,7 @@ router.get('/notifications/unsubscribe/:email', (req, res, next) => {
     Promise.resolve().then(async () => {
         const email = new Buffer(req.params.email, 'base64').toString();
 
-        const anon = await user.getAnonymousUser();
+        const anon = await user.getAnonymousUser(req.locale);
         const anonEngine = await EngineManager.get().getEngine(anon.id);
         await anonEngine.deleteAllApps('email', { to: email });
 
