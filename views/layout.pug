@@ -1,5 +1,8 @@
 doctype html
 html
+  - var index = false;
+  - var stdlayout = true;
+  - var includefooter = true;
   head
     meta(charset="utf-8")
     meta(http-equiv="X-UA-Compatible",content="IE=edge")
@@ -20,9 +23,6 @@ html
     script(src=Config.ASSET_CDN + '/javascripts/shared.js')
     block scripts
 
-  - var index = false;
-  - var stdlayout = true;
-  - var includefooter = true;
   body(data-icon-cdn=CDN_HOST, data-developer-key=authenticated ? user.developer_key : false,
        data-locale=locale,
        data-thingpedia-url=THINGPEDIA_URL,

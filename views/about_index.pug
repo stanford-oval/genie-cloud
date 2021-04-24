@@ -9,6 +9,7 @@ block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/conversation.css')
 
 block scripts
+  - stdlayout = false;
   if WITH_THINGPEDIA === 'embedded'
     script(src=Config.ASSET_CDN + '/javascripts/commandpedia-bundle.js')
   script(src=Config.ASSET_CDN + '/javascripts/index.js')
@@ -16,6 +17,9 @@ block scripts
     script(src=Config.ASSET_CDN + '/javascripts/conversation-bundle.js')
   if !authenticated && ENABLE_ANONYMOUS_USER
     script(src=Config.ASSET_CDN + '/javascripts/register.js')
+
+block page_name
+  = _("Genie")
 
 block content
   if authenticated
