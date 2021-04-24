@@ -37,18 +37,22 @@ block content
 
   div#page-body
     section.divider#section-heading
-      h1#almond-title= _("Covid Genie")
-      //-h2#almond-subtitle= _("The COVID-19 Assistant")
-
       div.container
-        div.row
-          div.col-lg-6.col-lg-offset-3
-            p.intro-blurb
-              | Genie is an assistant that helps you find an available Covid vaccine appointment near you.  We collect information from pharmacies and health organizations.  if none is available, we will look out for appointments and notify you when one is available.
-            p.intro-blurb
-              | Genie is developed at Stanford University.
-              br
-              | We do not share your private information with third parties.
+        div.index_row
+          div.index_cl_sx
+            #genie-covid-title
+              | Find a vaccine appointment near you.
+            
+            p.index_sx_p
+              | Click for Spanish.
+               
+          div.index_cl_dx
+            p.index_dx_p
+              | COVID Genie is a Stanford University effort to help get people vaccinated nationwide.
+            p.index_dx_p
+              | Chat with Genie to find a COVID-19 vaccine appointment near you, or get notified when appointments become available.
+              div.index_btn
+                button.btn.btn-primary.btn-block.call-to-action#try-almond-now= _("Get Your Vaccine Now")
 
         if authenticated
           div.row
@@ -56,9 +60,7 @@ block content
               +conversation_mixin('/me/ws/conversation')(class='')
         else if ENABLE_ANONYMOUS_USER
           div.row#try-almond-now-row
-            div.col-lg-4.col-lg-offset-4
-              button.btn.btn-primary.btn-block.call-to-action#try-almond-now= _("Get Your Vaccine Now")
-
+ 
           div.row.hidden#try-almond-now-consent-form
             div.col-lg-6.col-lg-offset-3
               div#try-almond-now-consent-form-inner

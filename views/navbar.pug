@@ -1,29 +1,7 @@
 ul.nav.navbar-nav
-  li.hidden-md.hidden-lg.hidden-sm
-    a(href="/")= _("Home")
-  for page in Config.EXTRA_NAVBAR
-    li
-      a(href=page.url)= _(page.title)
   li
-    a(href="/me")= _("My Genie")
-  if WITH_THINGPEDIA === 'embedded'
-    li
-      a(href='/thingpedia')= _("Thingpedia")
-  //-li
-    a(href='https://wiki.almond.stanford.edu')= _("Docs")
-  if authenticated && user.developer_org
-    li
-      a(href='/developers')= _("Console")
-  if authenticated && (user.roles & Constants.Role.ALL_ADMIN) !== 0
-    li
-      a(href="/admin")= _("Admin")
+    a(href="/")= _("COVID Genie at Stanford University")
 
 ul.nav.navbar-nav.navbar-right
-  if authenticated
-    li
-      a(href="/user/profile")= _("Settings")
-  li
-    if authenticated
-      a.navbar-login#navbar-login-button(href='/user/logout')= _("Log Out")
-    else
-      a.navbar-login#navbar-login-button(href='/user/login')= _("Log In")
+      a.navbar-link#navbar-link-button(href='/about')= _("About")
+      a.navbar-link#navbar-link-button(href='/config')= _("Contact")

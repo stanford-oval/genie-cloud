@@ -1,369 +1,504 @@
+@import url('https://fonts.googleapis.com/css?family=Nunito');
 html,
 body {
-  margin: 0;
+    margin: 0;
+    font-family: 'Nunito', sans-serif !important;
+    background-image: url(../images/background.jpeg);
+    background-size: cover;
+    background-position: center bottom;
+    background-repeat: no-repeat;
 }
 
 .force-inline {
-  display: inline;
+    display: inline;
 }
 
 #page-body {
-  margin-top: 65px;
-  min-height: calc(100vh - 198px);
-  height: auto !important;
+    min-height: 100vh;
+    height: auto !important;
 }
+
 #page-body.container,
 #page-body.container-fluid {
-  padding-bottom: 30px;
-  min-height: calc(100vh - 185px);
+    padding-bottom: 30px;
+    min-height: calc(100vh - 135px);
 }
 
 #page-title {
-  text-align: center;
+    text-align: center;
 }
 
 #stanford-logo {
-  height: 2em;
-  object-fit: contain;
-  display: inline-block;
-  vertical-align: baseline;
-  margin-top: -9px;
+    height: 2em;
+    object-fit: contain;
+    display: inline-block;
+    vertical-align: baseline;
+    margin-top: -9px;
 }
-#stanford-logo + span {
-  border-left: 1px solid white;
-  padding-left: 8px;
-  display: inline-block;
-  vertical-align: top;
+
+#stanford-logo+span {
+    border-left: 1px solid white;
+    padding-left: 8px;
+    display: inline-block;
+    vertical-align: top;
 }
 
 #stanford-signature {
-  width: 150px;
-  object-fit: contain;
-  margin: 0 auto;
-  display: block;
+    width: 150px;
+    object-fit: contain;
+    margin: 0 auto;
+    display: block;
 }
 
 .placeholder {
-  font-style: italic;
+    font-style: italic;
 }
 
 .form-inline .form-control {
-  margin-left: 6px;
-  margin-right: 12px;
+    margin-left: 6px;
+    margin-right: 12px;
 }
 
 .form-inline .form-block {
-  margin-bottom: 15px;
+    margin-bottom: 15px;
 }
 
-#navbar-login-button {
-  margin-right: 30px;
+#navbar-link-button {
+    margin-right: 30px;
+    color: #000 !important;
+}
+
+
+/*override*/
+
+.navbar {
+    padding: 50px;
 }
 
 .navbar-header {
-  height: 65px;
+    height: 65px;
 }
 
+.container {
+    margin-left: unset !important;
+}
+
+.btn {
+    font-size: 30px;
+    font-weight: 700;
+    color: white;
+    background-image: linear-gradient(to bottom right, #0A75C9 40%, #00C4DB);
+    padding-top: 15px;
+    padding-bottom: 15px;
+    padding-left: 25px;
+    padding-right: 25px;
+    border-radius: 8px;
+    border: none;
+}
+
+.btn:hover,
+.btn:focus,
+.btn:active,
+.btn:active:focus {
+    color: white;
+    background-image: linear-gradient(to bottom right, #0A75C9 40%, #00C4DB);
+    opacity: 80%;
+    box-shadow: none;
+    outline: 0;
+}
+
+.btn-block {
+    width: 14em !important;
+}
+
+
+/* ---- */
+
+
+/* new */
+
+.index_row {
+    width: 99vw;
+    text-align: left;
+}
+
+.index_cl_sx,
+.index_cl_dx {
+    width: 50%;
+    display: inline-block;
+    padding: 50px;
+}
+
+.index_cl_sx {
+    padding-left: 8em;
+    padding-right: 4em;
+    float: left;
+}
+
+.index_cl_dx {
+    padding-left: 4em;
+    padding-right: 8em;
+    float: right;
+}
+
+#genie-covid-title {
+    font-size: 70px;
+    font-weight: 800;
+}
+
+.index_btn {
+    width: 40%;
+}
+
+.index_dx_p {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.index_sx_p {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-size: 2em;
+    font-weight: 700;
+    line-height: 7em;
+}
+
+
+/* ---- */
+
 .navbar-nav {
-  font-size: 18px;
-  font-weight: 700;
-  padding-top: 10px;
-  padding-bottom: 0;
+    font-size: 35px;
+    font-weight: 500;
+    padding-top: 10px;
+    padding-bottom: 0;
+}
+
+.navbar-nav>li>a {
+    color: #000 !important;
 }
 
 .navbar-brand {
-  margin-left: 0.6em;
-  margin-top: 10px;
-  font-size: 18px;
-  font-weight: 700;
-  text-transform: uppercase;
+    background-image: url(../images/logo-stanford.png);
+    background-size: cover;
+    font-size: unset;
+    min-height: 105px;
+    min-width: 70px;
+    margin-top: -20px;
+    margin-right: 20px;
+}
+
+.navbar-inverse {
+    background-color: transparent !important;
+    color: #000 !important;
 }
 
 @media screen and (max-width: 768px) {
-  .navbar-header {
-    padding-top: 0.9em;
-  }
-  .navbar-brand {
-    margin-left: 0;
-    margin-top: 0;
-  }
+    .navbar-header {
+        padding-top: 0.9em;
+    }
+    .navbar-brand {
+        margin-left: 0;
+        margin-top: 0;
+    }
 }
 
-#qrcode-placeholder > img {
-  margin-left: auto;
-  margin-right: auto;
+#qrcode-placeholder>img {
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #qrcode-target {
-  display: none;
+    display: none;
 }
 
 #config-phone-mobile-browser {
-  display: none;
+    display: none;
 }
 
 .app-content {
-  font-size: 120%;
+    font-size: 120%;
 }
 
 .app-content h1 {
-  font-size: 200%;
+    font-size: 200%;
 }
 
 .app-content h2 {
-  font-size: 110%;
+    font-size: 110%;
 }
 
 #code {
-  height: 20em;
+    height: 20em;
 }
 
 .online-account-choice {
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
 }
 
 .online-account-expander {
-  padding-top: 1em;
+    padding-top: 1em;
 }
 
 #app-install-description {
-  font-style: italic;
+    font-style: italic;
 }
 
 #app-install-well .btn,
 #show-hide-code .btn {
-  margin-bottom: 1em;
+    margin-bottom: 1em;
 }
 
 #app-install-alert {
-  margin-bottom: 1em;
+    margin-bottom: 1em;
 }
 
 pre,
 pre code {
-  color: black;
+    color: black;
 }
 
 .app-template {
-  margin-bottom: 0.5em;
+    margin-bottom: 0.5em;
 }
 
-.device-icon-small > img {
-  display: block;
-  width: 80px;
-  height: 80px;
-  object-fit: contain;
-  border-radius: 5px;
-  margin: 0 auto;
+.device-icon-small>img {
+    display: block;
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    border-radius: 5px;
+    margin: 0 auto;
 }
 
 .dev-template .panel-heading {
-  font-weight: bold;
-  text-align: center;
-  display: block;
+    font-weight: bold;
+    text-align: center;
+    display: block;
 }
 
 footer.page-footer {
-  padding-top: 25px;
-  background-color: #8c1515;
-  color: white;
-  text-align: right;
-  min-height: 120px;
+    color: white;
+    text-align: right;
+    min-height: 80px;
+    background-image: linear-gradient(to bottom right, #0A75C9 40%, #00C4DB);
+    display: none;
 }
 
 footer.page-footer a:link,
 footer.page-footer a:visited,
 footer.page-footer a:hover {
-  color: white;
+    color: white;
 }
 
 #stanford-footer {
-  text-align: left;
+    text-align: left;
 }
 
 #stanford-footer .link-grid .row {
-  margin-top: 0.3em;
+    margin-top: 0.3em;
 }
+
 #stanford-footer .link-grid .row:first-child {
-  margin-top: 1em;
+    margin-top: 1em;
 }
 
 #section-heading {
-  color: black;
-  background-color: white;
-  background-image: url(../images/almond-background.png);
-  background-size: cover;
-  background-position: center bottom;
-  text-align: center;
-  padding-top: 2em;
-  padding-bottom: 2em;
+    color: black;
+    text-align: center;
+    padding-top: 14em;
+    padding-bottom: 2em;
 }
 
 #section-heading h1 {
-  color: #8c1515;
-  font-weight: 900;
-  letter-spacing: -0.5px;
-  font-size: 96px;
-
-  text-shadow: 1px 1px 0px black;
+    color: #8c1515;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    font-size: 96px;
+    text-shadow: 1px 1px 0px black;
 }
 
 #section-heading h2 {
-  font-size: 42px;
-  margin-bottom: 1em;
+    font-size: 42px;
+    margin-bottom: 1em;
 }
 
 #section-heading h4 {
-  font-weight: 600;
+    font-weight: 600;
 }
 
-.sections > :nth-child(odd) {
-  background-color: white;
+.sections> :nth-child(odd) {
+    background-color: white;
 }
-.sections > :nth-child(even) {
-  background-color: #f3f4f2;
+
+.sections> :nth-child(even) {
+    background-color: #f3f4f2;
 }
-.sections > .divider {
-  padding-top: 2em;
-  padding-bottom: 4em;
+
+.sections>.divider {
+    padding-top: 2em;
+    padding-bottom: 4em;
 }
 
 .divider h3 {
-  text-align: center;
-  font-size: 36px;
-  margin-bottom: 0.8em;
+    text-align: center;
+    font-size: 36px;
+    margin-bottom: 0.8em;
 }
 
-.panel > .panel-heading {
-  margin-top: 0px;
+.panel>.panel-heading {
+    margin-top: 0px;
 }
+
 
 /* note: we assume that all browsers which support grid layout also support flexbox
    (which is true in practice)
 */
-@supports (display: grid) {
-  .aligned-grid > .clearfix,
-  .aligned-grid::before,
-  .aligned-grid::after {
-    display: none !important;
-  }
 
-  .aligned-grid {
-    clear: both;
-    display: grid;
-  }
-  @media screen and (min-width: 600px) {
+@supports (display: grid) {
+    .aligned-grid>.clearfix,
+    .aligned-grid::before,
+    .aligned-grid::after {
+        display: none !important;
+    }
     .aligned-grid {
-      grid-template-columns: 1fr 1fr;
+        clear: both;
+        display: grid;
     }
-  }
-  @media screen and (min-width: 1200px) {
-    .aligned-grid {
-      grid-template-columns: 1fr 1fr 1fr;
+    @media screen and (min-width: 600px) {
+        .aligned-grid {
+            grid-template-columns: 1fr 1fr;
+        }
     }
-    .aligned-grid.aligned-grid-4 {
-      grid-template-columns: 1fr 1fr 1fr 1fr;
+    @media screen and (min-width: 1200px) {
+        .aligned-grid {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+        .aligned-grid.aligned-grid-4 {
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+        }
     }
-  }
-  .aligned-grid > .aligned-grid-item {
-    width: 100%;
-    height: 100%;
-    padding-bottom: 21px;
-  }
-  .aligned-grid > .aligned-grid-item > .panel {
-    width: 100%;
-    height: 100%;
-    margin-bottom: 0px;
-    display: flex;
-    flex-direction: column;
-  }
-  .aligned-grid > .aligned-grid-item > .panel > .panel-body {
-    flex-grow: 2;
-  }
+    .aligned-grid>.aligned-grid-item {
+        width: 100%;
+        height: 100%;
+        padding-bottom: 21px;
+    }
+    .aligned-grid>.aligned-grid-item>.panel {
+        width: 100%;
+        height: 100%;
+        margin-bottom: 0px;
+        display: flex;
+        flex-direction: column;
+    }
+    .aligned-grid>.aligned-grid-item>.panel>.panel-body {
+        flex-grow: 2;
+    }
 }
 
 img.device-icon-tiny {
-  display: inline-block;
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-  border-radius: 5px;
-  box-sizing: content-box;
-  padding-right: 1em;
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    border-radius: 5px;
+    box-sizing: content-box;
+    padding-right: 1em;
 }
 
 .aside {
-  font-size: 0.8em;
+    font-size: 0.8em;
 }
+
 .aside.pull-left {
-  margin-right: 1.5em;
+    margin-right: 1.5em;
 }
+
 .aside.pull-right {
-  margin-left: 1.5em;
+    margin-left: 1.5em;
 }
+
 .aside img {
-  max-height: 200px;
-  min-width: 100px;
-  display: block;
-  margin: 0 auto;
+    max-height: 200px;
+    min-width: 100px;
+    display: block;
+    margin: 0 auto;
 }
+
 .aside .caption {
-  text-align: center;
+    text-align: center;
 }
 
 .blog-post h2,
 .blog-post h3 {
-  clear: both;
+    clear: both;
 }
+
 .blog-post .byline {
-  margin: 1em 0;
+    margin: 1em 0;
 }
+
 .blog-post .cover-photo {
-  max-height: 300px;
+    max-height: 300px;
 }
+
 .blog-post-ref {
-  margin-top: 2em;
+    margin-top: 2em;
 }
+
 .blog-post-ref:first-child {
-  margin-top: 0;
+    margin-top: 0;
 }
+
 .blog-post img {
-  max-width: 100%;
+    max-width: 100%;
 }
 
 #user-authorized-oauth-panel img.device-icon-tiny {
-  box-sizing: content-box;
-  padding-right: 1em;
-  padding-top: 1em;
+    box-sizing: content-box;
+    padding-right: 1em;
+    padding-top: 1em;
 }
 
-a.social-icon > img {
-  height: 24px;
-  width: 24px;
-  padding: 2px;
-  object-fit: contain;
-  background-color: transparent;
+a.social-icon>img {
+    height: 24px;
+    width: 24px;
+    padding: 2px;
+    object-fit: contain;
+    background-color: transparent;
 }
+
 a.social-icon:link,
 a.social-icon:visited {
-  color: white;
-  background-color: transparent;
+    color: white;
+    background-color: transparent;
 }
 
 .social-icon-spacer {
-  display: inline-block;
-  width: 6px;
+    display: inline-block;
+    width: 6px;
 }
 
 .blog-post-ref img {
-  width: 140px;
-  object-fit: cover;
-  margin-top: 1em;
-  height: 100px;
+    width: 140px;
+    object-fit: cover;
+    margin-top: 1em;
+    height: 100px;
 }
 
 .consent-form {
-  max-height:300px;
-  overflow: auto;
+    max-height: 300px;
+    overflow: auto;
 }

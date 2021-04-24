@@ -607,7 +607,7 @@ module.exports.SUPPORTED_LANGUAGES = ['en-US'];
   fallback to the public Nominatim API, which has a low API quota.
 */
 module.exports.MAPQUEST_KEY = null;
- 
+
 /**
   Enable on demand gpu training.
 

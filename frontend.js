@@ -166,9 +166,8 @@ class Frontend {
             res.set('Access-Control-Allow-Origin', '*');
             next();
         });
-        this._app.use(favicon(__dirname + '/public/images/favicon.ico'));
-        this._app.use('/assets', express.static(path.join(__dirname, 'public'),
-                                                { maxAge: 86400000 }));
+        this._app.use(favicon(__dirname + '/public/images/favicon.png'));
+        this._app.use('/assets', express.static(path.join(__dirname, 'public'), { maxAge: 86400000 }));
         codeStorage.initFrontend(this._app);
         this._app.use(cacheable());
         passportUtil.initialize();
@@ -207,10 +206,12 @@ class Frontend {
         this._sessionStore = new MySQLStore({
             expiration: 86400000 // 1 day, in ms
         }, db.getPool());
-        this._app.use(session({ resave: false,
-                                saveUninitialized: false,
-                                store: this._sessionStore,
-                                secret: secretKey.getSecretKey() }));
+        this._app.use(session({
+            resave: false,
+            saveUninitialized: false,
+            store: this._sessionStore,
+            secret: secretKey.getSecretKey()
+        }));
         this._app.use(connect_flash());
         this._app.use(passport.initialize());
         this._app.use(passport.session());
