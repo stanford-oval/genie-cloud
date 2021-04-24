@@ -276,7 +276,6 @@ module.exports = {
 
         return db.withClient((dbClient) => {
             const lang = I18n.localeToLanguage(locale);
-        console.log('getAnonymousUser', locale, lang);
             return model.getByName(dbClient, 'anonymous' +
                 (lang === 'en' ? '': '-' + lang));
         }).then(([user]) => user);

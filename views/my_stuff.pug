@@ -76,7 +76,11 @@ block content
                 input(type='hidden',name='id',value=app.uniqueId)
                 input(type='hidden',name='_csrf',value=csrfToken)
                 button(type='submit').btn.btn-sm.btn-danger= _("Stop")
-              p= app.description
+              p
+                = app.name
+                | :
+                |
+                = app.description
               for config in app.notifications
                 p
                   = _("This app delivers notifications using %s").format(config.backend)
