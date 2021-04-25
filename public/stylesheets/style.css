@@ -15,13 +15,13 @@ body {
 }
 
 #page-body {
-    min-height: calc(100vh - 80px);
+    min-height: calc(100vh - 50px);
     height: auto !important;
 }
 
 #page-body.container,
 #page-body.container-fluid {
-    min-height: calc(100vh - 80px);
+    min-height: calc(100vh - 50px);
     height: auto !important;
 }
 
@@ -76,12 +76,16 @@ body {
     padding: 50px;
 }
 
+.navbar-fixed-top {
+    position: absolute !important;
+}
+
 .navbar-header {
     height: 65px;
 }
 
 .container {
-    margin-left: unset !important;
+    width: auto !important;
 }
 
 .btn {
@@ -135,10 +139,6 @@ body {
     padding-left: 10%;
 }
 
-#try-almond-now-conversation {
-    width: 80em;
-}
-
 
 /* ---- */
 
@@ -180,8 +180,7 @@ body {
 }
 
 #title_index>a,
-#title_index:hover,
-a:hover {
+#title_index:hover {
     color: #000;
     text-decoration: none;
     font-size: 35px;
@@ -227,6 +226,15 @@ a:hover {
     #title_index {
         width: 330px;
     }
+
+}
+
+@media screen and (max-width: 1270px) {
+    .col-lg-offset-3 {
+        margin-top: 10%;
+        margin-left: 15%;
+        width: 70%;
+    }
 }
 
 @media screen and (max-width: 767px) {
@@ -243,6 +251,41 @@ a:hover {
     .navbar-nav {
         font-size: 25px !important;
     }
+
+    .col-lg-offset-3 {
+        margin-top: 15%;
+        margin-left: 2%;
+        width: 95%;
+    }
+}
+
+.page-footer {
+    padding-top: 1em;
+    font-size: 1em;
+}
+
+.col-xs-12 {
+    float: right;
+    width: 70%;
+}
+
+#footer-social {
+    float: left;
+    width: 28%;
+    text-align: center;
+}
+
+.col-xs-12>p>a {
+    text-decoration: underline !important;
+}
+
+.page-footer>.container>.row {
+    width: 99vw;
+}
+
+.f_icons {
+    width: 20px;
+    margin-left: 20px;
 }
 
 
@@ -378,7 +421,7 @@ pre code {
 footer.page-footer {
     color: white;
     text-align: right;
-    min-height: 80px;
+    min-height: 50px;
     background-image: linear-gradient(to bottom right, #0A75C9 40%, #00C4DB);
 }
 
