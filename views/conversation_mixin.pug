@@ -1,5 +1,7 @@
 mixin conversation_mixin(target)
+  div#head_chat=_("Stanford COVID Genie")
   div#conversation(class=attributes.class,data-target=target)
+    
     div#chat
     div#input-block
       span(role='button').hidden#cancel

@@ -32,9 +32,11 @@ html
        data-csrf-token=csrfToken,
        data-translations=JSON.stringify({ yes: _("Yes"), no: _("No"), cancel: _("Cancel.") }))
     nav.navbar-inverse.navbar.navbar-fixed-top(role="banner")
-      
+      div.navbar-collapse.collapse(role="navigation")#page-nav
+        include navbar.pug
       div.navbar-header
         span.navbar-brand.scroller.hidden-md.hidden-lg(aria-hidden='true')
+          block page_name
         a.navbar-brand.scroller.hidden-xs.hidden-sm(href='/')
         div#title_index
           a(href="/")= _("COVID Genie at Stanford University")
@@ -43,22 +45,8 @@ html
           span.icon-bar
           span.icon-bar
           span.icon-bar
-    //- HACK standard layout pages are currently broken...
-    if !stdlayout
-      nav.navbar-inverse.navbar.navbar-fixed-top(role="banner")
-        div.navbar-header
-          button(class="navbar-toggle collapsed", data-toggle="collapse", data-target="#page-nav")
-            span.sr-only= _("Toggle navigation")
-            span.icon-bar
-            span.icon-bar
-            span.icon-bar
-          a.navbar-brand.scroller.hidden-xs.hidden-sm(href='/')
-            span= _("Genie")
-          span.navbar-brand.scroller.hidden-md.hidden-lg(aria-hidden='true')
-            block page_name
-
-      div.navbar-collapse.collapse(role="navigation")#page-nav
-        include navbar.pug
+    
+      
 
     if stdlayout
       div.container#page-body

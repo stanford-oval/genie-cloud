@@ -32,7 +32,7 @@ const blogModel = require('../model/blog');
 let router = express.Router();
 
 router.get('/', (req, res, next) => {
-    db.withClient(async (dbClient) => {
+    db.withClient(async(dbClient) => {
         const featuredDevices = await deviceModel.getFeatured(dbClient);
         const news = await blogModel.getHomePage(dbClient);
         res.render(Config.ABOUT_OVERRIDE['index'] || 'about_index', {
@@ -43,9 +43,9 @@ router.get('/', (req, res, next) => {
         });
     }).catch(next);
 });
-router.get('/about', (req, res) => {
+/*router.get('/about', (req, res) => {
     res.redirect(301, '/');
-});
+});*/
 
 for (let page of Config.EXTRA_ABOUT_PAGES) {
     router.get('/about/' + page.url, (req, res, next) => {

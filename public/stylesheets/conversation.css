@@ -1,149 +1,167 @@
 #conversation #input-form {
-  overflow: auto;
-  display: block;
+    overflow: auto;
+    display: block;
 }
 
 #conversation #cancel {
-  float: right;
-  display: block;
-  font-size: 24px;
-  padding-top: 5px;
-  padding-left: 12px;
-  cursor: pointer;
+    float: right;
+    display: block;
+    font-size: 24px;
+    padding-top: 5px;
+    padding-left: 12px;
+    cursor: pointer;
 }
 
 #conversation #chat {
-  margin-bottom: 1em;
+    margin-bottom: 1em;
 }
 
 #conversation .message-container {
-  display: block;
-  overflow: auto;
-  clear: both;
+    display: block;
+    overflow: auto;
+    clear: both;
 }
 
-#conversation .message-container > img.icon {
-  height: 40px;
-  width: 40px;
-  object-fit: contain;
-  float: left;
+#conversation .message-container>img.icon {
+    height: 40px;
+    width: 40px;
+    object-fit: contain;
+    float: left;
 }
 
 #conversation .message-container.from-almond {
-  width: 90%;
-  text-align: left;
-  margin-right: auto;
+    width: 90%;
+    text-align: left;
+    margin-right: auto;
 }
 
 #conversation .message.from-user {
-  display: block;
-  width: 90%;
-  text-align: right;
-  margin-left: auto;
-
-  border-image-source: url(../images/bubble_user.png);
-  border-image-slice: 88 130 93 97 fill;
-  border-image-width: 13px 24px 12px 24px;
-  padding: 13px 24px 12px 24px;
+    display: block;
+    width: 90%;
+    text-align: right;
+    margin-left: auto;
+    border-image-source: url(../images/bubble_user.png);
+    border-image-slice: 88 130 93 97 fill;
+    border-image-width: 13px 24px 12px 24px;
+    padding: 13px 24px 12px 24px;
 }
 
-#conversation .from-almond > .message {
-  display: block;
-  overflow: auto;
-  border-image-source: url(../images/bubble_almond.png);
-  border-image-slice: 90 97 94 120 fill;
-  border-image-width: 13px 24px 12px 24px;
-  padding: 13px 24px 12px 24px;
+#conversation .from-almond>.message {
+    display: block;
+    overflow: auto;
+    border-image-source: url(../images/bubble_almond.png);
+    border-image-slice: 90 97 94 120 fill;
+    border-image-width: 13px 24px 12px 24px;
+    padding: 13px 24px 12px 24px;
 }
 
 #conversation .message {
-  display: block;
-  white-space: pre-line;
+    display: block;
+    white-space: pre-line;
 }
 
-#conversation .message-picture, #conversation .message-rdl img {
-  max-width: 80%;
+#conversation .message-picture,
+#conversation .message-rdl img {
+    max-width: 80%;
 }
 
 #conversation .button-grid {
-  width: 80%;
+    width: 80%;
 }
 
 #conversation .button-grid .btn {
-  margin-bottom: 6px;
-  white-space: normal;
+    margin-bottom: 6px;
+    white-space: normal;
 }
 
 #conversation {
-  overflow: auto;
-  height: auto;
-  max-height: 500px;
-  margin: auto;
-  max-width: 800px;
-  background: rgba(243,244,242,0.7);
-  padding: 40px;
-  text-align: left;
+    overflow: auto;
+    height: auto;
+    max-height: 500px;
+    margin: auto;
+    max-width: 800px;
+    background: rgba(243, 244, 242, 0.7);
+    padding: 40px;
+    text-align: left;
 }
+
 #conversation.single {
-  height: calc(100vh - 300px);
-  max-height: none;
+    height: calc(100vh - 300px);
+    max-height: none;
+}
+
+#head_chat {
+    font-size: 30px;
+    font-weight: 700;
+    color: white;
+    background-image: linear-gradient(to bottom right, #0A75C9 40%, #00C4DB);
+    padding-top: 15px;
+    padding-bottom: 15px;
+    padding-left: 25px;
+    padding-right: 25px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border: none;
 }
 
 @media screen and (max-width: 750px) {
-  #conversation, #conversation.single {
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 20px;
-    padding-bottom: 20px;
-    height: calc(100vh - 95px);
-    max-height: none;
-  }
+    #conversation,
+    #conversation.single {
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 20px;
+        padding-bottom: 20px;
+        height: calc(100vh - 95px);
+        max-height: none;
+    }
 }
 
 #conversation .message-rdl-title {
-  font-weight: bold;
+    font-weight: bold;
 }
+
 #conversation .message-rdl-content {
-  display: block;
+    display: block;
 }
 
 #input-form-group {
-  margin-bottom: 0;
+    margin-bottom: 0;
 }
 
 #input-form-group .spinner-container {
-  display: block;
-  padding: 12px 12px;
-  overflow: hidden;
-  line-height: inherit;
+    display: block;
+    padding: 12px 12px;
+    overflow: hidden;
+    line-height: inherit;
 }
 
 #toolbar {
-  margin: auto;
-  max-width: 800px;
+    margin: auto;
+    max-width: 800px;
 }
 
 #toolbar i {
-  padding: 3px;
+    padding: 3px;
 }
 
 #show-log {
-  padding-left: 10px;
-  cursor: pointer;
+    padding-left: 10px;
+    cursor: pointer;
 }
 
-.comment-options > .fa, .comment-options > .far {
-  cursor: pointer;
-  border-radius: 60px;
-  box-shadow: 0 0 2px #888;
-  padding: 10px;
-  margin: 5px;
+.comment-options>.fa,
+.comment-options>.far {
+    cursor: pointer;
+    border-radius: 60px;
+    box-shadow: 0 0 2px #888;
+    padding: 10px;
+    margin: 5px;
 }
 
 #recording-log {
-  max-height: calc(100vh - 200px);
+    max-height: calc(100vh - 200px);
 }
 
 #conversation #record-button {
-  margin-top: 0.5em;
+    margin-top: 0.5em;
 }

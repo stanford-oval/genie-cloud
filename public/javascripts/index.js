@@ -6,7 +6,7 @@ $(() => {
     var NEED_CONSENT = false;
 
     function openConversation() {
-        $('#try-almond-now-consent-form').addClass('hidden');
+        $('#index_row').addClass('hidden');
         const section = $('#try-almond-now-conversation').removeClass('hidden')[0];
         const top = section.offsetTop + 45;
         $(document.documentElement).animate({ scrollTop: top }, 800);

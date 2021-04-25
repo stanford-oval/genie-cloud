@@ -7,6 +7,7 @@ body {
     background-size: cover;
     background-position: center bottom;
     background-repeat: no-repeat;
+    overflow-x: hidden;
 }
 
 .force-inline {
@@ -14,14 +15,14 @@ body {
 }
 
 #page-body {
-    min-height: 100vh;
+    min-height: calc(100vh - 80px);
     height: auto !important;
 }
 
 #page-body.container,
 #page-body.container-fluid {
-    padding-bottom: 30px;
-    min-height: calc(100vh - 135px);
+    min-height: calc(100vh - 80px);
+    height: auto !important;
 }
 
 #page-title {
@@ -126,7 +127,16 @@ body {
     text-decoration-line: revert !important;
     background-color: unset;
     text-decoration-color: #0A75C9;
-    font-weight: 700;
+}
+
+.col-sm-12 {
+    padding-top: 20em;
+    width: 70%;
+    padding-left: 10%;
+}
+
+#try-almond-now-conversation {
+    width: 80em;
 }
 
 
@@ -135,7 +145,7 @@ body {
 
 /* new */
 
-.index_row {
+#index_row {
     width: 99vw;
     text-align: left;
 }
@@ -165,7 +175,6 @@ body {
 }
 
 #title_index {
-    width: 600px;
     padding: 10px;
     float: left;
 }
@@ -176,7 +185,6 @@ a:hover {
     color: #000;
     text-decoration: none;
     font-size: 35px;
-    font-weight: 700;
 }
 
 .index_btn {
@@ -210,13 +218,18 @@ a:hover {
     text-decoration: underline;
 }
 
+#page-nav {
+    float: right;
+    padding-bottom: 2em;
+}
+
 @media screen and (max-width: 805px) {
     #title_index {
         width: 330px;
     }
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 767px) {
     ul.nav.navbar-nav.navbar-right {
         padding-top: unset !important;
     }
@@ -229,12 +242,6 @@ a:hover {
     }
     .navbar-nav {
         font-size: 25px !important;
-    }
-}
-
-@media screen and (max-width: 1200px) {
-    ul.nav.navbar-nav.navbar-right {
-        padding-top: 100px;
     }
 }
 
@@ -259,7 +266,7 @@ a:hover {
     min-width: 70px;
     margin-top: -20px;
     margin-right: 20px;
-    color: transparent;
+    color: transparent !important;
 }
 
 .navbar-inverse {
@@ -373,7 +380,6 @@ footer.page-footer {
     text-align: right;
     min-height: 80px;
     background-image: linear-gradient(to bottom right, #0A75C9 40%, #00C4DB);
-    display: none;
 }
 
 footer.page-footer a:link,
