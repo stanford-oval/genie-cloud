@@ -43,9 +43,6 @@ router.get('/', (req, res, next) => {
         });
     }).catch(next);
 });
-/*router.get('/about', (req, res) => {
-    res.redirect(301, '/');
-});*/
 
 for (let page of Config.EXTRA_ABOUT_PAGES) {
     router.get('/about/' + page.url, (req, res, next) => {
@@ -54,6 +51,20 @@ for (let page of Config.EXTRA_ABOUT_PAGES) {
         });
     });
 }
+
+// About Covid Genie
+router.get('/about', (req, res, next) => {
+    res.render(Config.ABOUT_OVERRIDE['about'] || 'about', {
+        page_title: req._("About - Covid Genie")
+    });
+});
+
+// contact Covid Genie
+router.get('/contact', (req, res, next) => {
+    res.render(Config.ABOUT_OVERRIDE['contact'] || 'contact', {
+        page_title: req._("Contact - Covid Genie")
+    });
+});
 
 // terms of service is always enabled
 router.get('/about/tos', (req, res, next) => {

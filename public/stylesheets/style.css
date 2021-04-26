@@ -134,11 +134,15 @@ body {
 }
 
 .col-sm-12 {
-    padding-top: 20em;
-    width: 70%;
-    padding-left: 10%;
+    width: 93%;
+    padding-left: 9%;
+    padding-top: 15em;
 }
 
+.col-sm-12 > form{
+    width: 70%;
+    padding-top: 20em;
+}
 
 /* ---- */
 
@@ -288,6 +292,27 @@ body {
     margin-left: 20px;
 }
 
+/* ---- */
+
+/* SINGLE PAGES */
+
+.single-page-container {
+    font-size: 1.6em;
+    line-height: 1.5em;
+}
+
+.single-page-container > h3 {
+    font-size: 1.8em;
+}
+
+.single-page-container > p {
+    padding-top: 0.5em;
+    padding-bottom: 0.7em;
+}
+
+.col-sm-12 {
+    
+}
 
 /* ---- */
 
