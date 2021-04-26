@@ -70,6 +70,7 @@
 }
 
 #conversation .button-grid .btn {
+    margin-top: 15px;
     margin-bottom: 6px;
     white-space: normal;
 }

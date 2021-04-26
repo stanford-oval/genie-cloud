@@ -89,17 +89,23 @@ body {
 }
 
 .btn {
-    font-size: 30px;
-    font-weight: 700;
     color: white;
     background-image: linear-gradient(to bottom right, #0A75C9 40%, #00C4DB);
+    border-radius: 8px;
+    border: none;
+    font-weight: 700;
+}
+
+.index_btn > .btn {
+    font-size: 30px;
+    
     padding-top: 15px;
     padding-bottom: 15px;
     padding-left: 25px;
     padding-right: 25px;
-    border-radius: 8px;
-    border: none;
+
 }
+
 
 .btn:hover,
 .btn:focus,
