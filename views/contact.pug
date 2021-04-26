@@ -5,9 +5,9 @@ block page_name
 
 block content
   div#contact-body.single-page-container
-    h2= _("Please send us feedback at ")
-      a(href='mailto:covid-feedback@genie.stanford.edu')= _("covid-feedback@genie.stanford.edu")
-    p= _("We welcome volunteers to help in all these areas: ")
-    p= _("1. A real-time database of Covid appointments.  We have a standard API for submitting data to our database.  Please see XXX if you wish to contribute to this effort. ")
-    p= _("2. A Covid questions repository.  We are curating a set of questions about Covid vaccines. Please contact us if you wish to contribute to the repository. ")
-    p= _("3. Outreach. We are particularly interested in reaching communities that have been disproportionately affected by COVID-19 and have less access to information about COVID.  We welcome collaborators in reaching out to these communities.")
+    h2!= _("Please send us feedback at <a href='mailto:covid-genie-feedback@lists.stanford.edu'>covid-genie-feedback@lists.stanford.edu</a>.")
+    p= _("We welcome volunteers to help in all these areas:")
+    ol
+      li= _("A real-time database of Covid appointments. We have a standard API for submitting data to our database. Please contact us if you wish to contribute to this effort.")
+      li= _("A Covid questions repository. We are curating a set of questions about Covid vaccines. Please contact us if you wish to contribute to the repository.")
+      li= _("Outreach. We are particularly interested in reaching communities that have been disproportionately affected by COVID-19 and have less access to information about COVID. We welcome collaborators in reaching out to these communities.")
