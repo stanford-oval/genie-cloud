@@ -1,9 +1,20 @@
 div.container
   div.row
     div#footer-social
-            p!= _("<a href='https://twitter.com/StanfordOVAL' title='Connect with us on Twitter' target='_blank'><img alt='Connect with us on Twitter' src='https://almond-static.stanford.edu/assets/images/symbolic-logo-twitter.svg' class='f_icons'></img></a>    <a href='https://almond.stanford.edu/blog/feed.rss' title='Subscribe to our RSS Feed' target='_blank'><img alt='Subscribe to our RSS Feed' src='https://almond-static.stanford.edu/assets/images/symbolic-logo-rss.svg' class='f_icons'></img></a>  <a href='mailto:thigpedia-admins@lists.stanford.edu' title='Contact us via email' target='_blank'><img alt='Contact us via email' src='https://almond-static.stanford.edu/assets/images/symbolic-logo-email.svg' class='f_icons'></img></a>")
+      p
+
+        a(href='https://twitter.com/StanfordOVAL', title=_("Connect with us on Twitter"), target='_blank')
+          img(alt=_("Connect with us on Twitter"),src=Config.ASSET_CDN + '/images/symbolic-logo-twitter.svg').f_icons
+
+        a(href='mailto:covid-genie-feedback@lists.stanford.edu', title=_("Contact us via email"), target='_blank')
+          img(alt=_("Contact us via email"),src=Config.ASSET_CDN + '/images/symbolic-logo-email.svg').f_icons
+
     div.col-xs-12
-      p!= _("Genie is part of a research project of the <a href='https://oval.cs.stanford.edu'>Open Virtual Assistant Laboratory</a> at Stanford University. Read our Privacy Policy <a href='/about/privacy'>here</a>")
+      p
+        != _("Genie is part of a research project of the <a href='https://oval.cs.stanford.edu'>Open Virtual Assistant Laboratory</a> at Stanford University.")
+        |
+        |
+        a(href='/about/privacy')= _("Privacy Policy")
 
         // -p
             small
