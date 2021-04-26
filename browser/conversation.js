@@ -378,9 +378,9 @@ $(() => {
         getGrid().append(holder);
         holder = $('<div>').addClass('col-xs-6 col-sm-4 col-md-3');
         btn = $('<a>').addClass('message message-yesno btn btn-default')
-            .attr('href', '#').text(translations.yes);
+            .attr('href', '#').text(translations.no);
         btn.click((event) => {
-            handleSpecial('no', translations.yes);
+            handleSpecial('no', translations.no);
             event.preventDefault();
         });
         holder.append(btn);
