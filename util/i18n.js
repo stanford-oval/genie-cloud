@@ -153,11 +153,19 @@ const self = {
         let locale = typeof req.query.locale === 'string' ? req.query.locale : undefined;
         if (!locale && userUtils.isAuthenticated(req))
             locale = req.user.locale;
+        if (typeof req.session === 'object') {
+            if (locale)
+                req.session.locale = locale;
+            else
+                locale = req.session.locale;
+        }
+
         if (!locale && req.headers['accept-language'])
             locale = acceptLanguage.get(req.headers['accept-language']);
         if (!locale)
             locale = _enabledLanguages[0];
         let lang = self.get(locale);
+
 
         req.locale = locale;
         req.gettext = lang.gettext;
