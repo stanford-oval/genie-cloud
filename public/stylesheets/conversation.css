@@ -78,9 +78,8 @@
 #conversation {
     overflow: auto;
     height: auto;
-    max-height: 500px;
+    max-height: 600px;
     margin: auto;
-
     background: rgba(243, 244, 242, 0.7);
     padding: 40px;
     text-align: left;
