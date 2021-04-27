@@ -19,7 +19,7 @@ msgstr ""
 
 #: routes/my_api.js:69
 msgid "Okay, I will stop sending you notifications."
-msgstr ""
+msgstr "De acuerdo, dejaré de enviarte notificaciones."
 
 #: routes/my_api.js:65
 #, javascript-format
@@ -60,11 +60,11 @@ msgstr ""
 #: routes/my_api.js:146
 #, javascript-format
 msgid "You have successfully unsubscribed %s from all notifications."
-msgstr ""
+msgstr "Has cancelado correctamente la suscripción a %s de todas las notificaciones. "
 
 #: routes/devices.js:70 routes/my_stuff.js:84
 msgid "Not found."
-msgstr ""
+msgstr "No encontrado."
 
 #: routes/luinet_models.js:114 routes/developer_alexa.js:78
 #: routes/luinet_custom_datasets.js:96 views/mturk.pug:105
@@ -77,7 +77,7 @@ msgstr ", "
 msgid ""
 "Welcome to Genie! You are now ready to start using Genie to receive "
 "notifications."
-msgstr ""
+msgstr "¡Bienvenido a Genie! Ahora está listo para comenzar a usar Genie para recibir notificaciones."
 
 #: routes/user.js:60
 msgid ""
@@ -85,14 +85,14 @@ msgid ""
 "functionality on your account, such as receiving notifications, will be "
 "limited until you verify your email. You must click on the verification link "
 "to enable your account in full."
-msgstr ""
+msgstr "¡Bienvenido a Genie! Se ha enviado un correo electrónico de verificación a su dirección. Algunas funciones de su cuenta, como recibir notificaciones, estarán limitadas hasta que verifique su correo electrónico. Debe hacer clic en el enlace de verificación para habilitar su cuenta en su totalidad. "
 
 #: routes/user.js:62
 msgid ""
 "Welcome to Genie! You did not provide an email address. Some functionality "
 "on your account, such as receiving notifications, will be limited until you "
 "provide and verify your email. You can do so from your user settings."
-msgstr ""
+msgstr "¡Bienvenido a Genie! No proporcionaste una dirección de correo electrónico. Algunas funciones de su cuenta, como la recepción de notificaciones, estarán limitadas hasta que proporcione y verifique su correo electrónico. Puede hacerlo desde su configuración de usuario."
 
 #: routes/user.js:127 routes/user.js:163
 msgid "Genie - Login"
@@ -108,7 +108,7 @@ msgstr ""
 #: util/error_handling.js:91 util/input_validation.js:89
 #: util/input_validation.js:101
 msgid "Genie - Error"
-msgstr ""
+msgstr "Genie - Error"
 
 #: routes/user.js:191
 msgid "You already configured two-factor authentication."
@@ -254,7 +254,7 @@ msgstr ""
 #: routes/my_stuff.js:54 routes/my_stuff.js:67 routes/my_stuff.js:93
 #: routes/my_stuff.js:97 views/navbar.pug:8 views/my_stuff.pug:9
 msgid "My Genie"
-msgstr ""
+msgstr "Mi Genie"
 
 #: routes/about.js:39 views/about_index.pug:22 views/register_success.pug:8
 #: views/layout.pug:42
@@ -267,40 +267,40 @@ msgstr ""
 
 #: routes/about.js:74
 msgid "Genie Privacy Policy"
-msgstr ""
+msgstr "Política de privacidad de Genie"
 
 #: util/i18n.js:35 views/admin_training.pug:29
 #: views/thingpedia_translate_schema.pug:56
 msgid "English"
-msgstr ""
+msgstr "Inglés"
 
 #: util/i18n.js:36
 msgid "English (United States)"
-msgstr ""
+msgstr "Inglés (Estados Unidos)"
 
 #: util/i18n.js:37
 msgid "English (United Kingdom)"
-msgstr ""
+msgstr "Inglés (Reino Unido)"
 
 #: util/i18n.js:38 util/i18n.js:39 views/admin_training.pug:30
 msgid "Italian"
-msgstr ""
+msgstr "Italiano"
 
 #: util/i18n.js:40 views/admin_training.pug:31
 msgid "Chinese"
-msgstr ""
+msgstr "Chino"
 
 #: util/i18n.js:41
 msgid "Chinese (Simplified)"
-msgstr ""
+msgstr "Chino (simplificado)"
 
 #: util/i18n.js:42
 msgid "Chinese (Traditional)"
-msgstr ""
+msgstr "Chino (tradicional)"
 
 #: util/i18n.js:43 util/i18n.js:44
 msgid "Spanish"
-msgstr ""
+msgstr "Español"
 
 #: util/error_handling.js:46
 #, javascript-format
@@ -309,15 +309,15 @@ msgstr ""
 
 #: util/error_handling.js:51
 msgid "Genie - Forbidden"
-msgstr ""
+msgstr "Genie - Prohibido"
 
 #: util/error_handling.js:63
 msgid "Genie - Page Not Found"
-msgstr ""
+msgstr "Genie - Página no encontrada"
 
 #: util/error_handling.js:64
 msgid "The requested page does not exist."
-msgstr ""
+msgstr "La página solicitada no existe."
 
 #: util/error_handling.js:71
 msgid "The identifier you selected is already in use."
@@ -329,7 +329,7 @@ msgstr ""
 
 #: util/error_handling.js:98
 msgid "Genie - Internal Server Error"
-msgstr ""
+msgstr "Genie - Error de servidor interno"
 
 #: util/error_handling.js:99
 #, javascript-format
@@ -363,7 +363,7 @@ msgstr ""
 #: views/dev_nlp_models.pug:238 views/dev_nlp_models.pug:329
 #: views/user_profile.pug:80
 msgid "Language"
-msgstr ""
+msgstr "Idioma"
 
 #: views/admin_org_list.pug:15 views/admin_org_list.pug:40
 #: views/luinet_dataset.pug:14 views/luinet_dataset.pug:50
@@ -372,7 +372,7 @@ msgstr ""
 #: views/admin_review_queue.pug:50 views/admin_user_list.pug:23
 #: views/admin_user_list.pug:176
 msgid "Previous"
-msgstr ""
+msgstr "Previo"
 
 #: views/admin_org_list.pug:19 views/admin_org_list.pug:44
 #: views/luinet_dataset.pug:18 views/luinet_dataset.pug:54
@@ -381,12 +381,12 @@ msgstr ""
 #: views/admin_review_queue.pug:53 views/admin_user_list.pug:26
 #: views/admin_user_list.pug:179
 msgid "Next"
-msgstr ""
+msgstr "Próximo"
 
 #: views/admin_org_list.pug:25 views/thingpedia_portal.pug:42
 #: views/commandpedia.pug:6 views/admin_user_list.pug:17
 msgid "Search"
-msgstr ""
+msgstr "Buscar"
 
 #: views/about_index.pug:34
 msgid "Register for Genie"
@@ -394,7 +394,7 @@ msgstr ""
 
 #: views/about_index.pug:40
 msgid "Covid Genie"
-msgstr ""
+msgstr "Covid Genie"
 
 #: views/about_index.pug:47
 msgid ""
@@ -402,37 +402,37 @@ msgid ""
 "appointment near you.  We collect information from pharmacies and health "
 "organizations.  if none is available, we will look out for appointments and "
 "notify you when one is available."
-msgstr ""
+msgstr "Genie es un asistente que lo ayuda a encontrar una cita para la vacuna Covid disponible cerca de usted. Recopilamos información de farmacias y organizaciones de salud. si no hay ninguna disponible, buscaremos citas y le notificaremos cuando haya alguna disponible. "
 
 #: views/about_index.pug:49
 msgid "Genie is developed at Stanford University."
-msgstr ""
+msgstr "Genie se desarrolla en la Universidad de Stanford."
 
 #: views/about_index.pug:51
 msgid "We do not share your private information with third parties."
-msgstr ""
+msgstr "No compartimos su información privada con terceros."
 
 #: views/about_index.pug:60 views/about_index.pug:77
 msgid "Get Your Vaccine Now"
-msgstr ""
+msgstr "Obtenga Su Vacuna Ahora"
 
 #: views/about_index.pug:68
 msgid "I agree"
-msgstr ""
+msgstr "Estoy de acuerdo"
 
 #: views/register_mixins.pug:14 views/user_profile.pug:38
 msgid "E-Mail"
-msgstr ""
+msgstr "Correo electrónico"
 
 #: views/register_mixins.pug:17 views/user_profile.pug:50
 msgid "Phone Number"
-msgstr ""
+msgstr "Número de teléfono"
 
 #: views/register_mixins.pug:19
 msgid ""
 "Enter your a mobile phone number if you would like to receive notifications "
 "over SMS."
-msgstr ""
+msgstr "Ingrese su número de teléfono móvil si desea recibir notificaciones por SMS."
 
 #: views/register_mixins.pug:21 views/login.pug:19 views/user_profile.pug:162
 #: views/user_profile.pug:174
@@ -673,15 +673,15 @@ msgstr ""
 
 #: views/layout.pug:33
 msgid "Yes"
-msgstr ""
+msgstr "Sí"
 
 #: views/layout.pug:33
 msgid "No"
-msgstr ""
+msgstr "No"
 
 #: views/layout.pug:33
 msgid "Cancel."
-msgstr ""
+msgstr "Cancelar."
 
 #: views/layout.pug:37
 msgid "Toggle navigation"
@@ -689,11 +689,11 @@ msgstr ""
 
 #: views/message.pug:4 views/developer_access_ok.pug:4
 msgid "Success"
-msgstr ""
+msgstr "¡Éxito!"
 
 #: views/message.pug:9
 msgid "Go to the home page"
-msgstr ""
+msgstr "Ir a la pagina principal"
 
 #: views/navbar.pug:3 views/thingpedia_device_create_or_edit.pug:94
 msgid "Home"
@@ -807,7 +807,8 @@ msgstr ""
 msgid ""
 "Genie is part of a research project of the <a href='https://oval.cs.stanford."
 "edu'>Open Virtual Assistant Laboratory</a> at Stanford University."
-msgstr ""
+msgstr "Genie es parte de un proyecto de investigación del <a href='https://oval.cs.stanford."
+"edu'>Open Virtual Assistant Laboratory</a> de la Universidad de Stanford."
 
 #: views/user_profile.pug:8
 msgid "User Profile"
