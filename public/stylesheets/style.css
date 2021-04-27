@@ -160,6 +160,12 @@ body {
     text-align: left;
 }
 
+.index_ul {
+    font-size: 25px;
+    font-weight: 700;
+    line-height: 1.7em;
+}
+
 .index_cl_sx,
 .index_cl_dx {
     width: 50%;
@@ -230,6 +236,99 @@ body {
 #page-nav {
     float: right;
     padding-bottom: 2em;
+}
+
+@media screen and (max-width: 700px) {
+    
+    .index_cl_sx, .index_cl_dx {
+        padding: unset;
+        padding-left: 1em !important;
+        padding-right: 3em !important;
+        
+    }
+    .index_ul {
+        font-size: 18px;
+        font-weight: 500;
+    }
+    .index_cl_sx {
+        padding-top: 8.2em !important;
+    }
+    .index_cl_dx {
+        padding-top: 0.2em !important;
+    }
+
+    .index_sx_p {
+        font-size: 1.6em !important;
+        line-height: 1em !important;
+    }
+    .index_dx_p {
+        font-size: 20px;
+        font-weight: 500;
+        line-height: 1.4;
+        margin-top: unset !important;
+        margin-block-start: unset !important;
+    }
+    .index_btn{
+        padding-top: 0.4em;
+        padding-bottom: 0.6em;
+    }
+    .index_btn > .btn {
+        font-size: 1.4em;
+        padding-top: 15px;
+        padding-bottom: 15px;
+    }
+    .navbar {
+        padding: unset;
+    }
+    .navbar-nav{
+        font-size: 22px !important;
+    }
+    .navbar-brand {
+        min-height: 80px !important;
+        min-width: 20px !important;
+        margin-top: unset !important;
+        margin-right: unset !important;
+    }
+    #title_index{
+        width: 225px !important;
+    }
+    #title_index>a {
+        font-size: 23px !important;
+    }
+    .navbar-header {
+        padding-left: 1em;
+        padding-top: 1em;
+    }
+    .navbar-toggle {
+        padding: unset;
+        padding-top: 4px;
+    }
+    #section-heading {
+        padding-top: unset !important;
+    }
+    #genie-covid-title {
+        font-size: 30px;
+        font-weight: 600;
+        line-height: 1.4em;
+    }   
+    #head_chat {
+        font-size: 20px !important;
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
+    }
+    
+    #conversation, #conversation.single {
+        max-height: 444px !important;
+    }   
+    .col-lg-offset-3 {
+        margin-top: 35% !important;
+    }
+    #page-nav {
+        width: 166px !important;
+        right: 44px;
+        top: 25px;
+        padding-bottom: unset;
+    }
 }
 
 @media screen and (max-width: 805px) {
@@ -334,13 +433,14 @@ body {
 
 .navbar-brand {
     background-image: url(../images/logo-stanford.png);
-    background-size: cover;
+    background-size: contain;
     font-size: unset;
     min-height: 105px;
     min-width: 70px;
     margin-top: -20px;
     margin-right: 20px;
     color: transparent !important;
+    background-repeat: no-repeat;
 }
 
 .navbar-inverse {
@@ -354,7 +454,6 @@ body {
     }
     .navbar-brand {
         margin-left: 0;
-        margin-top: 0;
     }
     .index_cl_sx,
     .index_cl_dx {
