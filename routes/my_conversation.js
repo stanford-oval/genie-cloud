@@ -118,11 +118,11 @@ class WebsocketAssistantDelegate {
         try {
             this._ws.send(data);
         } catch(e) {
-            console.error(`Failed to send error on assistant  websocket: ${e.message}`);
+            console.error(`Failed to send message on assistant websocket: ${e.message}`);
             // ignore "Not Opened" error in closing
             try {
                 this._ws.close();
-            } catch(e) { /**/}
+            } catch(e) {/**/}
         }
     }
 }
