@@ -118,12 +118,11 @@ module.exports = class SearchOrInfiniteScroll {
             history: false,
             loadOnScroll: this._autoscrollonstart,
 
-            responseType: 'text'
+            responseBody: 'json'
         });
 
         this._infscroll.on('load', (response) => {
-            const parsed = JSON.parse(response);
-            const $items = this._renderCommands(parsed);
+            const $items = this._renderCommands(response);
             this._infscroll. appendItems($items);
         });
 
