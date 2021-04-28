@@ -37,7 +37,7 @@ async function getInfo(req) {
 
     const engine = await EngineManager.get().getEngine(req.user.id);
     let [appinfo, devinfo] = await Promise.all([engine.getAppInfos(), engine.getDeviceInfos()]);
-    devinfo = devinfo.filter((d) => d.class !== 'system');
+    devinfo = devinfo.filter((d) => d.authType !== 'none' && d.authType !== 'builtin' && d.class !== 'system');
     devinfo.sort((d1, d2) => {
         if (d1.name < d2.name)
             return -1;
