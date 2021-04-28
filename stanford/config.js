@@ -57,10 +57,6 @@ module.exports.EXTRA_NAVBAR = [
         url: 'https://oval.cs.stanford.edu',
         title: _("OVAL Lab"),
     },
-    {
-        url: '/blog',
-        title: _("News"),
-    },
 ];
 
 module.exports.DISCOURSE_SSO_REDIRECT = 'https://discourse.almond.stanford.edu';

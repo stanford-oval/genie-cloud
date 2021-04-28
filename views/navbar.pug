@@ -6,9 +6,10 @@ ul.nav.navbar-nav
       a(href=page.url)= _(page.title)
   li
     a(href="/me")= _("My Almond")
-  if WITH_THINGPEDIA === 'embedded'
-    li
-      a(href='/thingpedia')= _("Thingpedia")
+  li
+    a(href=Config.THINGPEDIA_URL)= _("Thingpedia")
+  li
+    a(href=Config.THINGPEDIA_URL + '/cheatsheet')= _("Cheatsheet")
   li
     a(href='https://wiki.almond.stanford.edu')= _("Docs")
   if authenticated && user.developer_org

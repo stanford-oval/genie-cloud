@@ -79,12 +79,10 @@ block content
               if app.error
                 p= _("This rule had an error: %s").format(app.error)
 
-  div.hidden-xs
-    button.collapsible= _("Enabled Skills")
-    +device_list(devices)
-
-  br
-  br
+  if devices.length > 0
+    div.hidden-xs
+      button.collapsible= _("Enabled Skills")
+      +device_list(devices)
 
   div.modal#comment-popup
     div.modal-dialog
@@ -140,7 +138,7 @@ block content
         div.form-group.has-feedback#input-form-group
           label(for='#chat-input').sr-only= _("Command:")
           input(type='text', placeholder=_("Write your command or answer here"), value=command ? command : '').form-control#input
-          button(type='button').btn.btn-primary#record-button= _("Say a command!")
+          //-button(type='button').btn.btn-primary#record-button= _("Say a command!")
           span.spinner-container.form-control-feedback.hidden
             span.spinner= _("Almond is thinking…")
           span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden
