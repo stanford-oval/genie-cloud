@@ -32,10 +32,9 @@ const exampleModel = require('../model/example');
 const entityModel = require('../model/entity');
 
 const user = require('./user');
-
+const I18n = require('./i18n');
 const graphics = require('../almond/graphics');
 const colorScheme = require('./color_scheme');
-
 const Validation = require('./validation');
 const code_storage = require('./code_storage');
 const SchemaUtils = require('./manifest_to_schema');
@@ -113,69 +112,87 @@ async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
     });
 }
 
-async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
+async function ensureDataset(dbClient, schemaId, classDef, dataset) {
     /* This functions does three things:
 
        - it fetches the list of existing examples in the database
-       - it matches the IDs against the examples in the dataset file
+       - it matches the names against the examples in the dataset file
          and updates the database
        - it creates fresh examples for secondary utterances
     */
 
+    const tokenizer = I18n.get(dataset.language || 'en').genie.getTokenizer();
+
     const existingMap = new Map;
     const toDelete = new Set;
 
-    const old = await exampleModel.getBaseBySchema(dbClient, schemaId, dataset.language || 'en');
-    let oldDataset;
-    try {
-        oldDataset = await DatasetUtils.examplesToDataset(dataset.name, dataset.language || 'en', old, { editMode: true });
-    } catch(e) {
-        if (e.name !== 'SyntaxError')
-            throw e;
-        // ignore the old dataset if it's really old and obsolete
-        oldDataset = `dataset @${dataset.name} {}`;
-    }
-
-    // if the datasets are byte by byte identical, skip everything and return false
-    // this covers the case where the user did not touch the file at all
-    if (datasetSource.replace(/\r\n/g, '\n').trim() === oldDataset.trim())
-        return false;
+    const old = await exampleModel.getBaseBySchema(dbClient, schemaId, dataset.language || 'en',
+        !!classDef /* includeSynthetic */);
 
     for (let row of old) {
-        existingMap.set(row.id, row);
+        if (row.name)
+            existingMap.set(row.name, row);
         toDelete.add(row.id);
     }
 
     const toCreate = [];
     const toUpdate = [];
 
+    // make up examples for the queries and actions in the class definition
+    // these examples have the synthetic flag so they don't show up in most
+    // APIs, but they do show up in commandpedia and in the cheatsheet
+    if (classDef) {
+        for (const qname in classDef.queries) {
+            const query = classDef.queries[qname];
+            for (const phrase of query.metadata.canonical) {
+                toCreate.push({
+                    utterance: phrase,
+                    preprocessed: tokenizer.tokenize(phrase).rawTokens.join(' '),
+                    target_code: 'query = @' + classDef.kind + '.' + qname + '();',
+                    name: null,
+                    flags: 'template,synthetic',
+                });
+            }
+        }
+
+        for (const aname in classDef.actions) {
+            const action = classDef.actions[aname];
+            for (const phrase of action.metadata.canonical) {
+                toCreate.push({
+                    utterance: phrase,
+                    preprocessed: tokenizer.tokenize(phrase).rawTokens.join(' '),
+                    target_code: 'action = @' + classDef.kind + '.' + aname + '();',
+                    name: null,
+                    flags: 'template,synthetic',
+                });
+            }
+        }
+    }
+
     for (let example of dataset.examples) {
         const code = DatasetUtils.exampleToCode(example);
 
-        if (example.id >= 0) {
-            if (existingMap.has(example.id)) {
-                const existing = existingMap.get(example.id);
-                if (existing.target_code === code && existing.language === (dataset.language || 'en') &&
-                    existing.name === example.annotations.name.toJS()) {
-                    toDelete.delete(example.id);
-                    if (existing.utterance !== example.utterances[0]) {
-                        toUpdate.push({ id: example.id,
-                                        utterance: example.utterances[0],
-                                        preprocessed: example.preprocessed[0] });
-                    }
-                } else {
-                    example.id = -1;
+        const name = example.annotations.name.toJS();
+        let mustCreate = true;
+        if (name && existingMap.has(name)) {
+            const existing = existingMap.get(name);
+            if (existing.target_code === code && existing.language === (dataset.language || 'en')) {
+                toDelete.delete(existing.id);
+                if (existing.utterance !== example.utterances[0]) {
+                    toUpdate.push({ id: existing.id,
+                                    utterance: example.utterances[0],
+                                    preprocessed: example.preprocessed[0] });
+                    mustCreate = false;
                 }
-            } else {
-                example.id = -1;
             }
         }
-        if (example.id < 0) {
+        if (mustCreate) {
             toCreate.push({
                 utterance: example.utterances[0],
                 preprocessed: example.preprocessed[0],
                 target_code: code,
-                name: example.annotations.name.toJS(),
+                name,
+                flags: 'template',
             });
         }
 
@@ -184,7 +201,8 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
                 utterance: example.utterances[i],
                 preprocessed: example.preprocessed[i],
                 target_code: code,
-                name: null
+                name: null,
+                flags: 'template',
             });
         }
     }
@@ -207,7 +225,7 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
                 type: 'thingpedia',
                 language: dataset.language || 'en',
                 is_base: 1,
-                flags: 'template',
+                flags: ex.flags,
                 name: ex.name
             });
         }))
@@ -389,7 +407,7 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
 
     const [schemaId,] = await ensurePrimarySchema(dbClient, device.name,
                                                   classDef, req, approve);
-    await ensureDataset(dbClient, schemaId, dataset, json.dataset);
+    await ensureDataset(dbClient, schemaId, classDef, dataset);
     if (classDef.entities.length > 0) {
         await entityModel.updateMany(dbClient, classDef.entities.map((stmt) => {
             let subtype_of = null;
@@ -484,7 +502,7 @@ async function uploadDevice(req) {
 
             const [schemaId, schemaChanged] = await ensurePrimarySchema(dbClient, req.body.name,
                                                                         classDef, req, approve);
-            const datasetChanged = await ensureDataset(dbClient, schemaId, dataset, req.body.dataset);
+            const datasetChanged = await ensureDataset(dbClient, schemaId, classDef, dataset);
             if (classDef.entities.length > 0) {
                 await entityModel.updateMany(dbClient, classDef.entities.map((stmt) => {
                     let subtype_of = null;

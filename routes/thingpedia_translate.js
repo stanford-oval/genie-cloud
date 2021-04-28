@@ -302,7 +302,7 @@ router.post('/by-id/:kind', user.requireLogIn, iv.validatePOST({ language: 'stri
         }
 
         await model.insertTranslations(dbClient, englishinfo.id, englishinfo.developer_version, language, translations);
-        await Importer.ensureDataset(dbClient, englishinfo.id, dataset, req.body.dataset);
+        await Importer.ensureDataset(dbClient, englishinfo.id, null, dataset);
         res.redirect(303, '/thingpedia/classes/by-id/' + req.params.kind);
     }).catch(next);
 });

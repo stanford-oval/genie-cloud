@@ -192,22 +192,22 @@ module.exports = {
         if (org === -1) { // admin
             return db.selectAll(client, `select eu.id,eu.utterance,eu.preprocessed,eu.target_code,
                 eu.click_count,eu.like_count,eu.name from example_utterances eu
-                where eu.is_base = 1 and eu.type = 'thingpedia' and language = ?
+                where eu.is_base = 1 and eu.type = 'thingpedia' and not find_in_set('synthetic', flags) and language = ?
                 order by id asc`,
                 [language]);
         } else if (org !== null) {
             return db.selectAll(client, `select eu.id,eu.utterance,eu.preprocessed,eu.target_code,
                 eu.click_count,eu.like_count,eu.name from example_utterances eu, device_schema ds
                 where eu.schema_id = ds.id and
-                eu.is_base = 1 and eu.type = 'thingpedia' and language = ?
+                eu.is_base = 1 and eu.type = 'thingpedia' and not find_in_set('synthetic', flags) and language = ?
                 and (ds.approved_version is not null or ds.owner = ?)
                 order by id asc`,
                 [language, org]);
         } else {
             return db.selectAll(client, `select eu.id,eu.utterance,eu.preprocessed,eu.target_code,
                 eu.click_count,eu.like_count,eu.name from example_utterances eu, device_schema ds
-                where eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and language = ?
-                and ds.approved_version is not null
+                where eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and
+                not find_in_set('synthetic', flags) and language = ? and ds.approved_version is not null
                 order by id asc`,
                 [language]);
         }
@@ -220,13 +220,13 @@ module.exports = {
               `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
                 eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
-                and eu.type = 'thingpedia' and language = ?
+                and eu.type = 'thingpedia' and not find_in_set('synthetic', flags) and language = ?
                 and preprocessed rlike (?) and target_code <> '')
                union distinct
                (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
                 eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
-                and eu.type = 'thingpedia' and language = ?
+                and eu.type = 'thingpedia' and not find_in_set('synthetic', flags) and language = ?
                 and match kind_canonical against (?) and target_code <> '')
                 order by id asc
                limit 50`,
@@ -236,14 +236,14 @@ module.exports = {
               `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
                 eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
-                and eu.type = 'thingpedia' and language = ?
+                and eu.type = 'thingpedia' and not find_in_set('synthetic', flags) and language = ?
                 and preprocessed rlike (?) and target_code <> ''
                 and (ds.approved_version is not null or ds.owner = ?))
                union distinct
                (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
                 eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
-                and eu.type = 'thingpedia' and language = ?
+                and eu.type = 'thingpedia' and not find_in_set('synthetic', flags) and language = ?
                 and match kind_canonical against (?) and target_code <> ''
                 and (ds.approved_version is not null or ds.owner = ?))
                 order by id asc
@@ -254,14 +254,14 @@ module.exports = {
               `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
                 eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
-                and eu.type = 'thingpedia' and language = ?
+                and eu.type = 'thingpedia' and not find_in_set('synthetic', flags) and language = ?
                 and preprocessed rlike (?) and target_code <> ''
                 and ds.approved_version is not null)
                union distinct
                (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
                 eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
-                and eu.type = 'thingpedia' and language = ?
+                and eu.type = 'thingpedia' and not find_in_set('synthetic', flags) and language = ?
                 and match kind_canonical against (?) and target_code <> ''
                 and ds.approved_version is not null)
                 order by id asc
@@ -276,14 +276,14 @@ module.exports = {
                 `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
                   eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                   device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
-                  and eu.type = 'thingpedia' and language = ?
+                  and eu.type = 'thingpedia' and not find_in_set('synthetic', flags) and language = ?
                   and ds.kind in (?) and target_code <> '')
                 union distinct
                 (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
                  eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                  device_schema ds, device_class dc, device_class_kind dck where
                  eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id
-                 and not dck.is_child and dc.primary_kind in (?) and language = ?
+                 and not dck.is_child and dc.primary_kind in (?) and not find_in_set('synthetic', flags) and language = ?
                  and target_code <> '' and eu.type = 'thingpedia' and eu.is_base = 1)
                  order by id asc`,
                 [language, kinds, kinds, language]);
@@ -292,7 +292,7 @@ module.exports = {
                 `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
                   eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                   device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
-                  and eu.type = 'thingpedia' and language = ?
+                  and eu.type = 'thingpedia' and not find_in_set('synthetic', flags) and language = ?
                   and ds.kind in (?) and target_code <> ''
                   and (ds.approved_version is not null or ds.owner = ?))
                 union distinct
@@ -300,7 +300,7 @@ module.exports = {
                  eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                  device_schema ds, device_class dc, device_class_kind dck where
                  eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id
-                 and not dck.is_child and dc.primary_kind in (?) and language = ?
+                 and not dck.is_child and dc.primary_kind in (?) and not find_in_set('synthetic', flags) and language = ?
                  and target_code <> '' and eu.type = 'thingpedia' and eu.is_base = 1
                  and (ds.approved_version is not null or ds.owner = ?)
                  and (dc.approved_version is not null or dc.owner = ?))
@@ -311,7 +311,7 @@ module.exports = {
                 `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
                   eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                   device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
-                  and eu.type = 'thingpedia' and language = ?
+                  and eu.type = 'thingpedia' and not find_in_set('synthetic', flags) and language = ?
                   and ds.kind in (?) and target_code <> ''
                   and ds.approved_version is not null)
                 union distinct
@@ -319,7 +319,7 @@ module.exports = {
                  eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                  device_schema ds, device_class dc, device_class_kind dck where
                  eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id
-                 and not dck.is_child and dc.primary_kind in (?) and language = ?
+                 and not dck.is_child and dc.primary_kind in (?) and not find_in_set('synthetic', flags) and language = ?
                  and target_code <> '' and eu.type = 'thingpedia' and eu.is_base = 1
                  and ds.approved_version is not null and dc.approved_version is not null)
                  order by id asc`,
@@ -327,14 +327,17 @@ module.exports = {
         }
     },
 
-    getBaseBySchema(client, schemaId, language) {
-        return db.selectAll(client, "select * from example_utterances use index(language_type) where schema_id = ?"
-            + " and is_base and type = 'thingpedia' and language = ? order by id asc", [schemaId, language]);
+    getBaseBySchema(client, schemaId, language, includeSynthetic) {
+        return db.selectAll(client, `select * from example_utterances use index(language_type)
+            where schema_id = ? and is_base and type = 'thingpedia' and language = ?
+            ${includeSynthetic ? '' : 'and not find_in_set(\'synthetic\', flags)'}
+            order by id asc`, [schemaId, language]);
     },
 
     getBaseBySchemaKind(client, schemaKind, language) {
         return db.selectAll(client, `select eu.* from example_utterances eu, device_schema ds where
-            eu.schema_id = ds.id and ds.kind = ? and is_base and type = 'thingpedia' and language = ? order by id asc`
+            eu.schema_id = ds.id and ds.kind = ? and is_base and type = 'thingpedia' and not find_in_set('synthetic', flags)
+            and language = ? order by id asc`
             , [schemaKind, language]);
     },
 
