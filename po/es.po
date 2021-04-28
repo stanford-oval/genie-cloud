@@ -60,7 +60,7 @@ msgstr ""
 #: routes/my_api.js:146
 #, javascript-format
 msgid "You have successfully unsubscribed %s from all notifications."
-msgstr "Has cancelado correctamente la suscripción a% s de todas las notificaciones."
+msgstr "Has cancelado correctamente la suscripción s% de todas las notificaciones."
 
 #: routes/devices.js:70 routes/my_stuff.js:84
 msgid "Not found."
@@ -430,7 +430,7 @@ msgid ""
 msgstr ""
 "Genie es un asistente que le ayuda a encontrar citas para una vacuna de Covid "
 "disponibles cerca de ti. Recopilamos información de farmacias y organizaciones de "
-salud. Si no hay ninguna disponible, buscaremos citas y le"
+"salud. Si no hay ninguna disponible, buscaremos citas y le"
 "notificamos cuando haya una disponible"."
 
 #: views/about_index.pug:49
@@ -674,7 +674,7 @@ msgstr "Restablece Contraseña"
 
 #: views/conversation_mixin.pug:10
 msgid "Command:"
-msgstr "Comando"
+msgstr "Comando:"
 
 #: views/conversation_mixin.pug:11
 msgid "Write your command or answer here"
