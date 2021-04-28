@@ -109,7 +109,7 @@ const BING_CLASS_FULL = `class @com.bing
                                     #[string_values="tt:long_free_text"],
                                     out link : Entity(tt:url)
                                     #_[canonical="link"])
-  #_[canonical="web search on bing"]
+  #_[canonical=["web search on bing"]]
   #_[confirmation="websites matching $query on Bing"]
   #_[formatted=[{
     type="rdl",
@@ -139,7 +139,7 @@ const BING_CLASS_FULL = `class @com.bing
                                       out height : Number
                                       #_[prompt="What height are you looking for (in pixels)?"]
                                       #_[canonical="height"])
-  #_[canonical="image search on bing"]
+  #_[canonical=["image search on bing"]]
   #_[confirmation="images matching $query from Bing"]
   #_[formatted=[{
     type="rdl",
@@ -183,7 +183,7 @@ const INVISIBLE_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.invisi
                   #_[prompt="What do you want me to consume?"]
                   #_[canonical="data"])
   #_[confirmation="consume $data"]
-  #_[canonical="eat data on test"]
+  #_[canonical=["eat data on test"]]
   #[doc="consume some data, do nothing"]
   #[minimal_projection=[]]
   #[confirm=true];
@@ -208,7 +208,7 @@ const ADMINONLY_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.admino
                   #_[prompt="What do you want me to consume?"]
                   #_[canonical="data"])
   #_[confirmation="consume $data"]
-  #_[canonical="eat data on test"]
+  #_[canonical=["eat data on test"]]
   #[doc="consume some data, do nothing"]
   #[minimal_projection=[]]
   #[confirm=true];
@@ -395,7 +395,23 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 234,
+      "id": 33,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "change the wake word",
+      "preprocessed": "change the wake word",
+      "target_code": "action = @org.thingpedia.builtin.thingengine.builtin.set_wake_word();",
+      "click_count": 1,
+      "like_count": 0,
+      "liked": false,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.builtin"
+      ]
+    },
+    {
+      "id": 297,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me images from bing matching ____ larger than ____ x ____",
@@ -411,7 +427,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 27,
+      "id": 70,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open the file at ____",
@@ -427,7 +443,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 209,
+      "id": 264,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me texts i received in the last hour",
@@ -443,7 +459,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 60,
+      "id": 103,
       "language": "en",
       "type": "thingpedia",
       "utterance": "my ____ address is ____",
@@ -459,7 +475,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 216,
+      "id": 271,
       "language": "en",
       "type": "thingpedia",
       "utterance": "call somebody",
@@ -475,7 +491,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 78,
+      "id": 121,
       "language": "en",
       "type": "thingpedia",
       "utterance": "How are u feeling today?",
@@ -491,36 +507,20 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 143,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "Kill yourself",
-      "preprocessed": "kill yourself",
-      "target_code": "program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum abusive);",
-      "click_count": 1,
-      "like_count": 0,
-      "liked": false,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.builtin"
-      ]
-    },
-    {
        click_count: 1,
        devices: [
          'org.thingpedia.builtin.thingengine.builtin'
        ],
-       id: 71,
+       id: 186,
        is_base: 1,
        language: 'en',
        like_count: 0,
        liked: false,
        owner_name: 'Site Administration',
-       preprocessed: 'how are you ?',
-       target_code: 'program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_how_are_you);',
+       preprocessed: 'kill yourself',
+       target_code: 'program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum abusive);',
        type: 'thingpedia',
-       utterance: 'How are you?'
+       utterance: 'Kill yourself'
     }
   ];
 
@@ -566,7 +566,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 183,
+      "id": 233,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me a screenshot of my laptop",
@@ -581,7 +581,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 175,
+      "id": 225,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop",
@@ -596,7 +596,22 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 174,
+      "id": 211,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "delete file on laptop",
+      "preprocessed": "delete file on laptop",
+      "target_code": "action = @org.thingpedia.builtin.thingengine.gnome.delete_file();",
+      "click_count": 1,
+      "like_count": 0,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 224,
       "language": "en",
       "type": "thingpedia",
       "utterance": "turn ____ my laptop",
@@ -611,7 +626,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 182,
+      "id": 232,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete a file from my laptop",
@@ -626,7 +641,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 181,
+      "id": 231,
       "language": "en",
       "type": "thingpedia",
       "utterance": "use ____ as the background of my laptop",
@@ -641,7 +656,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 185,
+      "id": 235,
       "language": "en",
       "type": "thingpedia",
       "utterance": "save a screenshot of my laptop",
@@ -656,7 +671,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 171,
+      "id": 221,
       "language": "en",
       "type": "thingpedia",
       "utterance": "lock my laptop",
@@ -671,7 +686,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 180,
+      "id": 230,
       "language": "en",
       "type": "thingpedia",
       "utterance": "set the background of my laptop to ____",
@@ -686,7 +701,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 179,
+      "id": 229,
       "language": "en",
       "type": "thingpedia",
       "utterance": "change the background on my laptop",
@@ -701,7 +716,22 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 176,
+      "id": 212,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "set background on laptop",
+      "preprocessed": "set background on laptop",
+      "target_code": "action = @org.thingpedia.builtin.thingengine.gnome.set_background();",
+      "click_count": 1,
+      "like_count": 0,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 226,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop containing ____",
@@ -716,7 +746,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 164,
+      "id": 214,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open ____ on my laptop",
@@ -731,7 +761,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 178,
+      "id": 228,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete the file named ____ from my laptop",
@@ -746,7 +776,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 184,
+      "id": 234,
       "language": "en",
       "type": "thingpedia",
       "utterance": "take a screenshot of my laptop",
@@ -761,7 +791,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 168,
+      "id": 218,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open ____ with ____ on my laptop",
@@ -776,7 +806,67 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 177,
+      "id": 207,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "open app on laptop",
+      "preprocessed": "open app on laptop",
+      "target_code": "action = @org.thingpedia.builtin.thingengine.gnome.open_app();",
+      "click_count": 1,
+      "like_count": 0,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 210,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "create file on laptop",
+      "preprocessed": "create file on laptop",
+      "target_code": "action = @org.thingpedia.builtin.thingengine.gnome.create_file();",
+      "click_count": 1,
+      "like_count": 0,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 209,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "set power on laptop",
+      "preprocessed": "set power on laptop",
+      "target_code": "action = @org.thingpedia.builtin.thingengine.gnome.set_power();",
+      "click_count": 1,
+      "like_count": 0,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 206,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "show me screenshot on laptop",
+      "preprocessed": "screenshot on laptop",
+      "target_code": "query = @org.thingpedia.builtin.thingengine.gnome.get_screenshot();",
+      "click_count": 1,
+      "like_count": 0,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 227,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete ____ from my laptop",
@@ -791,7 +881,22 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 172,
+      "id": 208,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "lock on laptop",
+      "preprocessed": "lock on laptop",
+      "target_code": "action = @org.thingpedia.builtin.thingengine.gnome.lock();",
+      "click_count": 1,
+      "like_count": 0,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 222,
       "language": "en",
       "type": "thingpedia",
       "utterance": "activate the lock screen on my laptop",
@@ -1817,7 +1922,7 @@ const BANG_CLASS_FULL = `class @com.bing
                                     #[string_values="tt:long_free_text"],
                                     out link : Entity(tt:url)
                                     #_[canonical="link"])
-  #_[canonical="web search on bing"]
+  #_[canonical=["web search on bing"]]
   #_[confirmation="websites matching $query on Bing"]
   #_[formatted=[{
     type="rdl",
@@ -1847,7 +1952,7 @@ const BANG_CLASS_FULL = `class @com.bing
                                       out height : Number
                                       #_[prompt="What height are you looking for (in pixels)?"]
                                       #_[canonical="height"])
-  #_[canonical="image search on bing"]
+  #_[canonical=["image search on bing"]]
   #_[confirmation="images matching $query from Bing"]
   #_[formatted=[{
     type="rdl",
@@ -1961,7 +2066,7 @@ async function testCreateDevice() {
   query foo(out text : String
             #_[canonical="text"])
   #_[confirmation="the foos"]
-  #_[canonical="foo"]
+  #_[canonical=["foo"]]
   #[minimal_projection=[]]
   #[confirm=false];
 }`);

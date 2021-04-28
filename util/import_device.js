@@ -182,8 +182,8 @@ async function ensureDataset(dbClient, schemaId, classDef, dataset) {
                     toUpdate.push({ id: existing.id,
                                     utterance: example.utterances[0],
                                     preprocessed: example.preprocessed[0] });
-                    mustCreate = false;
                 }
+                mustCreate = false;
             }
         }
         if (mustCreate) {
@@ -210,8 +210,9 @@ async function ensureDataset(dbClient, schemaId, classDef, dataset) {
     if (toDelete.length === 0 && toCreate.length === 0 && toUpdate.length === 0)
         return false;
 
+    // delete first so we don't race with insertions and get duplicate keys
+    await exampleModel.deleteMany(dbClient, Array.from(toDelete));
     await Promise.all([
-        exampleModel.deleteMany(dbClient, Array.from(toDelete)),
         Promise.all(toUpdate.map((ex) => {
             return exampleModel.update(dbClient, ex.id, ex);
         })),
