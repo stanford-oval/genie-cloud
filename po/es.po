@@ -199,7 +199,7 @@ msgid ""
 "your Spam folder."
 msgstr ""
 "Se envió un correo electrónico de verificación a %s. Si no lo recibió, marque "
-"su carpeta de correo no deseado".
+"su carpeta de correo no deseado."
 
 #: routes/user.js:474 routes/user.js:553 routes/user.js:560 routes/user.js:590
 #: routes/user.js:610 routes/user.js:627
@@ -265,7 +265,7 @@ msgid ""
 "functionality will be limited until you verify your new address."
 msgstr ""
 "Se envió un correo electrónico de verificación a su nueva dirección de correo electrónico. La funcionalidad "
-"de su cuenta estará limitada hasta que verifique su nueva dirección".
+"de su cuenta estará limitada hasta que verifique su nueva dirección."
 
 #: routes/user.js:777
 msgid "You must specifiy your old password"
@@ -431,7 +431,7 @@ msgstr ""
 "Genie es un asistente que le ayuda a encontrar citas para una vacuna de Covid "
 "disponibles cerca de ti. Recopilamos información de farmacias y organizaciones de "
 "salud. Si no hay ninguna disponible, buscaremos citas y le"
-"notificamos cuando haya una disponible"."
+"notificamos cuando haya una disponible."
 
 #: views/about_index.pug:49
 msgid "Genie is developed at Stanford University."
@@ -542,7 +542,7 @@ msgid ""
 msgstr ""
 "No proporcionaste una dirección de correo electrónico. Alguna funciones en su cuenta, "
 "como el acceso de desarrollador, será limitado hasta que proporciones y verifiques su"
-"correo electrónico. Puede hacerlo desde la configuración de usuario".
+"correo electrónico. Puede hacerlo desde la configuración de usuario."
 
 #: views/register_success.pug:43
 msgid "User Settings"
@@ -906,9 +906,9 @@ msgid ""
 msgstr ""
 "Genie es un proyecto de investigación de la Universidad de Stanford. Si a ti te gustaría "
 "participar para ayudarnos, puedes permitirnos recopilar los comandos que tú"
-"escribas. Solo recopilamos lo que escribes, no sus datos o lo que el Genio responde".
+"escribas. Solo recopilamos lo que escribes, no sus datos o lo que el Genio responde."
 "Por favor revise el <a href='https://oval.cs.stanford.edu/almond-consent-form."
-"html'>Consent Form</a> y guárdelo para sus registros antes de aceptar.
+"html'>Consent Form</a> y guárdelo para sus registros antes de aceptar."
 
 #: views/user_profile.pug:91
 msgid "Administrator of %s"
@@ -953,7 +953,7 @@ msgid ""
 "before users can see them."
 msgstr ""
 "Puede enviar nuevas entradas, pero deben ser revisadas por un administrador "
-"antes de que los usuarios puedan verlos.
+"antes de que los usuarios puedan verlos."
 
 #: views/user_profile.pug:126
 msgid ""
@@ -1029,7 +1029,7 @@ msgid ""
 "the server will be lost permanently."
 msgstr ""
 "Eliminando su cuenta es una operación irreversible. Todos los datos almacenados en "
-"el servidor se perderá de forma permanente".
+"el servidor se perderá de forma permanente."
 
 #: views/user_profile.pug:225
 msgid ""
