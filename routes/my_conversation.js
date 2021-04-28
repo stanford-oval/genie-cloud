@@ -107,11 +107,23 @@ class WebsocketAssistantDelegate {
     }
 
     setExpected(what) {
-        this._ws.send(JSON.stringify({ type: 'askSpecial', ask: what }));
+        this._send(JSON.stringify({ type: 'askSpecial', ask: what }));
     }
 
     addMessage(msg) {
-         this._ws.send(JSON.stringify(msg));
+        this._send(JSON.stringify(msg));
+    }
+
+    _send(data) {
+        try {
+            this._ws.send(data);
+        } catch(e) {
+            console.error(`Failed to send message on assistant websocket: ${e.message}`);
+            // ignore "Not Opened" error in closing
+            try {
+                this._ws.close();
+            } catch(e) {/**/}
+        }
     }
 }
 WebsocketAssistantDelegate.prototype.$rpcMethods = ['setHypothesis', 'setExpected', 'addMessage'];
