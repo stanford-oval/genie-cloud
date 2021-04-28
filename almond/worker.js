@@ -48,7 +48,6 @@ const _engines = new Map;
 var _stopped = false;
 
 function handleSignal() {
-    console.log('Stopping worker');
     for (let obj of _engines.values()) {
         console.log('Stopping engine of ' + obj.cloudId);
         if (obj.running)
@@ -96,7 +95,7 @@ function runEngine(thingpediaClient, options) {
         console.error(e.stack);
         _engines.delete(options.userId);
         // exit the worker process on fatal error.
-        handleSignal();
+        process.exit(1);
     });
 
     _engines.set(options.userId, obj);
