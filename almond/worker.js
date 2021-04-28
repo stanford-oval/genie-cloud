@@ -94,6 +94,8 @@ function runEngine(thingpediaClient, options) {
         console.error('Engine ' + options.cloudId + ' had a fatal error: ' + e.message);
         console.error(e.stack);
         _engines.delete(options.userId);
+        // exit the worker process on fatal error.
+        process.exit(1);
     });
 
     _engines.set(options.userId, obj);
