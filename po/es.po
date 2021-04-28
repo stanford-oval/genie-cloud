@@ -45,7 +45,7 @@ msgid ""
 "Hello! This is COVID Genie from Stanford University. I’m here to help you "
 "find a covid vaccine appointment near you."
 msgstr ""
-"¡Hola! Soy la COVID Genio de la Universidad de Stanford. Estoy aquí para "
+"¡Hola! Soy la COVID Genie de la Universidad de Stanford. Estoy aquí para "
 "ayudarle a encontrar una cita para la vacuna para covid."
 
 #: routes/my_api.js:106
@@ -53,7 +53,7 @@ msgid ""
 "Hello! This is COVID Genie from Stanford University. I’m here to help you "
 "find a covid vaccine appointment near you. What is your zipcode?"
 msgstr ""
-"¡Hola! Soy la COVID Genio de la Universidad de Stanford. Estoy aquí para "
+"¡Hola! Soy la COVID Genie de la Universidad de Stanford. Estoy aquí para "
 "ayudarle a encontrar una cita para la vacuna para covid. ¿Cuál es su código "
 "postal?"
 
@@ -77,7 +77,7 @@ msgstr ", "
 msgid ""
 "Welcome to Genie! You are now ready to start using Genie to receive "
 "notifications."
-msgstr "¡Bienvenido a Genio! Ahora está listo para comenzar a usar Genie para recibir "
+msgstr "¡Bienvenido a Genie! Ahora está listo para comenzar a usar Genie para recibir "
 "notificaciones."
 
 #: routes/user.js:60
@@ -87,7 +87,7 @@ msgid ""
 "limited until you verify your email. You must click on the verification link "
 "to enable your account in full."
 msgstr ""
-"¡Bienvenido a Genio! Hemos enviado un correo electrónico de verificación a su dirección. Algunas "
+"¡Bienvenido a Genie! Hemos enviado un correo electrónico de verificación a su dirección. Algunas "
 "funciones en su cuenta, como recibir notificaciones, serán "
 "limitados hasta que verifiques su correo electrónico. Debes usar el enlace de verificación "
 "para habilitar su cuenta en su totalidad."
@@ -98,13 +98,13 @@ msgid ""
 "on your account, such as receiving notifications, will be limited until you "
 "provide and verify your email. You can do so from your user settings."
 msgstr ""
-"¡Bienvenido a Genio! No proporcionaste una dirección de correo electrónico. Algunans funcionalidades "
+"¡Bienvenido a Genie! No proporcionaste una dirección de correo electrónico. Algunans funcionalidades "
 "en su cuenta, como recibir notificaciones, serán limitado hasta que "
 "proporciones y verifiques su correo electrónico. Puedes hacerlo desde tu configuración de usuario."
 
 #: routes/user.js:127 routes/user.js:163
 msgid "Genie - Login"
-msgstr "Genio - Iniciar sesión"
+msgstr "Genie - Iniciar sesión"
 
 #: routes/user.js:190 routes/user.js:435 routes/user.js:451 routes/user.js:458
 #: routes/user.js:522 routes/user.js:546 routes/user.js:576 routes/user.js:599
@@ -124,7 +124,7 @@ msgstr "Ya configuraste la autenticación de dos factores."
 
 #: routes/user.js:210 routes/user.js:227 routes/user.js:240
 msgid "Genie - Two-Factor Authentication"
-msgstr "Genio - La Autenticación de Dos Factores"
+msgstr "Genie - La Autenticación de Dos Factores"
 
 #: routes/user.js:228
 msgid ""
@@ -142,7 +142,7 @@ msgstr "La autenticación de dos factores se configuró correctamente. Deberá u
 
 #: routes/user.js:249 routes/user.js:351 routes/user.js:366
 msgid "Genie - Register"
-msgstr "Genio - Registrarse"
+msgstr "Genie - Registrarse"
 
 #: routes/user.js:318
 msgid ""
@@ -178,7 +178,7 @@ msgstr ""
 
 #: routes/user.js:443
 msgid "Genie - Verification Successful"
-msgstr "Genio - Verificación exitosa"
+msgstr "Genie - Verificación exitosa"
 
 #: routes/user.js:452
 msgid "Your email address was already verified."
@@ -190,7 +190,7 @@ msgstr "Necesitas establecer una dirección de correo electrónico antes de envi
 
 #: routes/user.js:466
 msgid "Genie - Verification Sent"
-msgstr "Genio - Verificación enviada"
+msgstr "Genie - Verificación enviada"
 
 #: routes/user.js:467
 #, javascript-format
@@ -204,11 +204,11 @@ msgstr ""
 #: routes/user.js:474 routes/user.js:553 routes/user.js:560 routes/user.js:590
 #: routes/user.js:610 routes/user.js:627
 msgid "Genie - Password Reset"
-msgstr "Genio - Restablecimiento de contraseña"
+msgstr "Genie - Restablecimiento de contraseña"
 
 #: routes/user.js:514 routes/user.js:531
 msgid "Genie - Password Reset Sent"
-msgstr "Genio - Restablecimiento de contraseña enviado"
+msgstr "Genie - Restablecimiento de contraseña enviado"
 
 #: routes/user.js:515 routes/user.js:532
 #, javascript-format
@@ -278,12 +278,12 @@ msgstr "Necesita reconocer que leyó los Términos de servicio."
 #: routes/my_stuff.js:54 routes/my_stuff.js:67 routes/my_stuff.js:93
 #: routes/my_stuff.js:97 views/navbar.pug:8 views/my_stuff.pug:9
 msgid "My Genie"
-msgstr "Mi Genio"
+msgstr "Mi Genie"
 
 #: routes/about.js:39 views/about_index.pug:22 views/register_success.pug:8
 #: views/layout.pug:42
 msgid "Genie"
-msgstr "Genio"
+msgstr "Genie"
 
 #: routes/about.js:61
 msgid "Terms of Service for Genie & Thingpedia"
@@ -291,7 +291,7 @@ msgstr "Terminos de Servicio para Genio y Thingpedia"
 
 #: routes/about.js:74
 msgid "Genie Privacy Policy"
-msgstr "Póliza de privacidad de Genio"
+msgstr "Póliza de privacidad de Genie"
 
 #: util/i18n.js:35 views/admin_training.pug:29
 #: views/thingpedia_translate_schema.pug:56
@@ -333,11 +333,11 @@ msgstr "Código: %d"
 
 #: util/error_handling.js:51
 msgid "Genie - Forbidden"
-msgstr "Genio - Prohibido"
+msgstr "Genie - Prohibido"
 
 #: util/error_handling.js:63
 msgid "Genie - Page Not Found"
-msgstr "Genio - Página no Encontrada"
+msgstr "Genie - Página no Encontrada"
 
 #: util/error_handling.js:64
 msgid "The requested page does not exist."
@@ -353,7 +353,7 @@ msgstr "No tienes permiso para realizar la operación solicitada."
 
 #: util/error_handling.js:98
 msgid "Genie - Internal Server Error"
-msgstr "Genio - Error interno del servidor"
+msgstr "Genie - Error interno del servidor"
 
 #: util/error_handling.js:99
 #, javascript-format
@@ -419,7 +419,7 @@ msgstr "Registrarse por Genio"
 
 #: views/about_index.pug:40
 msgid "Covid Genie"
-msgstr "Genio de Covid"
+msgstr "Genie de Covid"
 
 #: views/about_index.pug:47
 msgid ""
@@ -428,14 +428,14 @@ msgid ""
 "organizations.  if none is available, we will look out for appointments and "
 "notify you when one is available."
 msgstr ""
-"Genio es un asistente que le ayuda a encontrar citas para una vacuna de Covid "
+"Genie es un asistente que le ayuda a encontrar citas para una vacuna de Covid "
 "disponibles cerca de ti. Recopilamos información de farmacias y organizaciones de "
 salud. Si no hay ninguna disponible, buscaremos citas y le"
 "notificamos cuando haya una disponible"."
 
 #: views/about_index.pug:49
 msgid "Genie is developed at Stanford University."
-msgstr "Genio se desarrolla en la Universidad de Stanford."
+msgstr "Genie se desarrolla en la Universidad de Stanford."
 
 #: views/about_index.pug:51
 msgid "We do not share your private information with third parties."
@@ -511,7 +511,7 @@ msgstr "Ahora está listo para comenzar a usar Genio para sus propias cuentas."
 #: views/register_success.pug:20 views/register_success.pug:34
 #: views/register_success.pug:46 views/email_verified.pug:15
 msgid "Go to My Genie"
-msgstr "Ve a Mi Genio"
+msgstr "Ve a Mi Genie"
 
 #: views/register_success.pug:23 views/register_success.pug:37
 #: views/register_success.pug:49
@@ -702,7 +702,7 @@ msgstr "Olvide mi contraseña"
 
 #: views/login.pug:30
 msgid "Log In with Google"
-msgstr "nciar sesión con Google"
+msgstr "Inciar sesión con Google"
 
 #: views/login.pug:33
 msgid "Log In with Github"
@@ -786,7 +786,7 @@ msgstr "Configure una nueva habilidad"
 
 #: views/my_stuff.pug:65
 msgid "Your Genie is dead. "
-msgstr "Su Genio se murió. "
+msgstr "Su Genie se murió. "
 
 #: views/my_stuff.pug:66
 msgid "More Details"
@@ -853,7 +853,7 @@ msgid ""
 "Genie is part of a research project of the <a href='https://oval.cs.stanford."
 "edu'>Open Virtual Assistant Laboratory</a> at Stanford University."
 msgstr ""
-"Genio es parte de un proyecto de investigación del <a href='https://oval.cs.stanford."
+"Genie es parte de un proyecto de investigación del <a href='https://oval.cs.stanford."
 "edu'>Open Virtual Assistant Laboratory</a> en la Universidad de Stanford."
 
 #: views/user_profile.pug:8
@@ -904,7 +904,7 @@ msgid ""
 "Please review the <a href='https://oval.cs.stanford.edu/almond-consent-form."
 "html'>Consent Form</a> and keep it for your records before agreeing."
 msgstr ""
-"Genio es un proyecto de investigación de la Universidad de Stanford. Si a ti te gustaría "
+"Genie es un proyecto de investigación de la Universidad de Stanford. Si a ti te gustaría "
 "participar para ayudarnos, puedes permitirnos recopilar los comandos que tú"
 "escribas. Solo recopilamos lo que escribes, no sus datos o lo que el Genio responde".
 "Por favor revise el <a href='https://oval.cs.stanford.edu/almond-consent-form."
@@ -1080,11 +1080,11 @@ msgstr "Teléfono"
 
 #: views/user_profile.pug:274
 msgid "You are running a Genie in your phone."
-msgstr "Estás ejecutando el Genio en tu teléfono."
+msgstr "Estás ejecutando el Genie en tu teléfono."
 
 #: views/user_profile.pug:276
 msgid "You did not link the Genie in your phone to your account."
-msgstr "No conectaste el Genio en su teléfono a su cuenta."
+msgstr "No conectaste el Genie en su teléfono a su cuenta."
 
 #: views/user_profile.pug:278
 msgid ""
@@ -1108,14 +1108,14 @@ msgstr "Computadora"
 
 #: views/user_profile.pug:293
 msgid "You are running a Genie in your laptop."
-msgstr "Estás ejecutando el Genio en tu computadora"
+msgstr "Estás ejecutando el Genie en tu computadora"
 
 #: views/user_profile.pug:295
 msgid ""
 "You did not link the Genie in your laptop to your account. You should do so "
 "from the Settings page in the native Genie app."
 msgstr ""
-"No conectaste el Genio en su computadora a su cuenta. Deberías hacerlo "
+"No conectaste el Genie en su computadora a su cuenta. Deberías hacerlo "
 "en la página de Configuración en la aplicación nativa de Genio."
 
 #: views/password_recovery_continue.pug:22
