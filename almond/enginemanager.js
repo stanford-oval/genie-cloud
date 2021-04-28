@@ -365,6 +365,7 @@ class EngineManager extends events.EventEmitter {
             const child = new EngineProcess(user.id, user.cloud_id);
             this._processes[user.id] = child;
             child.on('exit', () => {
+                console.log('child on exit');
                 if (this._processes[user.id] === child)
                     delete this._processes[user.id];
             });
@@ -491,7 +492,8 @@ class EngineManager extends events.EventEmitter {
             const rows = await user.getAllForShardId(client, this._shardId);
             return Promise.all(rows.map((r) => {
                 return this._runUser(r).catch((e) => {
-                    console.error('User ' + r.id + ' failed to start: ' + e.message);
+                    console.error('User ' + r.id + ' failed to start during startup: ' + e.message);
+                    this.killUser(r.id);
                 });
             }));
         });
@@ -511,7 +513,10 @@ class EngineManager extends events.EventEmitter {
         return db.withClient((dbClient) => {
             return user.get(dbClient, userId);
         }).then((user) => {
-            return this._runUser(user);
+            return this._runUser(user).catch((e) => {
+                console.error('User ' + user.id + ' failed to start: ' + e.message);
+                this._killUserLocked(user.id);
+            });
         });
     }
 
