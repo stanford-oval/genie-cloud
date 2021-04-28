@@ -365,7 +365,6 @@ class EngineManager extends events.EventEmitter {
             const child = new EngineProcess(user.id, user.cloud_id);
             this._processes[user.id] = child;
             child.on('exit', () => {
-                console.log('child on exit');
                 if (this._processes[user.id] === child)
                     delete this._processes[user.id];
             });
