@@ -213,7 +213,8 @@ async function testMyApiDevices(auth) {
         version: 0,
         ownerTier: 'cloud',
         class: 'system',
-        isTransient: false },
+        isTransient: false,
+        authType: 'builtin' },
       { uniqueId: 'thingengine-own-global',
         name: 'Miscellaneous Interfaces',
         description: 'Time, randomness and other non-device specific things.',
@@ -221,7 +222,8 @@ async function testMyApiDevices(auth) {
         version: 0,
         ownerTier: 'global',
         class: 'data',
-        isTransient: true },
+        isTransient: true,
+        authType: 'builtin' },
       { uniqueId: 'org.thingpedia.builtin.test',
         name: 'Test Device',
         description: 'Test Almond in various ways',
@@ -229,7 +231,8 @@ async function testMyApiDevices(auth) {
         version: 0,
         ownerTier: 'global',
         class: 'system',
-        isTransient: true },
+        isTransient: true,
+        authType: 'builtin' },
     ]);
 
     if (Config.WITH_THINGPEDIA === 'embedded')
@@ -247,7 +250,8 @@ async function testMyApiDevices(auth) {
         kind: 'com.xkcd',
         ownerTier: 'global',
         class: 'data',
-        isTransient: false
+        isTransient: false,
+        authType: 'none'
     });
 
     const listResult2 = JSON.parse(await request('/me/api/devices/list', 'GET', null, { auth }));
@@ -260,7 +264,8 @@ async function testMyApiDevices(auth) {
         version: 0,
         ownerTier: 'cloud',
         class: 'system',
-        isTransient: false },
+        isTransient: false,
+        authType: 'builtin' },
       { uniqueId: 'thingengine-own-global',
         name: 'Miscellaneous Interfaces',
         description: 'Time, randomness and other non-device specific things.',
@@ -268,7 +273,8 @@ async function testMyApiDevices(auth) {
         version: 0,
         ownerTier: 'global',
         class: 'data',
-        isTransient: true },
+        isTransient: true,
+        authType: 'builtin' },
       { uniqueId: 'org.thingpedia.builtin.test',
         name: 'Test Device',
         description: 'Test Almond in various ways',
@@ -276,7 +282,8 @@ async function testMyApiDevices(auth) {
         version: 0,
         ownerTier: 'global',
         class: 'system',
-        isTransient: true },
+        isTransient: true,
+        authType: 'builtin' },
       { uniqueId: 'com.xkcd',
         name: 'XKCD',
         description: 'A webcomic of romance, sarcasm, math, and language.',
@@ -284,7 +291,8 @@ async function testMyApiDevices(auth) {
         version: 0,
         ownerTier: 'global',
         class: 'data',
-        isTransient: false }
+        isTransient: false,
+        authType: 'none' }
     ]);
 }
 
