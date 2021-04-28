@@ -60,7 +60,7 @@ function tryLoad(pathname) {
         if (pathname.endsWith('.json'))
             assign(JSON.parse(fs.readFileSync(pathname, 'utf8')));
         else if (pathname.endsWith('.yaml') || pathname.endsWith('.yml'))
-            assign(yaml.safeLoad(fs.readFileSync(pathname, 'utf8')));
+            assign(yaml.load(fs.readFileSync(pathname, 'utf8')));
         else if (pathname.endsWith('.js'))
             assign(require(pathname));
         else
