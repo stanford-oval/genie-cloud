@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: almond-cloud 2.0.0-alpha.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-24 19:04+0000\n"
+"POT-Creation-Date: 2021-04-28 00:40+0000\n"
 "PO-Revision-Date: 2021-04-23 13:43-0700\n"
 "Last-Translator: gcampagn <gcampagn@cs.stanford.edu>\n"
 "Language-Team: Spanish\n"
@@ -17,30 +17,30 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: routes/my_api.js:69
-msgid "Okay, I will stop sending you notifications."
-msgstr "Bueno, dejaré de enviarte notificaciones."
-
-#: routes/my_api.js:65
+#: routes/my_api.js:70
 #, javascript-format
 msgid "Picture: %s"
 msgstr "Fotos: %s"
 
-#: routes/my_api.js:67
+#: routes/my_api.js:72
 #, javascript-format
 msgid "Audio: %s"
 msgstr "Audio: %s"
 
-#: routes/my_api.js:69
+#: routes/my_api.js:74
 #, javascript-format
 msgid "Video: %s"
 msgstr "Video: %s"
 
-#: routes/my_api.js:75
+#: routes/my_api.js:80
 msgid " [yes/no]"
 msgstr " [sí/no]"
 
-#: routes/my_api.js:101
+#: routes/my_api.js:95
+msgid "Okay, I will stop sending you notifications."
+msgstr "Bueno, dejaré de enviarte notificaciones."
+
+#: routes/my_api.js:106
 msgid ""
 "Hello! This is COVID Genie from Stanford University. I’m here to help you "
 "find a covid vaccine appointment near you."
@@ -48,7 +48,7 @@ msgstr ""
 "¡Hola! Soy la COVID Genie de la Universidad de Stanford. Estoy aquí para "
 "ayudarle a encontrar una cita para la vacuna para covid."
 
-#: routes/my_api.js:106
+#: routes/my_api.js:111
 msgid ""
 "Hello! This is COVID Genie from Stanford University. I’m here to help you "
 "find a covid vaccine appointment near you. What is your zipcode?"
@@ -57,10 +57,11 @@ msgstr ""
 "ayudarle a encontrar una cita para la vacuna para covid. ¿Cuál es su código "
 "postal?"
 
-#: routes/my_api.js:146
+#: routes/my_api.js:151
 #, javascript-format
 msgid "You have successfully unsubscribed %s from all notifications."
-msgstr "Has cancelado correctamente la suscripción %s de todas las notificaciones."
+msgstr ""
+"Has cancelado correctamente la suscripción %s de todas las notificaciones."
 
 #: routes/devices.js:70 routes/my_stuff.js:84
 msgid "Not found."
@@ -77,8 +78,9 @@ msgstr ", "
 msgid ""
 "Welcome to Genie! You are now ready to start using Genie to receive "
 "notifications."
-msgstr "¡Bienvenido a Genie! Ahora está listo para comenzar a usar Genie para recibir "
-"notificaciones."
+msgstr ""
+"¡Bienvenido a Genie! Ahora está listo para comenzar a usar Genie para "
+"recibir notificaciones."
 
 #: routes/user.js:60
 msgid ""
@@ -87,10 +89,10 @@ msgid ""
 "limited until you verify your email. You must click on the verification link "
 "to enable your account in full."
 msgstr ""
-"¡Bienvenido a Genie! Hemos enviado un correo electrónico de verificación a su dirección. Algunas "
-"funciones en su cuenta, como recibir notificaciones, serán "
-"limitados hasta que verifiques su correo electrónico. Debes usar el enlace de verificación "
-"para habilitar su cuenta en su totalidad."
+"¡Bienvenido a Genie! Hemos enviado un correo electrónico de verificación a "
+"su dirección. Algunas funciones en su cuenta, como recibir notificaciones, "
+"serán limitados hasta que verifiques su correo electrónico. Debes usar el "
+"enlace de verificación para habilitar su cuenta en su totalidad."
 
 #: routes/user.js:62
 msgid ""
@@ -98,9 +100,10 @@ msgid ""
 "on your account, such as receiving notifications, will be limited until you "
 "provide and verify your email. You can do so from your user settings."
 msgstr ""
-"¡Bienvenido a Genie! No proporcionaste una dirección de correo electrónico. Algunans funcionalidades "
-"en su cuenta, como recibir notificaciones, serán limitado hasta que "
-"proporciones y verifiques su correo electrónico. Puedes hacerlo desde tu configuración de usuario."
+"¡Bienvenido a Genie! No proporcionaste una dirección de correo electrónico. "
+"Algunans funcionalidades en su cuenta, como recibir notificaciones, serán "
+"limitado hasta que proporciones y verifiques su correo electrónico. Puedes "
+"hacerlo desde tu configuración de usuario."
 
 #: routes/user.js:127 routes/user.js:163
 msgid "Genie - Login"
@@ -130,15 +133,17 @@ msgstr "Genie - La Autenticación de Dos Factores"
 msgid ""
 "Invalid OTP Code. Please check that your Authenticator app is properly "
 "configured."
-msgstr "El código OTP no fue válido. Por favor comprueba si su aplicación de Authenticación esta correctamente "
-"configurado."
+msgstr ""
+"El código OTP no fue válido. Por favor comprueba si su aplicación de "
+"Authenticación esta correctamente configurado."
 
 #: routes/user.js:241
 msgid ""
 "Two-factor authentication was set up successfully. You will need to use your "
 "Authenticator app at the next login."
-msgstr "La autenticación de dos factores se configuró correctamente. Deberá utilizar su "
-"Aplicación de autenticación en el próximo inicio de sesión."
+msgstr ""
+"La autenticación de dos factores se configuró correctamente. Deberá utilizar "
+"su Aplicación de autenticación en el próximo inicio de sesión."
 
 #: routes/user.js:249 routes/user.js:351 routes/user.js:366
 msgid "Genie - Register"
@@ -149,8 +154,8 @@ msgid ""
 "You must specify a valid username of at most 60 characters. Special "
 "characters or spaces are not allowed."
 msgstr ""
-"Debe especificar un nombre de usuario válido de 60 caracteres como máximo. Caracteres "
-"especiales o espacios no se permiten."
+"Debe especificar un nombre de usuario válido de 60 caracteres como máximo. "
+"Caracteres especiales o espacios no se permiten."
 
 #: routes/user.js:322
 msgid "You must specify a valid email."
@@ -173,8 +178,9 @@ msgid ""
 "The verification link you have clicked is not valid. You might be logged-in "
 "as the wrong user, or the link might have expired."
 msgstr ""
-"El enlace de verificación que usaste no es válido. Puede ser que hayas iniciado sesión "
-"como un usuario equivocado, o el enlace podría haber caducado."
+"El enlace de verificación que usaste no es válido. Puede ser que hayas "
+"iniciado sesión como un usuario equivocado, o el enlace podría haber "
+"caducado."
 
 #: routes/user.js:443
 msgid "Genie - Verification Successful"
@@ -186,7 +192,9 @@ msgstr "Su dirección de correo electrónico ya fue verificada."
 
 #: routes/user.js:459
 msgid "You must set an email address before sending a verification email."
-msgstr "Necesitas establecer una dirección de correo electrónico antes de enviar un correo electrónico de verificación."
+msgstr ""
+"Necesitas establecer una dirección de correo electrónico antes de enviar un "
+"correo electrónico de verificación."
 
 #: routes/user.js:466
 msgid "Genie - Verification Sent"
@@ -198,8 +206,8 @@ msgid ""
 "A verification email was sent to %s. If you did not receive it, please check "
 "your Spam folder."
 msgstr ""
-"Se envió un correo electrónico de verificación a %s. Si no lo recibió, marque "
-"su carpeta de correo no deseado."
+"Se envió un correo electrónico de verificación a %s. Si no lo recibió, "
+"marque su carpeta de correo no deseado."
 
 #: routes/user.js:474 routes/user.js:553 routes/user.js:560 routes/user.js:590
 #: routes/user.js:610 routes/user.js:627
@@ -217,9 +225,9 @@ msgid ""
 "receive it, please check the spelling of your username, and check your Spam "
 "folder."
 msgstr ""
-"Se envió un correo electrónico de recuperación a la dirección registrada para %s. Si no lo "
-"recibiste, compruebe la ortografía de su nombre de usuario y compruebe su correo no deseado "
-"carpeta."
+"Se envió un correo electrónico de recuperación a la dirección registrada "
+"para %s. Si no lo recibiste, compruebe la ortografía de su nombre de usuario "
+"y compruebe su correo no deseado carpeta."
 
 #: routes/user.js:523
 msgid ""
@@ -227,9 +235,9 @@ msgid ""
 "password automatically. Please contact the website adminstrators to recover "
 "your password."
 msgstr ""
-"No verificó su dirección de correo electrónico, por lo que no puede recuperar su "
-"contraseña automáticamente. Por favor póngase en contacto con los administradores del sitio web para recuperar "
-"tu contraseña."
+"No verificó su dirección de correo electrónico, por lo que no puede "
+"recuperar su contraseña automáticamente. Por favor póngase en contacto con "
+"los administradores del sitio web para recuperar tu contraseña."
 
 #: routes/user.js:547 routes/user.js:600
 msgid "The user for which you're resetting the password no longer exists."
@@ -264,8 +272,9 @@ msgid ""
 "A verification email was sent to your new email address. Account "
 "functionality will be limited until you verify your new address."
 msgstr ""
-"Se envió un correo electrónico de verificación a su nueva dirección de correo electrónico. La funcionalidad "
-"de su cuenta estará limitada hasta que verifique su nueva dirección."
+"Se envió un correo electrónico de verificación a su nueva dirección de "
+"correo electrónico. La funcionalidad de su cuenta estará limitada hasta que "
+"verifique su nueva dirección."
 
 #: routes/user.js:777
 msgid "You must specifiy your old password"
@@ -276,20 +285,29 @@ msgid "You must acknowledge that you read the Terms of Service."
 msgstr "Necesita reconocer que leyó los Términos de servicio."
 
 #: routes/my_stuff.js:54 routes/my_stuff.js:67 routes/my_stuff.js:93
-#: routes/my_stuff.js:97 views/navbar.pug:8 views/my_stuff.pug:9
+#: routes/my_stuff.js:97 views/my_stuff.pug:9
 msgid "My Genie"
 msgstr "Mi Genie"
 
 #: routes/about.js:39 views/about_index.pug:22 views/register_success.pug:8
-#: views/layout.pug:42
 msgid "Genie"
 msgstr "Genie"
 
-#: routes/about.js:61
+#: routes/about.js:58
+#, fuzzy
+msgid "About - Covid Genie"
+msgstr "Genie de Covid"
+
+#: routes/about.js:65
+#, fuzzy
+msgid "Contact - Covid Genie"
+msgstr "Genie de Covid"
+
+#: routes/about.js:72
 msgid "Terms of Service for Genie & Thingpedia"
 msgstr "Terminos de Servicio para Genio y Thingpedia"
 
-#: routes/about.js:74
+#: routes/about.js:85
 msgid "Genie Privacy Policy"
 msgstr "Póliza de privacidad de Genie"
 
@@ -325,6 +343,14 @@ msgstr "China (Tradiciónal)"
 #: util/i18n.js:43 util/i18n.js:44
 msgid "Spanish"
 msgstr "Español"
+
+#: util/error_handling.js:30
+#, javascript-format
+msgid ""
+"There is a problem with the Thingpedia account or device you are trying to "
+"configure: %s. Please report this issue to the developer of Thingpedia "
+"device."
+msgstr ""
 
 #: util/error_handling.js:46
 #, javascript-format
@@ -380,7 +406,8 @@ msgstr "Solicitud no válida"
 msgid ""
 "A user with this email already exist, but the email was not verified before."
 msgstr ""
-"Ya existe un usuario con este correo electrónico, pero el correo electrónico no se verificó antes."
+"Ya existe un usuario con este correo electrónico, pero el correo electrónico "
+"no se verificó antes."
 
 #: views/admin_training.pug:27 views/admin_training.pug:73
 #: views/luinet_dataset_list.pug:13 views/register_mixins.pug:31
@@ -389,6 +416,10 @@ msgstr ""
 #: views/user_profile.pug:80
 msgid "Language"
 msgstr "Lenguaje"
+
+#: views/register.pug:8 views/register_mixins.pug:57
+msgid "Register"
+msgstr "Registrarse"
 
 #: views/admin_org_list.pug:15 views/admin_org_list.pug:40
 #: views/luinet_dataset.pug:14 views/luinet_dataset.pug:50
@@ -413,39 +444,47 @@ msgstr "Proximo"
 msgid "Search"
 msgstr "Buscador"
 
+#: views/proxy_confirmation.pug:18 views/conversation_mixin.pug:9
+#: views/my_stuff.pug:123
+msgid "Cancel"
+msgstr "Cancele"
+
 #: views/about_index.pug:34
 msgid "Register for Genie"
 msgstr "Registrarse por Genio"
 
-#: views/about_index.pug:40
-msgid "Covid Genie"
-msgstr "Genie de Covid"
+#: views/about_index.pug:44
+msgid "Find a vaccine appointment near you."
+msgstr "Encuentre una cita de vacunación cerca de usted."
 
-#: views/about_index.pug:47
+#: views/about_index.pug:55
 msgid ""
-"Genie is an assistant that helps you find an available Covid vaccine "
-"appointment near you.  We collect information from pharmacies and health "
-"organizations.  if none is available, we will look out for appointments and "
-"notify you when one is available."
+"COVID Genie is a Stanford University effort to help get people vaccinated "
+"nationwide."
 msgstr ""
-"Genie es un asistente que le ayuda a encontrar citas para una vacuna de Covid "
-"disponibles cerca de ti. Recopilamos información de farmacias y organizaciones de "
-"salud. Si no hay ninguna disponible, buscaremos citas y le"
-"notificamos cuando haya una disponible."
+"COVID Genie es un esfuerzo de la Universidad de Stanford para ayudar a que las personas se vacunen en todo el país. "
 
-#: views/about_index.pug:49
-msgid "Genie is developed at Stanford University."
-msgstr "Genie se desarrolla en la Universidad de Stanford."
+#: views/about_index.pug:57
+msgid ""
+"Chat with Genie to find a COVID-19 vaccine appointment near you, or get "
+"notified when appointments become available."
+msgstr ""
+"Chatee con Genie para encontrar una cita para la vacuna COVID-19 cerca de "
+"usted o reciba una notificación cuando haya citas disponibles. "
 
-#: views/about_index.pug:51
-msgid "We do not share your private information with third parties."
-msgstr "No compartimos su información privada con terceros."
-
-#: views/about_index.pug:60 views/about_index.pug:77
+#: views/about_index.pug:59 views/about_index.pug:85
 msgid "Get Your Vaccine Now"
 msgstr "Agarra Su Vacuna Ahora"
 
-#: views/about_index.pug:68
+#: views/about_index.pug:61
+msgid ""
+"You can also text your zipcode to COVID Genie at +1(866)301-0127 for English "
+"and +1(866)301-0129 for Spanish."
+msgstr ""
+"También puede enviar un mensaje de texto con su código postal a COVID Genie "
+"al +1(866)301-0127 para inglés y +1(866)301-0129 para español."
+
+#: views/about_index.pug:76
 msgid "I agree"
 msgstr "Estoy de acuerdo"
 
@@ -462,8 +501,7 @@ msgid ""
 "Enter your a mobile phone number if you would like to receive notifications "
 "over SMS."
 msgstr ""
-"Ingrese su número de teléfono móvil si desea recibir notificaciones "
-"por SMS."
+"Ingrese su número de teléfono móvil si desea recibir notificaciones por SMS."
 
 #: views/register_mixins.pug:21 views/login.pug:19 views/user_profile.pug:162
 #: views/user_profile.pug:174
@@ -493,8 +531,8 @@ msgstr "Acepto otorgar mi consentimiento para esta investigación."
 msgid ""
 "I agree to the <a href='/about/tos'>terms of service</a> of the Genie "
 "service."
-msgstr "Acepto <a href='/about/tos'>terms of service</a> del servicio de "
-"Genio."
+msgstr ""
+"Acepto <a href='/about/tos'>terms of service</a> del servicio de Genio."
 
 #: views/register_mixins.pug:60
 msgid "Consent Form"
@@ -525,10 +563,10 @@ msgid ""
 "your email. You must click on the verification link to enable your account "
 "in full."
 msgstr ""
-"Se ha enviado un correo electrónico de verificación a su dirección. Algunas funciones en "
-"su cuenta, como el acceso de desarrollador, estará limitada hasta que verifiques "
-"su correo electrónico. Debe usar el enlace de verificación para habilitar su cuenta "
-"en su totalidad."
+"Se ha enviado un correo electrónico de verificación a su dirección. Algunas "
+"funciones en su cuenta, como el acceso de desarrollador, estará limitada "
+"hasta que verifiques su correo electrónico. Debe usar el enlace de "
+"verificación para habilitar su cuenta en su totalidad."
 
 #: views/register_success.pug:31
 msgid "Resend verification email"
@@ -540,13 +578,19 @@ msgid ""
 "such as developer access, will be limited until you provide and verify your "
 "email. You can do so from your user settings."
 msgstr ""
-"No proporcionaste una dirección de correo electrónico. Alguna funciones en su cuenta, "
-"como el acceso de desarrollador, será limitado hasta que proporciones y verifiques su"
-"correo electrónico. Puede hacerlo desde la configuración de usuario."
+"No proporcionaste una dirección de correo electrónico. Alguna funciones en "
+"su cuenta, como el acceso de desarrollador, será limitado hasta que "
+"proporciones y verifiques sucorreo electrónico. Puede hacerlo desde la "
+"configuración de usuario."
 
 #: views/register_success.pug:43
 msgid "User Settings"
 msgstr "Configuración de usuario"
+
+#: views/oauth2_authorize.pug:8 views/my_conversation.pug:12
+#, fuzzy
+msgid "Web Genie"
+msgstr "Web Genie"
 
 #: views/login_required.pug:4 views/qrcode.pug:5 views/error.pug:4
 msgid "Error"
@@ -568,6 +612,10 @@ msgstr "Regresa"
 msgid "Log in"
 msgstr "Inciar sesión"
 
+#: views/2fa_setup.pug:8
+msgid "Two-Factor Authentication"
+msgstr "Autenticación de Dos Factores"
+
 #: views/2fa_login.pug:4 views/login.pug:4
 msgid "Login"
 msgstr "Incio de sesión"
@@ -577,8 +625,9 @@ msgid ""
 "You have configured two-factor authentication for this user. Please enter "
 "the One Time Password generated from your Authenticator app."
 msgstr ""
-"Ha configurado la autenticación de dos factores para este usuario. Por favor escribe "
-"la contraseña de un solo uso generada desde su aplicación Authenticator."
+"Ha configurado la autenticación de dos factores para este usuario. Por favor "
+"escribe la contraseña de un solo uso generada desde su aplicación "
+"Authenticator."
 
 #: views/2fa_login.pug:17
 msgid "OTP"
@@ -593,12 +642,121 @@ msgid ""
 "Having trouble? If you have lost access to your authenticator app, please "
 "contact us to regain access to your account."
 msgstr ""
-"¿Teniendo problemas? Si ha perdido el acceso a su aplicación de autenticación, "
-"contáctenos para recuperar el acceso a su cuenta."
+"¿Teniendo problemas? Si ha perdido el acceso a su aplicación de "
+"autenticación, contáctenos para recuperar el acceso a su cuenta."
+
+#: views/dev_alexa_model.pug:28
+msgid "Language: %s"
+msgstr "Lenguaje: %s"
+
+#: views/footer.pug:17
+msgid "Privacy Policy"
+msgstr "Póliza de privacidad"
+
+#: views/contact.pug:4 views/navbar.pug:7
+msgid "Contact"
+msgstr "Contacto"
+
+#: views/contact.pug:8
+msgid ""
+"Please send us feedback at <a href='mailto:covid-genie-feedback@lists."
+"stanford.edu'>covid-genie-feedback@lists.stanford.edu</a>."
+msgstr ""
+"Envíenos sus comentarios a <a href='mailto:covid-genie-feedback@lists."
+"stanford.edu'>covid-genie-feedback@lists.stanford.edu</a>."
+
+#: views/contact.pug:9
+msgid "We welcome volunteers to help in all these areas:"
+msgstr "Damos la bienvenida a voluntarios para ayudar en todas estas áreas:"
+
+#: views/contact.pug:11
+msgid ""
+"A real-time database of Covid appointments. We have a standard API for "
+"submitting data to our database. Please contact us if you wish to contribute "
+"to this effort."
+msgstr ""
+"Una base de datos en tiempo real de citas de Covid. Tenemos una API estándar "
+"para enviar datos a nuestra base de datos. Por favor contáctenos si desea "
+"contribuir a este esfuerzo."
+
+#: views/contact.pug:12
+msgid ""
+"A Covid questions repository. We are curating a set of questions about Covid "
+"vaccines. Please contact us if you wish to contribute to the repository."
+msgstr ""
+"Un repositorio de preguntas de Covid. Estamos curando una serie de preguntas "
+"sobre las vacunas Covid. Por favor contáctenos si desea contribuir al "
+"repositorio."
+
+#: views/contact.pug:13
+msgid ""
+"Outreach. We are particularly interested in reaching communities that have "
+"been disproportionately affected by COVID-19 and have less access to "
+"information about COVID. We welcome collaborators in reaching out to these "
+"communities."
+msgstr ""
+"Divulgación. Estamos particularmente interesados en llegar a las comunidades "
+"que se han visto afectadas de manera desproporcionada por COVID-19 y tienen "
+"menos acceso a la información sobre COVID. Damos la bienvenida a los "
+"colaboradores para llegar a estas comunidades."
 
 #: views/about_tos.pug:4
 msgid "Terms & Conditions"
 msgstr "Términos y Condiciónes"
+
+#: views/stanford/about_privacy.pug:7
+msgid "Stanford Covid Genie Privacy Policy"
+msgstr "Póliza de privacidad de Stanford Covid Genie"
+
+#: views/stanford/about_privacy.pug:10
+msgid ""
+"Stanford Covid Genie collects your zip code, phone number and optionally "
+"email address for the purposes of informing you about available COVID "
+"vaccine appointments."
+msgstr ""
+"Stanford Covid Genie recopila su código postal, número de teléfono y, "
+"opcionalmente, dirección de correo electrónico con el fin de informarle "
+"sobre las citas disponibles para la vacuna COVID."
+
+#: views/stanford/about_privacy.pug:13
+msgid "Your personal information is stored in a secure server we administer."
+msgstr ""
+"Su información personal se almacena en un servidor seguro que administramos."
+
+#: views/stanford/about_privacy.pug:16
+#, fuzzy
+msgid ""
+"We do not share your information with third parties, and we do not sell your "
+"personal information."
+msgstr "No compartimos su información privada con terceros."
+
+#: views/stanford/about_privacy.pug:19
+msgid ""
+"Your phone number is automatically deleted when you text STOP to our phone "
+"number."
+msgstr ""
+"Su número de teléfono se elimina automáticamente cuando envía un mensaje de "
+"texto con STOP a nuestro número de teléfono."
+
+#: views/stanford/about_privacy.pug:22
+msgid ""
+"Your email address is deleted when you unsubscribe from email notifications "
+"using the link at the bottom of the email."
+msgstr ""
+"Su dirección de correo electrónico se elimina cuando se da de baja de las "
+"notificaciones por correo electrónico utilizando el enlace en la parte "
+"inferior del correo electrónico."
+
+#: views/stanford/about_privacy.pug:25
+msgid ""
+"Alternatively, you can request the permanent deletion of your personal "
+"information by sending an email to <a href='mailto:covid-genie-"
+"feedback@lists.stanford.edu'>covid-genie-feedback@lists.stanford.edu</a>."
+msgstr ""
+"Alternativamente, puede solicitar la eliminación permanente de su "
+"información personal enviando un correo electrónico a <a href='mailto:covid-"
+"genie-feedback@lists.stanford.edu'>covid-genie-feedback@lists.stanford.edu</"
+"a>."
 
 #: views/stanford/footer.pug:4
 msgid "Stanford University"
@@ -640,7 +798,7 @@ msgstr "Acesibilidad"
 msgid "Report a bug"
 msgstr "Reporta un error"
 
-#: views/stanford/footer.pug:28
+#: views/stanford/footer.pug:28 views/footer.pug:6 views/footer.pug:7
 msgid "Connect with us on Twitter"
 msgstr "Conecta con nosotros en Twitter"
 
@@ -652,7 +810,7 @@ msgstr "Suscríbete a nuestro RSS Feed"
 msgid "Fork me on GitHub"
 msgstr "Fork a mí en Github"
 
-#: views/stanford/footer.pug:37
+#: views/stanford/footer.pug:37 views/footer.pug:9 views/footer.pug:10
 msgid "Contact us via email"
 msgstr "Contáctanos por correo electrónico"
 
@@ -665,26 +823,30 @@ msgid ""
 "To reset your Genie password, please enter your username. An email with "
 "instructions will be sent to the address associated with it."
 msgstr ""
-"Para restablecer su contraseña de Genio, ingrese su nombre de usuario. Un correo electrónico con "
-"instrucciones se enviarán a la dirección asociada."
+"Para restablecer su contraseña de Genio, ingrese su nombre de usuario. Un "
+"correo electrónico con instrucciones se enviarán a la dirección asociada."
 
 #: views/password_recovery_start.pug:14 views/password_recovery_continue.pug:36
 msgid "Reset Password"
 msgstr "Restablece Contraseña"
 
-#: views/conversation_mixin.pug:10
+#: views/conversation_mixin.pug:2
+msgid "Stanford COVID Genie"
+msgstr "Stanford COVID Genie"
+
+#: views/conversation_mixin.pug:12
 msgid "Command:"
 msgstr "Comando:"
 
-#: views/conversation_mixin.pug:11
+#: views/conversation_mixin.pug:13
 msgid "Write your command or answer here"
 msgstr "Escribe su comando or repuesta aquí"
 
-#: views/conversation_mixin.pug:14
+#: views/conversation_mixin.pug:16
 msgid "Genie is thinking…"
 msgstr "Genio está pensando..."
 
-#: views/conversation_mixin.pug:16
+#: views/conversation_mixin.pug:18
 msgid "Lost connection to the server."
 msgstr "Conexión perdida con el servidor."
 
@@ -728,7 +890,11 @@ msgstr "No"
 msgid "Cancel."
 msgstr "Cancele."
 
-#: views/layout.pug:37
+#: views/layout.pug:42
+msgid "COVID Genie at Stanford University"
+msgstr "COVID Genie de la Universidad de Stanford."
+
+#: views/layout.pug:44
 msgid "Toggle navigation"
 msgstr "Navegación de palanca"
 
@@ -744,29 +910,75 @@ msgstr "Ir a la pagina principal"
 msgid "Home"
 msgstr "Pagina Principal"
 
-#: views/navbar.pug:13
-msgid "Docs"
-msgstr "Docs"
+#: views/navbar.pug:5 views/about.pug:4
+msgid "About"
+msgstr "Sobre nosotros"
 
-#: views/navbar.pug:16
-msgid "Console"
-msgstr "Consola"
+#: views/about.pug:8
+msgid ""
+"The COVID Genie is part of the Open Virtual Assistant Initiative led by the "
+"Open Virtual Assistant Lab (OVAL) at Stanford University. The COVID genie "
+"aims to help the American public get vaccinated against COVID-19. It is "
+"designed to ensure equitable access of COVID-19 vaccines for all Americans, "
+"including communities of color who have been disproportionately affected by "
+"COVID-19."
+msgstr ""
+"El COVID Genie es parte de la Open Virtual Assistant Initiative liderada por "
+"Open Virtual Assistant Lab (OVAL) en la Universidad de Stanford. El genio de "
+"COVID tiene como objetivo ayudar al público estadounidense a vacunarse "
+"contra COVID-19. Está diseñado para garantizar el acceso equitativo a las "
+"vacunas COVID-19 para todos los estadounidenses, incluidas las comunidades "
+"de color que se han visto afectadas de manera desproporcionada por COVID-19."
 
-#: views/navbar.pug:19
-msgid "Admin"
-msgstr "Admin"
+#: views/about.pug:9
+msgid ""
+"We thank our collaborators who have graciously volunteered time, effort, and "
+"expertise to this project: Mukesh Aggarwal, Nick Muerdter (VaccineSpotter."
+"org), and Leah Russin."
+msgstr ""
+"Agradecemos a nuestros colaboradores que gentilmente han ofrecido tiempo, "
+"esfuerzo y experiencia a este proyecto: Mukesh Aggarwal, Nick Muerdter "
+"(VaccineSpotter.org) y Leah Russin."
 
-#: views/navbar.pug:24
-msgid "Settings"
-msgstr "Configuraciónes"
+#: views/about.pug:10
+msgid "About the OVAL Lab at Stanford University"
+msgstr ""
 
-#: views/navbar.pug:27
-msgid "Log Out"
-msgstr "Cerrar sesión"
+#: views/about.pug:11
+msgid ""
+"The OVAL lab is a research laboratory in the Computer Science Department "
+"whose goal is to:"
+msgstr ""
+"El laboratorio OVAL es un laboratorio de investigación del Computer Science "
+"Department (departamento de informática) cuyo objetivo es:"
 
-#: views/navbar.pug:29
-msgid "Log In"
-msgstr "Inciar sesión"
+#: views/about.pug:14
+msgid ""
+"Create virtual assistants that provide open, equitable access to all, while "
+"protecting their privacy, and "
+msgstr ""
+"Crear asistentes virtuales que brinden acceso abierto y equitativo a todos, "
+"al mismo tiempo que protegen su privacidad, y "
+
+#: views/about.pug:15
+msgid "create affordable, open-source virtual assistant technology."
+msgstr "crear tecnología de asistente virtual asequible y de código abierto."
+
+#: views/about.pug:16
+msgid ""
+"Learn more at <a href='https://oval.cs.stanford.edu'>oval.cs.stanford.edu</"
+"a>."
+msgstr ""
+"Obtenga más información en <a href='https://oval.cs.stanford.edu'>oval.cs."
+"stanford.edu</a>."
+
+#: views/about.pug:18
+msgid ""
+"We are supported in part by National Science Foundation and the Alfred P. "
+"Sloan Foundation."
+msgstr ""
+"Contamos con el apoyo en parte de la National Science Foundation y la Alfred "
+"P. Sloan Foundation."
 
 #: views/my_stuff.pug:40
 msgid "This device is owned by your %s."
@@ -800,61 +1012,80 @@ msgstr "Comandos activos"
 msgid "Stop"
 msgstr "Detiene"
 
-#: views/my_stuff.pug:82
+#: views/my_stuff.pug:86
 msgid "This app delivers notifications using %s"
 msgstr "Esta aplicación entrega notificaciones usando %s"
 
-#: views/my_stuff.pug:86
+#: views/my_stuff.pug:90
 msgid "%s %s"
 msgstr "%s %s"
 
-#: views/my_stuff.pug:89
+#: views/my_stuff.pug:93
 msgid "This rule had an error: %s"
 msgstr "Esta regla tuvo un error: %s"
 
-#: views/my_stuff.pug:92
+#: views/my_stuff.pug:96
 msgid "Enabled Skills"
 msgstr "Habilidades Activadas"
 
-#: views/my_stuff.pug:104
+#: views/my_stuff.pug:108
 msgid "Write your comment for the last response"
 msgstr "Escribe su comentario para la repuesta pasada"
 
-#: views/my_stuff.pug:108
+#: views/my_stuff.pug:112
 msgid "Comment"
 msgstr "Comentario"
 
-#: views/my_stuff.pug:114
+#: views/my_stuff.pug:118
 msgid "Warning:"
 msgstr "Advertencia:"
 
-#: views/my_stuff.pug:119
+#: views/my_stuff.pug:120
+msgid ""
+"While recording is active, all your commands and all the replies from Genie "
+"will be stored and reviewed by the Stanford Genie Team."
+msgstr ""
+
+#: views/my_stuff.pug:122
 msgid "Confirm"
 msgstr "Confirme"
 
-#: views/my_stuff.pug:127
+#: views/my_stuff.pug:130
 msgid "Record conversation"
 msgstr "Grabe conversación"
 
-#: views/my_stuff.pug:130
+#: views/my_stuff.pug:133
 msgid "Show recorded log"
 msgstr "Muestra Registro de conversaciones."
 
-#: views/my_stuff.pug:136
+#: views/my_stuff.pug:139
 msgid "Conversation log updated."
 msgstr "Registro de conversaciones actualizado."
 
-#: views/my_stuff.pug:140
+#: views/my_stuff.pug:143
 msgid "Done"
 msgstr "Terminado"
 
-#: views/footer.pug:5
+#: views/footer.pug:14
 msgid ""
 "Genie is part of a research project of the <a href='https://oval.cs.stanford."
 "edu'>Open Virtual Assistant Laboratory</a> at Stanford University."
 msgstr ""
-"Genie es parte de un proyecto de investigación del <a href='https://oval.cs.stanford."
-"edu'>Open Virtual Assistant Laboratory</a> en la Universidad de Stanford."
+"Genie es parte de un proyecto de investigación del <a href='https://oval.cs."
+"stanford.edu'>Open Virtual Assistant Laboratory</a> en la Universidad de "
+"Stanford."
+
+#: views/footer.pug:21
+msgid ""
+"Genie is free software, distributed under the <a href='https://opensource."
+"org/licenses/Apache-2.0'>Apache license, version 2.0</a>. "
+msgstr ""
+"Genie es software libre, distribuido bajo la <a href='https://opensource.org/"
+"licenses/Apache-2.0'>licencia Apache, versión 2.0</a>."
+
+#: views/error.pug:7
+msgid "Sorry that did not work"
+msgstr "Lo siento, eso no funcionó"
 
 #: views/user_profile.pug:8
 msgid "User Profile"
@@ -890,7 +1121,8 @@ msgid ""
 "gravatar.com'>Gravatar</a> using a secure hash of your email.</a>"
 msgstr ""
 "Tu foto de perfil se recupera automáticamente de <a href='https://en."
-"gravatar.com'>Gravatar</a> usando un hash seguro de su correo electrónico.</a>"
+"gravatar.com'>Gravatar</a> usando un hash seguro de su correo electrónico.</"
+"a>"
 
 #: views/user_profile.pug:74
 msgid "Send anonymized commands to the authors of Genie for training."
@@ -904,11 +1136,12 @@ msgid ""
 "Please review the <a href='https://oval.cs.stanford.edu/almond-consent-form."
 "html'>Consent Form</a> and keep it for your records before agreeing."
 msgstr ""
-"Genie es un proyecto de investigación de la Universidad de Stanford. Si a ti te gustaría "
-"participar para ayudarnos, puedes permitirnos recopilar los comandos que tú"
-"escribas. Solo recopilamos lo que escribes, no sus datos o lo que el Genio responde."
-"Por favor revise el <a href='https://oval.cs.stanford.edu/almond-consent-form."
-"html'>Consent Form</a> y guárdelo para sus registros antes de aceptar."
+"Genie es un proyecto de investigación de la Universidad de Stanford. Si a ti "
+"te gustaría participar para ayudarnos, puedes permitirnos recopilar los "
+"comandos que túescribas. Solo recopilamos lo que escribes, no sus datos o lo "
+"que el Genio responde.Por favor revise el <a href='https://oval.cs.stanford."
+"edu/almond-consent-form.html'>Consent Form</a> y guárdelo para sus registros "
+"antes de aceptar."
 
 #: views/user_profile.pug:91
 msgid "Administrator of %s"
@@ -928,7 +1161,8 @@ msgstr "Acepto"
 
 #: views/user_profile.pug:105
 msgid "None (<a href='/user/request-developer'>apply to be a developer</a>)"
-msgstr "Ninguno (<a href='/user/request-developer'>apply to be a developer</a>)"
+msgstr ""
+"Ninguno (<a href='/user/request-developer'>apply to be a developer</a>)"
 
 #: views/user_profile.pug:107
 msgid "None"
@@ -936,7 +1170,8 @@ msgstr "Ninguno"
 
 #: views/user_profile.pug:114
 msgid "Include my name on my developer organization's public profile."
-msgstr "Incluye mi nombre en el perfil público de mi organización de desarrolladores."
+msgstr ""
+"Incluye mi nombre en el perfil público de mi organización de desarrolladores."
 
 #: views/user_profile.pug:117
 msgid "Developer Access"
@@ -945,7 +1180,9 @@ msgstr "Aceso de Desarrollador"
 #: views/user_profile.pug:120
 msgid ""
 "All code you submit can go live to all Genies with no review. Be careful!"
-msgstr "Todo el código que envíe puede estar disponible para todos los Genios sin revisión. ¡Ten cuidado!"
+msgstr ""
+"Todo el código que envíe puede estar disponible para todos los Genios sin "
+"revisión. ¡Ten cuidado!"
 
 #: views/user_profile.pug:123
 msgid ""
@@ -972,8 +1209,9 @@ msgid ""
 "You can use this developer key in other Genies (such as one you're running "
 "locally for testing) to access your devices before they are approved."
 msgstr ""
-"Puede utilizar esta clave de desarrollador en otros Genios (como una que esté ejecutando "
-"localmente para realizar pruebas) para acceder a sus dispositivos antes de que sean aprobados."
+"Puede utilizar esta clave de desarrollador en otros Genios (como una que "
+"esté ejecutando localmente para realizar pruebas) para acceder a sus "
+"dispositivos antes de que sean aprobados."
 
 #: views/user_profile.pug:142
 msgid "Access information"
@@ -1028,16 +1266,16 @@ msgid ""
 "Deleting the account is an irreversible operation. All the data stored on "
 "the server will be lost permanently."
 msgstr ""
-"Eliminando su cuenta es una operación irreversible. Todos los datos almacenados en "
-"el servidor se perderá de forma permanente."
+"Eliminando su cuenta es una operación irreversible. Todos los datos "
+"almacenados en el servidor se perderá de forma permanente."
 
 #: views/user_profile.pug:225
 msgid ""
 "You will need to relink your phone if you make a new account, but you will "
 "not lose the data stored in them."
 msgstr ""
-"Deberás volver a conectar su teléfono si crea una nueva cuenta, pero no perderás "
-"los datos almacenados en ellos."
+"Deberás volver a conectar su teléfono si crea una nueva cuenta, pero no "
+"perderás los datos almacenados en ellos."
 
 #: views/user_profile.pug:231
 msgid "Yes, I want to delete my account"
@@ -1050,6 +1288,7 @@ msgstr "No, he cambiado mi mente"
 #: views/user_profile.pug:237
 msgid "Authorized third-party apps"
 msgstr "Aplicaciones de terceros autorizadas"
+
 #: views/user_profile.pug:247
 msgid "By %s"
 msgstr "Por %s"
@@ -1071,8 +1310,9 @@ msgid ""
 "The following token is valid anywhere an access token is expected. It is "
 "valid for one month, and enables all scopes. Treat it like a password!"
 msgstr ""
-"El siguiente token es válido en cualquier lugar donde se espere un token de acceso. Es "
-"válido por un mes y habilita todos los ámbitos. ¡Trátelo como una contraseña!"
+"El siguiente token es válido en cualquier lugar donde se espere un token de "
+"acceso. Es válido por un mes y habilita todos los ámbitos. ¡Trátelo como una "
+"contraseña!"
 
 #: views/user_profile.pug:270
 msgid "Phone"
@@ -1096,7 +1336,8 @@ msgstr ""
 
 #: views/user_profile.pug:279
 msgid " Then visit this page on a mobile browser, or scan this QR code."
-msgstr " Luego, visite esta página en un navegador móvil o escanee este código QR."
+msgstr ""
+" Luego, visite esta página en un navegador móvil o escanee este código QR."
 
 #: views/user_profile.pug:285
 msgid "Configure"
@@ -1115,9 +1356,35 @@ msgid ""
 "You did not link the Genie in your laptop to your account. You should do so "
 "from the Settings page in the native Genie app."
 msgstr ""
-"No conectaste el Genie en su computadora a su cuenta. Deberías hacerlo "
-"en la página de Configuración en la aplicación nativa de Genio."
+"No conectaste el Genie en su computadora a su cuenta. Deberías hacerlo en la "
+"página de Configuración en la aplicación nativa de Genio."
 
 #: views/password_recovery_continue.pug:22
 msgid "New password"
 msgstr "Nueva contraseña"
+
+#~ msgid ""
+#~ "Genie is an assistant that helps you find an available Covid vaccine "
+#~ "appointment near you.  We collect information from pharmacies and health "
+#~ "organizations.  if none is available, we will look out for appointments "
+#~ "and notify you when one is available."
+#~ msgstr ""
+#~ "Genie es un asistente que le ayuda a encontrar citas para una vacuna de "
+#~ "Covid disponibles cerca de ti. Recopilamos información de farmacias y "
+#~ "organizaciones de salud. Si no hay ninguna disponible, buscaremos citas y "
+#~ "lenotificamos cuando haya una disponible."
+
+#~ msgid "Docs"
+#~ msgstr "Docs"
+
+#~ msgid "Console"
+#~ msgstr "Consola"
+
+#~ msgid "Settings"
+#~ msgstr "Configuraciónes"
+
+#~ msgid "Log Out"
+#~ msgstr "Cerrar sesión"
+
+#~ msgid "Log In"
+#~ msgstr "Inciar sesión"
