@@ -254,10 +254,8 @@ class Frontend {
             this._app.use('/thingpedia/entities', require('./routes/thingpedia_entities'));
             this._app.use('/thingpedia/strings', require('./routes/thingpedia_strings'));
         }
-        if (Config.WITH_LUINET === 'embedded') {
-            this._app.use('/luinet/templates', require('./routes/luinet_templates'));
+        if (Config.WITH_LUINET === 'embedded')
             this._app.use('/developers/mturk', require('./routes/developer_mturk'));
-        }
         this._app.use('/developers/oauth', require('./routes/developer_oauth2'));
         this._app.use('/admin/blog/upload', require('./routes/admin_upload'));
 
@@ -294,11 +292,6 @@ class Frontend {
             this._app.use('/thingpedia/translate', require('./routes/thingpedia_translate'));
             this._app.use('/thingpedia/cheatsheet', require('./routes/thingpedia_cheatsheet'));
             this._app.use('/thingpedia/snapshots', require('./routes/thingpedia_snapshots'));
-        }
-        if (Config.WITH_LUINET === 'embedded') {
-            this._app.use('/luinet/datasets', require('./routes/luinet_dataset'));
-            this._app.use('/luinet/models', require('./routes/luinet_models'));
-            this._app.use('/luinet/custom-datasets', require('./routes/luinet_custom_datasets'));
         }
 
         this._app.use('/profiles', require('./routes/thingpedia_profiles'));
