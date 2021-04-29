@@ -194,11 +194,8 @@ class Frontend {
         // legacy route for /me/api/sync, uses auth tokens instead of full OAuth2
         this._app.use('/ws', require('./routes/thingengine_ws'));
 
-        if (Config.WITH_THINGPEDIA === 'embedded') {
+        if (Config.WITH_THINGPEDIA === 'embedded')
             this._app.use('/thingpedia/api', require('./routes/thingpedia_api'));
-            // legacy, part of v1/v2 API, in v3 this endpoint lives as /v3/devices/package
-            this._app.use('/thingpedia/download', require('./routes/thingpedia_download'));
-        }
 
         // now initialize cookies, session and session-based logins
 
