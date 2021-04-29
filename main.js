@@ -48,7 +48,6 @@ const commands = {
     'run-training': require('./training/daemon'),
 
     // batch jobs
-    'apply-credits': require('./scripts/apply-credits'),
     'run-training-task': require('./training/run-training-task'),
 
     // utility commands

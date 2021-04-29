@@ -26,15 +26,11 @@ const organization = require('../model/organization');
 const device = require('../model/device');
 const oauth2 = require('../model/oauth2');
 const userModel = require('../model/user');
-const nlpModelsModel = require('../model/nlp_models');
-const templatePackModel = require('../model/template_files');
-const trainingJobModel = require('../model/training_job');
 const user = require('../util/user');
 const SendMail = require('../util/sendmail');
 const iv = require('../util/input_validation');
 const { tokenize } = require('../util/tokenize');
 const { BadRequestError } = require('../util/errors');
-const creditSystem = require('../util/credit_system');
 
 const Config = require('../config');
 
@@ -66,9 +62,7 @@ router.get('/', (req, res, next) => {
                                                 developer_org,
                                                 developer_org_members,
                                                 developer_org_invitations,
-                                                developer_org_stats,
-                                                credit_update_value: creditSystem.getCreditUpdate(developer_org_stats),
-                                                credit_update_time: creditSystem.getNextUpdate(developer_org.last_credit_update),
+                                                developer_org_stats
         });
     }).catch(next);
 });
