@@ -12,9 +12,6 @@ nav#doc-sidebar
           a.doc-sidebar-subtitle(href='/developers/devices')= _("Thingpedia Devices")
       li(class=(section === 'oauth' ? 'current' : ''))
         a.doc-sidebar-subtitle(href='/developers/oauth')= _("OAuth Applications")
-      if Config.WITH_THINGPEDIA === 'embedded'
-        li(class=(section === 'alexa' ? 'current' : ''))
-          a.doc-sidebar-subtitle(href='/developers/alexa')= _("Alexa Skills (Beta)")
       if Config.WITH_LUINET === 'embedded'
         li(class=(section === 'mturk' ? 'current' : ''))
           a.doc-sidebar-subtitle(href='/developers/mturk')= _("MTurk Paraphrasing (Beta)")

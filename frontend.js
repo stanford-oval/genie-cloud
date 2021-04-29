@@ -188,7 +188,6 @@ class Frontend {
             res.send('');
         });
         this._app.use('/api/webhook', require('./routes/webhook'));
-        this._app.use('/me/api/alexa', require('./routes/bridges/alexa'));
         this._app.use('/me/api/gassistant', require('./routes/bridges/gassistant'));
         this._app.use('/me/api', require('./routes/my_api'));
 
@@ -279,8 +278,6 @@ class Frontend {
         this._app.use('/devices', require('./routes/devices_compat'));
 
         this._app.use('/developers', require('./routes/developer_console'));
-        if (Config.WITH_THINGPEDIA === 'embedded')
-            this._app.use('/developers/alexa', require('./routes/developer_alexa'));
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
             this._app.use('/thingpedia', require('./routes/thingpedia_portal'));
