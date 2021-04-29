@@ -146,11 +146,9 @@ async function handle(modelTag, req, res) {
 
     const delegate = new AlexaDelegate(user.locale, res);
 
-     // "isOwner" is a multi-user assistant thing, it has nothing to do with anonymous or not
-    const assistantUser = { name: user.human_name || user.username, isOwner: true };
     const engine = await EngineManager.get().getEngine(user.id);
     const conversation = await engine.getOrOpenConversation('alexa:' + req.body.session.sessionId,
-        assistantUser, delegate, { anonymous, showWelcome: false, debug: true });
+        delegate, { anonymous, showWelcome: false, debug: true });
 
     if (input.program)
         await conversation.handleThingTalk(input.program);

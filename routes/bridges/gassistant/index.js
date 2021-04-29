@@ -173,13 +173,12 @@ app.intent('actions.intent.MAIN', async (conv) => {
 
     const locale = conv.body.user.locale;
     const conversationId = conv.body.conversation.conversationId;
-    const assistantUser = { name: conv.user.name.display || 'User', isOwner: true };
     const delegate = new GoogleAssistantDelegate(locale);
 
     const engine = await EngineManager.get().getEngine(user.id);
     await engine.getOrOpenConversation('google_assistant:' + conversationId,
-        assistantUser, delegate, { anonymous, showWelcome: true, debug: true });
-    
+        delegate, { anonymous, showWelcome: true, debug: true });
+
     if (delegate._suggestions.length)
         delegate._buffer.push(new Suggestions(delegate._suggestions));
     delegate._buffer.forEach((reply) => conv.ask(reply));
@@ -214,12 +213,11 @@ app.intent('actions.intent.TEXT', async (conv, input) => {
 
     const locale = conv.body.user.locale;
     const conversationId = conv.body.conversation.conversationId;
-    const assistantUser = { name: conv.user.name.display || 'User', isOwner: true };
     const delegate = new GoogleAssistantDelegate(locale);
 
     const engine = await EngineManager.get().getEngine(user.id);
     const conversation = await engine.assistant.getOrOpenConversation('google_assistant:' + conversationId,
-        assistantUser, delegate, { anonymous, showWelcome: false, debug: true });
+        delegate, { anonymous, showWelcome: false, debug: true });
 
     if (input.startsWith('\\t'))
         await conversation.handleThingTalk(input.substring(3));

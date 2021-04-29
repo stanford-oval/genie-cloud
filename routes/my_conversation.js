@@ -138,8 +138,6 @@ async function doConversation(user, anonymous, ws, query) {
         };
         EngineManager.get().on('socket-closed', onclosed);
 
-        // "isOwner" is a multi-user assistant thing, it has nothing to do with anonymous or not
-        const assistantUser = { name: user.human_name || user.username, isOwner: true };
         const options = {
             showWelcome: !query.hide_welcome,
             anonymous,
@@ -167,7 +165,7 @@ async function doConversation(user, anonymous, ws, query) {
             wrapper = undefined;
         });
 
-        wrapper = await engine.getOrOpenConversation(id, assistantUser, delegate, options);
+        wrapper = await engine.getOrOpenConversation(id, delegate, options);
         ws.on('message', (data) => {
             Promise.resolve().then(() => {
                 const parsed = JSON.parse(data);
