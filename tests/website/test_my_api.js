@@ -111,8 +111,8 @@ async function testMyApiCreateWhenApp(auth) {
     }), { auth, dataContentType: 'application/json' }));
 
     assert(result.uniqueId.startsWith('uuid-'));
-    assert(result.description === 'Notify me when get 10 byte of data change.'
-        || result.description === 'Notify me when get data on test with size 10 byte change.',
+    assert(result.description === 'Notify me when there are new get 10 byte of data.'
+        || result.description === 'Notify me when there are new get data on test with size 10 byte.',
         `Invalid description ${result.description}`);
     assert.strictEqual(result.code, 'monitor(@org.thingpedia.builtin.test.get_data(size=10byte));');
     assert.strictEqual(result.icon, '/download/icons/org.thingpedia.builtin.test.png');
