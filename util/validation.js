@@ -282,7 +282,9 @@ function validateInvocation(kind, where, what, entities, stringTypes, options = 
         validateAnnotations(fndef.annotations);
 
         if (!fndef.metadata.canonical)
-            fndef.metadata.canonical = clean(name);
+            fndef.metadata.canonical = [clean(name)];
+        else if (!Array.isArray(fndef.metadata.canonical))
+            fndef.metadata.canonical = [fndef.metadata.canonical];
         if (fndef.annotations.confirm) {
             if (fndef.annotations.confirm.isEnum) {
                 if (!['confirm', 'auto', 'display_result'].includes(fndef.annotations.confirm.toJS()))

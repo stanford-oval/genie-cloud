@@ -212,24 +212,37 @@ function rowsToExamples(rows, { editMode = false, skipId = false }) {
 }
 
 function sortAndChunkExamples(rows) {
+    let functionTypes = new Map;
+
     let trigger_ex = [], query_ex = [], action_ex = [], other_ex = [];
     for (let ex of rows) {
         ex.target_code = ex.target_code.replace(/^\s*let\s+table/, 'query')
             .replace(/^\s*let\s+(stream|query|action)/, '$1');
 
+        const match = /^\s*(stream|query|action|program)/.exec(ex.target_code);
+        if (match === null)
+            ex.type = 'program';
+        else
+            ex.type = match[1];
+
         if (ex.utterance.startsWith(','))
             ex.utterance = ex.utterance.substring(1);
-        else if (ex.type === 'query')
-            ex.utterance = 'get ' + ex.utterance;
         ex.utterance_chunks = splitParams(ex.utterance.trim());
 
-        const match = /^\s*(stream|query|action|program)/.exec(ex.target_code);
-        if (match === null) {
-            ex.type = 'program';
-            other_ex.push(ex);
-            continue;
+        const functions = [];
+        for (const [fn,] of ex.target_code.matchAll(/@\s*[a-z0-9_-]+(?:\.[a-z0-9_-]+)*/g))
+            functions.push(fn.substring(1));
+
+        if (ex.type === 'action') {
+            // all queries except the last one
+            for (let i = 0; i < functions.length-1; i++)
+                functionTypes.set(functions[i], 'query');
+            functionTypes.set(functions[functions.length-1], 'action');
+        } else if (ex.type !== 'program') {
+            // all queries
+            for (let i = 0; i < functions.length; i++)
+                functionTypes.set(functions[i], 'query');
         }
-        ex.type = match[1];
 
         switch (match[1]) {
         case 'stream':
@@ -247,7 +260,27 @@ function sortAndChunkExamples(rows) {
         }
     }
 
-    return [].concat(trigger_ex, query_ex, action_ex, other_ex);
+    for (const ex of other_ex) {
+        // let's find what function this one is...
+        const functions = [];
+        for (const [fn,] of ex.target_code.matchAll(/@\s*[a-z0-9_-]+(?:\.[a-z0-9_-]+)*/g))
+            functions.push(fn.substring(1));
+
+        if (functions.length === 1 && functions[0] === 'org.thingpedia.builtin.thingengine.builtin.faq_reply')
+            ex.type = ex.utterance.endsWith('?') ? 'query' : 'action';
+        else if (functions.every((f) => functionTypes.get(f) === 'query'))
+            ex.type = 'query';
+        else
+            ex.type = 'action';
+
+        if (ex.type === 'action')
+            action_ex.push(ex);
+        else
+            query_ex.push(ex);
+        continue;
+    }
+
+    return [].concat(trigger_ex, query_ex, action_ex);
 }
 
 module.exports = {

@@ -97,7 +97,7 @@ monitorable list query web_search(in req query : String
                                   #[string_values="tt:long_free_text"],
                                   out link : Entity(tt:url)
                                   #_[canonical="link"])
-#_[canonical="web search on bing"]
+#_[canonical=["web search on bing"]]
 #_[confirmation="websites matching $query on Bing"]
 #_[formatted=[{
   type="rdl",
@@ -127,7 +127,7 @@ monitorable list query image_search(in req query : String
                                     out height : Number
                                     #_[prompt="What height are you looking for (in pixels)?"]
                                     #_[canonical="height"])
-#_[canonical="image search on bing"]
+#_[canonical=["image search on bing"]]
 #_[confirmation="images matching $query from Bing"]
 #_[formatted=[{
   type="rdl",
@@ -173,7 +173,7 @@ action eat_data(in req data : String
                 #_[prompt="What do you want me to consume?"]
                 #_[canonical="data"])
 #_[confirmation="consume $data"]
-#_[canonical="eat data on test"]
+#_[canonical=["eat data on test"]]
 #[doc="consume some data, do nothing"]
 #[minimal_projection=[]]
 #[confirm=true];
@@ -198,7 +198,7 @@ action eat_data(in req data : String
                 #_[prompt="What do you want me to consume?"]
                 #_[canonical="data"])
 #_[confirmation="consume $data"]
-#_[canonical="eat data on test"]
+#_[canonical=["eat data on test"]]
 #[doc="consume some data, do nothing"]
 #[minimal_projection=[]]
 #[confirm=true];
