@@ -188,18 +188,14 @@ class Frontend {
             res.send('');
         });
         this._app.use('/api/webhook', require('./routes/webhook'));
-        this._app.use('/me/api/alexa', require('./routes/bridges/alexa'));
         this._app.use('/me/api/gassistant', require('./routes/bridges/gassistant'));
         this._app.use('/me/api', require('./routes/my_api'));
 
         // legacy route for /me/api/sync, uses auth tokens instead of full OAuth2
         this._app.use('/ws', require('./routes/thingengine_ws'));
 
-        if (Config.WITH_THINGPEDIA === 'embedded') {
+        if (Config.WITH_THINGPEDIA === 'embedded')
             this._app.use('/thingpedia/api', require('./routes/thingpedia_api'));
-            // legacy, part of v1/v2 API, in v3 this endpoint lives as /v3/devices/package
-            this._app.use('/thingpedia/download', require('./routes/thingpedia_download'));
-        }
 
         // now initialize cookies, session and session-based logins
 
@@ -254,10 +250,8 @@ class Frontend {
             this._app.use('/thingpedia/entities', require('./routes/thingpedia_entities'));
             this._app.use('/thingpedia/strings', require('./routes/thingpedia_strings'));
         }
-        if (Config.WITH_LUINET === 'embedded') {
-            this._app.use('/luinet/templates', require('./routes/luinet_templates'));
+        if (Config.WITH_LUINET === 'embedded')
             this._app.use('/developers/mturk', require('./routes/developer_mturk'));
-        }
         this._app.use('/developers/oauth', require('./routes/developer_oauth2'));
         this._app.use('/admin/blog/upload', require('./routes/admin_upload'));
 
@@ -281,8 +275,6 @@ class Frontend {
         this._app.use('/devices', require('./routes/devices_compat'));
 
         this._app.use('/developers', require('./routes/developer_console'));
-        if (Config.WITH_THINGPEDIA === 'embedded')
-            this._app.use('/developers/alexa', require('./routes/developer_alexa'));
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
             this._app.use('/thingpedia', require('./routes/thingpedia_portal'));
@@ -294,11 +286,6 @@ class Frontend {
             this._app.use('/thingpedia/translate', require('./routes/thingpedia_translate'));
             this._app.use('/thingpedia/cheatsheet', require('./routes/thingpedia_cheatsheet'));
             this._app.use('/thingpedia/snapshots', require('./routes/thingpedia_snapshots'));
-        }
-        if (Config.WITH_LUINET === 'embedded') {
-            this._app.use('/luinet/datasets', require('./routes/luinet_dataset'));
-            this._app.use('/luinet/models', require('./routes/luinet_models'));
-            this._app.use('/luinet/custom-datasets', require('./routes/luinet_custom_datasets'));
         }
 
         this._app.use('/profiles', require('./routes/thingpedia_profiles'));

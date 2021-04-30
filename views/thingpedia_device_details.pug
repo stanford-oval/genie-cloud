@@ -239,12 +239,6 @@ block content
           input(type='hidden',name='_csrf',value=csrfToken)
           input(type='hidden',name='kind',value=device.primary_kind)
           button(type='submit').btn.btn-danger.btn-block= _("Delete")
-      if !device.current_jobs || !device.current_jobs.train
-        div.col-md-3.col-sm-6
-          form(action='/thingpedia/devices/train', method='post').form-delete-device
-            input(type='hidden',name='_csrf',value=csrfToken)
-            input(type='hidden',name='kind',value=device.primary_kind)
-            button(type='submit').btn.btn-primary.btn-block= _("Start Training")
   div.row.device-details-actions
     if device.download_url
       div.col-md-3.col-sm-6
