@@ -40,7 +40,6 @@ seq([
     ('./test_binary_search'),
     ('./test_input_validation'),
     ('./test_example_names'),
-    ('./test_alexa_intent_parser'),
     ('./test_k8s_api.js'),
     ('./test_kf_inference_url.js')
 ]);
