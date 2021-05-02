@@ -162,10 +162,12 @@ router.get('/log/:id', (req, res, next) => {
         return engine.getConversation(req.params.id);
     }).then(async (conversation) => {
         if (!conversation) {
+            res.status(404);
             res.json({ status : 'not found' });
         } else {
             const log = await conversation.log();
             if (!log) {
+                res.status(404);
                 res.json({ status: 'not found' });
             } else {
                 res.json({
