@@ -192,7 +192,7 @@ function getDetails(fn, param, req, res) {
 
         let [code, examples, current_jobs] = await Promise.all([
             version !== null ? model.getCodeByVersion(client, device.id, version) : `class @${device.primary_kind} {}`,
-            exampleModel.getByKinds(client, [device.primary_kind], getOrgId(req), language),
+            exampleModel.getByKinds(client, [device.primary_kind], getOrgId(req), language, true),
             trainingJobModel.getForDevice(client, language, device.primary_kind)
         ]);
 

@@ -1610,7 +1610,7 @@ async function testLookupLocation() {
         if (loc.display === 'Seattle, Washington') {
             assert(Math.abs(loc.latitude - 47.6038321) < 1e-6);
             assert(Math.abs(loc.longitude - -122.3300624) < 1e-6);
-            assert.strictEqual(loc.canonical, 'seattle washington');
+            assert.strictEqual(loc.canonical, 'seattle , washington');
             assert.strictEqual(loc.rank, 16);
             found = true;
         }

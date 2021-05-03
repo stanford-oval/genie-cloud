@@ -270,20 +270,20 @@ module.exports = {
         }
     },
 
-    getByKinds(client, kinds, org, language) {
+    getByKinds(client, kinds, org, language, includeSynthetic) {
         if (org === -1) { // admin
             return db.selectAll(client,
                 `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
                   eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                   device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
-                  and eu.type = 'thingpedia' and not find_in_set('synthetic', flags) and language = ?
+                  and eu.type = 'thingpedia' ${includeSynthetic ? '' : 'and not find_in_set(\'synthetic\', flags)'} and language = ?
                   and ds.kind in (?) and target_code <> '')
                 union distinct
                 (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
                  eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                  device_schema ds, device_class dc, device_class_kind dck where
                  eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id
-                 and not dck.is_child and dc.primary_kind in (?) and not find_in_set('synthetic', flags) and language = ?
+                 and not dck.is_child and dc.primary_kind in (?) ${includeSynthetic ? '' : 'and not find_in_set(\'synthetic\', flags)'} and language = ?
                  and target_code <> '' and eu.type = 'thingpedia' and eu.is_base = 1)
                  order by id asc`,
                 [language, kinds, kinds, language]);
@@ -292,7 +292,7 @@ module.exports = {
                 `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
                   eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                   device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
-                  and eu.type = 'thingpedia' and not find_in_set('synthetic', flags) and language = ?
+                  and eu.type = 'thingpedia' ${includeSynthetic ? '' : 'and not find_in_set(\'synthetic\', flags)'} and language = ?
                   and ds.kind in (?) and target_code <> ''
                   and (ds.approved_version is not null or ds.owner = ?))
                 union distinct
@@ -300,7 +300,7 @@ module.exports = {
                  eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                  device_schema ds, device_class dc, device_class_kind dck where
                  eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id
-                 and not dck.is_child and dc.primary_kind in (?) and not find_in_set('synthetic', flags) and language = ?
+                 and not dck.is_child and dc.primary_kind in (?) ${includeSynthetic ? '' : 'and not find_in_set(\'synthetic\', flags)'} and language = ?
                  and target_code <> '' and eu.type = 'thingpedia' and eu.is_base = 1
                  and (ds.approved_version is not null or ds.owner = ?)
                  and (dc.approved_version is not null or dc.owner = ?))
@@ -311,7 +311,7 @@ module.exports = {
                 `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
                   eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                   device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
-                  and eu.type = 'thingpedia' and not find_in_set('synthetic', flags) and language = ?
+                  and eu.type = 'thingpedia' ${includeSynthetic ? '' : 'and not find_in_set(\'synthetic\', flags)'} and language = ?
                   and ds.kind in (?) and target_code <> ''
                   and ds.approved_version is not null)
                 union distinct
@@ -319,7 +319,7 @@ module.exports = {
                  eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                  device_schema ds, device_class dc, device_class_kind dck where
                  eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id
-                 and not dck.is_child and dc.primary_kind in (?) and not find_in_set('synthetic', flags) and language = ?
+                 and not dck.is_child and dc.primary_kind in (?) ${includeSynthetic ? '' : 'and not find_in_set(\'synthetic\', flags)'} and language = ?
                  and target_code <> '' and eu.type = 'thingpedia' and eu.is_base = 1
                  and ds.approved_version is not null and dc.approved_version is not null)
                  order by id asc`,
@@ -429,7 +429,7 @@ module.exports = {
             where language = ? and find_in_set('exact', flags) and not is_base and preprocessed <> ''
             order by type asc, id asc`, [language]);
     },
-    
+
     getExactById(client, exampleId) {
         return db.selectOne(client, `select preprocessed,target_code from example_utterances where id = ?`, [exampleId]);
     },

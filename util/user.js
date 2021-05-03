@@ -195,7 +195,10 @@ module.exports = {
         }
 
         if (req.method === 'GET' || req.method === 'HEAD') {
-            req.session.redirect_to = req.originalUrl;
+            if (!req.originalUrl.startsWith('/me/api') &&
+                !req.originalUrl.startsWith('/me/recording') &&
+                !req.originalUrl.startsWith('/me/ws'))
+                req.session.redirect_to = req.originalUrl;
             if (req.user)
                 res.redirect('/user/2fa/login');
             else
