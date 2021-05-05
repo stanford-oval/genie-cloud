@@ -132,7 +132,7 @@
     "tough-cookie": "^4.0.0"
   },
   "optionalDependencies": {
-    "@kubernetes/client-node": "^0.14.0",
+    "@kubernetes/client-node": "^0.14.3",
     "aws-sdk": "^2.853.0",
     "selenium-webdriver": "^4.0.0-alpha.3"
   },
