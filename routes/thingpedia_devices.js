@@ -28,10 +28,8 @@ const user = require('../util/user');
 const schemaModel = require('../model/schema');
 const exampleModel = require('../model/example');
 const trainingJobModel = require('../model/training_job');
-const TrainingServer = require('../util/training_server');
 const I18n = require('../util/i18n');
 const tokenize = require('../util/tokenize');
-const creditSystem = require('../util/credit_system');
 
 const SchemaUtils = require('../util/manifest_to_schema');
 const DatasetUtils = require('../util/dataset');
@@ -194,7 +192,7 @@ function getDetails(fn, param, req, res) {
 
         let [code, examples, current_jobs] = await Promise.all([
             version !== null ? model.getCodeByVersion(client, device.id, version) : `class @${device.primary_kind} {}`,
-            exampleModel.getByKinds(client, [device.primary_kind], getOrgId(req), language),
+            exampleModel.getByKinds(client, [device.primary_kind], getOrgId(req), language, true),
             trainingJobModel.getForDevice(client, language, device.primary_kind)
         ]);
 
@@ -307,23 +305,6 @@ router.post('/delete', iv.validatePOST({ kind: 'string' }), (req, res, next) => 
         await model.delete(dbClient, row.id);
     }).then(() => {
         res.redirect(303, '/thingpedia/devices');
-    }).catch(next);
-});
-
-router.post('/train', iv.validatePOST({ kind: 'string' }), (req, res, next) => {
-    db.withTransaction(async (dbClient) => {
-        const row = await model.getByPrimaryKind(dbClient, req.body.kind);
-        if (row.owner !== req.user.developer_org &&
-            (req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0) {
-            // note that this must be exactly the same error used by util/db.js
-            // so that a true not found is indistinguishable from not having permission
-            throw new NotFoundError();
-        }
-        await creditSystem.payCredits(dbClient, req, req.user.developer_org, creditSystem.TRAIN_THINGPEDIA_COST);
-
-        return TrainingServer.get().queue('en', [req.body.kind], 'update-dataset,train');
-    }).then(() => {
-        res.redirect(303, '/thingpedia/devices/by-id/' + req.body.kind);
     }).catch(next);
 });
 

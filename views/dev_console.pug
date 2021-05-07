@@ -35,10 +35,6 @@ section.divider
         != ngettext("Your organization owns <strong>%d</strong> Thingpedia device.", "Your organization owns <strong>%d</strong> Thingpedia devices.", developer_org_stats.device_count).format(developer_org_stats.device_count)
         != ngettext(" Of these, <strong>%d</strong> is approved.", " Of these, <strong>%d</strong> are approved.", developer_org_stats.approved_device_count).format(developer_org_stats.approved_device_count)
 
-      p
-        != ngettext("You have <strong>%d</strong> credit.", "You have <strong>%d</strong> credits.", developer_org.credits).format(developer_org.credits)
-        != ngettext(" You will receive <strong>%d</strong> credit on %s.", " You will receive <strong>%d</strong> credits on %s.", credit_update_value).format(credit_update_value, credit_update_time.toLocaleString(user.locale, { timeZone: user.timezone }))
-
   div.panel.panel-primary.developer-org-panel
     div.panel-heading
       h4.panel-title= _("Members")

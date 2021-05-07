@@ -111,8 +111,8 @@ async function testMyApiCreateWhenApp(auth) {
     }), { auth, dataContentType: 'application/json' }));
 
     assert(result.uniqueId.startsWith('uuid-'));
-    assert(result.description === 'Notify me when get 10 byte of data change.'
-        || result.description === 'Notify me when get data on test with size 10 byte change.',
+    assert(result.description === 'Notify me when there are new get 10 byte of data.'
+        || result.description === 'Notify me when there are new get data on test with size 10 byte.',
         `Invalid description ${result.description}`);
     assert.strictEqual(result.code, 'monitor(@org.thingpedia.builtin.test.get_data(size=10byte));');
     assert.strictEqual(result.icon, '/download/icons/org.thingpedia.builtin.test.png');
@@ -213,15 +213,17 @@ async function testMyApiDevices(auth) {
         version: 0,
         ownerTier: 'cloud',
         class: 'system',
-        isTransient: false },
-      { uniqueId: 'thingengine-own-global',
+        isTransient: false,
+        authType: 'builtin' },
+      { uniqueId: 'org.thingpedia.builtin.thingengine.builtin',
         name: 'Miscellaneous Interfaces',
-        description: 'Time, randomness and other non-device specific things.',
+        description: 'Time, random numbers, and other commands not specific to any skill.',
         kind: 'org.thingpedia.builtin.thingengine.builtin',
         version: 0,
         ownerTier: 'global',
         class: 'data',
-        isTransient: true },
+        isTransient: true,
+        authType: 'builtin' },
       { uniqueId: 'org.thingpedia.builtin.test',
         name: 'Test Device',
         description: 'Test Genie in various ways',
@@ -229,7 +231,8 @@ async function testMyApiDevices(auth) {
         version: 0,
         ownerTier: 'global',
         class: 'system',
-        isTransient: true },
+        isTransient: true,
+        authType: 'builtin' },
     ]);
 
     if (Config.WITH_THINGPEDIA === 'embedded')
@@ -247,7 +250,8 @@ async function testMyApiDevices(auth) {
         kind: 'com.xkcd',
         ownerTier: 'global',
         class: 'data',
-        isTransient: false
+        isTransient: false,
+        authType: 'none'
     });
 
     const listResult2 = JSON.parse(await request('/me/api/devices/list', 'GET', null, { auth }));
@@ -260,15 +264,17 @@ async function testMyApiDevices(auth) {
         version: 0,
         ownerTier: 'cloud',
         class: 'system',
-        isTransient: false },
-      { uniqueId: 'thingengine-own-global',
+        isTransient: false,
+        authType: 'builtin' },
+      { uniqueId: 'org.thingpedia.builtin.thingengine.builtin',
         name: 'Miscellaneous Interfaces',
-        description: 'Time, randomness and other non-device specific things.',
+        description: 'Time, random numbers, and other commands not specific to any skill.',
         kind: 'org.thingpedia.builtin.thingengine.builtin',
         version: 0,
         ownerTier: 'global',
         class: 'data',
-        isTransient: true },
+        isTransient: true,
+        authType: 'builtin' },
       { uniqueId: 'org.thingpedia.builtin.test',
         name: 'Test Device',
         description: 'Test Genie in various ways',
@@ -276,7 +282,8 @@ async function testMyApiDevices(auth) {
         version: 0,
         ownerTier: 'global',
         class: 'system',
-        isTransient: true },
+        isTransient: true,
+        authType: 'builtin' },
       { uniqueId: 'com.xkcd',
         name: 'XKCD',
         description: 'A webcomic of romance, sarcasm, math, and language.',
@@ -284,7 +291,8 @@ async function testMyApiDevices(auth) {
         version: 0,
         ownerTier: 'global',
         class: 'data',
-        isTransient: false }
+        isTransient: false,
+        authType: 'none' }
     ]);
 }
 

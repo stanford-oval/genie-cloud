@@ -1,14 +1,14 @@
 thingpedia_name: Miscellaneous Interfaces
-thingpedia_description: Commands that are always available and don't belong to any specific device or account. Mostly related to time and randomness, because the universe is chaos and those always there. Also debugging.
+thingpedia_description: Time, random numbers, and other commands not specific to any skill.
 repository: https://github.com/stanford-oval/genie-toolkit
 subcategory: service
 
 class: |
   class @org.thingpedia.builtin.thingengine.builtin
   #_[thingpedia_name="Miscellaneous Interfaces"]
-  #_[thingpedia_description="Commands that are always available and don't belong to any specific device or account. Mostly related to time and randomness, because the universe is chaos and those always there. Also debugging."]
+  #_[thingpedia_description="Time, random numbers, and other commands not specific to any skill."]
   #_[name="Miscellaneous Interfaces"]
-  #_[description="Commands that are always available and don't belong to any specific device or account. Mostly related to time and randomness, because the universe is chaos and those always there. Also debugging."]
+  #_[description="Time, random numbers, and other commands not specific to any skill."]
   #_[canonical="miscellaneous interfaces"]
   #[repository="https://github.com/stanford-oval/genie-toolkit"]
   #[subcategory="service"]

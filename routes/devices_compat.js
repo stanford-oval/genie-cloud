@@ -35,6 +35,7 @@ router.get('/oauth2/callback/:kind', (req, res, next) => {
 }, (req, res, next) => {
     if (req.session.redirect) {
         const server_redirect = req.session.redirect + '/devices' + req.url;
+        delete req.session.redirect;
         res.redirect(303, server_redirect);
     } else {
         const kind = req.params.kind;

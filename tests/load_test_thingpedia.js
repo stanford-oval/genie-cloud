@@ -52,7 +52,7 @@ const req = { _(x) { return x; } };
 
 async function loadManifest(primaryKind) {
     const filename = path.resolve(path.dirname(module.filename), './data/' + primaryKind + '.yaml');
-    return yaml.safeLoad((await util.promisify(fs.readFile)(filename)).toString(), { filename });
+    return yaml.load((await util.promisify(fs.readFile)(filename)).toString(), { filename });
 }
 
 async function loadAllDevices(dbClient, bob, root) {

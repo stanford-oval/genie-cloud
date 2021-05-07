@@ -423,15 +423,13 @@ $(() => {
             syncCancelButton(parsed);
             if (parsed.ask === 'yesno')
                 yesnoMessage();
+            updateSpinner(false);
             return;
         }
 
         if (parsed.id <= lastMessageId)
             return;
         lastMessageId = parsed.id;
-
-        if (parsed.type !== 'command')
-            updateSpinner(false);
 
         switch (parsed.type) {
         case 'text':

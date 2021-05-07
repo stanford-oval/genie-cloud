@@ -156,6 +156,8 @@ class Engine extends Genie.AssistantEngine {
 
     getConversation(id) {
         const conversation = this.assistant.getConversation(id);
+        if (!conversation)
+            return null;
         return new RecordingController(conversation);
     }
 

@@ -21,6 +21,9 @@
 
 const Tp = require('thingpedia');
 const qs = require('qs');
+const addressFormatter = require('@fragaria/address-formatter');
+
+const I18n = require('./i18n');
 
 const Config = require('../config');
 
@@ -51,27 +54,27 @@ module.exports = async function resolveLocation(locale = 'en-US', searchKey, aro
 
     const parsed = JSON.parse(await Tp.Helpers.Http.get(url + qs.stringify(data)));
 
+    const tokenizer = I18n.get(locale).genie.getTokenizer();
     return parsed.map((result) => {
         const addressKeys = Object.keys(result.address);
         const firstKey = addressKeys[0];
-        let display;
-        if (firstKey === 'city') {
-            if (result.address.state)
-                display = result.address.city + ', ' + result.address.state;
-            else
-                display = result.address.city;
-        } else {
-            if (result.address.city)
-                display = result.address[firstKey] + ', ' + result.address.city;
-            else
-                display = result.address[firstKey];
-        }
+
+        // format the address, then pick only the first line or first two lines
+        const formatted = addressFormatter.format(result.address, {
+            abbreviate: false,
+            output: 'array'
+        });
+        let display = formatted.slice(0, result.place_rank > 20 /* neighborhood */ ? 2 : 1).join(', ');
+        // prepend the neighborhood if that's what the user is looking for, because addressFormatter
+        // doesn't include it
+        if (firstKey === 'neighbourhood' || firstKey === 'city_district')
+            display = (result.address.neighbourhood || result.address.city_district) + ', ' + display;
 
         return {
             latitude: Number(result.lat),
             longitude: Number(result.lon),
             display: display,
-            canonical: display.toLowerCase().replace(/[,\s]+/g, ' '),
+            canonical: tokenizer.tokenize(display).rawTokens.join(' '),
             full_name: result.display_name,
             rank: Number(result.place_rank),
             importance: result.importance,

@@ -11,7 +11,6 @@ bundles := \
 	thingpedia-device-create \
 	thingpedia-device-translate \
 	thingpedia-portal \
-	trainer \
 	blog-editor \
 	dev-console-nlp-models \
 	conversation

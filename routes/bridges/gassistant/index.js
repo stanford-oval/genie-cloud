@@ -178,7 +178,7 @@ app.intent('actions.intent.MAIN', async (conv) => {
     const engine = await EngineManager.get().getEngine(user.id);
     await engine.getOrOpenConversation('google_assistant:' + conversationId,
         delegate, { anonymous, showWelcome: true, debug: true });
-    
+
     if (delegate._suggestions.length)
         delegate._buffer.push(new Suggestions(delegate._suggestions));
     delegate._buffer.forEach((reply) => conv.ask(reply));

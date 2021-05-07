@@ -26,15 +26,11 @@ const organization = require('../model/organization');
 const device = require('../model/device');
 const oauth2 = require('../model/oauth2');
 const userModel = require('../model/user');
-const nlpModelsModel = require('../model/nlp_models');
-const templatePackModel = require('../model/template_files');
-const trainingJobModel = require('../model/training_job');
 const user = require('../util/user');
 const SendMail = require('../util/sendmail');
 const iv = require('../util/input_validation');
 const { tokenize } = require('../util/tokenize');
 const { BadRequestError } = require('../util/errors');
-const creditSystem = require('../util/credit_system');
 
 const Config = require('../config');
 
@@ -43,34 +39,6 @@ const EngineManager = require('../almond/enginemanagerclient');
 var router = express.Router();
 
 const HAS_ABOUT_GET_INVOLVED = Config.EXTRA_ABOUT_PAGES.some((p) => p.url === 'get-involved');
-
-const DEFAULT_TRAINING_CONFIG = JSON.stringify({
-    synthetic_depth: 7,
-    dataset_target_pruning_size: 1000,
-    dataset_quoted_probability: 0.1,
-    dataset_eval_probability: 0.5,
-    dataset_split_strategy: 'sentence',
-    train_iterations: 100000,
-    train_batch_tokens: 4000,
-    val_batch_size: 128,
-    seq2seq_encoder: 'Identity',
-    dimension: 768,
-    rnn_dimension: 768,
-    transformer_hidden: 768,
-    transformer_layers: 0,
-    rnn_layers: 2,
-    rnn_zero_state: 'average',
-    context_embeddings: 'bert-base-uncased',
-    question_embeddings: 'bert-base-uncased',
-    decoder_embeddings: '',
-    trainable_encoder_embeddings: 0,
-    trainable_decoder_embeddings: 25,
-    transformer_lr_multiply: 0.5
-}, undefined, 2);
-const DEFAULT_CUSTOM_DATASET_CONFIG = JSON.stringify({
-    synthetic_depth: 7,
-    target_pruning_size: 10000,
-}, undefined, 2);
 
 router.get('/', (req, res, next) => {
     if (!req.user || !req.user.developer_org) {
@@ -94,9 +62,7 @@ router.get('/', (req, res, next) => {
                                                 developer_org,
                                                 developer_org_members,
                                                 developer_org_invitations,
-                                                developer_org_stats,
-                                                credit_update_value: creditSystem.getCreditUpdate(developer_org_stats),
-                                                credit_update_time: creditSystem.getNextUpdate(developer_org.last_credit_update),
+                                                developer_org_stats
         });
     }).catch(next);
 });
@@ -287,51 +253,9 @@ router.post('/organization/edit-profile', user.requireLogIn, user.requireDevelop
     }).catch(next);
 });
 
-
-router.get('/train', user.requireLogIn, (req, res) => {
-    res.render('dev_train_almond', { page_title: req._("Genie - Train Almond"), csrfToken: req.csrfToken() });
-});
-
 router.get('/status', (req, res) => {
     res.redirect('/me/status');
 });
-
-if (Config.WITH_LUINET === 'embedded') {
-    router.get('/models', user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
-        db.withClient(async (dbClient) => {
-            const [models, templatePacks, trainingJobs] = await Promise.all([
-                nlpModelsModel.getByOwner(dbClient, req.user.developer_org),
-                templatePackModel.getByOwner(dbClient, req.user.developer_org),
-                trainingJobModel.getRecent(dbClient, ['train', 'gen-custom-synthetic', 'gen-custom-augmented', 'gen-custom-turking']),
-            ]);
-            for (let model of models) {
-                if (model.metrics)
-                    model.metrics = JSON.parse(model.metrics);
-
-                model.current_job = null;
-                for (let job of trainingJobs) {
-                    if (job.job_type !== 'train' || ['started', 'queued'].indexOf(job.status) < 0)
-                        continue;
-                    if (model.language === job.language && model.tag === job.model_tag) {
-                        model.current_job = job;
-                        break;
-                    }
-                }
-            }
-
-            const customDatasetJobs = trainingJobs.filter((job) => job.job_type !== 'train' && job.owner === req.user.developer_org);
-
-            res.render('dev_nlp_models', {
-                page_title: req._("Genie Developer Console - Models"),
-                models, templatePacks, customDatasetJobs,
-                defaultModelConfig: DEFAULT_TRAINING_CONFIG,
-                defaultCustomDatasetConfig: DEFAULT_CUSTOM_DATASET_CONFIG,
-                trainPublicCost: creditSystem.TRAIN_LUINET_PUBLIC_COST,
-                trainPrivateCost: creditSystem.TRAIN_LUINET_PRIVATE_COST,
-            });
-        }).catch(next);
-    });
-}
 
 if (Config.WITH_THINGPEDIA === 'embedded') {
     router.get('/devices', user.requireLogIn, user.requireDeveloper(), (req, res, next) => {

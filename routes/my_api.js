@@ -185,8 +185,7 @@ router.post('/converse', user.requireScope('user-exec-command'), (req, res, next
 
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine(req.user.id);
-        const assistantUser = { name: user.human_name || user.username, isOwner: true };
-        const result = await engine.converse(command, assistantUser, req.body.conversationId ? String(req.body.conversationId) : 'stateless-' + makeRandom(4));
+        const result = await engine.converse(command, req.body.conversationId ? String(req.body.conversationId) : 'stateless-' + makeRandom(4));
         res.json(result);
     }).catch(next);
 });

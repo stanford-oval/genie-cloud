@@ -42,14 +42,14 @@ block content
           div.index_cl_sx
             #genie-covid-title
               = _("Find a vaccine appointment near you.")
-            
+
             p.index_sx_p
               //- these two should not be translated, everything else should be
               if locale === 'en-US'
                 a(href='/?locale=es-ES') Haga clic para Español.
               else
                 a(href='/?locale=en-US') Click for English
-               
+
           div.index_cl_dx
             p.index_dx_p
               = _("COVID Genie is a Stanford University effort to help get people vaccinated nationwide.")
@@ -66,7 +66,7 @@ block content
               +conversation_mixin('/me/ws/conversation')(class='')
         else if ENABLE_ANONYMOUS_USER
           div.row#try-almond-now-row
- 
+
           div.row.hidden#try-almond-now-consent-form
             div.col-lg-6.col-lg-offset-3
               div#try-almond-now-consent-form-inner
