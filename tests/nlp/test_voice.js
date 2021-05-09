@@ -25,6 +25,7 @@ const ThingTalk = require('thingtalk');
 const FormData = require('form-data');
 const path = require('path');
 const fs = require('fs');
+const WebSocket = require('ws');
 
 const Config = require('../../config');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'external');
@@ -34,6 +35,65 @@ const { assertHttpError, } = require('../website/scaffold');
 function formRequest(url, fd, options = {}) {
     options.dataContentType = 'multipart/form-data; boundary=' + fd.getBoundary();
     return Tp.Helpers.Http.postStream(url, fd, options);
+}
+
+async function testSTT_WS_Promise(ver, pathname) {
+    return new Promise((resolve, reject) => {
+        let ws = new WebSocket(Config.NL_SERVER_URL + '/en-US/voice/stream');
+        ws.binaryType = 'arraybuffer';
+
+        ws.on('open', () => {
+            ws.on('message', (msg) => {
+                msg = JSON.parse(msg);
+                if (msg.error || msg.status)
+                    reject(msg);
+                else
+                    resolve(msg);
+            });
+
+            if (ver) ws.send(JSON.stringify({ ver: ver }));
+
+            if (pathname)
+                fs.createReadStream(pathname).on('data', (buf) => {
+                    ws.send(buf);
+                }).on('end', () => {
+                    ws.send();
+                });
+        });
+    });
+}
+
+async function testSTT_WS() {
+    const pathname = path.resolve(path.dirname(module.filename), '../data/stt-test1.wav');
+    let result;
+
+    // no init packet -> Session timeout
+    try {
+        result = await testSTT_WS_Promise(false, '');
+    } catch(e) {
+        assert.strictEqual(e.error, 'Session timeout');
+    }
+
+    // protocol ver 999 -> Unsupported protocol
+    try {
+        result = await testSTT_WS_Promise(999, '');
+    } catch(e) {
+        assert.strictEqual(e.error, 'Unsupported protocol');
+    }
+
+    // no data after init packet
+    try {
+        result = await testSTT_WS_Promise(1, '');
+    } catch(e) {
+        assert.strictEqual(e.status, 400);
+        assert.strictEqual(e.code, 'E_NO_MATCH');
+    }
+
+    // good
+    result = await testSTT_WS_Promise(1, pathname);
+    console.log(result);
+    assert.strictEqual(result.result, 'ok');
+    assert(result.text === 'Hello, this is a test.' || parsed.text === 'Hello this is a test.');
 }
 
 async function testSTT() {
@@ -95,6 +155,7 @@ async function main() {
         return;
     }
 
+    await testSTT_WS();
     await testSTT();
     await testCombinedSTTAndNLU();
     await testTTS();
