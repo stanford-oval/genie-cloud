@@ -33,6 +33,57 @@ const upload = multer({ dest: os.tmpdir() });
 
 const router = express.Router();
 
+async function streamSTT(ws, req) {
+    if (!I18n.get(req.params.locale, false)) {
+        await ws.send(JSON.stringify({ error: 'Unsupported language' }));
+        await ws.close();
+        return;
+    }
+
+    function errorClose(e) {
+        if (ws.readyState === 1) {
+          // OPEN
+          ws.send(JSON.stringify(e));
+          ws.close();
+        }
+    }
+
+    const sessionTimeout = setTimeout(() => {
+        errorClose({ error: 'Session timeout' });
+    }, 5000);
+
+    ws.on('close', () => {
+        if (sessionTimeout) clearTimeout(sessionTimeout);
+    });
+
+    function initialPacket(msg) {
+        ws.removeEventListener('message', initialPacket);
+        clearTimeout(sessionTimeout);
+        try {
+          msg = JSON.parse(msg);
+        } catch(e) {
+          errorClose({ error: 'Malformed initial packet: ' + e.message });
+          ws.close();
+          return;
+        }
+
+        if (msg.ver && msg.ver === 1) {
+          const stt = new SpeechToText(req.params.locale);
+          stt.recognizeStream(ws).then((text) => {
+              let result = { result: 'ok', text: text };
+              ws.send(JSON.stringify(result));
+              ws.close();
+          }).catch((e) => {
+              errorClose(e);
+          });
+        } else {
+            errorClose({ error: 'Unsupported protocol' });
+        }
+    }
+
+    ws.on('message', initialPacket);
+}
+
 function restSTT(req, res, next) {
     if (!req.file) {
         iv.failKey(req, res, 'audio', { json: true });
@@ -115,6 +166,8 @@ function tts(req, res, next) {
         stream.pipe(res);
     }).catch(next);
 }
+
+router.ws('/:locale/voice/stream', streamSTT);
 
 router.post('/:locale/voice/stt', upload.single('audio'), restSTT);
 router.post('/:locale/voice/query', upload.single('audio'),

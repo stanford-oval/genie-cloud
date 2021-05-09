@@ -92,6 +92,68 @@ class SpeechToText {
             fileStream.pipe(wavReader);
         });
     }
+
+    async recognizeStream(stream) {
+        const sdkAudioInputStream = AudioInputStream.createPushStream();
+        const recognizer = this._initRecognizer(sdkAudioInputStream);
+
+        return new Promise((resolve, reject) => {
+            let fullText = '', lastFC = 0, timerLastFrame, _ended = false;
+
+            function stopRecognizer() {
+                if (timerLastFrame) clearInterval(timerLastFrame);
+                sdkAudioInputStream.close();
+                _ended = true;
+            }
+
+            recognizer.recognized = (_, e) => {
+                // Indicates that recognizable speech was not detected
+                if (e.privResult.privReason === ResultReason.NoMatch && !fullText)
+                    reject(new SpeechToTextFailureError(400, 'E_NO_MATCH', 'Speech unrecognizable.'));
+                // Add recognized text to fullText
+                if (e.privResult.privReason === ResultReason.RecognizedSpeech)
+                    fullText += e.privResult.privText;
+            };
+
+            // Signals that the speech service has detected that speech has stopped.
+            recognizer.sessionStopped = (_, e) => {
+                if (timerLastFrame) clearInterval(timerLastFrame);
+                recognizer.stopContinuousRecognitionAsync(() => {
+                    // Recognition stopped
+                    if (fullText)
+                        resolve(fullText);
+                    else
+                        reject(new SpeechToTextFailureError(400, 'E_NO_MATCH', 'Speech unrecognizable.'));
+                    recognizer.close();
+                }, () => {
+                    reject(new SpeechToTextFailureError(500, 'E_INTERNAL_ERROR', 'Speech recognition failed due to internal error.'));
+                });
+            };
+
+            recognizer.startContinuousRecognitionAsync(() => {
+                // Recognition started
+                timerLastFrame = setInterval(() => {
+                    if (lastFC >= 2)
+                        stopRecognizer();
+                    lastFC++;
+                }, 500);
+            }, () => {
+                reject(new SpeechToTextFailureError(500, 'E_INTERNAL_ERROR', 'Speech recognition failed due to internal error.'));
+                recognizer.close();
+            });
+
+            stream.on('message', (data) => {
+                if (data.length) {
+                    if (!_ended) sdkAudioInputStream.write(data);
+                    lastFC = 0;
+                } else {
+                    stopRecognizer();
+                }
+            }).on('end', () => {
+                stopRecognizer();
+            });
+        });
+    }
 }
 
 async function getTTSAccessToken() {

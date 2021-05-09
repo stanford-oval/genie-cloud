@@ -119,6 +119,7 @@ class NLPInferenceServer {
 
     initFrontend(port) {
         const app = express();
+        require('express-ws')(app);
 
         // proxy enables requests fanout to all replcas in a nlp service
         if (Config.TRAINING_TASK_BACKEND === 'kubernetes')
