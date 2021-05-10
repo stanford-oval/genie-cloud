@@ -38,7 +38,8 @@ router.get('/', (req, res, next) => {
             page_title: req._('Genie'),
             csrfToken: req.csrfToken(),
             featuredDevices,
-            news
+            news,
+            flags: req.query.flags || {}
         });
     }).catch(next);
 });

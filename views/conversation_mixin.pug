@@ -1,5 +1,5 @@
 mixin conversation_mixin(target)
-  div#conversation(class=attributes.class,data-target=target)
+  div#conversation(class=attributes.class,data-target=target + (target.indexOf('?') >= 0 ? '&' : '?') + Object.entries(flags).map(([key, value]) => `flags[${encodeURIComponent(key)}]=${encodeURIComponent(value)}`).join('&'))
     div#chat
     div#input-block
       form(action='#')#input-form

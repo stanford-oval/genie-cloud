@@ -142,10 +142,11 @@ class WebsocketAssistantDelegate implements Genie.DialogueAgent.ConversationDele
     }
 }
 
-type ConversationQueryParams = {
-    hide_welcome ?: '1'|''|undefined,
-    id ?: string
-};
+interface ConversationQueryParams {
+    hide_welcome ?: '1'|''|undefined;
+    id ?: string;
+    flags ?: Record<string, unknown>;
+}
 
 async function doConversation(user : userModel.RowWithOrg, anonymous : boolean, ws : WebSocket, query : ConversationQueryParams) {
     try {
@@ -157,9 +158,18 @@ async function doConversation(user : userModel.RowWithOrg, anonymous : boolean, 
         };
         EngineManager.get().on('socket-closed', onclosed);
 
+        const flags : Record<string, boolean> = {};
+        if (query.flags) {
+            for (const key in query.flags) {
+                if (query.flags[key])
+                    flags[key] = true;
+            }
+        }
+
         const options = {
             showWelcome: !query.hide_welcome,
             anonymous,
+            dialogueFlags: flags,
 
             // in anonymous mode, set a very large timeout so we don't get recycled until the socket is closed
             // in user mode, we always share the same conversation so we set no inactivity timeout at all
