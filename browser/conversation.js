@@ -19,6 +19,8 @@
 "use strict";
 
 const Recorder = require('./deps/recorder');
+const Charts = require('./deps/covid-chart-utils');
+const ThingTalk = require('thingtalk');
 
 $(() => {
     var translations = JSON.parse(document.body.dataset.translations);
@@ -128,7 +130,7 @@ $(() => {
             navigator.mediaDevices.getUserMedia({audio: true, video: false}).then((stream) => {
                 // console.log('getUserMedia() success, stream created, initializing Recorder.js...');
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
-                const context = new AudioContext(); 
+                const context = new AudioContext();
                 const input = context.createMediaStreamSource(stream);
                 const rec = new Recorder(input, {numChannels: 1});
                 rec.record();
@@ -138,7 +140,7 @@ $(() => {
 
                 _isRecording = true;
                 _stream = stream;
-                _recorder = rec; 
+                _recorder = rec;
             }).catch((err) => {
                 console.log('getUserMedia() failed');
                 console.log(err);
@@ -400,7 +402,23 @@ $(() => {
             $('#input').attr('type', 'text');
     }
 
-    function onWebsocketMessage(event) {
+    function camelToTitle(x) {
+        let formatted = x.replace(/([A-Z]+)/g, " $1");
+        return formatted[0].toUpperCase() + formatted.slice(1);
+    }
+
+    async function newProgram(name, code) {
+        if (name === "Covid Charts") {
+            let parsed = ThingTalk.Syntax.parse(code).statements[0].expression.expressions[0].invocation;
+            let type = parsed.channel;
+            let loc = parsed.in_params[0].value.value;
+            loc = Charts.interpret_location(loc);
+            let data = await Charts.pullData(loc.type, loc.name);
+            Charts.chart(data[Charts.convert_type[type]], Charts.convert_method[type], "#chat", loc.canonical + ' ' + camelToTitle(Charts.convert_method[type]));
+        }
+    }
+
+    async function onWebsocketMessage(event) {
         var parsed = JSON.parse(event.data);
         console.log('received ' + event.data);
 
@@ -469,6 +487,10 @@ $(() => {
             $('#input').val('');
             collapseButtons();
             appendUserMessage(parsed.command);
+            break;
+        case 'new-program':
+            $('#input').val('');
+            newProgram(parsed.name, parsed.code);
             break;
         }
     }

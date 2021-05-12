@@ -38,7 +38,7 @@ EOF
 # clean the database and bootstrap
 ${srcdir}/main.js bootstrap --force
 
-workdir=`mktemp -t -d webalmond-integration-XXXXXX`
+workdir=`mktemp -d ${TMPDIR:-/tmp}webalmond-integration-XXXXXX`
 workdir=`realpath $workdir`
 on_error() {
     test -n "$frontendpid" && kill $frontendpid || true

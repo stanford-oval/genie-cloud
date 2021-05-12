@@ -165,3 +165,27 @@
 #conversation #record-button {
     margin-top: 0.5em;
 }
+
+/* D3 Styling */
+
+.d3Chart {
+    color: rgb(76, 76, 76);
+    margin: 5px 0;
+    background-color: white;
+    border-radius: 5px;
+}
+
+.d3Chart .tick {
+    font-size: 12px;
+}
+
+.d3Chart .gridlines line {
+    stroke: rgba(156, 156, 156, 0.5);
+    stroke-width: 1px;
+}
+
+.d3Chart .d3-title {
+    font-size: 14px;
+    font-weight: bold;
+    fill: rgb(76, 76, 76);
+}
