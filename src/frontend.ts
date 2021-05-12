@@ -268,11 +268,11 @@ class Frontend {
         this._app.use('/mturk', (await import('./routes/mturk')).default);
 
         this._app.use('/me/ws', (await import('./routes/my_internal_api')).default);
-        this._app.use('/me', (await import('./routes/my_stuff')).default);
         this._app.use('/me/api/oauth2', (await import('./routes/my_oauth2')).default);
         this._app.use('/me/devices', (await import('./routes/devices')).default);
         this._app.use('/me/status', (await import('./routes/status')).default);
         this._app.use('/me/recording', (await import('./routes/my_recording')).default);
+        this._app.use('/me', (await import('./routes/my_stuff')).default);
         this._app.use('/devices', (await import('./routes/devices_compat')).default);
 
         this._app.use('/developers', (await import('./routes/developer_console')).default);

@@ -230,6 +230,8 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
                                 options : Genie.DialogueAgent.ConversationOptions,
                                 initialState ?: Genie.DialogueAgent.ConversationState) {
         options.faqModels = PlatformModule.faqModels;
+        if (options.anonymous)
+            options.log = true;
         const conversation = await this.assistant.getOrOpenConversation(id, options, initialState || undefined);
         return new ConversationWrapper(conversation, delegate);
     }

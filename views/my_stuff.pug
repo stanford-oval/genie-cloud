@@ -94,18 +94,6 @@ block content
       button.collapsible= _("Enabled Skills")
       +device_list(devices)
 
-  div.modal#comment-popup
-    div.modal-dialog
-      form(method='post')
-        div.modal-content
-          div.modal-body
-            div.form-group
-              label(for='comment-block').control-label= _("Write your comment for the last response")
-              textarea.form-control#comment-block
-          div.modal-footer
-            div.form-group
-              button(type='submit').btn.btn-primary.new-msg-button= _("Comment")
-
   div.modal#recording-warning
     div.modal-dialog
       div.modal-content
