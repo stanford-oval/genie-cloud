@@ -57,7 +57,8 @@ router.get('/', (req, res, next) => {
                                  isRunning: isRunning,
                                  apps: appinfo,
                                  devices: devinfo,
-                                 CDN_HOST: Config.CDN_HOST
+                                 CDN_HOST: Config.CDN_HOST,
+                                 flags: req.query.flags || {}
                                 });
     }).catch(next);
 });
