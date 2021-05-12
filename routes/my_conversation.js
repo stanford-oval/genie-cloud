@@ -138,9 +138,18 @@ async function doConversation(user, anonymous, ws, query) {
         };
         EngineManager.get().on('socket-closed', onclosed);
 
+        const flags = {};
+        if (query.flags) {
+            for (const key in query.flags) {
+                if (query.flags[key])
+                    flags[key] = true;
+            }
+        }
+
         const options = {
             showWelcome: true,
             anonymous,
+            dialogueFlags: flags,
 
             // in anonymous mode, set a very large timeout so we don't get recycled until the socket is closed
             // in user mode, we always share the same conversation so we set no inactivity timeout at all

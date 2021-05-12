@@ -57,7 +57,8 @@ router.get('/', (req, res, next) => {
                                  isRunning: isRunning,
                                  apps: appinfo,
                                  devices: devinfo,
-                                 CDN_HOST: Config.CDN_HOST
+                                 CDN_HOST: Config.CDN_HOST,
+                                 flags: req.query.flags || {}
                                 });
     }).catch(next);
 });
@@ -71,7 +72,8 @@ router.post('/', iv.validatePOST({ command: 'string' }), (req, res, next) => {
             apps: appinfo,
             devices: devinfo,
             CDN_HOST: Config.CDN_HOST,
-            command: req.body.command
+            command: req.body.command,
+            flags: req.flags || {}
         });
     }).catch(next);
 });
@@ -90,11 +92,18 @@ router.post('/apps/delete', iv.validatePOST({ id: 'string' }), (req, res, next) 
 });
 
 router.get('/conversation', (req, res, next) => {
-    res.render('my_conversation', { page_title: req._("My Genie") });
+    res.render('my_conversation', {
+        page_title: req._("My Genie"),
+        flags: req.query.flags || {}
+    });
 });
 
 router.post('/conversation', iv.validatePOST({ command: 'string' }), (req, res) => {
-    res.render('my_conversation', { page_title: req._("My Genie"), command: req.body.command });
+    res.render('my_conversation', {
+        page_title: req._("My Genie"),
+        command: req.body.command,
+        flags: req.query.flags || {}
+    });
 });
 
 module.exports = router;
