@@ -35,15 +35,15 @@ block content
             if authenticated
               div.row
                 div.col-lg-8.col-lg-offset-2
-                  a(href='/me').btn.btn-primary.btn-block.call-to-action= _("Go To My Almond")
+                  a(href='/me').btn.btn-primary.custom-btn.btn-block.call-to-action= _("Go To My Almond")
             else if !ENABLE_ANONYMOUS_USER
               div.row
                 div.col-lg-8.col-lg-offset-2
-                  a(href='/user/register').btn.btn-primary.btn-block.call-to-action= _("Try Almond Now")
+                  a(href='/user/register').btn.btn-primary.custom-btn.btn-block.call-to-action= _("Try Almond Now")
             else
               div.row#try-almond-now-row
                 div.col-lg-8.col-lg-offset-2
-                  a#try-almond-now(href='#conversation').btn.btn-primary.btn-block.call-to-action= _("Try Almond Now")
+                  a#try-almond-now(href='#conversation').btn.btn-primary.custom-btn.btn-block.call-to-action= _("Try Almond Now")
 
               div.row
                 div.col-lg-12
@@ -57,12 +57,15 @@ block content
                         div.form-group.has-feedback#input-form-group
                           label(for='#chat-input').sr-only= _("Command:")
                           input(type='text',placeholder=_("Write your command or answer here")).form-control#input
-                          //-button(type='button').btn.btn-primary#record-button= _("Say a command!")
-                          span.spinner-container.form-control-feedback.hidden
-                            span.spinner
-                            span.sr-only= _("Almond is thinking…")
-                          span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden(title=_("Lost connection to the server."))
-                          span.help-block.hidden= _("Lost connection to the server.")
+                          button(type='button', title='Click to send a voice command').btn.btn-primary.hidden#record-button
+                          span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden
+                  
+                div#hidden-container 
+                  div.help-block.hidden= _("Lost connection to the server.")
+                  div.almond-thinking.hidden
+                    span
+                    span
+                    span
 
             div(style='margin-top:1em;font-size:24px').text-center
               div.row

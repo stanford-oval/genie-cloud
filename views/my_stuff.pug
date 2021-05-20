@@ -110,7 +110,7 @@ block content
 
   div.hidden#toolbar
     div.form-inline
-      div.checkbox-inline
+      div.rec_log.checkbox-inline
         label(for='recording-toggle').control-label
           input(type='checkbox')#recording-toggle
           = _("Record conversation")
@@ -138,8 +138,12 @@ block content
         div.form-group.has-feedback#input-form-group
           label(for='#chat-input').sr-only= _("Command:")
           input(type='text', placeholder=_("Write your command or answer here"), value=command ? command : '').form-control#input
-          //-button(type='button').btn.btn-primary#record-button= _("Say a command!")
-          span.spinner-container.form-control-feedback.hidden
-            span.spinner= _("Almond is thinking…")
+          button(type='button', title='Click to send a voice command').btn.btn-primary#record-button
           span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden
-          span.help-block.hidden= _("Lost connection to the server.")
+    
+  div#hidden-container 
+    div.help-block.hidden= _("Lost connection to the server.")
+    div.almond-thinking.hidden
+      span
+      span
+      span

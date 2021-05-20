@@ -127,7 +127,7 @@ block content
             span.help-block
               = _("You can use this developer key in other Almonds (such as one you're running locally for testing) to access your devices before they are approved.")
 
-        div.form-group
+        div.new-button.form-group
           button(type='submit').btn.btn-primary= _("Update profile")
           |
           |
@@ -175,11 +175,11 @@ block content
             input(type='password',name='confirm-password',value='',required=true,data-match='#password',data-match-error=_("The password and the confirmation must match")).form-control#confirm-password
             span.help-block.with-errors
 
-        div.form-group
+        div.new-button.form-group
           button(type='submit').btn.btn-primary= _("Change password")
 
       hr
-      p
+      p.new-button
         if user.totp_key
           span.glyphicon.glyphicon-ok(aria-hidden='true')
           |
@@ -202,7 +202,7 @@ block content
           a.btn.btn-default(href='/devices/oauth2/com.google')= _("Configure login with Google")
 
       hr
-      p
+      p.new-button
         a.btn.btn-danger(data-toggle='modal', data-target='#delete-account-dialog')= _("Delete account")
 
         div.modal.fade#delete-account-dialog(role='dialog')
@@ -262,7 +262,7 @@ block content
             code#issue-token-result-placeholder
 
   div.panel.panel-default
-    div.panel-heading
+    div.user-profile.panel-heading
       h2.panel-title= _("Phone")
 
     div.panel-body
@@ -281,7 +281,7 @@ block content
           a(href=phone.qrcodeTarget).btn.btn-primary= _("Configure")
 
   div.panel.panel-default
-    div.panel-heading
+    div.user-profile.panel-heading
       h2.panel-title= _("Laptop")
 
     div.panel-body

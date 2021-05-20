@@ -6,6 +6,7 @@
 .installed-dev .panel-heading {
     display: block;
 }
+
 .installed-dev .panel-footer {
     min-height: 56px;
 }
@@ -16,6 +17,7 @@
 
 
 /* Style the button that is used to open and close the collapsible content */
+
 .collapsible {
     background-color: #f3f4f2;
     cursor: pointer;
@@ -25,16 +27,64 @@
     text-align: left;
     outline: none;
     font-size: 20px;
-    margin:5px;
+    margin: 5px;
 }
 
-.active, .collapsible:hover {
+.active,
+.collapsible:hover {
     background-color: #7f030a;
     color: white;
 }
 
-.device-list, .command-list {
+.device-list,
+.command-list {
     padding: 18px 18px;
     display: none;
     overflow: hidden;
+}
+
+.bottom-bar.fa,
+.bottom-bar.far {
+    cursor: grab;
+    border-radius: 60px;
+    background-color: transparent;
+    color: white;
+    margin: 5px;
+    width: 1.6em;
+    height: 1.7em;
+    font-size: 1.3em;
+    line-height: 1.5em;
+    text-align: center;
+    border: none;
+}
+
+.bottom-bar.fa:hover,
+.bottom-bar.far:hover {
+    background-color: #8c1515;
+}
+
+.form-inline.form-config {
+    float: right;
+}
+
+.form-inline.form-delete {
+    float: right;
+}
+
+@media (min-width: 992px) {
+    .panel-footer>.row>.col-md-6 {
+        width: 100%;
+    }
+}
+
+#back-top {
+    text-align: right;
+    padding-top: 3em;
+    width: 100%;
+}
+
+#bttop-button {
+    border-radius: 35px;
+    font-weight: 600;
+    font-size: 2em;
 }

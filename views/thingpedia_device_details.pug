@@ -239,16 +239,16 @@ block content
           input(type='hidden',name='_csrf',value=csrfToken)
           input(type='hidden',name='kind',value=device.primary_kind)
           button(type='submit').btn.btn-danger.btn-block= _("Delete")
-  div.row.device-details-actions
+  div.new-button.row.device-details-actions
     if device.download_url
       div.col-md-3.col-sm-6
-        a.btn.btn-default.btn-block(href=device.download_url)= _("Download Code")
+        a.btn.btn-default.custom-btn.btn-block(href=device.download_url)= _("Download Code")
     if device.repository
       div.col-md-3.col-sm-6
-        a.btn.btn-default.btn-block(href=device.repository)= _("Source Code Repository")
+        a.btn.btn-default.custom-btn.btn-block(href=device.repository)= _("Source Code Repository")
     if authenticated && locale !== 'en-US'
       div.col-md-3.col-sm-6
-        a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + device.primary_kind + '?locale=' + locale)= _("Translate")
+        a.btn.btn-default.custom-btn.btn-block(href='/thingpedia/translate/by-id/' + device.primary_kind + '?locale=' + locale)= _("Translate")
     if device.issue_tracker
       div.col-md-3.col-sm-6
-        a.btn.btn-default.btn-block(href=device.issue_tracker)= _("Report a bug")
+        a.btn.btn-default.custom-btn.btn-block(href=device.issue_tracker)= _("Report a bug")

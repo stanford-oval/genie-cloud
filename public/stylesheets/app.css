@@ -1,65 +1,71 @@
-#commandpedia .dev-template > .panel {
-  cursor: pointer;
+#commandpedia .dev-template>.panel {
+    cursor: pointer;
 }
-#commandpedia .dev-template > .panel:hover {
-  box-shadow: 0 0 8px rgba(102, 175, 233, 0.6);
+
+#commandpedia .dev-template>.panel:hover {
+    box-shadow: 0 0 8px rgba(102, 175, 233, 0.6);
 }
 
 .command-utterance {
-  font-size: 18px;
-  padding-right: 5px;
+    font-size: 18px;
+    padding-right: 5px;
 }
 
 #command-search-box {
-  margin-right: 15px;
+    margin-right: 15px;
+}
+
+.blk-btn {
+    margin-left: 0.7em;
 }
 
 #command-list-navbar {
-  margin-bottom: 30px;
+    margin-bottom: 30px;
+    height: 5em;
 }
 
 #command-list-navbar .navbar-btn {
-  margin-top: 7px;
-  margin-bottom: 5px;
-  float: right;
-  margin-right: 15px;
+    margin-top: 7px;
+    margin-bottom: 5px;
+    float: right;
+    margin-right: 15px;
 }
 
 .none-of-above {
-  color: #2c3e50;
+    color: #2c3e50;
 }
 
 .panel-body-main {
-  display: flex;
+    display: flex;
 }
 
 .device-icon-list {
-  margin-bottom: 20px;
+    margin-bottom: 20px;
 }
 
-.device-icon-list > a > img {
-  width: 60px;
-  height: 60px;
-  margin-left: 5px;
-  margin-right: 5px;
+.device-icon-list>a>img {
+    width: 60px;
+    height: 60px;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 
 .device-icon-list-small {
-  width: 50px;
-  margin-right: 10px;
-  margin-left: 10px;
+    width: 50px;
+    margin-right: 10px;
+    margin-left: 10px;
 }
 
-.device-icon-list-small > a img {
-  width: 40px;
-  height: 40px;
-  margin: 5px;
-  object-fit: contain;
+.device-icon-list-small>a img {
+    width: 40px;
+    height: 40px;
+    margin: 5px;
+    object-fit: contain;
 }
 
 .fa-heart {
-  padding-left: 10px;
-  padding-right: 4px;
-  color: #b1040e;
-  cursor: pointer;
+    padding-left: 10px;
+    padding-right: 4px;
+    color: #b1040e;
+    cursor: pointer;
 }

@@ -37,11 +37,11 @@ block content
             div.col-xs-12
               div.navbar.navbar-default#device-list-navbar
                 form.navbar-form.navbar-left
-                  div.form-group
+                  div.new-button.form-group
                     input.form-control(type='text', name='q', placeholder=_("I want to find a device..."))
-                    button.btn.btn-primary.search-button= _("Search")
-                  div.form-group
-                    button.btn.btn-primary.reset-button= _("Reset")
+                    button.btn.btn-primary.blk-btn.search-button= _("Search")
+                  div.new-button.form-group
+                    button.btn.btn-primary.blk-btn.reset-button= _("Reset")
 
           div.row.aligned-grid#devices-container
 
@@ -52,6 +52,6 @@ block content
           div.row
             div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
               if authenticated && user.developer_status >= Constants.DeveloperStatus.DEVELOPER
-                a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Upload a new device")
+                a(href='/thingpedia/upload/create').btn.btn-primary.custom-btn.btn-block= _("Upload a new device")
               else
-                a(href='/user/request-developer').btn.btn-primary.btn-block= _("Become a Thingpedia Developer")
+                a(href='/user/request-developer').btn.btn-primary.custom-btn.btn-block= _("Become a Thingpedia Developer")

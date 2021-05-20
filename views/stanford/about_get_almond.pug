@@ -17,9 +17,9 @@ block content
             small!= _('Web Almond is provided free of charge to the research community. Use of Web Almond constitutes acceptance of the <a href="/about/tos">Terms of Service</a> and <a href="/about/privacy">Privacy Policy</a>.')
 
           if authenticated
-            a(href='/me').btn.btn-primary.col-xs-8.col-xs-offset-2.col-md-4.col-md-offset-4= _("Go To Web Almond")
+            a(href='/me').btn.btn-primary.custom-btn.col-md-offset-4= _("Go To Web Almond")
           else
-            a(href='/user/register').btn.btn-primary.col-xs-8.col-xs-offset-2.col-md-4.col-md-offset-4= _("Create An Account")
+            a(href='/user/register').btn.btn-primary.custom-btn.col-md-offset-4= _("Create An Account")
 
     div.col-md-6
       div.panel.panel-default
