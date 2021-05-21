@@ -171,6 +171,7 @@ class Engine extends Genie.AssistantEngine {
         options.debug = true;
         options.dialogueFlags = options.dialogueFlags || {};
         options.dialogueFlags.covid = true;
+        options.dialogueFlags.faqs = true;
         const conversation = await this.assistant.getOrOpenConversation(id, options, initialState || undefined);
         if (options.anonymous)
             await conversation.startRecording();
