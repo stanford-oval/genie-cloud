@@ -631,7 +631,7 @@ $(() => {
 
     $('#comment-popup').submit((event) => {
         event.preventDefault();
-        $.post('/me/recording/comment', {
+        $.post(isAnonymous ? '/me/recording/anonymous/comment' : '/me/recording/comment', {
             id: conversationId,
             comment: $('#comment-block').val(),
             _csrf: document.body.dataset.csrfToken

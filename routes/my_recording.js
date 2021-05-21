@@ -22,6 +22,7 @@
 const express = require('express');
 
 const user = require('../util/user');
+const iv = require('../util/input_validation');
 const EngineManager = require('../almond/enginemanagerclient');
 
 const router = express.Router();
@@ -44,6 +45,21 @@ router.post('/anonymous/vote/:vote', (req, res, next) => {
             return res.json({ error: 'No conversation found' });
         } else {
             await conversation.voteLast(req.params.vote);
+            return res.json({ status:'ok' });
+        }
+    }).catch(next);
+});
+
+router.post('/anonymous/comment', iv.validatePOST({ comment: 'string'}), (req, res, next) => {
+    Promise.resolve().then(async () => {
+        const engine = await EngineManager.get().getEngine((await user.getAnonymousUser(req.locale)).id);
+        return engine.getConversation(req.body.id);
+    }).then(async (conversation) => {
+        if (!conversation) {
+            res.status(404);
+            return res.json({ error: 'No conversation found' });
+        } else {
+            await conversation.commentLast(req.body.comment);
             return res.json({ status:'ok' });
         }
     }).catch(next);
@@ -121,13 +137,7 @@ router.post('/vote/:vote', (req, res, next) => {
     }).catch(next);
 });
 
-router.post('/comment', (req, res, next) => {
-    const command = req.body.comment;
-    if (!command) {
-        res.status(400).json({ error: 'Missing comment' });
-        return;
-    }
-
+router.post('/comment', iv.validatePOST({ comment: 'string'}), (req, res, next) => {
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine(req.user.id);
         return engine.getConversation(req.body.id);
