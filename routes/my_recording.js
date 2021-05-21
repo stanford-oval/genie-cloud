@@ -27,11 +27,6 @@ const EngineManager = require('../almond/enginemanagerclient');
 
 const router = express.Router();
 
-router.use((req, res, next) => {
-    console.log('here');
-    next();
-});
-
 router.post('/anonymous/vote/:vote', (req, res, next) => {
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine((await user.getAnonymousUser(req.locale)).id);
