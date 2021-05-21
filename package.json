@@ -51,7 +51,7 @@
     "express-session": "^1.14.0",
     "express-ws": "^4.0.0",
     "express-xml-bodyparser": "^0.3.0",
-    "genie-toolkit": "github:stanford-oval/genie-toolkit#wip/genie-for-covid",
+    "genie-toolkit": "github:stanford-oval/genie-toolkit#covid-genie",
     "gettext-parser": "^4.0.4",
     "gm": "^1.23.1",
     "highlight.js": "^10.7.2",
