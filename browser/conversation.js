@@ -53,6 +53,10 @@ $(() => {
     var lastMessageId = -1;
 
     function refreshToolbar() {
+        if (isAnonymous) {
+            recording = true;
+            return;
+        }
         if (conversationId) {
             $('#toolbar').removeClass('hidden');
             $.get('/me/recording/status/' + conversationId).then((res) => {
@@ -232,7 +236,7 @@ $(() => {
             .attr('data-toggle', 'modal')
             .attr('data-target', '#comment-popup');
         upvote.click((event) => {
-            $.post('/me/recording/vote/up', {
+            $.post(isAnonymous ? '/me/recording/anonymous/vote/up' : '/me/recording/vote/up', {
                 id: conversationId,
                 _csrf: document.body.dataset.csrfToken
             }).then((res) => {
@@ -244,7 +248,7 @@ $(() => {
             event.preventDefault();
         });
         downvote.click((event) => {
-            $.post('/me/recording/vote/down', {
+            $.post(isAnonymous ? '/me/recording/anonymous/vote/down' : '/me/recording/vote/down', {
                 id: conversationId,
                 _csrf: document.body.dataset.csrfToken
             }).then((res) => {

@@ -253,11 +253,11 @@ class Frontend {
         this._app.use('/mturk', require('./routes/mturk'));
 
         this._app.use('/me/ws', require('./routes/my_internal_api'));
-        this._app.use('/me', require('./routes/my_stuff'));
         this._app.use('/me/api/oauth2', require('./routes/my_oauth2'));
         this._app.use('/me/devices', require('./routes/devices'));
         this._app.use('/me/status', require('./routes/status'));
         this._app.use('/me/recording', require('./routes/my_recording'));
+        this._app.use('/me', require('./routes/my_stuff'));
         this._app.use('/devices', require('./routes/devices_compat'));
 
         this._app.use('/developers', require('./routes/developer_console'));

@@ -26,6 +26,29 @@ const EngineManager = require('../almond/enginemanagerclient');
 
 const router = express.Router();
 
+router.use((req, res, next) => {
+    console.log('here');
+    next();
+});
+
+router.post('/anonymous/vote/:vote', (req, res, next) => {
+    Promise.resolve().then(async () => {
+        const engine = await EngineManager.get().getEngine((await user.getAnonymousUser(req.locale)).id);
+        return engine.getConversation(req.body.id);
+    }).then(async (conversation) => {
+        if (!['up', 'down'].includes(req.params.vote)) {
+            res.status(400);
+            return res.json({ error: 'Invalid voting option' });
+        } else if (!conversation) {
+            res.status(404);
+            return res.json({ error: 'No conversation found' });
+        } else {
+            await conversation.voteLast(req.params.vote);
+            return res.json({ status:'ok' });
+        }
+    }).catch(next);
+});
+
 router.use(user.requireLogIn);
 
 router.post('/start', (req, res, next) => {
