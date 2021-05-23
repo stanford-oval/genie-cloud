@@ -40,11 +40,11 @@ async function streamSTT(ws, req) {
         return;
     }
 
-    function errorClose(e) {
+    function errorClose(e, code = 1002) {
         if (ws.readyState === 1) {
           // OPEN
           ws.send(JSON.stringify(e));
-          ws.close();
+          ws.close(code);
         }
     }
 
@@ -63,7 +63,6 @@ async function streamSTT(ws, req) {
           msg = JSON.parse(msg);
         } catch(e) {
           errorClose({ error: 'Malformed initial packet: ' + e.message });
-          ws.close();
           return;
         }
 
@@ -72,9 +71,9 @@ async function streamSTT(ws, req) {
           stt.recognizeStream(ws).then((text) => {
               let result = { result: 'ok', text: text };
               ws.send(JSON.stringify(result));
-              ws.close();
+              ws.close(1000);
           }).catch((e) => {
-              errorClose(e);
+              errorClose(e, e.status !== 400 ? 1003 : 1000);
           });
         } else {
             errorClose({ error: 'Unsupported protocol' });

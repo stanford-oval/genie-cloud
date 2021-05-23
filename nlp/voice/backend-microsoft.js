@@ -108,8 +108,8 @@ class SpeechToText {
 
             recognizer.recognized = (_, e) => {
                 // Indicates that recognizable speech was not detected
-                if (e.privResult.privReason === ResultReason.NoMatch && !fullText)
-                    reject(new SpeechToTextFailureError(400, 'E_NO_MATCH', 'Speech unrecognizable.'));
+                if (e.privResult.privReason === ResultReason.NoMatch)
+                    recognizer.sessionStopped(_, e);
                 // Add recognized text to fullText
                 if (e.privResult.privReason === ResultReason.RecognizedSpeech)
                     fullText += e.privResult.privText;
