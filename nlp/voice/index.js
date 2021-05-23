@@ -40,6 +40,11 @@ async function streamSTT(ws, req) {
         return;
     }
 
+    /* WS close codes:
+     * 1000 - indicates a normal closure, meaning that the purpose for which the connection was established has been fulfilled.
+     * 1002 - indicates that an endpoint is terminating the connection due to a protocol error.
+     * 1003 - indicates that an endpoint is terminating the connection because it has received a type of data it cannot accept.
+     */
     function errorClose(e, code = 1002) {
         if (ws.readyState === 1) {
           // OPEN
