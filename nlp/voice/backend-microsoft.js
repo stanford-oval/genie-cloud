@@ -165,11 +165,14 @@ async function getTTSAccessToken() {
     });
 }
 
-const VOICE_NAMES = {
-    'en-us': 'Microsoft Server Speech Text to Speech Voice (en-US, GuyNeural)'
+const VOICES = {
+    'en-us': {
+        'male': 'GuyNeural',
+        'female': 'AriaNeural'
+    }
 };
 
-async function textToSpeech(locale, text) {
+async function textToSpeech(locale, gender = 'male', text) {
     const accessToken = await getTTSAccessToken();
     // Create the SSML request.
     const xmlBody = xmlbuilder
@@ -178,7 +181,7 @@ async function textToSpeech(locale, text) {
         .att('xml:lang', locale)
         .ele('voice')
         .att('xml:lang', locale)
-        .att('name', VOICE_NAMES[locale.toLowerCase()])
+        .att('name', locale + '-' + VOICES[locale.toLowerCase()][gender.toLowerCase()])
         .txt(text)
         .end();
     // Convert the XML into a string to send in the TTS request.

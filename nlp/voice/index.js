@@ -162,7 +162,17 @@ function tts(req, res, next) {
         return;
     }
 
-    textToSpeech(req.params.locale, req.body.text).then((stream) => {
+    let gender = 'male';  // default voice gender to male
+    if (req.body.gender) {
+        if (req.body.gender.toLowerCase() == 'male' || req.body.gender.toLowerCase() == 'female') {
+            gender = req.body.gender;
+        } else {
+            res.status(404).json({ error: 'Unsupported gender' });
+            return;
+        }
+    }
+
+    textToSpeech(req.params.locale, gender, req.body.text).then((stream) => {
         // audio/x-wav is strictly-speaking non-standard, yet it seems to be
         // widely used for .wav files
         if (stream.statusCode === 200)
@@ -184,6 +194,6 @@ router.post('/:locale/voice/tts', iv.validatePOST({ text: 'string' }, { json: tr
 router.post('/@:model_tag/:locale/voice/stt', upload.single('audio'), restSTT);
 router.post('/@:model_tag/:locale/voice/query', upload.single('audio'),
     iv.validatePOST({ metadata: 'string' }, { json: true }), restSTTAndNLU);
-router.post('/@:model_tag/:locale/voice/tts', iv.validatePOST({ text: 'string' }, { json: true }), tts);
+router.post('/@:model_tag/:locale/voice/tts', iv.validatePOST({ text: 'string', gender: '?string' }, { json: true }), tts);
 
 module.exports = router;
