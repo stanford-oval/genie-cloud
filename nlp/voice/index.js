@@ -164,7 +164,7 @@ function tts(req, res, next) {
 
     let gender = 'male';  // default voice gender to male
     if (req.body.gender) {
-        if (req.body.gender.toLowerCase() == 'male' || req.body.gender.toLowerCase() == 'female') {
+        if (req.body.gender.toLowerCase() === 'male' || req.body.gender.toLowerCase() === 'female') {
             gender = req.body.gender;
         } else {
             res.status(404).json({ error: 'Unsupported gender' });
