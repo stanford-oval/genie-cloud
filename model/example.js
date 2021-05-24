@@ -94,7 +94,7 @@ module.exports = {
              (exists (select 1 from example_likes where example_id = eu.id and user_id = ?)) as liked
              from example_utterances eu left join users u on u.id = eu.owner where
              type = 'commandpedia' and language = ? and not find_in_set('replaced', flags)
-             and not find_in_set('augmented', flags)
+             and not find_in_set('augmented', flags) and not find_in_set('obsolete', flags)
             ) union all (
              select eu.id,eu.language,eu.type,eu.utterance,
              eu.preprocessed,eu.target_code,eu.click_count,eu.like_count,eu.is_base,ds.kind,org.name as owner_name,
@@ -118,7 +118,8 @@ module.exports = {
              (exists (select 1 from example_likes where example_id = eu.id and user_id = ?)) as liked
              from example_utterances eu left join users u on u.id = eu.owner where
              type = 'commandpedia' and language = ? and not find_in_set('replaced', flags)
-             and not find_in_set('augmented', flags) and ( utterance like ? or target_code like ?)
+             and not find_in_set('augmented', flags) and not find_in_set('obsolete', flags)
+             and ( utterance like ? or target_code like ?)
             ) union all (
              select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
              eu.target_code,eu.click_count,eu.like_count,eu.is_base,ds.kind,org.name as owner_name,
@@ -143,7 +144,7 @@ module.exports = {
              eu.preprocessed,eu.target_code,eu.click_count,eu.like_count,eu.is_base,null as kind,u.username as owner_name
              from example_utterances eu left join users u on u.id = eu.owner where
              type = 'commandpedia' and language = ? and not find_in_set('replaced', flags)
-             and not find_in_set('augmented', flags)
+             and not find_in_set('augmented', flags) and not find_in_set('obsolete', flags)
             ) union all (
              select eu.id,eu.language,eu.type,eu.utterance,
              eu.preprocessed,eu.target_code,eu.click_count,eu.like_count,eu.is_base,ds.kind,org.name as owner_name
@@ -165,7 +166,8 @@ module.exports = {
              eu.preprocessed,eu.target_code,eu.click_count,eu.like_count,eu.is_base,null as kind,u.username as owner_name
              from example_utterances eu left join users u on u.id = eu.owner where
              type = 'commandpedia' and language = ? and not find_in_set('replaced', flags)
-             and not find_in_set('augmented', flags) and ( utterance like ? or target_code like ?)
+             and not find_in_set('augmented', flags) and not find_in_set('obsolete', flags)
+             and ( utterance like ? or target_code like ?)
             ) union all (
              select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
              eu.target_code,eu.click_count,eu.like_count,eu.is_base,ds.kind,org.name as owner_name
