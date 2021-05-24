@@ -108,8 +108,8 @@ class SpeechToText {
 
             recognizer.recognized = (_, e) => {
                 // Indicates that recognizable speech was not detected
-                if (e.privResult.privReason === ResultReason.NoMatch && !fullText)
-                    reject(new SpeechToTextFailureError(400, 'E_NO_MATCH', 'Speech unrecognizable.'));
+                if (e.privResult.privReason === ResultReason.NoMatch)
+                    recognizer.sessionStopped(_, e);
                 // Add recognized text to fullText
                 if (e.privResult.privReason === ResultReason.RecognizedSpeech)
                     fullText += e.privResult.privText;
@@ -165,11 +165,14 @@ async function getTTSAccessToken() {
     });
 }
 
-const VOICE_NAMES = {
-    'en-us': 'Microsoft Server Speech Text to Speech Voice (en-US, GuyNeural)'
+const VOICES = {
+    'en-us': {
+        'male': 'GuyNeural',
+        'female': 'AriaNeural'
+    }
 };
 
-async function textToSpeech(locale, text) {
+async function textToSpeech(locale, gender = 'male', text) {
     const accessToken = await getTTSAccessToken();
     // Create the SSML request.
     const xmlBody = xmlbuilder
@@ -178,7 +181,7 @@ async function textToSpeech(locale, text) {
         .att('xml:lang', locale)
         .ele('voice')
         .att('xml:lang', locale)
-        .att('name', VOICE_NAMES[locale.toLowerCase()])
+        .att('name', locale + '-' + VOICES[locale.toLowerCase()][gender.toLowerCase()])
         .txt(text)
         .end();
     // Convert the XML into a string to send in the TTS request.
