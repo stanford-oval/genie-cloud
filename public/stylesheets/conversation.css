@@ -1,143 +1,363 @@
 #conversation #input-form {
-  overflow: auto;
-  display: block;
+    overflow: auto;
 }
 
 #conversation #cancel {
-  float: right;
-  display: block;
-  font-size: 24px;
-  padding-top: 5px;
-  padding-left: 12px;
-  cursor: pointer;
+    float: right;
+    display: block;
+    font-size: 35px;
+    padding-top: 5px;
+    cursor: pointer;
+    color: #fff;
+}
+
+#conversation #cancel .form-control-feedback {
+    position: relative;
 }
 
 #conversation #chat {
-  margin-bottom: 1em;
+    margin: 1px 0em;
+    overflow-y: scroll;
+    height: -webkit-fill-available;
+    padding: 20px 35px;
+    min-height: 566px;
+    height: calc(100vh - 385px);
+    overflow-anchor: none;
 }
 
 #conversation .message-container {
-  display: block;
-  overflow: auto;
-  clear: both;
+    display: block;
+    overflow: auto;
+    clear: both;
 }
 
-#conversation .message-container > img.icon {
-  height: 40px;
-  width: 40px;
-  object-fit: contain;
-  float: left;
+#conversation .message-container>img.icon {
+    height: 40px;
+    width: 40px;
+    object-fit: contain;
+    padding-right: 12px;
+    float: left;
 }
 
 #conversation .message-container.from-almond {
-  width: 90%;
-  text-align: left;
-  margin-right: auto;
+    width: 90%;
+    text-align: left;
+    margin-right: auto;
 }
 
 #conversation .message.from-user {
-  display: block;
-  width: 90%;
-  text-align: right;
-  margin-left: auto;
-
-  border-image-source: url(../images/bubble_user.png);
-  border-image-slice: 88 130 93 97 fill;
-  border-image-width: 13px 24px 12px 24px;
-  padding: 13px 24px 12px 24px;
+    display: block;
+    width: 90%;
+    text-align: right;
+    margin-left: auto;
+    background-color: #DCF8C6;
+    border-radius: 10px;
+    padding: 13px 24px 12px 24px;
+    margin-bottom: 10px;
+    border: solid 0.1px #00ff2c1f;
 }
 
-#conversation .from-almond > .message {
-  display: block;
-  overflow: auto;
-  border-image-source: url(../images/bubble_almond.png);
-  border-image-slice: 90 97 94 120 fill;
-  border-image-width: 13px 24px 12px 24px;
-  padding: 13px 24px 12px 24px;
+#conversation .from-almond>.message {
+    display: block;
+    overflow: auto;
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 13px 24px 12px 24px;
+    margin-bottom: 10px;
+    border: solid 0.1px #f129291f;
 }
 
 #conversation .message {
-  display: block;
-  white-space: pre-line;
+    display: block;
+    white-space: pre-line;
 }
 
-#conversation .message-picture, #conversation .message-rdl img {
-  max-width: 80%;
+#conversation .message-picture,
+#conversation .message-rdl img {
+    max-width: 80%;
 }
 
 #conversation .button-grid {
-  width: 80%;
+    width: 80%;
 }
 
 #conversation .button-grid .btn {
-  margin-bottom: 6px;
-  white-space: normal;
+    margin-bottom: 6px;
+    white-space: normal;
 }
 
 #conversation {
-  overflow: auto;
-  height: auto;
-  max-height: 500px;
-  margin: auto;
-  max-width: 800px;
-  background: rgba(243,244,242,0.7);
-  padding: 40px;
+    overflow: hidden;
+    height: auto;
+    max-height: 500px;
+    margin: auto;
+    max-width: 800px;
+    background-color: #ece5dd6b;
+    font-weight: 400;
+    font-size: 1.2em;
 }
+
 #conversation.single {
-  height: calc(100vh - 300px);
-  max-height: none;
+    max-height: 100%;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    border: 1px solid #585858;
+    border-top: 0;
+}
+
+.glyphicon {
+    font-size: 40px;
+    color: #fff;
+    right: 8px;
+    top: 4px !important
 }
 
 @media screen and (max-width: 750px) {
-  #conversation, #conversation.single {
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 20px;
-    padding-bottom: 20px;
-    height: calc(100vh - 95px);
-    max-height: none;
-  }
+    #conversation,
+    #conversation.single {
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 20px;
+        padding-bottom: 20px;
+        height: calc(100vh - 95px);
+        max-height: none;
+    }
 }
 
 #conversation .message-rdl-title {
-  font-weight: bold;
+    font-weight: bold;
 }
+
 #conversation .message-rdl-content {
-  display: block;
+    display: block;
 }
 
 #input-form-group {
-  margin-bottom: 0;
+    margin-bottom: 0;
 }
 
 #input-form-group .spinner-container {
-  display: block;
-  padding: 12px 12px;
-  overflow: hidden;
+    display: block;
+    padding: 12px 12px;
+    overflow: hidden;
 }
 
 #toolbar {
-  margin: auto;
-  max-width: 800px;
+    margin: auto;
+    max-width: 800px;
 }
 
 #toolbar i {
-  padding: 3px;
+    padding: 3px;
 }
 
-#show-log {
-  padding-left: 10px;
-  cursor: pointer;
+#save-log {
+    padding-left: 10px;
+    cursor: pointer;
+    width: 50%;
 }
 
-.comment-options > .fa, .comment-options > .far {
-  cursor: pointer;
-  border-radius: 60px;
-  box-shadow: 0 0 2px #888;
-  padding: 10px;
-  margin: 5px;
+.comment-options>.fa,
+.comment-options>.far {
+    cursor: pointer;
+    border-radius: 60px;
+    box-shadow: 0 0 2px #888;
+    padding: 10px;
+    margin: 5px;
 }
 
 #recording-log {
-  max-height: calc(100vh - 200px);
+    max-height: calc(100vh - 200px);
+}
+
+#recording-toggle {
+    position: unset;
+    margin-right: 10px;
+}
+
+.rec_log {
+    margin: 5px 0px;
+}
+
+#record-button {
+    background-image: url("/assets/images/almond_mic_white_round.svg");
+    width: 57px;
+    height: 57px;
+    background-color: transparent;
+    border-radius: 100px;
+    float: right;
+    background-repeat: no-repeat;
+}
+
+#record-button:hover {
+    background-image: url("/assets/images/almond_mic_round_grey.svg");
+    background-color: #ffffff;
+    border-color: transparent;
+}
+
+#record-button:focus {
+    background-image: url("/assets/images/almond_mic_round_white.svg");
+    background-color: #ffffff;
+    border-color: transparent;
+    outline: none;
+}
+
+#record-text {
+    text-align: right;
+    height: 3em;
+    padding-top: 1em;
+    margin-right: -3em;
+    float: right;
+    color: #fff;
+    font-weight: 500;
+}
+
+#input {
+    width: 90%;
+    margin: 0.6em;
+    float: left;
+    border-radius: 8px;
+}
+
+.input-alert {
+    color: #8c1515;
+    opacity: 1;
+    /* Firefox */
+    text-align: right;
+    font-weight: bold;
+}
+
+#input-block {
+    background-color: #8c1515;
+    min-height: 70px;
+    padding: 0.6em;
+}
+
+.col-sm-12 ::-webkit-scrollbar {
+    width: 15px;
+}
+
+.col-sm-12 ::-webkit-scrollbar-thumb {
+    border-radius: 30px;
+    background: #d5d5d5;
+    box-shadow: inset 2px 2px 2px rgba(255, 255, 255, .25), inset -2px -2px 2px rgba(0, 0, 0, .25);
+}
+
+.col-sm-12 ::-webkit-scrollbar-track {}
+
+#almond-index-container ::-webkit-scrollbar {
+    width: 15px;
+}
+
+#almond-index-container ::-webkit-scrollbar-thumb {
+    border-radius: 30px;
+    background: #d5d5d5;
+    box-shadow: inset 2px 2px 2px rgba(255, 255, 255, .25), inset -2px -2px 2px rgba(0, 0, 0, .25);
+}
+
+#almond-index-container ::-webkit-scrollbar-track {
+    background-color: unset;
+}
+
+.form-inline {
+    background-color: #d8d8d8;
+    color: #000;
+    line-height: 2.2em;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    text-align: right;
+    padding-right: 15px;
+    border: 1px solid #585858;
+    border-bottom: 0;
+}
+
+.comment-options {
+    overflow-anchor: auto;
+}
+
+.comment-options>i {
+    background-color: white;
+}
+
+.help-block {
+    display: block;
+    color: #b1040e;
+    font-weight: bold;
+    width: 50%;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+.almond-thinking-container {
+    display: flex;
+}
+
+.almond-thinking-txt {
+    font-size: 1.4em;
+    padding: 0.7em 0.2em 0em 1.2em;
+}
+
+.almond-thinking {
+    padding: 1.1em;
+    text-align: left;
+}
+
+#almond-thinking {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding: 2rem 0;
+    margin: 0 -5%;
+    overflow: hidden;
+}
+
+.almond-thinking span {
+    display: inline-block;
+    vertical-align: middle;
+    width: .6em;
+    height: .6em;
+    margin: .19em;
+    background: #8c1515;
+    border-radius: .6em;
+    animation: loading 1s infinite alternate;
+}
+
+.almond-thinking span:nth-of-type(2) {
+    background: #8d2727;
+    animation-delay: 0.2s;
+}
+
+.almond-thinking span:nth-of-type(3) {
+    background: #a73c3c;
+    animation-delay: 0.4s;
+}
+
+.almond-thinking span:nth-of-type(4) {
+    background: #c05959;
+    animation-delay: 0.6s;
+}
+
+.almond-thinking span:nth-of-type(5) {
+    background: #c26e6e;
+    animation-delay: 0.8s;
+}
+
+.almond-thinking span:nth-of-type(6) {
+    background: #df9595;
+    animation-delay: 1.0s;
+}
+
+.almond-thinking span:nth-of-type(7) {
+    background: #e6acac;
+    animation-delay: 1.2s;
+}
+
+@keyframes loading {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
 }

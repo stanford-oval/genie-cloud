@@ -28,15 +28,15 @@ block content
                   a(href='/thingpedia/devices/by-id/' + dev.primary_kind)
                     = dev.name
                   span.action.hidden-xs
-                    a.btn.btn-sm.btn-warning(href='/thingpedia/upload/update/' + dev.primary_kind)= _("Update")
+                    a.btn.btn-sm.new-msg-button.btn-warning(href='/thingpedia/upload/update/' + dev.primary_kind)= _("Update")
                   form(action='/thingpedia/devices/delete/', method='post').form-inline.form-delete-device.hidden-xs
                     input(type='hidden',name='_csrf',value=csrfToken)
                     input(type='hidden',name='kind',value=dev.primary_kind)
-                    button(type='submit').btn.btn-sm.btn-danger= _("Delete")
+                    button(type='submit').btn.btn-sm.new-msg-button.btn-danger= _("Delete")
           else
             p= _("Your organization does not own any device yet.")
 
           if user.developer_status >= Constants.DeveloperStatus.DEVELOPER
             div.row
               div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
-                a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Upload a new device")
+                a(href='/thingpedia/upload/create').btn.btn-primary.custom-btn.btn-block= _("Upload a new device")

@@ -11,7 +11,7 @@ block page_name
   = _("Thingpedia")
 
 block content
-  div#page-body
+  div#page-body.common-head
     section.divider#section-heading
         h1= _("Thingpedia")
         h2= _("The Open API Repository")
@@ -24,7 +24,7 @@ block content
 
           div.container
             div.row
-              div.col-xs-12.col-md-6.col-md-offset-3
+              div.col-xs-12.col-md-10.col-md-offset-1
                 p!= _("Thingpedia is an encyclopedia of applications for the Internet of Things. Just like how Wikipedia stores knowledge about the world, Thingpedia stores knowledge about devices in the world. Wikipedia is organized around articles; Thingpedia is organized around <i>devices</i>, such as Twitter, a light bulb, or a thermostat.")
 
                 p!= _("Each device has a entry on Thingpedia. A Thingpedia entry stores the natural language interface that represent how humans refer to and interact with the device, and the executable specification corresponding to the device API.")
@@ -37,11 +37,11 @@ block content
             div.col-xs-12
               div.navbar.navbar-default#device-list-navbar
                 form.navbar-form.navbar-left
-                  div.form-group
+                  div.new-button.form-group
                     input.form-control(type='text', name='q', placeholder=_("I want to find a device..."))
-                    button.btn.btn-primary.search-button= _("Search")
-                  div.form-group
-                    button.btn.btn-primary.reset-button= _("Reset")
+                    button.btn.btn-primary.blk-btn.search-button= _("Search")
+                  div.new-button.form-group
+                    button.btn.btn-primary.blk-btn.reset-button= _("Reset")
 
           div.row.aligned-grid#devices-container
 
@@ -50,8 +50,8 @@ block content
 
         div.container
           div.row
-            div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
+            div.col-sm-8.col-sm-offset-2
               if authenticated && user.developer_status >= Constants.DeveloperStatus.DEVELOPER
-                a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Upload a new device")
+                a(href='/thingpedia/upload/create').btn.btn-primary.custom-btn.btn-block= _("Upload a new device")
               else
-                a(href='/user/request-developer').btn.btn-primary.btn-block= _("Become a Thingpedia Developer")
+                a(href='/user/request-developer').btn.btn-primary.custom-btn.btn-block= _("Become a Thingpedia Developer")
