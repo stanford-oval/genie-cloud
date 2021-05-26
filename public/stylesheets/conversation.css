@@ -11,6 +11,10 @@
     color: #fff;
 }
 
+#conversation #cancel .form-control-feedback {
+    position: relative;
+}
+
 #conversation #chat {
     margin: 1px 0em;
     overflow-y: scroll;
