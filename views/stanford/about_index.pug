@@ -77,35 +77,10 @@ block content
                     a(href='https://community.almond.stanford.edu')= _("Join Our Community")
 
     div.sections#home-page-sections
-      section.divider
-        div.container#almond-manifesto
-          h3= _("Our Goal: Open Virtual Assistants for the Open Web")
-
-          p
-            = _("Virtual assistants are the new interface to the Web.")
-            br
-            = _("Our vision for virtual assistants includes:")
-
-          div.row
-            div.col-md-6
-              h4 Democratize AI for linguistic user interfaces
-              p We should have open, collaborative research to put open-source linguistic technology in the hands of all businesses.
-              p Learn more about #[a(href='https://wiki.almond.stanford.edu/en/technology') our technology].
-
-            div.col-md-6
-              h4 An open non-proprietary linguistic web
-              p All skills, or linguistic user interfaces, should be made available to any virtual assistant.
-              p Learn more about our #[a(href='/thingpedia') open repository] and #[a(href='/about/get-involved') how you can contribute].
-
-            div.col-md-6.col-md-offset-3
-              h4 Sharing with individual data ownership
-              p We as users should have a choice in virtual assistant services and the ability to control how we share our data.
-              p Learn more about #[a(href='/about/get-almond') how you can run Almond with maximum privacy].
-
       section.divider#section-commandpedia
         h3= _("What can Almond do?")
         div.container
           div.row
             div.col-xs-12.col-md-6.col-md-offset-3
-              p= _("Here is a sample of what Almond can do, and a few commands that our users and developers think are interesting. It is not an exhaustive list! Commands can combined in arbitrary ways, creating endless possibilities for your assistant.")
+              p= _("Here is a sample of what Almond can do, and a few commands that our users and developers think are interesting. It is not an exhaustive list! Commands can combined, creating endless possibilities for your assistant.")
           include ../commandpedia.pug
