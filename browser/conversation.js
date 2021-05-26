@@ -156,10 +156,12 @@ $(() => {
                 $('#record-button').addClass('hidden');
                 $('#form-icon').addClass('hidden');
                 $('#cancel').removeClass('hidden');
+                $('#input').prop('disabled', false);
                 break;
             case 6: // remove cancel
                 $('#input').attr('placeholder', msgbase);
                 $('#cancel').addClass('hidden');
+                $('#input').prop('disabled', false);
                 break;
             case 7: // show warning
                 $('#record-button').addClass('hidden');
@@ -244,7 +246,6 @@ $(() => {
                 break;
             }
         }
-
     }
 
     function startStopRecord() {
