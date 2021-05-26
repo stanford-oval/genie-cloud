@@ -46,6 +46,11 @@ $(() => {
 
     var lastMessageId = -1;
 
+    var container = $('#chat');
+    var currentGrid = null;
+
+    var CDN_HOST = $('body').attr('data-icon-cdn');
+
     function refreshToolbar() {
         if (conversationId) {
             $('#toolbar').removeClass('hidden');
@@ -68,29 +73,29 @@ $(() => {
             $('#toolbar').addClass('hidden');
         }
     }
+    /*
+        function updateConnectionFeedback() {
+            if (!ws || !open) {
+                $('#input-form-group').addClass('has-warning');
+                $('#input-form-group .spinner-container').addClass('hidden'); -
+                $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').removeClass('hidden');
+                return;
+            }
 
-    function updateConnectionFeedback() {
-        if (!ws || !open) {
-            $('#input-form-group').addClass('has-warning');
-            $('#input-form-group .spinner-container').addClass('hidden'); -
-            $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').removeClass('hidden');
-            return;
+            $('#input-form-group').removeClass('has-warning');
+            $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').addClass('hidden');
         }
 
-        $('#input-form-group').removeClass('has-warning');
-        $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').addClass('hidden');
-    }
+        function updateSpinner(thinking) {
+            if (!ws || !open)
+                return;
 
-    function updateSpinner(thinking) {
-        if (!ws || !open)
-            return;
-
-        if (thinking)
-            $('#input-form-group .spinner-container').removeClass('hidden');
-        else
-            $('#input-form-group .spinner-container').addClass('hidden');
-    }
-
+            if (thinking)
+                $('#input-form-group .spinner-container').removeClass('hidden');
+            else
+                $('#input-form-group .spinner-container').addClass('hidden');
+        }
+    */
     function postAudio(blob) {
         const data = new FormData();
         data.append('audio', blob);
@@ -103,18 +108,142 @@ $(() => {
             success: (data) => {
                 if (data.status === 'ok') {
                     $('#input').val(data.text).focus();
-                    manInputTextCommand('Say a command!', true);
+                    manInputTextCommand('Say a command!', 3);
                     handleUtterance();
                 } else {
                     console.log(data);
-                    manInputTextCommand('Hmm I couldn\'t understand...', true);
+                    manInputTextCommand('Hmm I couldn\'t understand...', 1);
+                    manInputTextCommand('', 5);
                 }
             },
             error: (error) => {
                 console.log(error);
-                manInputTextCommand('Hmm there seems to be an error...', true);
+                manInputTextCommand('Hmm there seems to be an error...', 1);
+                manInputTextCommand('', 5);
             }
         });
+    }
+
+    function manInputTextCommand(msg, sts) {
+        let msgbase = 'Write your command or answer here';
+
+        switch (sts) {
+            case 1: // starting record and hide mic
+                $('#input').val('');
+                $('#input').prop('disabled', true);
+                $('#input').addClass('input-alert');
+                $('#input').attr('placeholder', msg);
+                $('#record-button').addClass('hidden');
+                break;
+            case 2: // starting record and keep mic
+                $('#input').val('');
+                $('#input').prop('disabled', true);
+                $('#input').addClass('input-alert');
+                $('#input').attr('placeholder', msg);
+                break;
+            case 3: // stop recording and show mic
+                $('#input').attr('placeholder', msgbase);
+                $('#input').removeClass('input-alert');
+                $('#input').prop('disabled', false);
+                $('#record-button').removeClass('hidden');
+                break;
+            case 4: // stop recording and keep mic
+                $('#input').attr('placeholder', msgbase);
+                $('#input').removeClass('input-alert');
+                $('#input').prop('disabled', false);
+                break;
+            case 5: // show cancel
+                $('#record-button').addClass('hidden');
+                $('#form-icon').addClass('hidden');
+                $('#cancel').removeClass('hidden');
+                break;
+            case 6: // remove cancel
+                $('#input').attr('placeholder', msgbase);
+                $('#cancel').addClass('hidden');
+                break;
+            case 7: // show warning
+                $('#record-button').addClass('hidden');
+                $('#cancel').addClass('hidden');
+                $('#input').prop('disabled', true);
+                $('#input').attr('placeholder', msg);
+                $('#form-icon').removeClass('hidden');
+                break;
+            case 8: // remove warning
+                $('#input').prop('disabled', false);
+                $('#input').attr('placeholder', msgbase);
+                $('#form-icon').addClass('hidden');
+                break;
+        }
+        return;
+    }
+
+    function updateConnectionFeedback() {
+        if (!ws || !open) {
+            //$('#input-form-group').addClass('has-warning');
+            manageSpinner('remove');
+            manageLostConnectionMsg('add');
+            manageLostConnectionMsg('show');
+            manInputTextCommand('', 1);
+            manInputTextCommand('Not Connected', 7);
+            return;
+        }
+
+        //$('#input-form-group').removeClass('has-warning');
+        $('.alert').addClass('hidden');
+        manageLostConnectionMsg('remove');
+        manInputTextCommand('', 3);
+        manInputTextCommand('', 8);
+    }
+
+    function updateSpinner(thinking) {
+        if (!ws || !open)
+            return;
+
+        let to_do;
+
+        if (thinking)
+            to_do = 'show';
+        else
+            to_do = 'remove';
+
+        manageSpinner(to_do)
+    }
+
+    function manageLostConnectionMsg(todo) {
+        switch (todo) {
+            case 'remove':
+                $('#chat > .help-block').remove();
+                break;
+            case 'show':
+                $('#chat > .help-block').removeClass('hidden');
+                break;
+            case 'add':
+                $('#chat > .help-block').remove();
+                $(".help-block").clone().appendTo("#chat").last();
+                break;
+        }
+        return;
+    }
+
+    function manageSpinner(todo) {
+        let last_elem = $(".from-user").last();
+        switch (todo) {
+            case 'remove':
+                $('#chat > .almond-thinking').remove();
+                break;
+            case 'show':
+                $('#chat > .almond-thinking').remove();
+                $(".almond-thinking").clone().insertAfter(last_elem);
+                $('#chat > .almond-thinking').removeClass('hidden');
+                break;
+            case 'showVoice':
+                let last_Aelem = $(".from-almond").last();
+                $('#chat > .almond-thinking').remove();
+                $(".almond-thinking").clone().insertAfter(last_Aelem);
+                $('#chat > .almond-thinking').removeClass('hidden');
+                break
+        }
+        return;
     }
 
     function startStopRecord() {
@@ -128,7 +257,7 @@ $(() => {
                 rec.record();
 
                 // console.log('Recording started');
-                manInputTextCommand('Recording... Press again to stop', true);
+                manInputTextCommand('Recording... Press again to stop', 2);
 
                 _isRecording = true;
                 _stream = stream;
@@ -136,11 +265,15 @@ $(() => {
             }).catch((err) => {
                 console.log('getUserMedia() failed');
                 console.log(err);
-                manInputTextCommand('You don\'t seem to have a recording device enabled!', true);
+                manInputTextCommand('You don\'t seem to have a recording device enabled!', 1);
+                manInputTextCommand('', 5);
                 //alert('You don\'t seem to have a recording device enabled!');
             });
         } else {
-            manInputTextCommand('Processing command...', true);
+            manInputTextCommand('Processing command...', 1);
+            manInputTextCommand('', 5);
+            manageSpinner('showVoice');
+            scrollChat();
             _recorder.stop();
             _stream.getAudioTracks()[0].stop();
             _recorder.exportWAV((blob) => {
@@ -185,37 +318,16 @@ $(() => {
         connect();
     })();
 
-    function manInputTextCommand(msg, sts) {
-
-        if (sts) {
-            $('#input').prop('disabled', true);
-            $('#input').addClass('input-alert');
-            $('#input').val(msg); //record-text
-            $('#record-button').removeClass('hidden');
-        } else {
-            $('#input').val();
-            $('#input').removeClass('input-alert');
-            $('#input').prop('disabled', false);
-            $('#record-button').addClass('hidden');
-        }
-        return;
-    }
-
     function syncCancelButton(msg) {
         var visible = msg.ask !== null;
         if (visible) {
-            $('#record-button').addClass('hidden');
-            $('#cancel').removeClass('hidden');
+            manInputTextCommand('', 1)
+            manInputTextCommand('', 5)
         } else {
-            $('#cancel').addClass('hidden');
-            $('#record-button').removeClass('hidden');
+            manInputTextCommand('', 3)
+            manInputTextCommand('', 6)
         }
     }
-
-    var container = $('#chat');
-    var currentGrid = null;
-
-    var CDN_HOST = $('body').attr('data-icon-cdn');
 
     function almondMessage(icon) {
         var msg = $('<span>').addClass('message-container from-almond');
@@ -231,6 +343,10 @@ $(() => {
 
         if (recording)
             addVoteButtons();
+
+        manageLostConnectionMsg('add');
+        manageSpinner('remove');
+        scrollChat();
         return msg;
     }
 
@@ -283,7 +399,7 @@ $(() => {
     }
 
     function scrollChat() {
-        let chat = document.getElementById('conversation');
+        let chat = document.getElementById('chat');
         chat.scrollTop = chat.scrollHeight;
     }
 
@@ -517,6 +633,10 @@ $(() => {
     function appendUserMessage(text) {
         container.append($('<span>').addClass('message message-text from-user')
             .text(text));
+
+        manageLostConnectionMsg('add');
+        manageSpinner('show');
+        scrollChat();
     }
 
     function handleUtterance() {
@@ -541,6 +661,7 @@ $(() => {
 
     $('#cancel').click(() => {
         handleSpecial('nevermind', "Cancel.");
+        console.log("clicked cancel")
     });
 
     $('#try-almond-btn').click(function(event) {

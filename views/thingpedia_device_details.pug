@@ -227,18 +227,18 @@ block content
   div.row.device-details-actions
     if authenticated && ((user.roles & Constants.Role.THINGPEDIA_ADMIN) !== 0 || device.owner === user.developer_org)
       div.col-md-3.col-sm-6
-        a.btn.btn-warning.btn-block(href='/thingpedia/upload/update/' + device.primary_kind)= _("Update")
+        a.btn.btn-warning.new-msg-button.btn-block(href='/thingpedia/upload/update/' + device.primary_kind)= _("Update")
       if device.approved_version !== null && (user.roles & (Constants.Role.THINGPEDIA_ADMIN | Constants.Role.TRUSTED_DEVELOPER)) !== 0
         div.col-md-3.col-sm-6
           form(action='/thingpedia/devices/unapprove', method='post').form-delete-device
             input(type='hidden',name='_csrf',value=csrfToken)
             input(type='hidden',name='kind',value=device.primary_kind)
-            button(type='submit').btn.btn-danger.btn-block= _("Hide")
+            button(type='submit').btn.btn-danger.new-msg-button.btn-block= _("Hide")
       div.col-md-3.col-sm-6
         form(action='/thingpedia/devices/delete', method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
           input(type='hidden',name='kind',value=device.primary_kind)
-          button(type='submit').btn.btn-danger.btn-block= _("Delete")
+          button(type='submit').btn.btn-danger.new-msg-button.btn-block= _("Delete")
   div.new-button.row.device-details-actions
     if device.download_url
       div.col-md-3.col-sm-6
