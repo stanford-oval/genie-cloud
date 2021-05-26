@@ -1,3 +1,20 @@
+2.0.0
+=====
+
+* Added streaming speech-to-text API [#975].
+* Added support for gender selection in text-to-speech API [#978].
+* Commandpedia now only shows commands that are valid for the approved subset
+  of devices [#981, #982].
+* The UI styling has been updated, in particular in the conversation widget [#977].
+* Updated dependencies [#969, #973].
+
+Contributors to this release:
+- Antonio Muratore
+- Francesco Gialuppi
+
+Please see the previous release for the full list of changes in this
+development cycle.
+
 2.0.0-beta.1
 ============
 
