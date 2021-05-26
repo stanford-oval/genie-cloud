@@ -47,10 +47,18 @@ block content
 
               div.row
                 div.col-lg-12
-                  div#conversation(data-target='/me/ws/anonymous',aria-expanded='false')
+                  div#conversation.home(data-target='/me/ws/anonymous',aria-expanded='false')
                     div#chat
                     div#input-block
                       form(action='#')#input-form
+                        div.form-group.has-feedback#input-form-group
+                          label(for='#chat-input').sr-only= _("Command:")
+                          input(type='text', placeholder=_("Write your command or answer here"), value=command ? command : '').form-control#input
+                          button(type='button', title='Click to send a voice command').btn.btn-primary#record-button
+                          span#form-icon.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden
+                          span(role='button').hidden#cancel
+                            span(aria-hidden='true').glyphicon.glyphicon-remove-circle.form-control-feedback
+                      //-form(action='#')#input-form
                         div.form-group.has-feedback#input-form-group
                           label(for='#chat-input').sr-only= _("Command:")
                           input(type='text',placeholder=_("Write your command or answer here")).form-control#input
@@ -58,7 +66,6 @@ block content
                           span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden
                           span(role='button').hidden#cancel
                           span(aria-hidden='true').glyphicon.glyphicon-remove-circle
-                          span.sr-only= _("Cancel")
 
                 div#hidden-container 
                   div.help-block.hidden= _("Lost connection to the server.")
@@ -148,14 +155,6 @@ block content
                   br
                   | of Almond at #[a(href='https://dev.almond.stanford.edu') dev.almond.stanford.edu].
 
-      section.divider#section-commandpedia
-        h3= _("What can Almond do?")
-        div.container
-          div.row
-            div.col-xs-12.col-md-10.col-md-offset-1
-              p= _("Here is a sample of what Almond can do, and a few commands that our users and developers think are interesting. It is not an exhaustive list! Commands can combined in arbitrary ways, creating endless possibilities for your assistant.")
-          include ../commandpedia.pug
-
       section.divider
         div.container#almond-manifesto
           h3= _("Our Goal: Open Virtual Assistants for the Open Web")
@@ -181,6 +180,14 @@ block content
               h4 Sharing with individual data ownership
               p We as users should have a choice in virtual assistant services and the ability to control how we share our data.
               p Learn more about #[a(href='/about/get-almond') how you can run Almond with maximum privacy].
+
+      section.divider#section-commandpedia
+        h3= _("What can Almond do?")
+        div.container
+          div.row
+            div.col-xs-12.col-md-10.col-md-offset-1
+              p= _("Here is a sample of what Almond can do, and a few commands that our users and developers think are interesting. It is not an exhaustive list! Commands can combined in arbitrary ways, creating endless possibilities for your assistant.")
+          include ../commandpedia.pug
 
       //section.divider#almond-in-the-news
         h3= _("Almond In The News")
