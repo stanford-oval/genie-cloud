@@ -67,7 +67,7 @@ block content
                           span(role='button').hidden#cancel
                           span(aria-hidden='true').glyphicon.glyphicon-remove-circle
 
-                div#hidden-container 
+                div#hidden-container
                   div.help-block.hidden= _("Lost connection to the server.")
                   div.almond-thinking.hidden
                     span
@@ -100,12 +100,6 @@ block content
                   a(href='https://forms.gle/Q1m5uZDF8ZyRbdSw7', rel='noopener')= _("Sign Up for Updates")
                 div.col-xs-12.col-sm-6.col-md-4
                   a(href='https://community.almond.stanford.edu')= _("Join Our Community")
-
-            if Config.SERVER_ORIGIN === 'https://almond.stanford.edu'
-              div(style='margin-top:1em;font-size:24px').text-center
-                p You can also try the bleeding edge, development version
-                  br
-                  | of Almond at #[a(href='https://dev.almond.stanford.edu') dev.almond.stanford.edu].
 
       section.divider#section-commandpedia
         h3= _("What can Almond do?")
