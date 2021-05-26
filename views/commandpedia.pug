@@ -1,13 +1,13 @@
 div#commandpedia
   div.navbar.navbar-default.nav-black#command-list-navbar
     form.navbar-form.navbar-left(action='', method='get')
-      div.new-button.form-group
+      div.form-group
         input.form-control(type='text', name='q', placeholder=_("I want to find a command..."))
+      div.new-button.form-group 
         button.btn.btn-primary.blk-btn.search-button(type="submit")= _("Search")
-      div.new-button.form-group
         button.btn.btn-primary.blk-btn.reset-button= _("Reset")
-    if authenticated
-      button(data-toggle='modal',data-target='#commandpedia-new-command').navbar-btn.btn.btn-primary.custom-btn#add-to-commandpedia= _("Add a New Command")
+        if authenticated
+          button(data-toggle='modal',data-target='#commandpedia-new-command').navbar-btn.btn.btn-primary.custom-btn#add-to-commandpedia= _("Add a New Command")
     div.modal.fade#commandpedia-new-command(role='dialog')
       div.modal-dialog
         div.modal-content

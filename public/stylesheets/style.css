@@ -38,8 +38,15 @@ body {
     float: left;
 }
 
-#add-to-commandpedia {
-    margin-top: 0.5em !important;
+.navbar-btn#add-to-commandpedia {
+    margin-top: 0 !important;
+    margin-left: 60px;
+}
+
+.new-button.form-group {
+    margin-top: 7px;
+    padding: 6px 0px 0px 0px;
+    vertical-align: unset;
 }
 
 .cst-create#page-body {
@@ -425,7 +432,7 @@ footer.page-footer a:hover {
 }
 
 #inside-almond {
-    height: 40vh;
+    min-height: 40vh;
 }
 
 #inside-almond .row {
@@ -433,7 +440,7 @@ footer.page-footer a:hover {
 }
 
 #almond-manifesto {
-    height: 720px;
+    min-height: 720px;
 }
 
 #almond-manifesto>p {
