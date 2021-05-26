@@ -33,6 +33,61 @@ const upload = multer({ dest: os.tmpdir() });
 
 const router = express.Router();
 
+async function streamSTT(ws, req) {
+    if (!I18n.get(req.params.locale, false)) {
+        await ws.send(JSON.stringify({ error: 'Unsupported language' }));
+        await ws.close();
+        return;
+    }
+
+    /* WS close codes:
+     * 1000 - indicates a normal closure, meaning that the purpose for which the connection was established has been fulfilled.
+     * 1002 - indicates that an endpoint is terminating the connection due to a protocol error.
+     * 1003 - indicates that an endpoint is terminating the connection because it has received a type of data it cannot accept.
+     */
+    function errorClose(e, code = 1002) {
+        if (ws.readyState === 1) {
+          // OPEN
+          ws.send(JSON.stringify(e));
+          ws.close(code);
+        }
+    }
+
+    const sessionTimeout = setTimeout(() => {
+        errorClose({ error: 'Session timeout' });
+    }, 5000);
+
+    ws.on('close', () => {
+        if (sessionTimeout) clearTimeout(sessionTimeout);
+    });
+
+    function initialPacket(msg) {
+        ws.removeEventListener('message', initialPacket);
+        clearTimeout(sessionTimeout);
+        try {
+          msg = JSON.parse(msg);
+        } catch(e) {
+          errorClose({ error: 'Malformed initial packet: ' + e.message });
+          return;
+        }
+
+        if (msg.ver && msg.ver === 1) {
+          const stt = new SpeechToText(req.params.locale);
+          stt.recognizeStream(ws).then((text) => {
+              let result = { result: 'ok', text: text };
+              ws.send(JSON.stringify(result));
+              ws.close(1000);
+          }).catch((e) => {
+              errorClose(e, e.status !== 400 ? 1003 : 1000);
+          });
+        } else {
+            errorClose({ error: 'Unsupported protocol' });
+        }
+    }
+
+    ws.on('message', initialPacket);
+}
+
 function restSTT(req, res, next) {
     if (!req.file) {
         iv.failKey(req, res, 'audio', { json: true });
@@ -107,7 +162,17 @@ function tts(req, res, next) {
         return;
     }
 
-    textToSpeech(req.params.locale, req.body.text).then((stream) => {
+    let gender = 'male';  // default voice gender to male
+    if (req.body.gender) {
+        if (req.body.gender.toLowerCase() === 'male' || req.body.gender.toLowerCase() === 'female') {
+            gender = req.body.gender;
+        } else {
+            res.status(404).json({ error: 'Unsupported gender' });
+            return;
+        }
+    }
+
+    textToSpeech(req.params.locale, gender, req.body.text).then((stream) => {
         // audio/x-wav is strictly-speaking non-standard, yet it seems to be
         // widely used for .wav files
         if (stream.statusCode === 200)
@@ -115,6 +180,8 @@ function tts(req, res, next) {
         stream.pipe(res);
     }).catch(next);
 }
+
+router.ws('/:locale/voice/stream', streamSTT);
 
 router.post('/:locale/voice/stt', upload.single('audio'), restSTT);
 router.post('/:locale/voice/query', upload.single('audio'),
@@ -127,6 +194,6 @@ router.post('/:locale/voice/tts', iv.validatePOST({ text: 'string' }, { json: tr
 router.post('/@:model_tag/:locale/voice/stt', upload.single('audio'), restSTT);
 router.post('/@:model_tag/:locale/voice/query', upload.single('audio'),
     iv.validatePOST({ metadata: 'string' }, { json: true }), restSTTAndNLU);
-router.post('/@:model_tag/:locale/voice/tts', iv.validatePOST({ text: 'string' }, { json: true }), tts);
+router.post('/@:model_tag/:locale/voice/tts', iv.validatePOST({ text: 'string', gender: '?string' }, { json: true }), tts);
 
 module.exports = router;

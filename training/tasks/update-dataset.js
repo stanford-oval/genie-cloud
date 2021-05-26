@@ -128,6 +128,8 @@ class DatasetUpdater {
         this._dbClient = null;
         this._tpClient = null;
         this._schemas = null;
+        this._approvedTpClient = null;
+        this._approvedSchemas = null;
         this._augmenter = null;
     }
 
@@ -145,12 +147,12 @@ class DatasetUpdater {
     async _typecheckParaphrasesAndOnline() {
         let rows;
         if (this._forDevicesPattern !== null) {
-            rows = await db.selectAll(this._dbClient, `select id,preprocessed,target_code from example_utterances
+            rows = await db.selectAll(this._dbClient, `select id,type,preprocessed,target_code from example_utterances
                 where type not in ('generated', 'thingpedia') and find_in_set('training', flags)
                 and not find_in_set('obsolete', flags) and language = ? and target_code rlike ?`,
                 [this._language, this._forDevicesPattern]);
         } else {
-            rows = await db.selectAll(this._dbClient, `select id,preprocessed,target_code from example_utterances
+            rows = await db.selectAll(this._dbClient, `select id,type,preprocessed,target_code from example_utterances
                 where type not in ('generated', 'thingpedia') and find_in_set('training', flags)
                 and not find_in_set('obsolete', flags) and language = ?`,
                 [this._language]);
@@ -164,8 +166,8 @@ class DatasetUpdater {
                 const entities = Genie.EntityUtils.makeDummyEntities(ex.preprocessed);
                 try {
                     await Genie.ThingTalkUtils.parsePrediction(ex.target_code.split(' '), entities, {
-                        thingpediaClient: this._tpClient,
-                        schemaRetriever: this._schemas,
+                        thingpediaClient: ex.type === 'commandpedia' ? this._approvedTpClient : this._tpClient,
+                        schemaRetriever: ex.type === 'commandpedia' ? this._approvedSchemas : this._schemas,
                     }, true);
                 } catch(e) {
                     toUpdate.push(ex.id);
@@ -230,6 +232,9 @@ class DatasetUpdater {
     async _transaction() {
         this._tpClient = new AdminThingpediaClient(this._language, this._dbClient);
         this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, !this._options.debug);
+
+        this._approvedTpClient = new AdminThingpediaClient(this._language, this._dbClient, true);
+        this._approvedSchemas = new ThingTalk.SchemaRetriever(this._approvedTpClient, null, !this._options.debug);
 
         await this._clearExistingDataset();
         await this._typecheckParaphrasesAndOnline();

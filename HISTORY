@@ -1,3 +1,18 @@
+2.0.0-beta.1
+============
+
+* It is now possible to set a default developer key when configuring Almond
+  without an embedded Thingpedia [#880].
+* Some experimental and less supported features have been removed. These
+  include the blog, support for training custom models and generating custom
+  datasets, custom Alexa skills, and the Train Almond page [#963].
+* The cheatsheet has been restored and improved [#818, #959].
+* Misc bug fixes [#951, #956, #957, #958, #960, #964, #967, #968].
+* Updated dependencies [#927, #928, #954, #961, #962].
+
+Contributors to this release:
+- Jim Deng
+
 2.0.0-alpha.1
 =============
 
@@ -131,7 +146,7 @@ NLP & training:
 * Misc bug fixes [#670].
 
 Almond Website updates:
-* The top bar is slightly bigger and bolder 
+* The top bar is slightly bigger and bolder
 * The Get Involved page was redesigned to give more prominence to featured
   projects and explain how different people can join the project [#649, #650].
 * Added "Almond in the News" page [#628].
