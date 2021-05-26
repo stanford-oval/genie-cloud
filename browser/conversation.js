@@ -174,7 +174,7 @@ $(() => {
                 $('#form-icon').addClass('hidden');
                 break;
         }
-        return;
+
     }
 
     function updateConnectionFeedback() {
@@ -206,7 +206,7 @@ $(() => {
         else
             to_do = 'remove';
 
-        manageSpinner(to_do)
+        manageSpinner(to_do);
     }
 
     function manageLostConnectionMsg(todo) {
@@ -222,7 +222,7 @@ $(() => {
                 $(".help-block").clone().appendTo("#chat").last();
                 break;
         }
-        return;
+
     }
 
     function manageSpinner(todo) {
@@ -236,14 +236,15 @@ $(() => {
                 $(".almond-thinking").clone().insertAfter(last_elem);
                 $('#chat > .almond-thinking').removeClass('hidden');
                 break;
-            case 'showVoice':
-                let last_Aelem = $(".from-almond").last();
+            case 'showVoice': {
+                const lastElement = $(".from-almond").last();
                 $('#chat > .almond-thinking').remove();
-                $(".almond-thinking").clone().insertAfter(last_Aelem);
+                $(".almond-thinking").clone().insertAfter(lastElement);
                 $('#chat > .almond-thinking').removeClass('hidden');
-                break
+                break;
+            }
         }
-        return;
+
     }
 
     function startStopRecord() {
@@ -321,11 +322,11 @@ $(() => {
     function syncCancelButton(msg) {
         var visible = msg.ask !== null;
         if (visible) {
-            manInputTextCommand('', 1)
-            manInputTextCommand('', 5)
+            manInputTextCommand('', 1);
+            manInputTextCommand('', 5);
         } else {
-            manInputTextCommand('', 3)
-            manInputTextCommand('', 6)
+            manInputTextCommand('', 3);
+            manInputTextCommand('', 6);
         }
     }
 
@@ -662,7 +663,7 @@ $(() => {
 
     $('#cancel').click(() => {
         handleSpecial('nevermind', "Cancel.");
-        console.log("clicked cancel")
+        console.log("clicked cancel");
     });
 
     $('#try-almond-btn').click(function(event) {
