@@ -13,6 +13,16 @@ body {
     height: auto !important;
 }
 
+@media screen and (min-width: 490px) {
+    #page-body {
+        margin-top: 100px;
+    }
+}
+
+.head-home {
+    margin-top: 45px !important;
+}
+
 #page-body.container,
 #page-body.container-fluid {
     padding-bottom: 30px;
@@ -21,7 +31,7 @@ body {
 
 #page-title {
     text-align: center;
-    margin-top: 1.5em;
+    margin-top: -0.2em;
     margin-bottom: 1em;
 }
 
@@ -272,6 +282,19 @@ pre code {
     display: block;
 }
 
+.oauth-pan {
+    padding: 40px;
+}
+
+#request-info>h3 {
+    font-size: 30px;
+    font-weight: 400;
+}
+
+#request-info>h2 {
+    margin-left: 2em;
+}
+
 .panel {
     min-height: 6.8em;
     border-bottom-left-radius: 19px;
@@ -320,7 +343,17 @@ pre code {
     border-top-left-radius: 19px;
     border-top-right-radius: 19px;
     background-color: #d8d8d8 !important;
-    color: #000;
+    color: #000 !important;
+    border-bottom: unset;
+}
+
+.panel-primary {
+    border-color: #000;
+}
+
+.new-msg-button {
+    border-radius: 10px;
+    margin: 5px;
 }
 
 .row-cpd-bottom {
@@ -329,7 +362,7 @@ pre code {
 
 footer.page-footer {
     padding-top: 1.5em;
-    background-color: #585858;
+    background-color: #8c1515;
     color: white;
     text-align: right;
     min-height: 100px;
@@ -362,6 +395,53 @@ footer.page-footer a:hover {
     text-align: center;
     padding-top: 2em;
     padding-bottom: 2em;
+}
+
+#page-body {
+    scroll-snap-type: y mandatory;
+}
+
+#section-commandpedia {
+    height: 53vh;
+    font-size: 1.3em;
+}
+
+#inside-almond {
+    height: 40vh;
+}
+
+#inside-almond .row {
+    height: 60px;
+}
+
+#almond-manifesto {
+    height: 720px;
+}
+
+#almond-manifesto>p {
+    font-size: 18px;
+    padding: 50px;
+}
+
+.divider {
+    scroll-snap-align: start;
+}
+
+.home-page#section-heading {
+    height: 937px;
+}
+
+#almond-index-container {
+    padding-top: 3em;
+}
+
+#almond-index-container #almond-title {
+    padding-top: 80px;
+    font-size: 125px;
+}
+
+#almond-index-container #try-almond-now {
+    margin: 125px 0px;
 }
 
 #section-heading h1 {
@@ -543,6 +623,11 @@ a.social-icon:visited {
     margin-top: 5em;
 }
 
+.jumbotron {
+    border: 1px solid #585858;
+    border-radius: 10px !important;
+}
+
 .btn-spacer {
     margin-right: 1em;
 }
@@ -555,4 +640,8 @@ a.social-icon:visited {
 .footer-icons {
     width: 30%;
     text-align: center;
+}
+
+input[type="checkbox"] {
+    margin: 10px;
 }

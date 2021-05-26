@@ -32,11 +32,11 @@ block content
               if isRunning
                 form(action='/me/status/kill', method='post')
                   input(type='hidden',name='_csrf',value=csrfToken)
-                  button(type='submit').btn.btn-sm.btn-block.btn-danger= _("Kill")
+                  button(type='submit').btn.btn-sm.btn-block.custom-btn.btn-danger= _("Kill")
               else
                 form(action='/me/status/start', method='post')
                   input(type='hidden',name='_csrf',value=csrfToken)
-                  button(type='submit').btn.btn-sm.btn-block.btn-danger= _("Start")
+                  button(type='submit').btn.btn-sm.btn-block.custom-btn.btn-danger= _("Start")
 
           if !isRunning
             h2= _("Recovery Options")
@@ -48,7 +48,7 @@ block content
                   button(type='submit').btn.btn-sm.btn-danger.btn-block= _("Clear cache")
 
               div.col-sm-3
-                a(href='#delete-data-dialog',data-toggle='modal').btn.btn-sm.btn-danger.btn-block= _("Clear data")
+                a(href='#delete-data-dialog',data-toggle='modal').btn.btn-sm.new-msg-button.btn-danger.btn-block= _("Clear data")
 
               div.modal.fade#delete-data-dialog(role='dialog')
                 div.modal-dialog
@@ -71,7 +71,7 @@ block content
                         input(type='hidden',name='_csrf',value=csrfToken)
 
                         div.form-group
-                          button(type='submit').btn.btn-danger= _("Clear Data")
+                          button(type='submit').btn.new-msg-button.btn-danger= _("Clear Data")
 
           h2= _("Cached Modules")
 
@@ -90,7 +90,7 @@ block content
                     td
                       form(action='/me/status/update-module/' + m.name, method='post')
                         input(type='hidden',name='_csrf',value=csrfToken)
-                        button(type='submit').btn.btn-default= _("Update")
+                        button(type='submit').btn.new-msg-button.btn-default= _("Update")
           else
             p= _("The list of cached modules is not available when the engine is not running.")
 

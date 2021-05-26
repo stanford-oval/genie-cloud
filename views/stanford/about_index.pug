@@ -19,11 +19,11 @@ block content
   if authenticated
     div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
 
-  div#page-body
-    section.divider#section-heading
+  div#page-body.head-home
+    section.divider.home-page#section-heading
       div.container-fluid#almond-index-container
         div.row
-          div.col-lg-6
+          div.col-lg-12
             h1#almond-title
               img(src=Config.ASSET_CDN + '/images/logo.png',style='display:inline-block;padding-right:12px;height:1em;vertical-align:bottom')
               = _("Almond")
@@ -34,15 +34,15 @@ block content
 
             if authenticated
               div.row
-                div.col-lg-8.col-lg-offset-2
+                div.col-lg-4.col-lg-offset-4
                   a(href='/me').btn.btn-primary.custom-btn.btn-block.call-to-action= _("Go To My Almond")
             else if !ENABLE_ANONYMOUS_USER
               div.row
-                div.col-lg-8.col-lg-offset-2
+                div.col-lg-4.col-lg-offset-4
                   a(href='/user/register').btn.btn-primary.custom-btn.btn-block.call-to-action= _("Try Almond Now")
             else
               div.row#try-almond-now-row
-                div.col-lg-8.col-lg-offset-2
+                div.col-lg-4.col-lg-offset-4
                   a#try-almond-now(href='#conversation').btn.btn-primary.custom-btn.btn-block.call-to-action= _("Try Almond Now")
 
               div.row
@@ -50,16 +50,16 @@ block content
                   div#conversation(data-target='/me/ws/anonymous',aria-expanded='false')
                     div#chat
                     div#input-block
-                      span(role='button').hidden#cancel
-                        span(aria-hidden='true').glyphicon.glyphicon-remove-circle
-                        span.sr-only= _("Cancel")
                       form(action='#')#input-form
                         div.form-group.has-feedback#input-form-group
                           label(for='#chat-input').sr-only= _("Command:")
                           input(type='text',placeholder=_("Write your command or answer here")).form-control#input
                           button(type='button', title='Click to send a voice command').btn.btn-primary.hidden#record-button
                           span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden
-                  
+                          span(role='button').hidden#cancel
+                          span(aria-hidden='true').glyphicon.glyphicon-remove-circle
+                          span.sr-only= _("Cancel")
+
                 div#hidden-container 
                   div.help-block.hidden= _("Lost connection to the server.")
                   div.almond-thinking.hidden
@@ -67,29 +67,13 @@ block content
                     span
                     span
 
-            div(style='margin-top:1em;font-size:24px').text-center
-              div.row
-                div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
-                  a(href='/about/get-almond')= _("Get Almond")
-                div.col-xs-12.col-sm-6.col-md-4
-                  a(href='/about/get-involved')= _("Contribute To Almond")
-              div.row
-                div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
-                  a(href='https://forms.gle/Q1m5uZDF8ZyRbdSw7', rel='noopener')= _("Sign Up for Updates")
-                div.col-xs-12.col-sm-6.col-md-4
-                  a(href='https://community.almond.stanford.edu')= _("Join Our Community")
-
-            if Config.SERVER_ORIGIN === 'https://almond.stanford.edu'
-              div(style='margin-top:1em;font-size:24px').text-center
-                p You can also try the bleeding edge, development version
-                  br
-                  | of Almond at #[a(href='https://dev.almond.stanford.edu') dev.almond.stanford.edu].
+            
 
             p(style='margin-top:1em;font-size:24px').text-center!= _("Brought to you by the <a href='https://oval.cs.stanford.edu'>Stanford Open Virtual Assistant Lab</a>.")
 
 
           div.col-lg-6
-            div.carousel.slide(data-ride='carousel')#almond-index-carousel
+            //-div.carousel.slide(data-ride='carousel')#almond-index-carousel
               div.carousel-inner(role='listbox')
                 div.item.active
                   h3= _("Notifications That Matter To You")
@@ -116,7 +100,7 @@ block content
                     h4= _("Say: “Tweet the post when my Facebook updates”")
                     p
                       em= _("Coming soon!")
-                //-div.item
+                div.item
                   h3= _("The Best Way To Control Your Home")
                   img(src=Config.ASSET_CDN + '/images/carousel-livingroom.png', alt="Picture of Almond Home device")
                   div.carousel-caption
@@ -137,16 +121,40 @@ block content
 
         div.container
           div.row
-            div.col-lg-5.col-lg-offset-1.marketing-video
-              iframe(style='max-width:100%;height: 270px;width: 100%;', src="https://www.youtube.com/embed/5JUtTe00yGc", frameborder="0", allow="autoplay;encrypted-media", allowfullscreen=true)
+            div.col-lg-12.marketing-video
+              iframe(style='max-width:100%;height: 653px;width: 100%;', src="https://www.youtube.com/embed/5JUtTe00yGc", frameborder="0", allow="autoplay;encrypted-media", allowfullscreen=true)
 
               p.text-center= _("See how Almond helps Kimmy babysit.")
 
-            div.col-lg-5.marketing-video
-              iframe(style='max-width:100%;height: 270px;width: 100%;', src="https://www.youtube.com/embed/IUtURMngJr8", frameborder="0", allow="autoplay;encrypted-media", allowfullscreen=true)
+      section.divider#inside-almond
+        h3= _("Inside Almond")
+        div.container
+          div.row
+            div(style='margin-top:1em;font-size:24px').text-center
+              div.row
+                div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
+                  a(href='/about/get-almond')= _("Get Almond")
+                div.col-xs-12.col-sm-6.col-md-4
+                  a(href='/about/get-involved')= _("Contribute To Almond")
+              div.row
+                div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
+                  a(href='https://forms.gle/Q1m5uZDF8ZyRbdSw7', rel='noopener')= _("Sign Up for Updates")
+                div.col-xs-12.col-sm-6.col-md-4
+                  a(href='https://community.almond.stanford.edu')= _("Join Our Community")
 
-              p.text-center= _("Learn how you can use Almond for your tasks.")
+            if Config.SERVER_ORIGIN === 'https://almond.stanford.edu'
+              div(style='margin-top:1em;font-size:24px').text-center
+                p You can also try the bleeding edge, development version
+                  br
+                  | of Almond at #[a(href='https://dev.almond.stanford.edu') dev.almond.stanford.edu].
 
+      section.divider#section-commandpedia
+        h3= _("What can Almond do?")
+        div.container
+          div.row
+            div.col-xs-12.col-md-10.col-md-offset-1
+              p= _("Here is a sample of what Almond can do, and a few commands that our users and developers think are interesting. It is not an exhaustive list! Commands can combined in arbitrary ways, creating endless possibilities for your assistant.")
+          include ../commandpedia.pug
 
       section.divider
         div.container#almond-manifesto
@@ -154,6 +162,7 @@ block content
 
           p
             = _("Virtual assistants are the new interface to the Web.")
+            br
             br
             = _("Our vision for virtual assistants includes:")
 
@@ -272,10 +281,4 @@ block content
             div.col-md-6.col-md-pull-6.visible-md.visible-lg(aria-hidden='true')#seq-seq-animation
               include ../../art/seq-seq-animation-clean-svg.svg
 
-      section.divider#section-commandpedia
-        h3= _("What can Almond do?")
-        div.container
-          div.row
-            div.col-xs-12.col-md-6.col-md-offset-3
-              p= _("Here is a sample of what Almond can do, and a few commands that our users and developers think are interesting. It is not an exhaustive list! Commands can combined in arbitrary ways, creating endless possibilities for your assistant.")
-          include ../commandpedia.pug
+      

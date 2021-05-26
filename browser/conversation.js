@@ -23,9 +23,10 @@ const Recorder = require('./deps/recorder');
 $(() => {
     var conversationId = null;
     var url;
+
     function updateUrl() {
-        url = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host
-            + $('#conversation').attr('data-target');
+        url = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host +
+            $('#conversation').attr('data-target');
         if (conversationId)
             url += '?id=' + conversationId;
     }
@@ -71,8 +72,8 @@ $(() => {
     function updateConnectionFeedback() {
         if (!ws || !open) {
             $('#input-form-group').addClass('has-warning');
-            $('#input-form-group .spinner-container').addClass('hidden');
--           $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').removeClass('hidden');
+            $('#input-form-group .spinner-container').addClass('hidden'); -
+            $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').removeClass('hidden');
             return;
         }
 
@@ -102,44 +103,44 @@ $(() => {
             success: (data) => {
                 if (data.status === 'ok') {
                     $('#input').val(data.text).focus();
-                    $('#record-button').text('Say a command!');
+                    manInputTextCommand('Say a command!', true);
                     handleUtterance();
                 } else {
                     console.log(data);
-                    $('#record-button').text('Hmm I couldn\'t understand...');
+                    manInputTextCommand('Hmm I couldn\'t understand...', true);
                 }
             },
             error: (error) => {
                 console.log(error);
-                $('#record-button').text('Hmm there seems to be an error...');
+                manInputTextCommand('Hmm there seems to be an error...', true);
             }
         });
     }
 
     function startStopRecord() {
         if (!_isRecording) {
-            navigator.mediaDevices.getUserMedia({audio: true, video: false}).then((stream) => {
+            navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then((stream) => {
                 // console.log('getUserMedia() success, stream created, initializing Recorder.js...');
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
-                const context = new AudioContext(); 
+                const context = new AudioContext();
                 const input = context.createMediaStreamSource(stream);
-                const rec = new Recorder(input, {numChannels: 1});
+                const rec = new Recorder(input, { numChannels: 1 });
                 rec.record();
 
                 // console.log('Recording started');
-                $('#record-button').text('Recording... Press this to stop');
+                manInputTextCommand('Recording... Press again to stop', true);
 
                 _isRecording = true;
                 _stream = stream;
-                _recorder = rec; 
+                _recorder = rec;
             }).catch((err) => {
                 console.log('getUserMedia() failed');
                 console.log(err);
-                $('#record-button').text('You don\'t seem to have a recording device enabled!');
-                // alert('You don\'t seem to have a recording device enabled!');
+                manInputTextCommand('You don\'t seem to have a recording device enabled!', true);
+                //alert('You don\'t seem to have a recording device enabled!');
             });
         } else {
-            $('#record-button').text('Processing command...');
+            manInputTextCommand('Processing command...', true);
             _recorder.stop();
             _stream.getAudioTracks()[0].stop();
             _recorder.exportWAV((blob) => {
@@ -184,18 +185,38 @@ $(() => {
         connect();
     })();
 
+    function manInputTextCommand(msg, sts) {
+
+        if (sts) {
+            $('#input').prop('disabled', true);
+            $('#input').addClass('input-alert');
+            $('#input').val(msg); //record-text
+            $('#record-button').removeClass('hidden');
+        } else {
+            $('#input').val();
+            $('#input').removeClass('input-alert');
+            $('#input').prop('disabled', false);
+            $('#record-button').addClass('hidden');
+        }
+        return;
+    }
+
     function syncCancelButton(msg) {
         var visible = msg.ask !== null;
-        if (visible)
+        if (visible) {
+            $('#record-button').addClass('hidden');
             $('#cancel').removeClass('hidden');
-        else
+        } else {
             $('#cancel').addClass('hidden');
+            $('#record-button').removeClass('hidden');
+        }
     }
 
     var container = $('#chat');
     var currentGrid = null;
 
     var CDN_HOST = $('body').attr('data-icon-cdn');
+
     function almondMessage(icon) {
         var msg = $('<span>').addClass('message-container from-almond');
         icon = icon || 'org.thingpedia.builtin.thingengine.builtin';
@@ -412,44 +433,44 @@ $(() => {
         lastMessageId = parsed.id;
 
         switch (parsed.type) {
-        case 'text':
-        case 'result':
-            // FIXME: support more type of results
-            textMessage(parsed.text, parsed.icon);
-            currentGrid = null;
-            break;
+            case 'text':
+            case 'result':
+                // FIXME: support more type of results
+                textMessage(parsed.text, parsed.icon);
+                currentGrid = null;
+                break;
 
-        case 'picture':
-            picture(parsed.url, parsed.icon);
-            currentGrid = null;
-            break;
+            case 'picture':
+                picture(parsed.url, parsed.icon);
+                currentGrid = null;
+                break;
 
-        case 'rdl':
-            rdl(parsed.rdl, parsed.icon);
-            currentGrid = null;
-            break;
+            case 'rdl':
+                rdl(parsed.rdl, parsed.icon);
+                currentGrid = null;
+                break;
 
-        case 'choice':
-            choice(parsed.idx, parsed.title);
-            break;
+            case 'choice':
+                choice(parsed.idx, parsed.title);
+                break;
 
-        case 'button':
-            buttonMessage(parsed.title, parsed.json);
-            break;
+            case 'button':
+                buttonMessage(parsed.title, parsed.json);
+                break;
 
-        case 'link':
-            linkMessage(parsed.title, parsed.url);
-            break;
+            case 'link':
+                linkMessage(parsed.title, parsed.url);
+                break;
 
-        case 'hypothesis':
-            $('#input').val(parsed.hypothesis);
-            break;
+            case 'hypothesis':
+                $('#input').val(parsed.hypothesis);
+                break;
 
-        case 'command':
-            $('#input').val('');
-            collapseButtons();
-            appendUserMessage(parsed.command);
-            break;
+            case 'command':
+                $('#input').val('');
+                collapseButtons();
+                appendUserMessage(parsed.command);
+                break;
         }
     }
 
@@ -474,19 +495,23 @@ $(() => {
         updateSpinner(true);
         ws.send(JSON.stringify({ type: 'command', text: text }));
     }
+
     function handleParsedCommand(json, title) {
         updateSpinner(true);
         ws.send(JSON.stringify({ type: 'parsed', json: json, title: title }));
     }
+
     function handleThingTalk(tt) {
         updateSpinner(true);
         ws.send(JSON.stringify({ type: 'tt', code: tt }));
     }
+
     function handleChoice(idx, title) {
         handleParsedCommand({ code: ['bookkeeping', 'choice', String(idx)], entities: {} }, title);
     }
+
     function handleSpecial(special, title) {
-        handleParsedCommand({ code: ['bookkeeping', 'special', 'special:'+special ], entities: {} }, title);
+        handleParsedCommand({ code: ['bookkeeping', 'special', 'special:' + special], entities: {} }, title);
     }
 
     function appendUserMessage(text) {
@@ -497,10 +522,10 @@ $(() => {
     function handleUtterance() {
         var text = $('#input').val();
         if (currCommand !== "")
-          pastCommandsUp.push(currCommand);
+            pastCommandsUp.push(currCommand);
         if (pastCommandsDown.length !== 0) {
-          pastCommandsUp = pastCommandsUp.concat(pastCommandsDown);
-          pastCommandsDown = [];
+            pastCommandsUp = pastCommandsUp.concat(pastCommandsDown);
+            pastCommandsDown = [];
         }
         pastCommandsUp.push(text);
 
@@ -513,6 +538,7 @@ $(() => {
         event.preventDefault();
         handleUtterance();
     });
+
     $('#cancel').click(() => {
         handleSpecial('nevermind', "Cancel.");
     });
@@ -524,21 +550,21 @@ $(() => {
     });
 
     $('#input-form').on('keydown', (event) => { // button is pressed
-      if (event.keyCode === 38) {  // Up
-        // removes last item from array pastCommandsUp, displays it as currCommand, adds current input text to pastCommandsDown
-        currCommand = pastCommandsUp.pop();
-        if ($('#input').val() !== "")
-          pastCommandsDown.push($('#input').val());
-        $('#input').val(currCommand);
-      }
+        if (event.keyCode === 38) { // Up
+            // removes last item from array pastCommandsUp, displays it as currCommand, adds current input text to pastCommandsDown
+            currCommand = pastCommandsUp.pop();
+            if ($('#input').val() !== "")
+                pastCommandsDown.push($('#input').val());
+            $('#input').val(currCommand);
+        }
 
-      if (event.keyCode === 40) {  // Down
-        // removes last item from array pastCommandsDown, displays it as currCommand, adds current input text to pastCommandsUp
-        currCommand = pastCommandsDown.pop();
-        if ($('#input').val() !== "")
-          pastCommandsUp.push($('#input').val());
-        $('#input').val(currCommand);
-      }
+        if (event.keyCode === 40) { // Down
+            // removes last item from array pastCommandsDown, displays it as currCommand, adds current input text to pastCommandsUp
+            currCommand = pastCommandsDown.pop();
+            if ($('#input').val() !== "")
+                pastCommandsUp.push($('#input').val());
+            $('#input').val(currCommand);
+        }
     });
 
     $('#record-button').click((event) => {

@@ -5,21 +5,23 @@ ul.nav.navbar-nav
     li
       a(href=page.url)= _(page.title)
   li
-    a(href="/me")= _("My Almond")
-  li
     a(href=Config.THINGPEDIA_URL)= _("Thingpedia")
   li
-    a(href=Config.THINGPEDIA_URL + '/cheatsheet')= _("Cheatsheet")
-  li
     a(href='https://wiki.almond.stanford.edu')= _("Docs")
+  
+ul.nav.navbar-nav.navbar-right
+  if authenticated
+    li
+      a(href="/me")= _("My Almond") 
+  if authenticated  
+    li
+      a(href=Config.THINGPEDIA_URL + '/cheatsheet')= _("Cheatsheet")
   if authenticated && user.developer_org
     li
       a(href='/developers')= _("Console")
   if authenticated && (user.roles & Constants.Role.ALL_ADMIN) !== 0
     li
       a(href="/admin")= _("Admin")
-
-ul.nav.navbar-nav.navbar-right
   if authenticated
     li
       a(href="/user/profile")= _("Settings")

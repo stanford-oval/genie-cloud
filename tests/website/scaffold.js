@@ -89,7 +89,7 @@ function assertHttpError(request, httpStatus, expectedMessage) {
         if (expectedMessage) {
             let message;
             if (err.detail.startsWith('<!DOCTYPE html>')) {
-                const match = /Sorry that did not work<\/p><p>([^<]+)<\/p>/.exec(err.detail);
+                const match = /Sorry that did not work<\/h2><\/div><div class="msg-body"><h3 class="p">([^<]+)<\/h3>/.exec(err.detail);
                 if (!match)
                     assert.fail(`cannot find error message`);
                 message = match[1];
@@ -142,7 +142,7 @@ async function assertBanner(request, expected) {
 async function assertBlocked(path, bob, nobody) {
     await assertRedirect(sessionRequest(path, 'GET', null, nobody, { followRedirects: false }), '/user/login');
     await assertHttpError(sessionRequest(path, 'GET', null, bob),
-            403, 'You do not have permission to perform this operation.');
+        403, 'You do not have permission to perform this operation.');
 }
 
 module.exports = {

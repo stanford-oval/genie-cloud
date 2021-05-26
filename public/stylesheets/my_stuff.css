@@ -45,7 +45,6 @@
 
 .bottom-bar.fa,
 .bottom-bar.far {
-    cursor: grab;
     border-radius: 60px;
     background-color: transparent;
     color: white;
@@ -75,12 +74,6 @@
     .panel-footer>.row>.col-md-6 {
         width: 100%;
     }
-}
-
-#back-top {
-    text-align: right;
-    padding-top: 3em;
-    width: 100%;
 }
 
 #bttop-button {

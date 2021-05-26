@@ -1,54 +1,54 @@
 #almond-index-carousel .item {
-  height: 720px;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  position: absolute;
+    height: 720px;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: absolute;
 }
 
 #almond-index-carousel .carousel-inner {
-  overflow-x: hidden;
-  overflow-y: visible;
-  height: 720px;
-  position: relative;
+    overflow-x: hidden;
+    overflow-y: visible;
+    height: 720px;
+    position: relative;
 }
 
 #almond-index-carousel h3 {
-  margin-bottom: 0.7em;
-  color: #8c1515;
+    margin-bottom: 0.7em;
+    color: #8c1515;
 }
 
-#almond-index-carousel .carousel-caption > h4 {
-  font-size: 32px;
-  text-shadow: none;
-  font-weight: 300;
-  color: black;
+#almond-index-carousel .carousel-caption>h4 {
+    font-size: 32px;
+    text-shadow: none;
+    font-weight: 300;
+    color: black;
 }
 
-#almond-index-carousel .carousel-caption > p {
-  color: black;
-  text-shadow: none;
+#almond-index-carousel .carousel-caption>p {
+    color: black;
+    text-shadow: none;
 }
 
 #almond-index-carousel img {
-  height: 450px;
-  object-fit: contain;
-  margin: 0 auto;
+    height: 450px;
+    object-fit: contain;
+    margin: 0 auto;
 }
 
 #almond-index-carousel img#alexa {
-  height: 350px;
+    height: 350px;
 }
 
 #almond-index-carousel .carousel-control {
-  background: none;
+    background: none;
 }
 
 @media screen and (min-width: 1200px) {
-  #almond-index-container {
-    margin: 0 100px;
-  }
+    #almond-index-container {
+        margin: 0 100px;
+    }
 }
 
 #examples p {
@@ -85,7 +85,8 @@
     margin: auto;
 }
 
-.section-title, .section-subtitle {
+.section-title,
+.section-subtitle {
     text-align: center;
 }
 
@@ -94,48 +95,48 @@
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    background-size:cover;
+    background-size: cover;
 }
 
 #team-profile-mid-monica {
-    background-image:url(../images/monica-lam.jpg);
+    background-image: url(../images/monica-lam.jpg);
 }
 
 #team-profile-mid-rsocher {
-    background-image:url(../images/richard-socher.jpg);
+    background-image: url(../images/richard-socher.jpg);
 }
 
 #team-profile-mid-giovanni {
-    background-image:url(../images/giovanni.jpeg);
+    background-image: url(../images/giovanni.jpeg);
 }
 
 #team-profile-mid-michael {
-    background-image:url(../images/michael-fischer.png);
+    background-image: url(../images/michael-fischer.png);
 }
 
 #team-profile-mid-jiwon {
-    background-image:url(../images/jiwon-seo.jpg);
+    background-image: url(../images/jiwon-seo.jpg);
 }
 
 #team-profile-mid-rakesh {
-    background-image:url(../images/rakesh.jpg);
+    background-image: url(../images/rakesh.jpg);
 }
 
 #team-profile-mid-silei {
-    background-image:url(../images/silei.jpg);
+    background-image: url(../images/silei.jpg);
 }
 
 #team-profile-mid-richard {
-    background-image:url(../images/richard-yang.jpg);
+    background-image: url(../images/richard-yang.jpg);
     /*background-size:contain;*/
 }
 
 #team-profile-mid-mehrad {
-    background-image:url(../images/mehrad.png);
+    background-image: url(../images/mehrad.png);
 }
 
 #team-profile-mid-jackiey {
-    background-image:url(../images/jackiey.jpg);
+    background-image: url(../images/jackiey.jpg);
 }
 
 #team .profile-name {
@@ -148,41 +149,47 @@
 }
 
 #thingpedia-icon-cloud {
-  display: block;
-  width: 100%;
+    display: block;
+    width: 100%;
 }
 
 #multi-color-example .black {
-  color: black;
+    color: black;
 }
+
 #multi-color-example .blue {
-  color: blue;
+    color: blue;
 }
+
 #multi-color-example .red {
-  color: red;
+    color: red;
 }
+
 #multi-color-example .purple {
-  color: purple;
+    color: purple;
 }
+
 #multi-color-example .green {
-  color: green;
+    color: green;
 }
+
 #multi-color-example code {
-  color: inherit;
-  background-color: transparent;
+    color: inherit;
+    background-color: transparent;
 }
 
 #multi-color-example .box {
-  padding: 0.5em;
-  border: 2px solid black;
-}
-#multi-color-example .arrow {
-  text-align: center;
-  font-size: 36px;
+    padding: 0.5em;
+    border: 2px solid black;
 }
 
-#publication-list > li {
-  margin-bottom: 1em;
+#multi-color-example .arrow {
+    text-align: center;
+    font-size: 36px;
+}
+
+#publication-list>li {
+    margin-bottom: 1em;
 }
 
 #about-research .divider {
@@ -190,32 +197,32 @@
 }
 
 @media (min-width: 992px) {
-#about-research .divider > .row > .col-md-6:first-child {
-    padding-left: 0px;
-}
-#about-research .divider > .row > .col-md-6:last-child {
-    padding-right: 0px;
-}
+    #about-research .divider>.row>.col-md-6:first-child {
+        padding-left: 0px;
+    }
+    #about-research .divider>.row>.col-md-6:last-child {
+        padding-right: 0px;
+    }
+    #about-research .divider>* {
+        width: 970px;
+    }
 }
 
-#about-research .divider > * {
+#about-research .divider>* {
     margin-right: auto;
     margin-left: auto;
     padding-left: 15px;
     padding-right: 15px;
 }
+
 @media (min-width: 768px) {
-    #about-research .divider > * {
+    #about-research .divider>* {
         width: 750px;
     }
 }
-@media (min-width: 992px) {
-    #about-research .divider > * {
-        width: 970px;
-    }
-}
+
 @media (min-width: 1200px) {
-    #about-research .divider > * {
+    #about-research .divider>* {
         width: 1170px;
     }
 }
@@ -227,13 +234,13 @@
 .hanging-icon-block {
     display: block;
 }
+
 .hanging-icon-block::before {
     background-size: 64px 64px;
     background-repeat: no-repeat;
     background-position: center;
     background-color: white;
     border-radius: 50%;
-
     content: " ";
     margin-right: 1em;
     display: block;
@@ -241,13 +248,16 @@
     width: 80px;
     height: 80px;
 }
-.hanging-icon-block > * {
+
+.hanging-icon-block>* {
     overflow: auto;
 }
+
 .hanging-icon-block {
     margin-bottom: 1em;
 }
-.row:last-child > .hanging-icon-block {
+
+.row:last-child>.hanging-icon-block {
     margin-bottom: 0px;
 }
 
@@ -255,15 +265,20 @@
     background-image: url(../images/icon-phone.svg);
     background-size: 56px 56px;
 }
+
 #almond-tech-open-api::before {
     background-image: url(../images/icon-cloud.png);
 }
+
 #almond-tech-luinet::before {
     background-image: url(../images/icon-compound.png);
 }
 
+
 /* the double ID selector is needed to have the correct CSS specificity */
-#about-research #agenda-dtp, #about-research #project-email {
+
+#about-research #agenda-dtp,
+#about-research #project-email {
     max-width: 570px;
 }
 
@@ -310,6 +325,7 @@
     height: 0;
     border-style: solid;
 }
+
 .timeline ul li:nth-child(odd) div {
     left: 45px;
 }
@@ -319,6 +335,7 @@
     border-width: 8px 16px 8px 0;
     border-color: transparent #2c3e50 transparent transparent;
 }
+
 .timeline ul li:nth-child(even) div {
     left: -589px;
 }
@@ -334,7 +351,8 @@
         width: 400px;
     }
     .timeline ul li:nth-child(even) div {
-        left: -439px; /*250+45-6*/
+        left: -439px;
+        /*250+45-6*/
     }
 }
 
@@ -343,7 +361,8 @@
         width: 300px;
     }
     .timeline ul li:nth-child(even) div {
-        left: -339px; /*250+45-6*/
+        left: -339px;
+        /*250+45-6*/
     }
 }
 
@@ -351,15 +370,12 @@
     .timeline ul li {
         margin-left: 20px;
     }
-
     .timeline ul li div {
         width: calc(100vw - 150px);
     }
-
     .timeline ul li:nth-child(even) div {
         left: 45px;
     }
-
     .timeline ul li:nth-child(even) div::before {
         left: -15px;
         border-width: 8px 16px 8px 0;
@@ -371,483 +387,505 @@
     margin-top: 10px;
     margin-bottom: 10px;
 }
-#subscribe > div {
+
+#subscribe>div {
     margin-top: 10px;
     margin-bottom: 10px;
 }
 
-#section-commandpedia > div > div > div > p {
-  margin-bottom: 1.5em;
+#section-commandpedia>div>div>div>p {
+    margin-bottom: 1.5em;
 }
 
 #latest-news h3 {
-  margin-bottom: 0.8em;
+    margin-bottom: 0.8em;
 }
 
 #latest-news h4 {
-  font-size: 28px;
+    font-size: 28px;
 }
 
 #latest-news .img-responsive {
-  height: 200px;
-  width: 100%;
-  object-fit: cover;
-  padding: 0 1.5em;
+    height: 200px;
+    width: 100%;
+    object-fit: cover;
+    padding: 0 1.5em;
 }
 
-.arrow-box div, .arrow-box-flipped div {
-  font-size: 18px;
-  margin: 18px 5px 0 5px;
+.arrow-box div,
+.arrow-box-flipped div {
+    font-size: 18px;
+    margin: 18px 5px 0 5px;
 }
 
 #compound-commands-row .when {
-  color: red;
+    color: red;
 }
+
 #compound-commands-row .get {
-  color: rgb(220,136,8);
+    color: rgb(220, 136, 8);
 }
+
 #compound-commands-row .do {
-  color: rgb(34,139,34);
+    color: rgb(34, 139, 34);
 }
+
 #compound-commands-row .example {
-  text-align: center;
-  font-size: 24px;
-  font-weight: 700;
-  margin: 60px 80px 0 80px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 60px 80px 0 80px;
 }
 
 #filters-row .img-responsive {
-  max-width: 450px;
-  width: 100%;
-  margin: 0 auto;
-  object-fit: contain;
+    max-width: 450px;
+    width: 100%;
+    margin: 0 auto;
+    object-fit: contain;
 }
 
 #why-almond h4 {
-  margin-top: 2.5em;
-  margin-bottom: 0.8em;
-  font-size: 22px;
-  text-align: center;
+    margin-top: 2.5em;
+    margin-bottom: 0.8em;
+    font-size: 22px;
+    text-align: center;
 }
+
 #why-almond .row:first-child h4 {
-  margin-top: 0;
+    margin-top: 0;
 }
 
 #why-almond-thingpedia-row .img-responsive {
-  height: 96px;
-  width: 96px;
-  object-fit: contain;
-  margin: 0 auto;
+    height: 96px;
+    width: 96px;
+    object-fit: contain;
+    margin: 0 auto;
 }
 
-#seq-seq-animation > svg {
-  margin: 0 auto;
-  object-fit: contain;
-  display: block;
-  transform: scale(0.8, 0.8);
+#seq-seq-animation>svg {
+    margin: 0 auto;
+    object-fit: contain;
+    display: block;
+    transform: scale(0.8, 0.8);
 }
 
 @keyframes e-post {
-  0% {
-    opacity: 0;
-  }
-  5% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 1;
-  }
+    0% {
+        opacity: 0;
+    }
+    5% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 1;
+    }
 }
+
 #seq-seq-animation #e-post {
-  animation: 20s linear e-post infinite;
+    animation: 20s linear e-post infinite;
 }
 
 @keyframes e-on {
-  0% {
-    opacity: 0;
-  }
-  12.5% {
-    opacity: 0;
-  }
-  17.5% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 1;
-  }
+    0% {
+        opacity: 0;
+    }
+    12.5% {
+        opacity: 0;
+    }
+    17.5% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 1;
+    }
 }
+
 #seq-seq-animation #e-on {
-  animation: 20s linear e-on infinite;
+    animation: 20s linear e-on infinite;
 }
 
 @keyframes e-twitter {
-  0% {
-    opacity: 0;
-  }
-  25% {
-    opacity: 0;
-  }
-  30% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 1;
-  }
+    0% {
+        opacity: 0;
+    }
+    25% {
+        opacity: 0;
+    }
+    30% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 1;
+    }
 }
+
 #seq-seq-animation #e-twitter {
-  animation: 20s linear e-twitter infinite;
+    animation: 20s linear e-twitter infinite;
 }
 
 @keyframes e-end {
-  0% {
-    opacity: 0;
-  }
-  37.5% {
-    opacity: 0;
-  }
-  42.5% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 1;
-  }
+    0% {
+        opacity: 0;
+    }
+    37.5% {
+        opacity: 0;
+    }
+    42.5% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 1;
+    }
 }
+
 #seq-seq-animation #e-end {
-  animation: 20s linear e-end infinite;
+    animation: 20s linear e-end infinite;
 }
 
 @keyframes d-now {
-  0% {
-    opacity: 0;
-  }
-  50% {
-    opacity: 0;
-  }
-  55% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 1;
-  }
+    0% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 0;
+    }
+    55% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 1;
+    }
 }
+
 #seq-seq-animation #d-now {
-  animation: 20s linear d-now infinite;
+    animation: 20s linear d-now infinite;
 }
 
 @keyframes d-arrow {
-  0% {
-    opacity: 0;
-  }
-  62.5% {
-    opacity: 0;
-  }
-  67.5% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 1;
-  }
+    0% {
+        opacity: 0;
+    }
+    62.5% {
+        opacity: 0;
+    }
+    67.5% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 1;
+    }
 }
+
 #seq-seq-animation #d-arrow {
-  animation: 20s linear d-arrow infinite;
+    animation: 20s linear d-arrow infinite;
 }
 
 @keyframes d-twitter-post {
-  0% {
-    opacity: 0;
-  }
-  75% {
-    opacity: 0;
-  }
-  80% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 1;
-  }
+    0% {
+        opacity: 0;
+    }
+    75% {
+        opacity: 0;
+    }
+    80% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 1;
+    }
 }
+
 #seq-seq-animation #d-twitter-post {
-  animation: 20s linear d-twitter-post infinite;
+    animation: 20s linear d-twitter-post infinite;
 }
 
 @keyframes d-end {
-  0% {
-    opacity: 0;
-  }
-  87.5% {
-    opacity: 0;
-  }
-  92.5% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-#seq-seq-animation #d-end {
-  animation: 20s linear d-end infinite;
+    0% {
+        opacity: 0;
+    }
+    87.5% {
+        opacity: 0;
+    }
+    92.5% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
+#seq-seq-animation #d-end {
+    animation: 20s linear d-end infinite;
+}
 
 @keyframes arrow1 {
-  0% {
-    opacity: 0;
-  }
-  50% {
-    opacity: 0;
-  }
-  55% {
-    opacity: 1;
-  }
-  59.5% {
-    opacity: 1;
-  }
-  62.5% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 0;
-  }
+    0% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 0;
+    }
+    55% {
+        opacity: 1;
+    }
+    59.5% {
+        opacity: 1;
+    }
+    62.5% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 0;
+    }
 }
+
 #seq-seq-animation #arrow1 {
-  animation: 20s linear arrow1 infinite;
+    animation: 20s linear arrow1 infinite;
 }
 
 @keyframes arrow2 {
-  0% {
-    opacity: 0;
-  }
-  62.5% {
-    opacity: 0;
-  }
-  67.5% {
-    opacity: 1;
-  }
-  73% {
-    opacity: 1;
-  }
-  75% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 0;
-  }
+    0% {
+        opacity: 0;
+    }
+    62.5% {
+        opacity: 0;
+    }
+    67.5% {
+        opacity: 1;
+    }
+    73% {
+        opacity: 1;
+    }
+    75% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 0;
+    }
 }
+
 #seq-seq-animation #arrow2 {
-  animation: 20s linear arrow2 infinite;
+    animation: 20s linear arrow2 infinite;
 }
 
 @keyframes arrow3 {
-  0% {
-    opacity: 0;
-  }
-  75% {
-    opacity: 0;
-  }
-  80% {
-    opacity: 1;
-  }
-  85.5% {
-    opacity: 1;
-  }
-  87.5% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 0;
-  }
+    0% {
+        opacity: 0;
+    }
+    75% {
+        opacity: 0;
+    }
+    80% {
+        opacity: 1;
+    }
+    85.5% {
+        opacity: 1;
+    }
+    87.5% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 0;
+    }
 }
+
 #seq-seq-animation #arrow3 {
-  animation: 20s linear arrow3 infinite;
+    animation: 20s linear arrow3 infinite;
 }
 
 @keyframes arrow4 {
-  0% {
-    opacity: 0;
-  }
-  87.5% {
-    opacity: 0;
-  }
-  92.5% {
-    opacity: 1;
-  }
-  98% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
+    0% {
+        opacity: 0;
+    }
+    87.5% {
+        opacity: 0;
+    }
+    92.5% {
+        opacity: 1;
+    }
+    98% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
 }
+
 #seq-seq-animation #arrow4 {
-  animation: 20s linear arrow4 infinite;
+    animation: 20s linear arrow4 infinite;
 }
 
-
-#almond-manifesto > h3, #home-page-sections .divider > h3 {
-  font-size: 48px;
-  color: #8c1515;
-  font-weight: bold;
+#almond-manifesto>h3,
+#home-page-sections .divider>h3 {
+    font-size: 48px;
+    color: #8c1515;
+    font-weight: bold;
 }
-#almond-manifesto > h3 + canvas + p, #almond-manifesto > h3 + p, #home-page-sections .divider h4 {
-  font-size: 30px;
-  text-align: center;
-  font-weight: normal;
+
+#almond-manifesto>h3+canvas+p,
+#almond-manifesto>h3+p,
+#home-page-sections .divider h4 {
+    font-size: 30px;
+    text-align: center;
+    font-weight: normal;
 }
 
 #almond-manifesto h4 {
-  font-size: 24px;
-  color: #8c1515;
-  font-weight: bold;
-}
-#almond-manifesto p {
-  font-size: 18px;
-}
-#almond-manifesto-learn-more {
-  margin-top: 2em;
-  text-align: center;
-  font-size: 16px;
+    font-size: 24px;
+    color: #8c1515;
+    font-weight: bold;
 }
 
+#almond-manifesto-learn-more {
+    margin-top: 2em;
+    text-align: center;
+    font-size: 16px;
+}
 
 @keyframes rotate {
-  from {
-    transform: rotate(0);
-  }
-  50% {
-    transform: rotate(180deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+    from {
+        transform: rotate(0);
+    }
+    50% {
+        transform: rotate(180deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
-#almond-manifesto > img {
-  width: 30%;
-  object-fit: contain;
-  margin: 0 auto 1.5em;
-  display: block;
-  animation: 10s linear rotate infinite;
+#almond-manifesto>img {
+    width: 30%;
+    object-fit: contain;
+    margin: 0 auto 1.5em;
+    display: block;
+    animation: 10s linear rotate infinite;
 }
 
-#almond-manifesto > canvas {
-  object-fit: contain;
-  margin: 0 auto 1.5em;
-  display: block;
-  width: 30%;
+#almond-manifesto>canvas {
+    object-fit: contain;
+    margin: 0 auto 1.5em;
+    display: block;
+    width: 30%;
 }
 
 #almond-manifesto .col-md-6 {
-  /*border: 1px solid black;
+    /*border: 1px solid black;
   border-radius: 10px;*/
 }
 
 h2#almond-subtitle {
-  margin-bottom: 0.5em !important;
-  font-size: 30px;
+    margin-bottom: 0.5em !important;
+    font-size: 30px;
 }
 
 #almond-logo {
-  display: block;
-  width: 100px;
-  margin: 0 auto;
+    display: block;
+    width: 100px;
+    margin: 0 auto;
 }
 
-#almond-title > img {
-  display:inline-block;
-  padding-right:12px;
-  height:1em;
-  vertical-align: middle;
+#almond-title>img {
+    display: inline-block;
+    padding-right: 12px;
+    height: 1em;
+    vertical-align: middle;
 }
 
 #almond-explanation-line {
-  text-align: center;
-  font-size: 24px;
-  color: #8c1515;
+    text-align: center;
+    font-size: 24px;
+    color: #8c1515;
 }
 
-.marketing-video > p {
-  font-size: 24px;
-  margin-top: 0.5em;
+.marketing-video>p {
+    font-size: 24px;
+    margin-top: 0.5em;
 }
 
 .call-to-action {
-  font-size: 24px;
+    font-size: 24px;
 }
 
-#try-almond-now-row + .row {
-  display: none;
+#try-almond-now-row+.row {
+    display: none;
 }
-#try-almond-now-row.expanded + .row {
-  display: block;
+
+#try-almond-now-row.expanded+.row {
+    display: block;
 }
-#try-almond-now-row.expanded + .row > div {
-  display: block;
-  padding: 0;
+
+#try-almond-now-row.expanded+.row>div {
+    display: block;
+    padding: 0;
 }
+
 #try-almond-now-row.expanded {
-  display: none;
+    display: none;
 }
 
 #almond-in-the-news {
-  text-align: center;
+    text-align: center;
 }
 
 #almond-in-the-news .aligned-grid {
-  align-items: center;
+    align-items: center;
 }
+
 #almond-in-the-news .aligned-grid-item {
-  padding: 0px;
-  padding-bottom: 24px;
-  height: auto;
-  width: auto;
-  display: block;
+    padding: 0px;
+    padding-bottom: 24px;
+    height: auto;
+    width: auto;
+    display: block;
 }
+
 @media screen and (min-width:992px) {
-#almond-in-the-news .aligned-grid-item {
-  padding-bottom: 0px;
-}
+    #almond-in-the-news .aligned-grid-item {
+        padding-bottom: 0px;
+    }
 }
 
 #almond-in-the-news img {
-  max-height: 180px;
-  width: 100%;
-  max-width: 400px;
-  object-fit: contain;
+    max-height: 180px;
+    width: 100%;
+    max-width: 400px;
+    object-fit: contain;
 }
 
 #news-link-hackaday.aligned-grid-item {
-  display: block;
-  background-color: black;
-  font-size: 40px;
-  font-weight: bold;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: white;
-  text-decoration: none;
-  padding: 12px 12px 0px 12px;
-  justify-self: center;
-}
-#news-link-hackaday > img {
-  display: inline-block;
-  max-width: 64px;
-  max-height: 64px;
-  object-fit: contain;
-  vertical-align: baseline;
-  padding-right: 10px;
+    display: block;
+    background-color: black;
+    font-size: 40px;
+    font-weight: bold;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: white;
+    text-decoration: none;
+    padding: 12px 12px 0px 12px;
+    justify-self: center;
 }
 
-#news-link-newyorktimes > img {
-  display: block;
-  margin: auto;
-  padding-bottom: 12px;
-}
-#news-link-newyorktimes  {
-  color: black;
-  text-decoration: none;
-  font-style: italic;
-  font-size: 18px;
-  font-weight: bold;
-  font-family: serif;
+#news-link-hackaday>img {
+    display: inline-block;
+    max-width: 64px;
+    max-height: 64px;
+    object-fit: contain;
+    vertical-align: baseline;
+    padding-right: 10px;
 }
 
+#news-link-newyorktimes>img {
+    display: block;
+    margin: auto;
+    padding-bottom: 12px;
+}
+
+#news-link-newyorktimes {
+    color: black;
+    text-decoration: none;
+    font-style: italic;
+    font-size: 18px;
+    font-weight: bold;
+    font-family: serif;
 }

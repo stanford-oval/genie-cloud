@@ -45,12 +45,12 @@ mixin device_list(devices)
                       input(type='hidden',name='id',value=dev.uniqueId)
                       input(type='hidden',name='_csrf',value=csrfToken)
                       if datasource
-                        button(type='submit').btn.btn-danger.btn-sm.btn-block= _("Disable")
+                        button(type='submit').btn.btn-danger.btn-sm.new-msg-button.btn-block= _("Disable")
                       else
-                        button(type='submit').btn.btn-danger.btn-sm.btn-block= _("Forget")
+                        button(type='submit').btn.btn-danger.btn-sm.new-msg-button.btn-block= _("Forget")
     div.row
       div.col-sm-6.col-md-3
-        a(href='/me/devices/create').btn.btn-primary.btn-block= _("Configure new skill")
+        a(href='/me/devices/create').btn.btn-primary.new-msg-button.btn-block= _("Configure new skill")
 
 block content
   for message in messages
@@ -61,8 +61,9 @@ block content
 
   if !isRunning
     div.alert.alert-danger(role='alert')
-      p= _("Your Almond is dead. ")
-        a.btn.btn-default.btn-sm(href="/me/status")= _("More Details")
+      p= _("Your Almond exited. ")
+        a.btn.btn-default.new-msg-button.btn-sm(href="/me/status")= _("More Details")
+
 
   if apps.length > 0
     div.hidden-xs
@@ -74,7 +75,7 @@ block content
               form.form-inline(action="/me/apps/delete",method="post").form-delete.form-delete-app
                 input(type='hidden',name='id',value=app.uniqueId)
                 input(type='hidden',name='_csrf',value=csrfToken)
-                button(type='submit').btn.btn-sm.btn-danger= _("Stop")
+                button(type='submit').btn.btn-sm.new-msg-button.btn-danger= _("Stop")
               p= app.description
               if app.error
                 p= _("This rule had an error: %s").format(app.error)
@@ -94,7 +95,7 @@ block content
               textarea.form-control#comment-block
           div.modal-footer
             div.form-group
-              button(type='submit').btn.btn-primary= _("Comment")
+              button(type='submit').btn.btn-primary.new-msg-button= _("Comment")
 
   div.modal#recording-warning
     div.modal-dialog
@@ -105,8 +106,8 @@ block content
             = _("While recording is active, all your commands and all the replies from Almond will be stored ")
             = _("and reviewed by the Stanford Almond Team.")
         div.modal-footer
-          button.btn.btn-primary#confirm-recording= _("Confirm")
-          button.btn.btn-default#cancel-recording= _("Cancel")
+          button.btn.btn-primary.new-msg-button#confirm-recording= _("Confirm")
+          button.btn.btn-default.new-msg-button#cancel-recording= _("Cancel")
 
   div.hidden#toolbar
     div.form-inline
@@ -125,21 +126,20 @@ block content
           p= _("Conversation log updated.")
           pre#recording-log
         div.modal-footer
-          button.btn.btn-primary#recording-download= _("Download")
-          button.btn.btn-default#recording-save-done= _("Done")
+          button.btn.btn-primary.new-msg-button#recording-download= _("Download")
+          button.btn.btn-default.new-msg-button#recording-save-done= _("Done")
 
   div#conversation.single(data-target='/me/ws/conversation')
     div#chat
     div#input-block
-      span(role='button').hidden#cancel
-        span(aria-hidden='true').glyphicon.glyphicon-remove-circle
-        span.sr-only= _("Cancel")
       form(action='#')#input-form
         div.form-group.has-feedback#input-form-group
           label(for='#chat-input').sr-only= _("Command:")
           input(type='text', placeholder=_("Write your command or answer here"), value=command ? command : '').form-control#input
           button(type='button', title='Click to send a voice command').btn.btn-primary#record-button
-          span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden
+          span#form-icon.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden
+          span(role='button').hidden#cancel
+            span(aria-hidden='true').glyphicon.glyphicon-remove-circle
     
   div#hidden-container 
     div.help-block.hidden= _("Lost connection to the server.")

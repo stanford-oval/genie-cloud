@@ -15,16 +15,16 @@ section.divider
             input(type='text',name='name',value=developer_org.name).form-control#organization-name
 
           div.form-group
-            button(type='submit').btn.btn-primary= _("Update profile")
+            button(type='submit').btn.btn-primary.new-msg-button= _("Update profile")
             |
             |
-            a(href='/profiles/organization/' + developer_org.id_hash).btn.btn-default= _("Show my organization's public profile")
+            a(href='/profiles/organization/' + developer_org.id_hash).btn.btn-default.new-msg-button= _("Show my organization's public profile")
       else
         div.form-group
           label.control-label(for='organization-name')= _("Name")
           p.form-control-status#organization-name= developer_org.name
         div.form-group
-          a(href='/profiles/organization/' + developer_org.id_hash).btn.btn-default= _("Show my organization's public profile")
+          a(href='/profiles/organization/' + developer_org.id_hash).btn.btn-default.new-msg-button= _("Show my organization's public profile")
 
   div.panel.panel-primary.developer-org-panel
     div.panel-heading
@@ -58,18 +58,18 @@ section.divider
                 form(action='/developers/organization/promote', method='post').form-inline
                   input(type='hidden',name='_csrf',value=csrfToken)
                   input(type='hidden',name='user_id',value=m.cloud_id)
-                  button(type='submit').btn.btn-success.btn-sm.form-control= _("Promote")
+                  button(type='submit').btn.btn-success.btn-sm.new-msg-button.form-control= _("Promote")
               if user.cloud_id !== m.cloud_id
                 if m.developer_status > Constants.DeveloperStatus.USER
                   form(action='/developers/organization/demote', method='post').form-inline
                     input(type='hidden',name='_csrf',value=csrfToken)
                     input(type='hidden',name='user_id',value=m.cloud_id)
-                    button(type='submit').btn.btn-danger.btn-sm.form-control= _("Demote")
+                    button(type='submit').btn.btn-danger.btn-sm.new-msg-button.form-control= _("Demote")
                 else
                   form(action='/developers/organization/remove-member', method='post').form-inline.form-delete-device
                     input(type='hidden',name='_csrf',value=csrfToken)
                     input(type='hidden',name='user_id',value=m.cloud_id)
-                    button(type='submit').btn.btn-danger.btn-sm.form-control= _("Remove")
+                    button(type='submit').btn.btn-danger.btn-sm.new-msg-button.form-control= _("Remove")
       for m in developer_org_invitations
         li.list-group-item.clearfix
           h5= m.username
@@ -79,13 +79,13 @@ section.divider
               form(action='/developers/organization/rescind-invitation', method='post').form-inline
                 input(type='hidden',name='_csrf',value=csrfToken)
                 input(type='hidden',name='user_id',value=m.cloud_id)
-                button(type='submit').btn.btn-success.btn-sm.form-control= _("Rescind invitation")
+                button(type='submit').btn.btn-success.btn-sm.new-msg-button.form-control= _("Rescind invitation")
 
     if user.developer_status >= Constants.DeveloperStatus.ORG_ADMIN
       div.panel-footer
         div.row
           div.col-sm-6.col-md-4
-            a(href='#new-org-member-dialog',data-toggle='modal').btn.btn-block.btn-sm.btn-default= _("Add a member")
+            a(href='#new-org-member-dialog',data-toggle='modal').btn.btn-block.btn-sm.new-msg-button.btn-default= _("Add a member")
         div.modal.fade(role='dialog')#new-org-member-dialog
           div.modal-dialog
             div.modal-content

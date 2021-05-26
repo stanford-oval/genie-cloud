@@ -2582,7 +2582,7 @@ msgstr "Ordini MTurk"
 
 #: views/admin_portal.pug:58
 msgid "Kill all users"
-msgstr "Uccidi tutti gli utenti"
+msgstr "Scollega tutti gli utenti"
 
 #: views/admin_user_list.pug:4
 msgid "Almond User List"
@@ -4382,8 +4382,8 @@ msgid "Configure new skill"
 msgstr "Configura nuova skill"
 
 #: views/my_stuff.pug:82
-msgid "Your Almond is dead. "
-msgstr "Il tuo Almond è morto. "
+msgid "Your Almond exited. "
+msgstr "Il tuo Almond non è più attivo. "
 
 #: views/my_stuff.pug:83
 msgid "More Details"

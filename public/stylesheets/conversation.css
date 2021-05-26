@@ -5,18 +5,19 @@
 #conversation #cancel {
     float: right;
     display: block;
-    font-size: 24px;
+    font-size: 35px;
     padding-top: 5px;
-    padding-left: 12px;
     cursor: pointer;
+    color: #fff;
 }
 
 #conversation #chat {
-    margin: 1em 0em;
+    margin: 1px 0em;
     overflow-y: scroll;
     height: -webkit-fill-available;
-    padding: 5px 35px;
-    height: 595px;
+    padding: 20px 35px;
+    min-height: 566px;
+    height: calc(100vh - 385px);
     overflow-anchor: none;
 }
 
@@ -49,6 +50,7 @@
     border-radius: 10px;
     padding: 13px 24px 12px 24px;
     margin-bottom: 10px;
+    border: solid 0.1px #00ff2c1f;
 }
 
 #conversation .from-almond>.message {
@@ -58,6 +60,7 @@
     border-radius: 10px;
     padding: 13px 24px 12px 24px;
     margin-bottom: 10px;
+    border: solid 0.1px #f129291f;
 }
 
 #conversation .message {
@@ -86,13 +89,23 @@
     margin: auto;
     max-width: 800px;
     background-color: #ece5dd6b;
-    font-weight: 600;
+    font-weight: 400;
+    font-size: 1.2em;
 }
 
 #conversation.single {
     max-height: 100%;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
+    border: 1px solid #585858;
+    border-top: 0;
+}
+
+.glyphicon {
+    font-size: 40px;
+    color: #fff;
+    right: 8px;
+    top: 4px !important
 }
 
 @media screen and (max-width: 750px) {
@@ -164,8 +177,8 @@
 
 #record-button {
     background-image: url("/assets/images/almond_mic_white_round.svg");
-    width: 60px;
-    height: 60px;
+    width: 57px;
+    height: 57px;
     background-color: transparent;
     border-radius: 100px;
     float: right;
@@ -185,11 +198,29 @@
     outline: none;
 }
 
+#record-text {
+    text-align: right;
+    height: 3em;
+    padding-top: 1em;
+    margin-right: -3em;
+    float: right;
+    color: #fff;
+    font-weight: 500;
+}
+
 #input {
     width: 90%;
     margin: 0.6em;
     float: left;
     border-radius: 8px;
+}
+
+.input-alert {
+    color: #8c1515;
+    opacity: 1;
+    /* Firefox */
+    text-align: right;
+    font-weight: bold;
 }
 
 #input-block {
@@ -218,6 +249,8 @@
     border-top-right-radius: 15px;
     text-align: right;
     padding-right: 15px;
+    border: 1px solid #585858;
+    border-bottom: 0;
 }
 
 .comment-options {

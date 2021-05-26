@@ -1,23 +1,26 @@
 extends layout
 
 block content
-  section.divider#request-info
-    h2= _("Oauth request")
-    span= _(" ")
-    h3= _("for %s from: %s").format(kind, redirect_address)
+  div.container.panel.panel-body.panel-default.oauth-pan
+    section.divider#request-info
+      h2= _("Oauth request for: ")
+      span= _(" ")
+      h3=kind
+      span= _(" ")
+      h2= _("from: ")
+      h3=redirect_address
 
-    div.panel-body
-          p.text-center
-            = _('Are you sure you would like to grant #[strong %s] access to the credentials of device: #[strong %s]').format(redirect_address, kind)
-    div.container
-
+      br
+      p.text-center
+        = _('Are you sure you would like to grant %s access to the credentials of device: %s').format(redirect_address, kind)
+      br
       div.text-center
         div.oa-col-left
           form(action='/proxy/oauth2', method='post').form-inline
               input(type='hidden',name='_csrf',value=csrfToken)
               input(type='hidden',name='device_type',value=kind)
               button(type='submit').btn.btn-primary.custom-btn= _("Continue")
-        br
+        
         div.oa-col-right
           p.text-center
             a.btn.btn-primary.custom-btn(href=redirect_address)= _("Cancel")
