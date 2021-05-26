@@ -10,18 +10,12 @@
     margin-top: 30px;
     margin-bottom: 30px;
     margin-bottom: 30px;
-    height: 4.2em;
+    height: 3.9em;
 }
 
 @media screen and (max-width: 768px) {
     #device-list-navbar {
         height: 7em;
-    }
-    #device-list-navbar .search-button {
-        margin-top: 0.6em;
-    }
-    #device-list-navbar .reset-button {
-        margin-top: 0.6em;
     }
 }
 
