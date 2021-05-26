@@ -649,6 +649,14 @@ footer.page-footer a:hover {
     }
 }
 
+.device-icon-small > img {
+    width: 64px;
+    height: 64px;
+}
+.device-icon-small {
+    text-align: center;
+}
+
 img.device-icon-tiny {
     display: inline-block;
     width: 32px;

@@ -260,14 +260,11 @@
 }
 
 .form-inline {
-    background-color: #d8d8d8;
-    color: #000;
     line-height: 2.2em;
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;
     text-align: right;
     padding-right: 15px;
-    border: 1px solid #585858;
     border-bottom: 0;
 }
 

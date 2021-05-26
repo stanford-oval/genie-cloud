@@ -35,3 +35,7 @@
     background-color: #7f030a;
     color: white;
 }
+
+.device-list .aligned-grid {
+    margin-bottom: 1em;
+}
