@@ -21,112 +21,60 @@ block content
 
   div#page-body
     section.divider#section-heading
-      div.container-fluid#almond-index-container
-        div.row
-          div.col-lg-6
-            h1#almond-title
-              img(src=Config.ASSET_CDN + '/images/logo.png',style='display:inline-block;padding-right:12px;height:1em;vertical-align:bottom')
-              = _("Almond")
-            h2#almond-subtitle= _("The Open, Privacy-Preserving Virtual Assistant")
+      div.container
+          div.row
+            div.col-lg-8.col-lg-offset-2
+              h1#almond-title
+                img(src=Config.ASSET_CDN + '/images/logo.png',style='display:inline-block;padding-right:12px;height:1em;vertical-align:bottom')
+                = _("Almond")
+              h2#almond-subtitle= _("The Open, Privacy-Preserving Virtual Assistant")
 
-            p.text-center#almond-explanation-line
-              = _("Almond translates your commands into a personalized program.")
+              p.text-center#almond-explanation-line
+                = _("Almond translates your commands into a personalized program.")
 
-            if authenticated
-              div.row
-                div.col-lg-8.col-lg-offset-2
-                  a(href='/me').btn.btn-primary.btn-block.call-to-action= _("Go To My Almond")
-            else if !ENABLE_ANONYMOUS_USER
-              div.row
-                div.col-lg-8.col-lg-offset-2
-                  a(href='/user/register').btn.btn-primary.btn-block.call-to-action= _("Try Almond Now")
-            else
-              div.row#try-almond-now-row
-                div.col-lg-8.col-lg-offset-2
-                  a#try-almond-now(href='#conversation').btn.btn-primary.btn-block.call-to-action= _("Try Almond Now")
+              if authenticated
+                div.row
+                  div.col-lg-8.col-lg-offset-2
+                    a(href='/me').btn.btn-primary.btn-block.call-to-action= _("Go To My Almond")
+              else if !ENABLE_ANONYMOUS_USER
+                div.row
+                  div.col-lg-8.col-lg-offset-2
+                    a(href='/user/register').btn.btn-primary.btn-block.call-to-action= _("Try Almond Now")
+              else
+                div.row#try-almond-now-row
+                  div.col-lg-8.col-lg-offset-2
+                    a#try-almond-now(href='#conversation').btn.btn-primary.btn-block.call-to-action= _("Try Almond Now")
 
-              div.row
-                div.col-lg-12
-                  div#conversation(data-target='/me/ws/anonymous',aria-expanded='false')
-                    div#chat
-                    div#input-block
-                      span(role='button').hidden#cancel
-                        span(aria-hidden='true').glyphicon.glyphicon-remove-circle
-                        span.sr-only= _("Cancel")
-                      form(action='#')#input-form
-                        div.form-group.has-feedback#input-form-group
-                          label(for='#chat-input').sr-only= _("Command:")
-                          input(type='text',placeholder=_("Write your command or answer here")).form-control#input
-                          //-button(type='button').btn.btn-primary#record-button= _("Say a command!")
-                          span.spinner-container.form-control-feedback.hidden
-                            span.spinner
-                            span.sr-only= _("Almond is thinking…")
-                          span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden(title=_("Lost connection to the server."))
-                          span.help-block.hidden= _("Lost connection to the server.")
+                div.row
+                  div.col-lg-12
+                    div#conversation(data-target='/me/ws/anonymous',aria-expanded='false')
+                      div#chat
+                      div#input-block
+                        span(role='button').hidden#cancel
+                          span(aria-hidden='true').glyphicon.glyphicon-remove-circle
+                          span.sr-only= _("Cancel")
+                        form(action='#')#input-form
+                          div.form-group.has-feedback#input-form-group
+                            label(for='#chat-input').sr-only= _("Command:")
+                            input(type='text',placeholder=_("Write your command or answer here")).form-control#input
+                            //-button(type='button').btn.btn-primary#record-button= _("Say a command!")
+                            span.spinner-container.form-control-feedback.hidden
+                              span.spinner
+                              span.sr-only= _("Almond is thinking…")
+                            span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden(title=_("Lost connection to the server."))
+                            span.help-block.hidden= _("Lost connection to the server.")
 
-            div(style='margin-top:1em;font-size:24px').text-center
-              div.row
-                div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
-                  a(href='/about/get-almond')= _("Get Almond")
-                div.col-xs-12.col-sm-6.col-md-4
-                  a(href='/about/get-involved')= _("Contribute To Almond")
-              div.row
-                div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
-                  a(href='https://forms.gle/Q1m5uZDF8ZyRbdSw7', rel='noopener')= _("Sign Up for Updates")
-                div.col-xs-12.col-sm-6.col-md-4
-                  a(href='https://community.almond.stanford.edu')= _("Join Our Community")
-
-            if Config.SERVER_ORIGIN === 'https://almond.stanford.edu'
               div(style='margin-top:1em;font-size:24px').text-center
-                p You can also try the bleeding edge, development version
-                  br
-                  | of Almond at #[a(href='https://dev.almond.stanford.edu') dev.almond.stanford.edu].
-
-            p(style='margin-top:1em;font-size:24px').text-center!= _("Brought to you by the <a href='https://oval.cs.stanford.edu'>Stanford Open Virtual Assistant Lab</a>.")
-
-
-          div.col-lg-6
-            div.carousel.slide(data-ride='carousel')#almond-index-carousel
-              div.carousel-inner(role='listbox')
-                div.item.active
-                  h3= _("Notifications That Matter To You")
-                  img(src=Config.ASSET_CDN + '/images/carousel-nyt.png',
-                      alt=_("Screenshot of Almond for Android. The user asks: “Show me the New York Times”. Almond replies with news articles."))
-                  div.carousel-caption
-                    h4= _("Say: “Monitor the New York Times”")
-                div.item
-                  h3= _("Graphical and Voice is the Best Combination")
-                  img(src=Config.ASSET_CDN + '/images/carousel-nest.png',
-                      alt=_("Screenshot of Web Almond. The user asks, in sequence, “Turn on my security camera”, “Get a snapshot” and “Send an email to my neighbor if my camera detects motion when I am not home”."))
-                  div.carousel-caption
-                    h4= _("Say: “Show me a security camera snapshot”")
-                div.item
-                  h3= _("Enhance Your Life With All The Internet's Resources")
-                  img(src=Config.ASSET_CDN + '/images/carousel-nasa.png',
-                      alt=_("Screenshot of Almond for PC. The list of enabled rules is shown, which includes: “Set your laptop's background to the NASA Astronomy Picture of the Day”. In the background, a NASA picture is shown."))
-                  div.carousel-caption
-                    h4= _("Say: “Change my laptop background to the NASA Picture of the Day”")
-                div.item
-                  h3= _("Automate Your Tasks, Across All Your Services")
-                  img(src=Config.ASSET_CDN + '/images/carousel-alexa.png', alt="Picture of Amazon Echo device")#alexa
-                  div.carousel-caption
-                    h4= _("Say: “Tweet the post when my Facebook updates”")
-                    p
-                      em= _("Coming soon!")
-                //-div.item
-                  h3= _("The Best Way To Control Your Home")
-                  img(src=Config.ASSET_CDN + '/images/carousel-livingroom.png', alt="Picture of Almond Home device")
-                  div.carousel-caption
-                    h4= _("Say: “Turn off my TV if there is nobody in the room”")
-                    p
-                      em= _("Coming soon!")
-
-              a.left.carousel-control(href='#almond-index-carousel',role='button',data-slide='prev')
-                span.glyphicon.glyphicon-chevron-left(aria-hidden='true')
-                span.sr-only= _("Previous")
-              a.right.carousel-control(href='#almond-index-carousel',role='button',data-slide='next')
-                span.glyphicon.glyphicon-chevron-right(aria-hidden='true')
-                span.sr-only= _("Next")
+                div.row
+                  div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
+                    a(href='/about/get-almond')= _("Get Almond")
+                  div.col-xs-12.col-sm-6.col-md-4
+                    a(href='/about/get-involved')= _("Contribute To Almond")
+                div.row
+                  div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
+                    a(href='https://forms.gle/Q1m5uZDF8ZyRbdSw7', rel='noopener')= _("Sign Up for Updates")
+                  div.col-xs-12.col-sm-6.col-md-4
+                    a(href='https://community.almond.stanford.edu')= _("Join Our Community")
 
     div.sections#home-page-sections
       section.divider
