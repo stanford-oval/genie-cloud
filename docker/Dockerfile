@@ -29,7 +29,7 @@ RUN curl -sL https://files.pythonhosted.org/packages/1d/a9/f349273a0327fdf20a731
         && rm -fr torch-1.7.1-cp38-cp38-manylinux1_x86_64.whl \
         && rm -fr /root/.cache
 RUN dnf -y install cmake gcc gcc-c++ python38-devel && \
-   pip3 install 'git+https://github.com/stanford-oval/genienlp@3885917258678b8cd38fbd6d9b8488b6ac8caed7#egg=genienlp' awscli && \
+   pip3 install genienlp==0.6.0 awscli && \
    dnf -y remove cmake gcc gcc-c++ python38-devel && \
    rm -fr /var/cache/dnf && \
    rm -fr /root/.cache
