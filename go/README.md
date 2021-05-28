@@ -28,7 +28,6 @@ go get ...
 
 This may take a few minutes depending on network conditions. The packages will be
 downloaded to `$GOPATH/pkg`. The default location is `$HOME/go/pkg`.
-```
 
 
 # Build
@@ -51,6 +50,7 @@ A binary will be built in the current directory.
 
 # Install
 To install all binaries:
+
 ```
 go install ...
 ```
