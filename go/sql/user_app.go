@@ -13,38 +13,41 @@
 // limitations under the License.
 package sql
 
-// UserChannel table
-type UserChannel struct {
+// UserApp table
+type UserApp struct {
 	Key
-	Value string `json:"value" gorm:"column:value"`
+	Code        string `json:"code" gorm:"column:code"`
+	State       string `json:"state" gorm:"column:state"`
+	Name        string `json:"name" gorm:"column:name"`
+	Description string `description:"value" gorm:"column:description"`
 }
 
 // TableName overrides table name to `user_channel`
-func (*UserChannel) TableName() string {
-	return "user_channel"
+func (*UserApp) TableName() string {
+	return "user_app"
 }
 
-// NewRow returns a UserChannel row
-func (*UserChannel) NewRow() Model {
-	return &UserChannel{}
+// NewRow returns a UserApp row
+func (*UserApp) NewRow() Model {
+	return &UserApp{}
 }
 
-// NewRows returns a slice of UserChannel row
-func (*UserChannel) NewRows() interface{} {
-	return &[]UserChannel{}
+// NewRows returns a slice of UserApp row
+func (*UserApp) NewRows() interface{} {
+	return &[]UserApp{}
 }
 
-// SetKey sets the key of UserChannel
-func (e *UserChannel) SetKey(key Key) {
+// SetKey sets the key of UserApp
+func (e *UserApp) SetKey(key Key) {
 	e.Key = key
 }
 
-// GetKey returns the key of UserChannel
-func (e *UserChannel) GetKey() Key {
+// GetKey returns the key of UserApp
+func (e *UserApp) GetKey() Key {
 	return e.Key
 }
 
 // Fields returns column names excluding Key
-func (e *UserChannel) Fields() []string {
-	return []string{"value"}
+func (e *UserApp) Fields() []string {
+	return []string{"code", "state", "name", "description"}
 }
