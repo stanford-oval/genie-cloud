@@ -30,6 +30,14 @@ This may take a few minutes depending on network conditions. The packages will b
 downloaded to `$GOPATH/pkg`. The default location is `$HOME/go/pkg`.
 
 
+Clean up indirect dependencies
+
+```
+go mod tidy
+
+```
+
+
 # Build
 
 To build all binaries: 
