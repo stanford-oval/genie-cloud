@@ -34,7 +34,7 @@ func (*UserApp) NewRow() Row {
 
 // NewRows returns a slice of UserApp row
 func (*UserApp) NewRows() interface{} {
-	return &[]UserApp{}
+	return &[]*UserApp{}
 }
 
 // SetKey sets the key of UserApp

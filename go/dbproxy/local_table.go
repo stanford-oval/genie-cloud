@@ -25,7 +25,7 @@ import (
 
 func localTableGetAll(c *gin.Context) {
 	localTable := sql.GetLocalTable()
-	m, ok := sql.GetRow(c.Param("name"))
+	m, ok := sql.NewRow(c.Param("name"))
 	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
@@ -45,7 +45,7 @@ func localTableGetAll(c *gin.Context) {
 
 func localTableGetOne(c *gin.Context) {
 	localTable := sql.GetLocalTable()
-	m, ok := sql.GetRow(c.Param("name"))
+	row, ok := sql.NewRow(c.Param("name"))
 	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
@@ -55,7 +55,6 @@ func localTableGetOne(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	row := m.NewRow()
 	row.SetKey(*key)
 	if err := localTable.GetOne(row); err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -92,7 +91,7 @@ func parseKey(c *gin.Context) (*sql.Key, error) {
 
 func localTableDeleteOne(c *gin.Context) {
 	localTable := sql.GetLocalTable()
-	m, ok := sql.GetRow(c.Param("name"))
+	row, ok := sql.NewRow(c.Param("name"))
 	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
@@ -102,7 +101,6 @@ func localTableDeleteOne(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	row := m.NewRow()
 	row.SetKey(*key)
 	if err := localTable.DeleteOne(row); err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -117,7 +115,7 @@ func localTableDeleteOne(c *gin.Context) {
 
 func localTableInsertOne(c *gin.Context) {
 	localTable := sql.GetLocalTable()
-	m, ok := sql.GetRow(c.Param("name"))
+	row, ok := sql.NewRow(c.Param("name"))
 	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
@@ -129,7 +127,6 @@ func localTableInsertOne(c *gin.Context) {
 		return
 	}
 
-	row := m.NewRow()
 	if err := c.ShouldBindJSON(row); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

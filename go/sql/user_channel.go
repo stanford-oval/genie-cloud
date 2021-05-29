@@ -31,7 +31,7 @@ func (*UserChannel) NewRow() Row {
 
 // NewRows returns a slice of UserChannel row
 func (*UserChannel) NewRows() interface{} {
-	return &[]UserChannel{}
+	return &[]*UserChannel{}
 }
 
 // SetKey sets the key of UserChannel

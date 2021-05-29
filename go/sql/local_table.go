@@ -32,7 +32,7 @@ func NewLocalTable(db *gorm.DB) *LocalTable {
 
 // GetAll returns all rows in the table.
 func (t *LocalTable) GetAll(rows interface{}, userID int64) error {
-	return t.db.Find(rows).Where("userId = ?", userID).Error
+	return t.db.Where("userId = ?", userID).Find(rows).Error
 }
 
 // GetOne returns one row in the table. Row key is expected to be set.
