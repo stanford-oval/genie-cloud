@@ -1,3 +1,16 @@
+// Copyright 2021 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package sql
 
 import (
@@ -25,7 +38,7 @@ func (t *SyncTable) GetAll(rows interface{}, userID int64) error {
 }
 
 // GetOne
-func (t *SyncTable) GetOne(row SyncModel) error {
+func (t *SyncTable) GetOne(row SyncRow) error {
 	if len(row.GetKey().UniqueID) == 0 || row.GetKey().UserID == 0 {
 		return errors.New("invalid key")
 	}
@@ -33,9 +46,9 @@ func (t *SyncTable) GetOne(row SyncModel) error {
 }
 
 // GetRaw
-func (t *SyncTable) GetRaw(sm SyncModel, userID int64) (interface{}, error) {
-	journalTable := sm.NewSyncRow(0).JournalRow().TableName()
-	rows := sm.NewSyncRows()
+func (t *SyncTable) GetRaw(sm SyncRow, userID int64) (interface{}, error) {
+	journalTable := sm.NewSyncRecord(0).JournalRow().TableName()
+	rows := sm.NewSyncRecords()
 	fields := strings.Join(mapPrefix("t.", sm.Fields()), ",")
 	result := db.Raw("select tj.uniqueId,tj.lastModified,"+fields+
 		" from "+journalTable+" as tj left outer join "+
@@ -45,13 +58,13 @@ func (t *SyncTable) GetRaw(sm SyncModel, userID int64) (interface{}, error) {
 }
 
 // GetChangesAfter
-func (t *SyncTable) GetChangesAfter(sm SyncModel, lastModified int64, userID int64) ([]SyncRow, error) {
+func (t *SyncTable) GetChangesAfter(sm SyncRow, lastModified int64, userID int64) ([]SyncRecord, error) {
 	return t.getChangesAfter(t.db, sm, lastModified, userID)
 }
 
-func (t *SyncTable) getChangesAfter(tx *gorm.DB, sm SyncModel, lastModified int64, userID int64) ([]SyncRow, error) {
-	rows := sm.NewSyncRows()
-	journalTable := sm.NewSyncRow(0).JournalRow().TableName()
+func (t *SyncTable) getChangesAfter(tx *gorm.DB, sm SyncRow, lastModified int64, userID int64) ([]SyncRecord, error) {
+	rows := sm.NewSyncRecords()
+	journalTable := sm.NewSyncRecord(0).JournalRow().TableName()
 	fields := strings.Join(mapPrefix("t.", sm.Fields()), ",")
 	if err := tx.Raw("select tj.uniqueId,tj.lastModified,"+fields+
 		" from "+journalTable+" as tj left outer join "+
@@ -59,7 +72,7 @@ func (t *SyncTable) getChangesAfter(tx *gorm.DB, sm SyncModel, lastModified int6
 		"where tj.lastModified > ? and tj.userId = ?;", lastModified, userID).Find(rows).Error; err != nil {
 		return nil, err
 	}
-	srs, err := ToSyncRowSlice(rows)
+	srs, err := ToSyncRecordSlice(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +80,7 @@ func (t *SyncTable) getChangesAfter(tx *gorm.DB, sm SyncModel, lastModified int6
 }
 
 // HandleChanges
-func (t *SyncTable) HandleChanges(changes []SyncRow, userID int64) ([]bool, error) {
+func (t *SyncTable) HandleChanges(changes []SyncRecord, userID int64) ([]bool, error) {
 	var results []bool
 	if err := t.db.Transaction(func(tx *gorm.DB) error {
 		res, err := t.handleChanges(tx, changes, userID)
@@ -84,7 +97,7 @@ func (t *SyncTable) HandleChanges(changes []SyncRow, userID int64) ([]bool, erro
 	return results, nil
 }
 
-func (t *SyncTable) handleChanges(tx *gorm.DB, changes []SyncRow, userID int64) ([]bool, error) {
+func (t *SyncTable) handleChanges(tx *gorm.DB, changes []SyncRecord, userID int64) ([]bool, error) {
 	var results []bool
 	for _, sr := range changes {
 		var res bool
@@ -103,7 +116,7 @@ func (t *SyncTable) handleChanges(tx *gorm.DB, changes []SyncRow, userID int64) 
 	return results, nil
 }
 
-func (t *SyncTable) insertIfRecent(tx *gorm.DB, sr SyncRow) (bool, error) {
+func (t *SyncTable) insertIfRecent(tx *gorm.DB, sr SyncRecord) (bool, error) {
 	rows := []struct{ lastModified int64 }{}
 	k := sr.JournalRow().GetKey()
 	if err := tx.Table(sr.JournalRow().TableName()).Where(
@@ -119,7 +132,7 @@ func (t *SyncTable) insertIfRecent(tx *gorm.DB, sr SyncRow) (bool, error) {
 	return true, nil
 }
 
-func (t *SyncTable) insert(tx *gorm.DB, sr SyncRow) (int64, error) {
+func (t *SyncTable) insert(tx *gorm.DB, sr SyncRecord) (int64, error) {
 	if err := tx.Clauses(clause.OnConflict{UpdateAll: true}).Create(sr.Row()).Error; err != nil {
 		return 0, err
 	}
@@ -129,7 +142,7 @@ func (t *SyncTable) insert(tx *gorm.DB, sr SyncRow) (int64, error) {
 	return sr.GetLastModified(), nil
 }
 
-func (t *SyncTable) deleteIfRecent(tx *gorm.DB, sr SyncRow) (bool, error) {
+func (t *SyncTable) deleteIfRecent(tx *gorm.DB, sr SyncRecord) (bool, error) {
 	rows := []struct{ lastModified int64 }{}
 	k := sr.JournalRow().GetKey()
 	if err := tx.Table(sr.JournalRow().TableName()).Where(
@@ -145,7 +158,7 @@ func (t *SyncTable) deleteIfRecent(tx *gorm.DB, sr SyncRow) (bool, error) {
 	return true, nil
 }
 
-func (t *SyncTable) delete(tx *gorm.DB, sr SyncRow) (int64, error) {
+func (t *SyncTable) delete(tx *gorm.DB, sr SyncRecord) (int64, error) {
 	if err := tx.Delete(sr.Row()).Error; err != nil {
 		return 0, err
 	}
@@ -156,8 +169,8 @@ func (t *SyncTable) delete(tx *gorm.DB, sr SyncRow) (int64, error) {
 }
 
 // SyncAt
-func (t *SyncTable) SyncAt(sr SyncRow, pushedChanges []SyncRow) (int64, []SyncRow, []bool, error) {
-	var ourChange []SyncRow
+func (t *SyncTable) SyncAt(sr SyncRecord, pushedChanges []SyncRecord) (int64, []SyncRecord, []bool, error) {
+	var ourChange []SyncRecord
 	var lastModified int64
 	var done []bool
 	userID := sr.Row().GetKey().UserID
@@ -183,7 +196,7 @@ func (t *SyncTable) SyncAt(sr SyncRow, pushedChanges []SyncRow) (int64, []SyncRo
 	return lastModified, ourChange, done, nil
 }
 
-func (t *SyncTable) getLastModified(tx *gorm.DB, sr SyncRow) (int64, error) {
+func (t *SyncTable) getLastModified(tx *gorm.DB, sr SyncRecord) (int64, error) {
 	rows := []struct{ maxLastModified int64 }{}
 	if err := tx.Raw("select max(lastModified) as maxLastModified from " +
 		sr.JournalRow().TableName()).Find(&rows).Error; err != nil {
@@ -196,7 +209,7 @@ func (t *SyncTable) getLastModified(tx *gorm.DB, sr SyncRow) (int64, error) {
 }
 
 // ReplaceAll
-func (t *SyncTable) ReplaceAll(rows []SyncRow, userID int64) error {
+func (t *SyncTable) ReplaceAll(rows []SyncRecord, userID int64) error {
 	if len(rows) == 0 {
 		return nil
 	}
@@ -227,11 +240,11 @@ func (t *SyncTable) ReplaceAll(rows []SyncRow, userID int64) error {
 }
 
 // InsertIfRecent
-func (t *SyncTable) InsertIfRecent(row SyncModel, lastModified int64) (bool, error) {
+func (t *SyncTable) InsertIfRecent(row SyncRow, lastModified int64) (bool, error) {
 	var err error
 	var done bool
 	if err = t.db.Transaction(func(tx *gorm.DB) error {
-		sr := row.NewSyncRow(lastModified)
+		sr := row.NewSyncRecord(lastModified)
 		if done, err = t.insertIfRecent(tx, sr); err != nil {
 			return err
 		}
@@ -243,12 +256,12 @@ func (t *SyncTable) InsertIfRecent(row SyncModel, lastModified int64) (bool, err
 }
 
 // InsertOne
-func (t *SyncTable) InsertOne(row SyncModel) (int64, error) {
+func (t *SyncTable) InsertOne(row SyncRow) (int64, error) {
 	var lastModified int64
 	var err error
 	if err = t.db.Transaction(func(tx *gorm.DB) error {
 		nowMillis := time.Now().UnixNano() / 1e6
-		sr := row.NewSyncRow(nowMillis)
+		sr := row.NewSyncRecord(nowMillis)
 		if lastModified, err = t.insert(tx, sr); err != nil {
 			return err
 		}
@@ -260,11 +273,11 @@ func (t *SyncTable) InsertOne(row SyncModel) (int64, error) {
 }
 
 // DeleteIfRecent
-func (t *SyncTable) DeleteIfRecent(row SyncModel, lastModified int64) (bool, error) {
+func (t *SyncTable) DeleteIfRecent(row SyncRow, lastModified int64) (bool, error) {
 	var done bool
 	var err error
 	if err = t.db.Transaction(func(tx *gorm.DB) error {
-		sr := row.NewSyncRow(lastModified)
+		sr := row.NewSyncRecord(lastModified)
 		if done, err = t.deleteIfRecent(tx, sr); err != nil {
 			return err
 		}
@@ -276,12 +289,12 @@ func (t *SyncTable) DeleteIfRecent(row SyncModel, lastModified int64) (bool, err
 }
 
 // DeleteOne
-func (t *SyncTable) DeleteOne(row SyncModel) (int64, error) {
+func (t *SyncTable) DeleteOne(row SyncRow) (int64, error) {
 	var lastModified int64
 	var err error
 	if err = t.db.Transaction(func(tx *gorm.DB) error {
 		nowMillis := time.Now().UnixNano() / 1e6
-		sr := row.NewSyncRow(nowMillis)
+		sr := row.NewSyncRecord(nowMillis)
 		if lastModified, err = t.delete(tx, sr); err != nil {
 			return err
 		}

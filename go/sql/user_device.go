@@ -25,7 +25,7 @@ func (*UserDevice) TableName() string {
 }
 
 // NewRow returns a UserDevice row
-func (*UserDevice) NewRow() Model {
+func (*UserDevice) NewRow() Row {
 	return &UserDevice{}
 }
 
@@ -39,9 +39,9 @@ func (e *UserDevice) SetKey(key Key) {
 	e.Key = key
 }
 
-// GetKey returns the key of UserDevice
-func (e *UserDevice) NewSyncRow(lastModified int64) SyncRow {
-	return &UserDeviceSyncRow{
+//
+func (e *UserDevice) NewSyncRecord(lastModified int64) SyncRecord {
+	return &UserDeviceSyncRecord{
 		UserDeviceJournal: UserDeviceJournal{
 			Key:          e.Key,
 			LastModified: lastModified,
@@ -50,8 +50,8 @@ func (e *UserDevice) NewSyncRow(lastModified int64) SyncRow {
 	}
 }
 
-func (e *UserDevice) NewSyncRows() interface{} {
-	return &[]*UserDeviceSyncRow{}
+func (e *UserDevice) NewSyncRecords() interface{} {
+	return &[]*UserDeviceSyncRecord{}
 }
 
 // GetKey returns the key of UserDevice
@@ -78,7 +78,7 @@ func (*UserDeviceJournal) TableName() string {
 }
 
 // NewRow returns a UserDevice row
-func (*UserDeviceJournal) NewRow() Model {
+func (*UserDeviceJournal) NewRow() Row {
 	return &UserDeviceJournal{}
 }
 
@@ -104,31 +104,31 @@ func (e *UserDeviceJournal) Fields() []string {
 
 // -------------------------------
 // -------------------------------
-// UserDeviceSyncRow is the joined row of UserDevice and UserDeviceJournal
-type UserDeviceSyncRow struct {
+// UserDeviceSyncRecord is the joined row of UserDevice and UserDeviceJournal
+type UserDeviceSyncRecord struct {
 	UserDeviceJournal
 	State string `json:"state" gorm:"column:state"`
 }
 
-func (r *UserDeviceSyncRow) Row() SyncModel {
+func (r *UserDeviceSyncRecord) Row() SyncRow {
 	return &UserDevice{
 		Key:   r.UserDeviceJournal.Key,
 		State: r.State,
 	}
 }
 
-func (r *UserDeviceSyncRow) JournalRow() Model {
+func (r *UserDeviceSyncRecord) JournalRow() Row {
 	return &r.UserDeviceJournal
 }
 
-func (r *UserDeviceSyncRow) GetLastModified() int64 {
+func (r *UserDeviceSyncRecord) GetLastModified() int64 {
 	return r.UserDeviceJournal.LastModified
 }
 
-func (r *UserDeviceSyncRow) SetLastModified(t int64) {
+func (r *UserDeviceSyncRecord) SetLastModified(t int64) {
 	r.UserDeviceJournal.LastModified = t
 }
 
-func (r *UserDeviceSyncRow) HasDiscriminator() bool {
+func (r *UserDeviceSyncRecord) HasDiscriminator() bool {
 	return len(r.State) > 0
 }

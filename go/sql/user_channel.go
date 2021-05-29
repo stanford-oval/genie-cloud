@@ -25,7 +25,7 @@ func (*UserChannel) TableName() string {
 }
 
 // NewRow returns a UserChannel row
-func (*UserChannel) NewRow() Model {
+func (*UserChannel) NewRow() Row {
 	return &UserChannel{}
 }
 

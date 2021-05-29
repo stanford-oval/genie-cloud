@@ -24,7 +24,7 @@ import (
 
 func syncTableGetAll(c *gin.Context) {
 	syncTable := sql.GetSyncTable()
-	m, ok := sql.GetSyncModel(c.Param("name"))
+	m, ok := sql.GetSyncRow(c.Param("name"))
 	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
@@ -44,7 +44,7 @@ func syncTableGetAll(c *gin.Context) {
 
 func syncTableGetOne(c *gin.Context) {
 	syncTable := sql.GetSyncTable()
-	m, ok := sql.GetSyncModel(c.Param("name"))
+	m, ok := sql.GetSyncRow(c.Param("name"))
 	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
@@ -54,7 +54,7 @@ func syncTableGetOne(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	row := m.NewRow().(sql.SyncModel)
+	row := m.NewRow().(sql.SyncRow)
 	row.SetKey(*key)
 	if err := syncTable.GetOne(row); err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -69,7 +69,7 @@ func syncTableGetOne(c *gin.Context) {
 
 func syncTableGetRaw(c *gin.Context) {
 	syncTable := sql.GetSyncTable()
-	m, ok := sql.GetSyncModel(c.Param("name"))
+	m, ok := sql.GetSyncRow(c.Param("name"))
 	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
@@ -89,7 +89,7 @@ func syncTableGetRaw(c *gin.Context) {
 
 func syncTableGetChangesAfter(c *gin.Context) {
 	syncTable := sql.GetSyncTable()
-	m, ok := sql.GetSyncModel(c.Param("name"))
+	m, ok := sql.GetSyncRow(c.Param("name"))
 	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
@@ -114,7 +114,7 @@ func syncTableGetChangesAfter(c *gin.Context) {
 
 func syncTableHandleChanges(c *gin.Context) {
 	syncTable := sql.GetSyncTable()
-	m, ok := sql.GetSyncModel(c.Param("name"))
+	m, ok := sql.GetSyncRow(c.Param("name"))
 	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
@@ -125,12 +125,12 @@ func syncTableHandleChanges(c *gin.Context) {
 		return
 	}
 
-	rows := m.NewSyncRows()
+	rows := m.NewSyncRecords()
 	if err := c.ShouldBindJSON(rows); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	srows, err := sql.ToSyncRowSlice(rows)
+	srows, err := sql.ToSyncRecordSlice(rows)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -146,7 +146,7 @@ func syncTableHandleChanges(c *gin.Context) {
 
 func syncTableSyncAt(c *gin.Context) {
 	syncTable := sql.GetSyncTable()
-	m, ok := sql.GetSyncModel(c.Param("name"))
+	m, ok := sql.GetSyncRow(c.Param("name"))
 	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
@@ -163,26 +163,26 @@ func syncTableSyncAt(c *gin.Context) {
 		return
 	}
 
-	rows := m.NewSyncRows()
+	rows := m.NewSyncRecords()
 	if err := c.ShouldBindJSON(rows); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	srows, err := sql.ToSyncRowSlice(rows)
+	srows, err := sql.ToSyncRecordSlice(rows)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	m.SetKey(sql.Key{UserID: userID})
-	latest, ourChange, done, err := syncTable.SyncAt(m.NewSyncRow(lastModified), srows)
+	latest, ourChange, done, err := syncTable.SyncAt(m.NewSyncRecord(lastModified), srows)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	ret := struct {
 		lastModified int64
-		ourChange    []sql.SyncRow
+		ourChange    []sql.SyncRecord
 		done         []bool
 	}{latest, ourChange, done}
 	c.JSON(http.StatusOK, gin.H{"data": ret})
@@ -190,7 +190,7 @@ func syncTableSyncAt(c *gin.Context) {
 
 func syncTableReplaceAll(c *gin.Context) {
 	syncTable := sql.GetSyncTable()
-	m, ok := sql.GetSyncModel(c.Param("name"))
+	m, ok := sql.GetSyncRow(c.Param("name"))
 	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
@@ -201,12 +201,12 @@ func syncTableReplaceAll(c *gin.Context) {
 		return
 	}
 
-	rows := m.NewSyncRows()
+	rows := m.NewSyncRecords()
 	if err := c.ShouldBindJSON(rows); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	srows, err := sql.ToSyncRowSlice(rows)
+	srows, err := sql.ToSyncRecordSlice(rows)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -221,7 +221,7 @@ func syncTableReplaceAll(c *gin.Context) {
 
 func syncTableInsertIfRecent(c *gin.Context) {
 	syncTable := sql.GetSyncTable()
-	m, ok := sql.GetSyncModel(c.Param("name"))
+	m, ok := sql.GetSyncRow(c.Param("name"))
 	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
@@ -262,7 +262,7 @@ func syncTableInsertIfRecent(c *gin.Context) {
 
 func syncTableInsertOne(c *gin.Context) {
 	syncTable := sql.GetSyncTable()
-	m, ok := sql.GetSyncModel(c.Param("name"))
+	m, ok := sql.GetSyncRow(c.Param("name"))
 	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
@@ -297,7 +297,7 @@ func syncTableInsertOne(c *gin.Context) {
 
 func syncTableDeleteIfRecent(c *gin.Context) {
 	syncTable := sql.GetSyncTable()
-	m, ok := sql.GetSyncModel(c.Param("name"))
+	m, ok := sql.GetSyncRow(c.Param("name"))
 	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
@@ -329,7 +329,7 @@ func syncTableDeleteIfRecent(c *gin.Context) {
 
 func syncTableDeleteOne(c *gin.Context) {
 	syncTable := sql.GetSyncTable()
-	m, ok := sql.GetSyncModel(c.Param("name"))
+	m, ok := sql.GetSyncRow(c.Param("name"))
 	if !ok {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return

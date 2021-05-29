@@ -28,7 +28,7 @@ func (*UserApp) TableName() string {
 }
 
 // NewRow returns a UserApp row
-func (*UserApp) NewRow() Model {
+func (*UserApp) NewRow() Row {
 	return &UserApp{}
 }
 

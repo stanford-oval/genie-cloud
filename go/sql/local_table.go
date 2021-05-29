@@ -36,7 +36,7 @@ func (t *LocalTable) GetAll(rows interface{}, userID int64) error {
 }
 
 // GetOne returns one row in the table. Row key is expected to be set.
-func (t *LocalTable) GetOne(row Model) error {
+func (t *LocalTable) GetOne(row Row) error {
 	if len(row.GetKey().UniqueID) == 0 || row.GetKey().UserID == 0 {
 		return errors.New("invalid key")
 	}
@@ -44,7 +44,7 @@ func (t *LocalTable) GetOne(row Model) error {
 }
 
 // InsertOne inserts one row. Row key is expected to be set.
-func (t *LocalTable) InsertOne(row Model) error {
+func (t *LocalTable) InsertOne(row Row) error {
 	if len(row.GetKey().UniqueID) == 0 || row.GetKey().UserID == 0 {
 		return errors.New("invalid key")
 	}
@@ -52,7 +52,7 @@ func (t *LocalTable) InsertOne(row Model) error {
 }
 
 // DeleteOne deletes a row. Row key is expected to be set.
-func (t *LocalTable) DeleteOne(row Model) error {
+func (t *LocalTable) DeleteOne(row Row) error {
 	if len(row.GetKey().UniqueID) == 0 || row.GetKey().UserID == 0 {
 		return errors.New("invalid key")
 	}

@@ -24,68 +24,68 @@ type Key struct {
 	UserID   int64  `json:"userId" gorm:"primaryKey;column:userId"`
 }
 
-// Model defines the interface for table and row
-type Model interface {
+// Row defines the row interface to interact with tables
+type Row interface {
 	TableName() string
 	// Database column names excluding Key
 	Fields() []string
-	NewRow() Model
+	NewRow() Row
 	NewRows() interface{}
 	SetKey(Key)
 	GetKey() Key
 }
 
-// SyncModel is a Model with SyncRow
-type SyncModel interface {
-	Model
-	NewSyncRow(lastModified int64) SyncRow
-	NewSyncRows() interface{}
+// SyncRow is a Row with SyncRecord
+type SyncRow interface {
+	Row
+	NewSyncRecord(lastModified int64) SyncRecord
+	NewSyncRecords() interface{}
 }
 
-// SyncRow is a joined model of row and its timestamped journal
-type SyncRow interface {
-	Row() SyncModel
-	JournalRow() Model
+// SyncRecord joins Row and corresponding JournalRow
+type SyncRecord interface {
+	Row() SyncRow
+	JournalRow() Row
 	GetLastModified() int64
 	SetLastModified(t int64)
 	HasDiscriminator() bool
 }
 
-var models map[string]Model
-var syncModels map[string]SyncModel
+var rows map[string]Row
+var syncRows map[string]SyncRow
 
 func init() {
-	models = make(map[string]Model)
-	registerModel(&UserApp{})
-	registerModel(&UserChannel{})
+	rows = make(map[string]Row)
+	registerRow(&UserApp{})
+	registerRow(&UserChannel{})
 
-	syncModels = make(map[string]SyncModel)
-	registerSyncModel(&UserDevice{})
+	syncRows = make(map[string]SyncRow)
+	registerSyncRow(&UserDevice{})
 }
 
-func registerModel(t Model) {
-	models[t.TableName()] = t
+func registerRow(t Row) {
+	rows[t.TableName()] = t
 }
 
-func registerSyncModel(t SyncModel) {
-	syncModels[t.TableName()] = t
+func registerSyncRow(t SyncRow) {
+	syncRows[t.TableName()] = t
 }
 
-// GetModel returns registerd model keyed by table name
-func GetModel(n string) (Model, bool) {
-	m, ok := models[n]
+// GetRow returns registerd row keyed by table name
+func GetRow(n string) (Row, bool) {
+	m, ok := rows[n]
 	return m, ok
 }
 
-// GetSyncModel returns registerd model keyed by table name
-func GetSyncModel(n string) (SyncModel, bool) {
-	m, ok := syncModels[n]
+// GetSyncRow returns registerd syncrow keyed by table name
+func GetSyncRow(n string) (SyncRow, bool) {
+	m, ok := syncRows[n]
 	return m, ok
 }
 
-// ToSyncRowSlice dynamically casts an empty interface to a SyncRow slice
-func ToSyncRowSlice(rows interface{}) ([]SyncRow, error) {
-	var srs []SyncRow
+// ToSyncRecordSlice dynamically casts an empty interface to SyncRecord slice using reflection
+func ToSyncRecordSlice(rows interface{}) ([]SyncRecord, error) {
+	var srs []SyncRecord
 	v := reflect.ValueOf(rows)
 	if v.Kind() != reflect.Ptr {
 		return nil, errors.New("value not a pointer")
@@ -95,9 +95,9 @@ func ToSyncRowSlice(rows interface{}) ([]SyncRow, error) {
 	}
 	s := v.Elem()
 	for i := 0; i < s.Len(); i++ {
-		sr, ok := s.Index(i).Interface().(SyncRow)
+		sr, ok := s.Index(i).Interface().(SyncRecord)
 		if !ok {
-			return nil, errors.New("failed to cast to SyncRow")
+			return nil, errors.New("failed to cast to SyncRecord")
 		}
 		srs = append(srs, sr)
 	}
