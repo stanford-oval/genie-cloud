@@ -83,6 +83,7 @@ jobs:
       go: 1.16.x
       before_script: cd go
       script: go test -v ./...
+      after_success: go test -cover ./...
 
 notifications:
   webhooks: https://coveralls.io/webhook
