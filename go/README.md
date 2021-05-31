@@ -1,6 +1,6 @@
 # Prerequisites:
 
-### Install Go 
+### Install Go
 Follow the instructions to install go:
 
 https://golang.org/doc/install
@@ -19,9 +19,15 @@ go version go1.16.4 linux/amd64
 
 ```
 
+# Coding sytle
+
+We will be following the guidelines from [Effective Go](https://golang.org/doc/effective_go) .
+Formatting in go is done automatically by gofmt. The default plugins from VisualCode
+does a pretty good job at auto-formatting the code on save.
+
 # Build
 
-To build all binaries: 
+To build all binaries:
 
 ```
 cd go
