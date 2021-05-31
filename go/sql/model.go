@@ -74,13 +74,19 @@ func registerSyncRow(t SyncRow) {
 // NewRow returns a new registerd row keyed by table name
 func NewRow(n string) (Row, bool) {
 	m, ok := rows[n]
-	return m.NewRow(), ok
+	if !ok {
+		return nil, false
+	}
+	return m.NewRow(), true
 }
 
 // NewSyncRow returns a new registerd syncrow keyed by table name
 func NewSyncRow(n string) (SyncRow, bool) {
 	m, ok := syncRows[n]
-	return m.NewRow().(SyncRow), ok
+	if !ok {
+		return nil, false
+	}
+	return m.NewRow().(SyncRow), true
 }
 
 // ToSyncRecordSlice dynamically casts an empty interface to SyncRecord slice using reflection
