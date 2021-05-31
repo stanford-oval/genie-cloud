@@ -24,10 +24,9 @@ import (
 	"github.com/stretchr/testify/suite"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
-type Suite struct {
+type LocalTableSuite struct {
 	suite.Suite
 	DB         *gorm.DB
 	mock       sqlmock.Sqlmock
@@ -36,7 +35,7 @@ type Suite struct {
 	row2       *UserChannel
 }
 
-func (s *Suite) SetupSuite() {
+func (s *LocalTableSuite) SetupSuite() {
 	var (
 		db  *sql.DB
 		err error
@@ -47,7 +46,7 @@ func (s *Suite) SetupSuite() {
 
 	s.DB, err = gorm.Open(mysql.New(
 		mysql.Config{Conn: db, SkipInitializeWithVersion: true}),
-		&gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
+		gormConfig())
 
 	require.NoError(s.T(), err)
 	s.localTable = NewLocalTable(s.DB)
@@ -61,15 +60,15 @@ func (s *Suite) SetupSuite() {
 	}
 }
 
-func (s *Suite) AfterTest(_, _ string) {
+func (s *LocalTableSuite) AfterTest(_, _ string) {
 	require.NoError(s.T(), s.mock.ExpectationsWereMet())
 }
 
-func TestInit(t *testing.T) {
-	suite.Run(t, new(Suite))
+func TestLocalTable(t *testing.T) {
+	suite.Run(t, new(LocalTableSuite))
 }
 
-func (s *Suite) Test_local_table_InsertOne() {
+func (s *LocalTableSuite) TestLocalTableInsertOne() {
 	row := s.row1
 	s.mock.ExpectBegin()
 	s.mock.ExpectExec(regexp.QuoteMeta(
@@ -82,10 +81,10 @@ func (s *Suite) Test_local_table_InsertOne() {
 	require.NoError(s.T(), err)
 }
 
-func (s *Suite) Test_local_table_GetOne() {
+func (s *LocalTableSuite) TestLocalTableGetOne() {
 	row := &UserChannel{Key: s.row1.Key}
 	s.mock.ExpectQuery(regexp.QuoteMeta(
-		"SELECT * FROM `user_channel` " +
+		"SELECT `user_channel`.`uniqueId`,`user_channel`.`userId`,`user_channel`.`value` FROM `user_channel` " +
 			"WHERE `user_channel`.`uniqueId` = ? AND `user_channel`.`userId` = ? " +
 			"ORDER BY `user_channel`.`uniqueId` LIMIT 1")).
 		WillReturnRows(sqlmock.NewRows([]string{"uniqueId", "userId", "value"}).
@@ -95,9 +94,11 @@ func (s *Suite) Test_local_table_GetOne() {
 	require.Nil(s.T(), deep.Equal(s.row1, row))
 }
 
-func (s *Suite) Test_local_table_GetAll() {
+func (s *LocalTableSuite) TestLocalTableGetAll() {
 	rows := []*UserChannel{}
-	s.mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `user_channel` WHERE userId = ?")).
+	s.mock.ExpectQuery(regexp.QuoteMeta(
+		"SELECT `user_channel`.`uniqueId`,`user_channel`.`userId`,`user_channel`.`value` " +
+			"FROM `user_channel` WHERE userId = ?")).
 		WithArgs(s.row1.Key.UserID).
 		WillReturnRows(sqlmock.NewRows([]string{"uniqueId", "userId", "value"}).
 			AddRow("u1", "1", "row1").AddRow("u2", "1", "row2"))
@@ -106,7 +107,7 @@ func (s *Suite) Test_local_table_GetAll() {
 	require.Nil(s.T(), deep.Equal([]*UserChannel{s.row1, s.row2}, rows))
 }
 
-func (s *Suite) Test_local_table_DeleteOne() {
+func (s *LocalTableSuite) TestLocalTableDeleteOne() {
 	row := &UserChannel{Key: s.row1.Key}
 	s.mock.ExpectBegin()
 	s.mock.ExpectExec(regexp.QuoteMeta(

@@ -34,7 +34,7 @@ func NewSyncTable(db *gorm.DB) *SyncTable {
 
 // GetAll
 func (t *SyncTable) GetAll(rows interface{}, userID int64) error {
-	return t.db.Find(rows).Where("userId = ?", userID).Error
+	return t.db.Where("userId = ?", userID).Find(rows).Error
 }
 
 // GetOne
@@ -46,15 +46,19 @@ func (t *SyncTable) GetOne(row SyncRow) error {
 }
 
 // GetRaw
-func (t *SyncTable) GetRaw(sm SyncRow, userID int64) (interface{}, error) {
+func (t *SyncTable) GetRaw(sm SyncRow, userID int64) ([]SyncRecord, error) {
 	journalTable := sm.NewSyncRecord(0).JournalRow().TableName()
 	rows := sm.NewSyncRecords()
 	fields := strings.Join(mapPrefix("t.", sm.Fields()), ",")
-	result := db.Raw("select tj.uniqueId,tj.lastModified,"+fields+
+	result := t.db.Raw("select tj.uniqueId,tj.userId,tj.lastModified,"+fields+
 		" from "+journalTable+" as tj left outer join "+
 		sm.TableName()+" as t on tj.uniqueId = t.uniqueId and tj.userId = t.userId "+
 		"where tj.userId = ?", userID).Find(rows)
-	return rows, result.Error
+	srs, err := ToSyncRecordSlice(rows)
+	if err != nil {
+		return nil, err
+	}
+	return srs, result.Error
 }
 
 // GetChangesAfter
@@ -66,7 +70,7 @@ func (t *SyncTable) getChangesAfter(tx *gorm.DB, sm SyncRow, lastModified int64,
 	rows := sm.NewSyncRecords()
 	journalTable := sm.NewSyncRecord(0).JournalRow().TableName()
 	fields := strings.Join(mapPrefix("t.", sm.Fields()), ",")
-	if err := tx.Raw("select tj.uniqueId,tj.lastModified,"+fields+
+	if err := tx.Raw("select tj.uniqueId,tj.userId,tj.lastModified,"+fields+
 		" from "+journalTable+" as tj left outer join "+
 		sm.TableName()+" as t on tj.uniqueId = t.uniqueId and tj.userId = t.userId "+
 		"where tj.lastModified > ? and tj.userId = ?;", lastModified, userID).Find(rows).Error; err != nil {
@@ -117,13 +121,16 @@ func (t *SyncTable) handleChanges(tx *gorm.DB, changes []SyncRecord, userID int6
 }
 
 func (t *SyncTable) insertIfRecent(tx *gorm.DB, sr SyncRecord) (bool, error) {
-	rows := []struct{ lastModified int64 }{}
+	row := struct {
+		LastModified int64 `gorm:"column:lastModified"`
+	}{}
 	k := sr.JournalRow().GetKey()
-	if err := tx.Table(sr.JournalRow().TableName()).Where(
-		"uniqueId = ? AND userId = ?", k.UniqueID, k.UserID).Find(rows).Error; err != nil {
-		return false, err
+	result := tx.Model(sr.JournalRow()).Where(
+		"uniqueId = ? AND userId = ?", k.UniqueID, k.UserID).First(&row)
+	if result.Error != nil {
+		return false, result.Error
 	}
-	if len(rows) > 0 && rows[0].lastModified >= sr.GetLastModified() {
+	if result.RowsAffected > 0 && row.LastModified >= sr.GetLastModified() {
 		return false, nil
 	}
 	if _, err := t.insert(tx, sr); err != nil {
@@ -143,13 +150,16 @@ func (t *SyncTable) insert(tx *gorm.DB, sr SyncRecord) (int64, error) {
 }
 
 func (t *SyncTable) deleteIfRecent(tx *gorm.DB, sr SyncRecord) (bool, error) {
-	rows := []struct{ lastModified int64 }{}
+	row := struct {
+		LastModified int64 `gorm:"column:lastModified"`
+	}{}
 	k := sr.JournalRow().GetKey()
-	if err := tx.Table(sr.JournalRow().TableName()).Where(
-		"uniqueId = ? AND userId = ?", k.UniqueID, k.UniqueID).Find(rows).Error; err != nil {
-		return false, err
+	result := tx.Model(sr.JournalRow()).Where(
+		"uniqueId = ? AND userId = ?", k.UniqueID, k.UserID).First(&row)
+	if result.Error != nil {
+		return false, result.Error
 	}
-	if len(rows) > 0 && rows[0].lastModified >= sr.GetLastModified() {
+	if result.RowsAffected > 0 && row.LastModified >= sr.GetLastModified() {
 		return false, nil
 	}
 	if _, err := t.delete(tx, sr); err != nil {
@@ -197,15 +207,18 @@ func (t *SyncTable) SyncAt(sr SyncRecord, pushedChanges []SyncRecord) (int64, []
 }
 
 func (t *SyncTable) getLastModified(tx *gorm.DB, sr SyncRecord) (int64, error) {
-	rows := []struct{ maxLastModified int64 }{}
-	if err := tx.Raw("select max(lastModified) as maxLastModified from " +
-		sr.JournalRow().TableName()).Find(&rows).Error; err != nil {
-		return 0, err
+	rows := []struct{ MaxLastModified int64 }{}
+	tableName := sr.JournalRow().TableName()
+	userID := sr.JournalRow().GetKey().UserID
+	result := tx.Raw("select max(lastModified) as max_last_modified from "+tableName+
+		" where userId = ?", userID).Find(&rows)
+	if result.Error != nil {
+		return 0, result.Error
 	}
-	if len(rows) == 0 {
+	if result.RowsAffected == 0 {
 		return 0, nil
 	}
-	return rows[0].maxLastModified, nil
+	return rows[0].MaxLastModified, nil
 }
 
 // ReplaceAll

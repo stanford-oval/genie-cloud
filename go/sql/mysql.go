@@ -21,6 +21,13 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+func gormConfig() *gorm.Config {
+	return &gorm.Config{
+		Logger:      logger.Default.LogMode(logger.Info),
+		QueryFields: true,
+	}
+}
+
 func NewMySQL(dsn string) (*gorm.DB, error) {
 	return gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
