@@ -14,7 +14,9 @@
 package dbproxy
 
 import (
+	"almond-cloud/config"
 	"almond-cloud/sql"
+
 	"flag"
 	"fmt"
 	"os"
@@ -33,11 +35,14 @@ func Usage() {
 }
 
 func Run(args []string) {
-
 	flagSet.Parse(args)
-	fmt.Printf("--- port:%v", *port)
-	dsn := "newuser:password@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
-	sql.InitMySQL(dsn)
+	almondConfig := config.GetAlmondConfig()
+	if len(almondConfig.Secret.DatabaseURL) == 0 {
+		// TODO: uncomment when done with testing
+		// log.Fatal("database not configured")
+		almondConfig.Secret.DatabaseURL = "newuser:password@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+	}
+	sql.InitMySQL(almondConfig.Secret.DatabaseURL)
 	r := gin.Default()
 
 	r.GET("/localtable/:name/:userid", localTableGetAll)
