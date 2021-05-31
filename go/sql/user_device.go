@@ -39,7 +39,7 @@ func (e *UserDevice) SetKey(key Key) {
 	e.Key = key
 }
 
-//
+// NewSyncRecord
 func (e *UserDevice) NewSyncRecord(lastModified int64) SyncRecord {
 	return &UserDeviceSyncRecord{
 		UserDeviceJournal: UserDeviceJournal{
@@ -50,6 +50,7 @@ func (e *UserDevice) NewSyncRecord(lastModified int64) SyncRecord {
 	}
 }
 
+// NewSyncRecords
 func (e *UserDevice) NewSyncRecords() interface{} {
 	return &[]*UserDeviceSyncRecord{}
 }
@@ -64,8 +65,6 @@ func (e *UserDevice) Fields() []string {
 	return []string{"state"}
 }
 
-// -------------------------------
-// -------------------------------
 // UserDeviceJournal table
 type UserDeviceJournal struct {
 	Key
@@ -102,14 +101,13 @@ func (e *UserDeviceJournal) Fields() []string {
 	return []string{"lastModified"}
 }
 
-// -------------------------------
-// -------------------------------
 // UserDeviceSyncRecord is the joined row of UserDevice and UserDeviceJournal
 type UserDeviceSyncRecord struct {
 	UserDeviceJournal
 	State string `json:"state" gorm:"column:state"`
 }
 
+// Row
 func (r *UserDeviceSyncRecord) Row() SyncRow {
 	return &UserDevice{
 		Key:   r.UserDeviceJournal.Key,
@@ -117,18 +115,22 @@ func (r *UserDeviceSyncRecord) Row() SyncRow {
 	}
 }
 
+// JournalRow
 func (r *UserDeviceSyncRecord) JournalRow() Row {
 	return &r.UserDeviceJournal
 }
 
+// GetLastModified
 func (r *UserDeviceSyncRecord) GetLastModified() int64 {
 	return r.UserDeviceJournal.LastModified
 }
 
+// SetLastModified
 func (r *UserDeviceSyncRecord) SetLastModified(t int64) {
 	r.UserDeviceJournal.LastModified = t
 }
 
+// HasDiscriminator
 func (r *UserDeviceSyncRecord) HasDiscriminator() bool {
 	return len(r.State) > 0
 }

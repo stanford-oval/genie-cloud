@@ -21,6 +21,10 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+var db *gorm.DB
+var localTable *LocalTable
+var syncTable *SyncTable
+
 func gormConfig() *gorm.Config {
 	return &gorm.Config{
 		Logger:      logger.Default.LogMode(logger.Info),
@@ -28,15 +32,10 @@ func gormConfig() *gorm.Config {
 	}
 }
 
+// NewMySQL returns an mysql grom DB
 func NewMySQL(dsn string) (*gorm.DB, error) {
-	return gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
-	})
+	return gorm.Open(mysql.Open(dsn), gormConfig())
 }
-
-var db *gorm.DB
-var localTable *LocalTable
-var syncTable *SyncTable
 
 // InitMySQL opens a connection to mysql database connection pool and initializes tables.
 func InitMySQL(dsn string) {
