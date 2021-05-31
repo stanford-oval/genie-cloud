@@ -77,6 +77,12 @@ jobs:
       - export PATH="`pwd`/geckodriver:$PATH"
       script: npx nyc ./tests/training-integration.sh
       after_success: npm run coverage
+    -
+      name: "GO Tests"
+      language: go
+      go: 1.16.x
+      before_script: cd go
+      script: go test -v ./...
 
 notifications:
   webhooks: https://coveralls.io/webhook
