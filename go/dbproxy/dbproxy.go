@@ -11,17 +11,33 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package main
+package dbproxy
 
 import (
+	"almond-cloud/config"
 	"almond-cloud/sql"
+
+	"flag"
+	"fmt"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
-func main() {
-	dsn := "newuser:password@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
-	sql.InitMySQL(dsn)
+var (
+	flagSet = flag.NewFlagSet("dbproxy", flag.ExitOnError)
+	port    = flagSet.Int("port", 8888, "port")
+)
+
+func Usage() {
+	fmt.Printf("Usage of %s dbproxy", os.Args[0])
+	flagSet.PrintDefaults()
+}
+
+func Run(args []string) {
+	flagSet.Parse(args)
+	almondConfig := config.GetAlmondConfig()
+	sql.InitMySQL(almondConfig.DatabaseURL)
 	r := gin.Default()
 
 	r.GET("/localtable/:name/:userid", localTableGetAll)
@@ -40,5 +56,5 @@ func main() {
 	r.POST("/synctable/:name/:userid", syncTableInsertOne)
 	r.DELETE("/synctable/:name/:userid/:uniqueid/:millis", syncTableDeleteIfRecent)
 	r.DELETE("/synctable/:name/:userid/:uniqueid", syncTableDeleteOne)
-	r.Run() // listen and serve on 0.0.0.0:8080
+	r.Run(fmt.Sprintf("0.0.0.0:%d", *port))
 }

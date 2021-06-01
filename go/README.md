@@ -1,6 +1,6 @@
 # Prerequisites:
 
-### Install Go 
+### Install Go
 Follow the instructions to install go:
 
 https://golang.org/doc/install
@@ -19,54 +19,53 @@ go version go1.16.4 linux/amd64
 
 ```
 
-### Fetch dependencies
+# Coding sytle
 
-```
-cd github.com/stanford-oval/almond-cloud/go
-go get ...
-```
-
-This may take a few minutes depending on network conditions. The packages will be
-downloaded to `$GOPATH/pkg`. The default location is `$HOME/go/pkg`.
-
-
-Clean up indirect dependencies
-
-```
-go mod tidy
-
-```
-
+We will be following the guidelines from [Effective Go](https://golang.org/doc/effective_go) .
+Formatting in go is done automatically by gofmt. The default plugins from VisualCode
+does a pretty good job at auto-formatting the code on save.
 
 # Build
 
-To build all binaries: 
+To build all binaries:
 
 ```
-go build ...
+cd go
+go build -v ./...
 ```
 
-To build one binary, go the binary directory and run the command.
+To build one binary/package, go a directory and run the command.
 For example
 
 ```
-cd dbproxy
+cd go/almond
 go build
 ```
 
 A binary will be built in the current directory.
 
+# Run
+To execute a binary without building, go the binary directory
+
+```
+cd go/almond
+go run .
+```
+
 # Install
 To install all binaries:
 
 ```
-go install ...
-```
-
-To install one binary:
-```
-cd dbproxy
-go install
+cd go
+go install ./...
 ```
 
 Difference between `install` and `build` is `install` will move built binary to `$GOPATH/bin`. The default location is `$HOME/go/bin`.
+
+# Test
+To test all:
+
+```
+cd go
+go test -v ./...
+```

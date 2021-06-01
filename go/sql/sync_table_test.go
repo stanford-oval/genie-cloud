@@ -133,14 +133,16 @@ func (s *SyncTableSuite) TestSyncTableGetRaw() {
 	row := &UserDevice{}
 	r1 := s.record1
 	r2 := s.record2
+	key1 := r1.UserDeviceJournal.Key
+	key2 := r2.UserDeviceJournal.Key
 	s.mock.ExpectQuery(regexp.QuoteMeta(
 		"select tj.uniqueId,tj.userId,tj.lastModified,t.state from user_device_journal as tj " +
 			"left outer join user_device as t on tj.uniqueId = t.uniqueId and tj.userId = t.userId " +
 			"where tj.userId = ?")).
 		WithArgs(s.row1.Key.UserID).
 		WillReturnRows(sqlmock.NewRows([]string{"uniqueId", "userId", "lastModified", "state"}).
-			AddRow(r1.UserDeviceJournal.Key.UniqueID, r1.UserDeviceJournal.Key.UserID, r1.GetLastModified(), r1.State).
-			AddRow(r2.UserDeviceJournal.Key.UniqueID, r2.UserDeviceJournal.Key.UserID, r2.GetLastModified(), r2.State))
+			AddRow(key1.UniqueID, key1.UserID, r1.GetLastModified(), r1.State).
+			AddRow(key2.UniqueID, key2.UserID, r2.GetLastModified(), r2.State))
 	rows, err := s.syncTable.GetRaw(row, s.row1.UserID)
 	require.NoError(s.T(), err)
 	want, err := ToSyncRecordSlice(&[]*UserDeviceSyncRecord{r1, r2})
@@ -151,13 +153,14 @@ func (s *SyncTableSuite) TestSyncTableGetRaw() {
 func (s *SyncTableSuite) TestSyncTableGetChangesAfter() {
 	row := &UserDevice{}
 	want := s.record2
+	key := s.record2.UserDeviceJournal.Key
 	s.mock.ExpectQuery(regexp.QuoteMeta(
 		"select tj.uniqueId,tj.userId,tj.lastModified,t.state from user_device_journal as tj "+
 			"left outer join user_device as t on tj.uniqueId = t.uniqueId and tj.userId = t.userId "+
 			"where tj.lastModified > ? and tj.userId = ?")).
 		WithArgs(100, s.row1.Key.UserID).
 		WillReturnRows(sqlmock.NewRows([]string{"uniqueId", "userId", "lastModified", "state"}).
-			AddRow(want.UserDeviceJournal.Key.UniqueID, want.UserDeviceJournal.Key.UserID, want.GetLastModified(), want.State))
+			AddRow(key.UniqueID, key.UserID, want.GetLastModified(), want.State))
 	rows, err := s.syncTable.GetChangesAfter(row, 100, s.row1.UserID)
 	require.NoError(s.T(), err)
 	wantRows, err := ToSyncRecordSlice(&[]*UserDeviceSyncRecord{want})
@@ -237,13 +240,14 @@ func (s *SyncTableSuite) TestSyncTableSyncAt() {
 
 	s.mock.ExpectBegin()
 	// getChangesAfter
+	journal := ourChange.UserDeviceJournal
 	s.mock.ExpectQuery(regexp.QuoteMeta(
 		"select tj.uniqueId,tj.userId,tj.lastModified,t.state from user_device_journal as tj "+
 			"left outer join user_device as t on tj.uniqueId = t.uniqueId and tj.userId = t.userId "+
 			"where tj.lastModified > ? and tj.userId = ?")).
 		WithArgs(syncChange.UserDeviceJournal.LastModified, syncChange.UserDeviceJournal.UserID).
 		WillReturnRows(sqlmock.NewRows([]string{"uniqueId", "userId", "lastModified", "state"}).
-			AddRow(ourChange.UserDeviceJournal.UniqueID, ourChange.UserDeviceJournal.UserID, ourChange.UserDeviceJournal.LastModified, ourChange.State))
+			AddRow(journal.UniqueID, journal.UserID, journal.LastModified, ourChange.State))
 	// getLastModified
 	s.mock.ExpectQuery(regexp.QuoteMeta(
 		"select max(lastModified) as max_last_modified from user_device_journal where userId = ?")).
@@ -251,7 +255,7 @@ func (s *SyncTableSuite) TestSyncTableSyncAt() {
 		WillReturnRows(sqlmock.NewRows([]string{"max_last_modified"}).
 			AddRow(ourChange.GetLastModified()))
 	// handleChanges record3: delete
-	journal := s.record3.UserDeviceJournal
+	journal = s.record3.UserDeviceJournal
 	s.mock.ExpectQuery(regexp.QuoteMeta(
 		"SELECT `user_device_journal`.`lastModified` FROM `user_device_journal` "+
 			"WHERE uniqueId = ? AND userId = ? "+
