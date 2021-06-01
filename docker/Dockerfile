@@ -6,9 +6,9 @@ FROM golang:1.16 as builder
 WORKDIR /home/almond-cloud
 RUN mkdir gosrc
 ADD go gosrc
-WORKDIR /home/almond-cloud/gosrc
+WORKDIR /home/almond-cloud/gosrc/backend
 # binaries are installed to /go/bin
-RUN go install -v ./...
+RUN go install
 
 FROM ${BASE_IMAGE}
 
@@ -17,7 +17,7 @@ MAINTAINER Thingpedia Admins <thingpedia-admins@lists.stanford.edu>
 USER root
 
 # Copy go binary
-COPY --from=builder /go/bin/almond /usr/local/bin/almond
+COPY --from=builder /go/bin/backend /usr/local/bin/backend
 
 # add all the repos: epel (for GraphicsMagick), yarn, sqlcipher, bubblewrap,
 # then install the packages needed at runtime
