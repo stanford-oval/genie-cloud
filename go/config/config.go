@@ -14,58 +14,74 @@
 package config
 
 import (
+	"encoding/json"
 	"os"
 	"path"
+	"path/filepath"
 
 	"gopkg.in/yaml.v3"
 )
 
 // AlmondConfig with almond-cloud configs and secrets
 type AlmondConfig struct {
-	Config Config
-	Secret Secret
+	NLServerURL string `yaml:"NL_SERVER_URL" json:"NL_SERVER_URL"`
+	DatabaseURL string `yaml:"DATABASE_URL" json:"DATABASE_URL"`
 }
 
-// Config file for almond-cloud
-type Config struct {
-	NLServerURL string `yaml:"NL_SERVER_URL"`
+var almondConfig *AlmondConfig
+
+func initAlmonConfigWithDefaults() {
+	almondConfig = &AlmondConfig{
+		NLServerURL: "https://nlp.almond.stanford.edu",
+		// Uncomment after testing
+		// DatabaseURL: os.Getenv("DATABASE_URL"),
+		DatabaseURL: "newuser:password@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local",
+	}
 }
 
-// Secret file for almond-cloud
-type Secret struct {
-	DatabaseURL string `yaml:"DATABASE_URL"`
+func init() {
+	initAlmonConfigWithDefaults()
 }
 
-var almondConfig AlmondConfig
-
+// GetAlmondConfig returns AlmondConfig singleton
 func GetAlmondConfig() *AlmondConfig {
-	return &almondConfig
+	return almondConfig
 }
 
+// InitAlmondConfig initializes config from files
 func InitAlmondConfig() error {
 	configDir := os.Getenv("ALMOND_CONFIG_DIR")
 	if len(configDir) == 0 {
 		configDir = "/etc/almond-cloud/config.d"
 	}
-	return ParseAlmondConfig(configDir, &almondConfig)
+	return ParseAlmondConfig(configDir, almondConfig)
 }
 
 // ParseAlmondConfig from a directory. Assumes directory contains onfig.yaml and secret.yaml
 func ParseAlmondConfig(dirPath string, almondConfig *AlmondConfig) error {
-	var err error
-	err = ParseConfig(path.Join(dirPath, "config.yaml"), &almondConfig.Config)
+	matches, err := filepath.Glob(path.Join(dirPath, "*.yaml"))
 	if err != nil {
 		return err
 	}
-	err = ParseSecret(path.Join(dirPath, "secret.yaml"), &almondConfig.Secret)
+	for _, f := range matches {
+		if err := ParseYAML(f, almondConfig); err != nil {
+			return err
+		}
+	}
+	matches, err = filepath.Glob(path.Join(dirPath, "*.json"))
 	if err != nil {
 		return err
+	}
+	for _, f := range matches {
+		if err := ParseJSON(f, almondConfig); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-// ParseConfig from a file path
-func ParseConfig(path string, config *Config) error {
+// ParseYAML from a file path
+func ParseYAML(path string, config *AlmondConfig) error {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return err
@@ -76,13 +92,13 @@ func ParseConfig(path string, config *Config) error {
 	return nil
 }
 
-// ParseSecret from a file path
-func ParseSecret(path string, secret *Secret) error {
+// ParseJSON from a file path
+func ParseJSON(path string, config *AlmondConfig) error {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
-	if err := yaml.Unmarshal(data, secret); err != nil {
+	if err := json.Unmarshal(data, config); err != nil {
 		return err
 	}
 	return nil
