@@ -101,7 +101,7 @@
     "tar": "^6.1.0",
     "thingpedia": "~2.9.0",
     "thingpedia-discovery": "^1.0.0",
-    "thingtalk": "~2.0.0",
+    "thingtalk": "~2.0.1",
     "thirty-two": "^1.0.2",
     "tmp-promise": "^3.0.2",
     "transparent-rpc": "^1.0.0",
