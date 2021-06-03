@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -19,17 +19,22 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+/// <reference types="./transparent-rpc" />
+/// <reference types="./sockaddr" />
+
 // load thingpedia to initialize the polyfill
 import 'thingpedia';
+import * as Tp from 'thingpedia';
 
 import * as stream from 'stream';
 import * as rpc from 'transparent-rpc';
 import * as argparse from 'argparse';
 
-import PlatformModule from './platform';
+import PlatformModule, { PlatformOptions } from './platform';
 import JsonDatagramSocket from '../util/json_datagram_socket';
 import * as i18n from '../util/i18n';
 import Engine from './engine';
+import * as proto from './protocol';
 
 class ParentProcessSocket extends stream.Duplex {
     constructor() {
@@ -38,21 +43,28 @@ class ParentProcessSocket extends stream.Duplex {
 
     _read() {}
 
-    _write(data, encoding, callback) {
-        process.send({ type: 'rpc', data: data }, null, callback);
+    _write(data : unknown, encoding : BufferEncoding, callback : (err ?: Error|null) => void) {
+        process.send!({ type: 'rpc', data: data }, null, { swallowErrors : false }, callback);
     }
 }
 
-const _engines = new Map;
+interface EngineState {
+    cloudId : string;
+    running : boolean;
+    sockets : Set<rpc.Socket>;
+    engine : Engine;
+}
+
+const _engines = new Map<number, EngineState>();
 let _stopped = false;
 
 function handleSignal() {
-    for (let obj of _engines.values()) {
+    for (const obj of _engines.values()) {
         console.log('Stopping engine of ' + obj.cloudId);
         if (obj.running)
             obj.engine.stop();
 
-        for (let sock of obj.sockets)
+        for (const sock of obj.sockets)
             sock.end();
     }
 
@@ -63,32 +75,31 @@ function handleSignal() {
     // give ourselves 10s to die gracefully, then just exit
     setTimeout(() => {
         process.exit();
-    }, 10000)
-    // the timeout will not keep us alive if we're done with everything
-    .unref();
+    });
 }
 
-function runEngine(thingpediaClient, options) {
+function runEngine(thingpediaClient : rpc.Proxy<Tp.BaseClient>|null, options : PlatformOptions) {
     const platform = PlatformModule.newInstance(thingpediaClient, options);
-    if (!PlatformModule.shared)
-        global.platform = platform;
 
-    const obj = { cloudId: options.cloudId, running: false, sockets: new Set };
-    const engine = new Engine(platform, {
-        thingpediaUrl: PlatformModule.thingpediaUrl,
-        nluModelUrl: PlatformModule.nlServerUrl
-        // nlg will be set to the same URL
-    });
-    obj.engine = engine;
+    const obj : EngineState = {
+        cloudId: options.cloudId,
+        running: false,
+        sockets: new Set,
+        engine: new Engine(platform, {
+            thingpediaUrl: PlatformModule.thingpediaUrl,
+            nluModelUrl: PlatformModule.nlServerUrl
+            // nlg will be set to the same URL
+        })
+    };
 
-    engine.open().then(() => {
+    obj.engine.open().then(() => {
         obj.running = true;
 
         if (_stopped)
             return Promise.resolve();
-        return engine.run();
+        return obj.engine.run();
     }).then(() => {
-        return engine.close();
+        return obj.engine.close();
     }).catch((e) => {
         console.error('Engine ' + options.cloudId + ' had a fatal error: ' + e.message);
         console.error(e.stack);
@@ -100,17 +111,17 @@ function runEngine(thingpediaClient, options) {
     _engines.set(options.userId, obj);
 }
 
-function killEngine(userId) {
-    let obj = _engines.get(userId);
+function killEngine(userId : number) {
+    const obj = _engines.get(userId);
     if (!obj)
         return;
     _engines.delete(userId);
     obj.engine.stop();
-    for (let sock of obj.sockets)
+    for (const sock of obj.sockets)
         sock.end();
 }
 
-function handleDirectSocket(userId, replyId, socket) {
+function handleDirectSocket(userId : number, replyId : number, socket : stream.Duplex) {
     console.log('Handling direct connection for ' + userId);
 
     const rpcSocket = new rpc.Socket(new JsonDatagramSocket(socket, socket, 'utf8'));
@@ -118,7 +129,7 @@ function handleDirectSocket(userId, replyId, socket) {
         console.log('Error on direct RPC socket: ' + e.message);
     });
 
-    let obj = _engines.get(userId);
+    const obj = _engines.get(userId);
     if (!obj) {
         console.log('Could not find an engine with the required user ID');
         rpcSocket.call(replyId, 'error', ['Invalid user ID ' + userId]);
@@ -137,6 +148,13 @@ function handleDirectSocket(userId, replyId, socket) {
     rpcSocket.on('close', () => {
         obj.sockets.delete(rpcSocket);
     });
+}
+
+export interface EngineFactory extends rpc.Stubbable {
+    $rpcMethods : ReadonlyArray<'runEngine' | 'killEngine'>;
+
+    runEngine(thingpediaClient : rpc.Proxy<Tp.BaseClient>|null, options : PlatformOptions) : void;
+    killEngine(userId : number) : void;
 }
 
 function main() {
@@ -170,17 +188,12 @@ function main() {
     const argv = parser.parse_args();
     i18n.init(argv.locale);
 
-    // for compat with platform.getOrigin()
-    // (but not platform.getCapability())
-    if (argv.shared)
-        global.platform = PlatformModule;
-
     process.on('SIGINT', handleSignal);
     process.on('SIGTERM', handleSignal);
 
-    let rpcWrapped = new ParentProcessSocket();
-    let rpcSocket = new rpc.Socket(rpcWrapped);
-    process.on('message', (message, socket) => {
+    const rpcWrapped = new ParentProcessSocket();
+    const rpcSocket = new rpc.Socket(rpcWrapped);
+    process.on('message', (message : proto.MasterToWorker, socket) => {
         switch (message.type) {
             case 'exit':
                 handleSignal();
@@ -195,15 +208,15 @@ function main() {
         }
     });
 
-    let factory = {
-        $rpcMethods: ['runEngine', 'killEngine'],
+    const factory : EngineFactory = {
+        $rpcMethods: ['runEngine', 'killEngine'] as const,
 
         runEngine: runEngine,
         killEngine: killEngine,
     };
-    let rpcId = rpcSocket.addStub(factory);
+    const rpcId = rpcSocket.addStub(factory);
     PlatformModule.init(argv);
-    process.send({ type: 'ready', id: rpcId });
+    process.send!({ type: 'ready', id: rpcId });
 
     // wait 10 seconds for a runEngine message
     setTimeout(() => {}, 10000);

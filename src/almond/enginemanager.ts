@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,7 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import * as child_process from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -27,6 +26,7 @@ import * as events from 'events';
 import * as stream from 'stream';
 import * as rpc from 'transparent-rpc';
 import * as util from 'util';
+import * as net from 'net';
 
 import * as user from '../model/user';
 import * as db from '../util/db';
@@ -35,8 +35,15 @@ import Lock from '../util/lock';
 import * as Config from '../config';
 import { InternalError } from '../util/errors';
 
+import type { EngineFactory } from './worker';
+import type Engine from './engine';
+
+import * as proto from './protocol';
+
 class ChildProcessSocket extends stream.Duplex {
-    constructor(child) {
+    private _child : child_process.ChildProcess;
+
+    constructor(child : child_process.ChildProcess) {
         super({ objectMode: true });
 
         this._child = child;
@@ -44,9 +51,9 @@ class ChildProcessSocket extends stream.Duplex {
 
     _read() {}
 
-    _write(data, encoding, callback) {
+    _write(data : unknown, encoding : BufferEncoding, callback : (err ?: Error|null) => void) : void {
         try {
-            this._child.send({ type: 'rpc', data: data }, null, callback);
+            this._child.send({ type: 'rpc', data: data }, undefined, callback);
         } catch(e) {
             callback(e);
         }
@@ -55,7 +62,7 @@ class ChildProcessSocket extends stream.Duplex {
 
 const ENABLE_SHARED_PROCESS = true;
 
-function safeMkdirSync(dir) {
+function safeMkdirSync(dir : string) {
     try {
         fs.mkdirSync(dir);
     } catch(e) {
@@ -64,13 +71,13 @@ function safeMkdirSync(dir) {
     }
 }
 
-function delay(ms) {
+function delay(ms : number) {
     return new Promise((resolve, reject) => {
         setTimeout(resolve, ms);
     });
 }
 
-function getUserDeveloperKey(user) {
+function getUserDeveloperKey(user : user.RowWithOrg) {
     if (user.developer_key)
         return user.developer_key;
 
@@ -81,7 +88,25 @@ function getUserDeveloperKey(user) {
 }
 
 class EngineProcess extends events.EventEmitter {
-    constructor(id, cloudId) {
+    private _id : string|number;
+    useCount : number;
+    shared : boolean;
+
+    private _cwd : string;
+    private _child : child_process.ChildProcess|null;
+    private _rpcSocket : rpc.Socket|null;
+    private _rpcId : rpc.RpcId|null;
+
+    private _sandboxed : boolean;
+    private _sandboxedPid : number|null;
+    private _hadExit : boolean;
+
+    private _starting : Promise<void>|null;
+    private _deadPromise : Promise<number|null>|null;
+    private _deadCallback : ((code : number|null) => void)|null;
+    private _dyingTimeout : NodeJS.Timeout|null;
+
+    constructor(id : string|number, cloudId : string|null) {
         super();
         this.setMaxListeners(Infinity);
 
@@ -90,7 +115,6 @@ class EngineProcess extends events.EventEmitter {
         this.useCount = 0;
         this.shared = cloudId === null;
 
-        this._cloudId = cloudId;
         this._cwd = this.shared ? './' : ('./' + cloudId);
         safeMkdirSync(this._cwd);
         this._child = null;
@@ -100,6 +124,7 @@ class EngineProcess extends events.EventEmitter {
         this._sandboxed = !this.shared && process.env.THINGENGINE_DISABLE_SANDBOX !== '1';
         this._sandboxedPid = null;
         this._hadExit = false;
+        this._starting = null;
         this._deadPromise = null;
         this._deadCallback = null;
         this._dyingTimeout = null;
@@ -109,12 +134,13 @@ class EngineProcess extends events.EventEmitter {
         return this._id;
     }
 
-    runEngine(user, thingpediaClient) {
+    runEngine(user : user.RowWithOrg, thingpediaClient : ThingpediaClient|null) {
         this.useCount++;
 
         if (this.shared)
             safeMkdirSync(this._cwd + '/' + user.cloud_id);
-        return this._rpcSocket.call(this._rpcId, 'runEngine', [thingpediaClient, {
+
+        const args : rpc.RpcMarshalArgs<Parameters<EngineFactory['runEngine']>> = [thingpediaClient, {
             userId: user.id,
             cloudId: user.cloud_id,
             authToken: user.auth_token,
@@ -123,14 +149,15 @@ class EngineProcess extends events.EventEmitter {
             timezone: user.timezone,
             storageKey: user.storage_key,
             modelTag: user.model_tag,
-        }]);
+        }];
+        return this._rpcSocket!.call(this._rpcId!, 'runEngine', args);
     }
 
-    killEngine(userId) {
+    killEngine(userId : number) {
         if (!this.shared)
             return this.kill();
         this.useCount--;
-        return this._rpcSocket.call(this._rpcId, 'killEngine', [userId]).then(() => {
+        return this._rpcSocket!.call(this._rpcId!, 'killEngine', [userId]).then(() => {
             this.emit('engine-removed', userId);
         }).catch((e) => {
             // assume if the call fails that the engine actually died
@@ -180,7 +207,7 @@ class EngineProcess extends events.EventEmitter {
         this.emit('exit', true);
     }
 
-    restart(ms) {
+    restart(ms : number) {
         this._child = null;
         this._rpcSocket = null;
         this._rpcId = null;
@@ -194,11 +221,11 @@ class EngineProcess extends events.EventEmitter {
         return Promise.resolve(this._deadPromise);
     }
 
-    send(msg, socket) {
-        this._child.send(msg, socket);
+    send(msg : proto.MasterToWorker, socket ?: net.Socket) {
+        this._child!.send(msg, socket);
     }
 
-    _handleInfoFD(pipe) {
+    private _handleInfoFD(pipe : stream.Readable) {
         let buf = '';
         pipe.setEncoding('utf8');
         pipe.on('data', (data) => {
@@ -213,13 +240,13 @@ class EngineProcess extends events.EventEmitter {
         });
     }
 
-    _addConfigArgs(args) {
+    private _addConfigArgs(args : string[]) {
         args.push(
             '--thingpedia-url', Config.THINGPEDIA_URL,
             '--nl-server-url', Config.NL_SERVER_URL,
             '--oauth-redirect-origin', Config.OAUTH_REDIRECT_ORIGIN
         );
-        for (let lang of Config.SUPPORTED_LANGUAGES)
+        for (const lang of Config.SUPPORTED_LANGUAGES)
             args.push('--locale', lang);
     }
 
@@ -227,7 +254,7 @@ class EngineProcess extends events.EventEmitter {
         const ALLOWED_ENVS = ['LANG', 'LOGNAME', 'USER', 'PATH',
                               'HOME', 'SHELL', 'THINGENGINE_PROXY',
                               'CI', 'THINGENGINE_DISABLE_SYSTEMD'];
-        function envIsAllowed(name) {
+        function envIsAllowed(name : string) {
             if (name.startsWith('LC_'))
                 return true;
             if (ALLOWED_ENVS.indexOf(name) >= 0)
@@ -235,16 +262,16 @@ class EngineProcess extends events.EventEmitter {
             return false;
         }
 
-        const env = {};
-        for (let name in process.env) {
+        const env : Record<string, string> = {};
+        for (const name in process.env) {
             if (envIsAllowed(name))
-                env[name] = process.env[name];
+                env[name] = process.env[name]!;
         }
-        env.THINGENGINE_USER_ID = this._id;
+        env.THINGENGINE_USER_ID = String(this._id);
 
         const managerPath = path.dirname(module.filename);
         const enginePath = path.resolve(managerPath, './worker');
-        let child;
+        let child : child_process.ChildProcess;
 
         console.log('Spawning process with ID ' + this._id);
 
@@ -264,13 +291,13 @@ class EngineProcess extends events.EventEmitter {
                 args = process.execArgv.slice();
                 args.push(enginePath);
                 this._addConfigArgs(args);
-                stdio = ['ignore', 1, 2, 'ignore', 'ipc'];
+                stdio = ['ignore', 1, 2, 'ignore', 'ipc'] as Array<'ignore'|'ipc'|number>;
             } else {
                 processPath = path.resolve(managerPath, '../../sandbox/sandbox');
                 args = [process.execPath].concat(process.execArgv);
                 args.push(enginePath);
                 this._addConfigArgs(args);
-                stdio = ['ignore', 1, 2, 'pipe', 'ipc'];
+                stdio = ['ignore', 1, 2, 'pipe', 'ipc'] as Array<'ignore'|'ipc'|number>;
 
                 const jsPrefix = path.resolve(path.dirname(managerPath), '..');
                 const nodepath = path.resolve(process.execPath);
@@ -285,7 +312,7 @@ class EngineProcess extends events.EventEmitter {
                                           cwd: this._cwd, env: env });
         }
         if (this._sandboxed)
-            this._handleInfoFD(child.stdio[3]);
+            this._handleInfoFD(child.stdio[3] as stream.Readable);
 
         // wrap child into something that looks like a Stream
         // (readable + writable)
@@ -327,7 +354,7 @@ class EngineProcess extends events.EventEmitter {
             });
 
             this._child = child;
-            child.on('message', (msg) => {
+            child.on('message', (msg : proto.WorkerToMaster) => {
                 switch (msg.type) {
                 case 'ready':
                     this._rpcId = msg.id;
@@ -343,19 +370,37 @@ class EngineProcess extends events.EventEmitter {
     }
 }
 
-export default class EngineManager extends events.EventEmitter {
-    constructor(shardId) {
+interface EngineProxy {
+    cloudId : string;
+    process : EngineProcess|null;
+    engine : rpc.Proxy<Engine>|null;
+    thingpediaClient : ThingpediaClient|null;
+}
+
+export default class EngineManager extends events.EventEmitter implements rpc.Stubbable {
+    $rpcMethods = ['isRunning', 'getProcessId', 'startUser', 'killUser', 'killAllUsers',  'restartUser', 'deleteUser', 'clearCache', 'restartUserWithoutCache'] as const;
+    $free ?: () => void;
+
+    private _shardId : number;
+    private _processes : Record<string, EngineProcess>;
+    private _rrproc : EngineProcess[];
+    private _nextProcess : number;
+    private _engines : Record<number, EngineProxy>;
+    private _locks : Record<number, Lock>;
+    private _stopped : boolean;
+
+    constructor(shardId : number) {
         super();
         this._shardId = shardId;
         this._processes = {};
         this._rrproc = [];
-        this._nextProcess = null;
+        this._nextProcess = 0;
         this._engines = {};
         this._locks = {};
         this._stopped = false;
     }
 
-    _findProcessForUser(user) {
+    private _findProcessForUser(user : user.RowWithOrg) {
         if (ENABLE_SHARED_PROCESS && user.developer_key === null && !user.force_separate_process) {
             const child = this._rrproc[this._nextProcess];
             this._nextProcess++;
@@ -372,22 +417,27 @@ export default class EngineManager extends events.EventEmitter {
         }
     }
 
-    async _lockUser(userId) {
+    private async _lockUser(userId : number) {
         if (!this._locks[userId])
             this._locks[userId] = new Lock();
 
         return this._locks[userId].acquire();
     }
 
-    async _runUser(user) {
-        let engines = this._engines;
-        let obj = { cloudId: user.cloud_id, process: null, engine: null };
+    private async _runUser(user : user.RowWithOrg) {
+        const engines = this._engines;
+        const obj : EngineProxy = {
+            cloudId: user.cloud_id,
+            process: null,
+            engine: null,
+            thingpediaClient : null
+        };
         engines[user.id] = obj;
-        let die = (manual) => {
-            obj.process.removeListener('exit', die);
-            obj.process.removeListener('engine-removed', onRemoved);
+        const die = (manual : boolean) => {
+            obj.process!.removeListener('exit', die);
+            obj.process!.removeListener('engine-removed', onRemoved);
             if (obj.thingpediaClient)
-                obj.thingpediaClient.$free();
+                (obj.thingpediaClient as any /* FIXME */).$free();
             if (engines[user.id] !== obj)
                 return;
             delete engines[user.id];
@@ -397,7 +447,7 @@ export default class EngineManager extends events.EventEmitter {
             // we don't want to restart it either way
             if (this._stopped)
                 manual = true;
-            if (!manual && obj.process.shared) {
+            if (!manual && obj.process!.shared) {
                 // if the process died, some user might have been killed as a side effect
                 // set timeout to restart the user 10 s in the future
                 setTimeout(() => {
@@ -405,7 +455,7 @@ export default class EngineManager extends events.EventEmitter {
                 }, 10000);
             }
         };
-        let onRemoved = (deadUserId) => {
+        const onRemoved = (deadUserId : number) => {
             if (user.id !== deadUserId)
                 return;
 
@@ -428,15 +478,15 @@ export default class EngineManager extends events.EventEmitter {
         return child.runEngine(user, obj.thingpediaClient);
     }
 
-    isRunning(userId) {
+    isRunning(userId : number) {
         return (this._engines[userId] !== undefined && this._engines[userId].process !== null);
     }
 
-    getProcessId(userId) {
-        return (this._engines[userId] !== undefined && this._engines[userId].process !== null) ? this._engines[userId].process.id : -1;
+    getProcessId(userId : number) {
+        return (this._engines[userId] !== undefined && this._engines[userId].process !== null) ? this._engines[userId].process!.id : -1;
     }
 
-    async sendSocket(userId, replyId, socket) {
+    async sendSocket(userId : number, replyId : number, socket : net.Socket) {
         if (this._engines[userId] === undefined)
             throw new InternalError('E_INVALID_USER', 'Invalid user ID');
         if (this._engines[userId].process === null)
@@ -444,14 +494,14 @@ export default class EngineManager extends events.EventEmitter {
 
         const releaseLock = await this._lockUser(userId);
         try {
-            this._engines[userId].process.send({ type: 'direct', target: userId, replyId: replyId }, socket);
+            this._engines[userId].process!.send({ type: 'direct', target: userId, replyId: replyId }, socket);
         } finally {
             releaseLock();
         }
     }
 
-    _startSharedProcesses(nprocesses) {
-        let promises = new Array(nprocesses);
+    private _startSharedProcesses(nprocesses : number) {
+        const promises = new Array(nprocesses);
         this._rrproc = new Array(nprocesses);
         this._nextProcess = 0;
         for (let i = 0; i < nprocesses; i++) {
@@ -471,7 +521,7 @@ export default class EngineManager extends events.EventEmitter {
         return Promise.all(promises);
     }
 
-    _getNProcesses() {
+    private _getNProcesses() {
         let nprocesses;
 
         if (ENABLE_SHARED_PROCESS) {
@@ -497,7 +547,7 @@ export default class EngineManager extends events.EventEmitter {
         });
     }
 
-    async startUser(userId) {
+    async startUser(userId : number) {
         console.log('Requested start of user ' + userId);
         const releaseLock = await this._lockUser(userId);
         try {
@@ -507,7 +557,7 @@ export default class EngineManager extends events.EventEmitter {
         }
     }
 
-    async _startUserLocked(userId) {
+    private async _startUserLocked(userId : number) {
         return db.withClient((dbClient) => {
             return user.get(dbClient, userId);
         }).then((user) => {
@@ -523,7 +573,7 @@ export default class EngineManager extends events.EventEmitter {
 
     killAllUsers() {
         const promises = [];
-        for (let userId in this._processes) {
+        for (const userId in this._processes) {
             const proc = this._processes[userId];
             proc.kill();
             promises.push(proc.waitDead());
@@ -531,14 +581,14 @@ export default class EngineManager extends events.EventEmitter {
         return Promise.all(promises).then(() => true);
     }
 
-    async _killUserLocked(userId) {
-        let obj = this._engines[userId];
+    private async _killUserLocked(userId : number) {
+        const obj = this._engines[userId];
         if (!obj || obj.process === null)
             return;
         await obj.process.killEngine(userId);
     }
 
-    async killUser(userId) {
+    async killUser(userId : number) {
         console.log('Requested killing user ' + userId);
         const releaseLock = await this._lockUser(userId);
         try {
@@ -548,8 +598,8 @@ export default class EngineManager extends events.EventEmitter {
         }
     }
 
-    _getUserCloudIdForPath(userId) {
-        let obj = this._engines[userId];
+    private _getUserCloudIdForPath(userId : number) {
+        const obj = this._engines[userId];
         if (obj) {
             if (obj.process !== null)
                 obj.process.killEngine(userId);
@@ -563,7 +613,7 @@ export default class EngineManager extends events.EventEmitter {
         }
     }
 
-    async restartUser(userId) {
+    async restartUser(userId : number) {
         console.log('Requested restart of user ' + userId);
         const releaseLock = await this._lockUser(userId);
         try {
@@ -574,7 +624,7 @@ export default class EngineManager extends events.EventEmitter {
         }
     }
 
-    async deleteUser(userId) {
+    async deleteUser(userId : number) {
         console.log(`Deleting all data for ${userId}`);
         const releaseLock = await this._lockUser(userId);
         try {
@@ -588,13 +638,13 @@ export default class EngineManager extends events.EventEmitter {
         }
     }
 
-    async _clearCacheLocked(userId) {
+    private async _clearCacheLocked(userId : number) {
         const dir = path.resolve('.', await this._getUserCloudIdForPath(userId), 'cache');
         await util.promisify(child_process.execFile)('/bin/rm',
             ['-rf', dir]);
     }
 
-    async clearCache(userId) {
+    async clearCache(userId : number) {
         console.log(`Clearing cache for ${userId}`);
         const releaseLock = await this._lockUser(userId);
         try {
@@ -609,7 +659,7 @@ export default class EngineManager extends events.EventEmitter {
     // as after restart they will be placed in a shared process,
     // and we don't want them having access to unapproved (and dangerous)
     // devices through the cache
-    async restartUserWithoutCache(userId) {
+    async restartUserWithoutCache(userId : number) {
         console.log(`Requested cache clear & restart of user ${userId}`);
         const releaseLock = await this._lockUser(userId);
         try {
@@ -621,4 +671,3 @@ export default class EngineManager extends events.EventEmitter {
         }
     }
 }
-EngineManager.prototype.$rpcMethods = ['isRunning', 'getProcessId', 'startUser', 'killUser', 'killAllUsers',  'restartUser', 'deleteUser', 'clearCache', 'restartUserWithoutCache'];

@@ -42,6 +42,10 @@ export default class Lock {
         this._queue = Promise.resolve();
     }
 
+    /**
+     *
+     * @returns {() => void}
+     */
     async acquire() {
         let unlockCallback;
         const ourTurn = new Promise((resolve) => {

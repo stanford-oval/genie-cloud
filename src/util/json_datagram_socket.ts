@@ -1,8 +1,8 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
-// Copyright 2018-2019 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2015-2019 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,36 +16,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-/* -*- mode: js; indent-tabs-mode: nil; -*- */
-//
-// Copyright (c) 2015 The Board of Trustees of the Leland Stanford Junior University
-//
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to
-// deal in the Software without restriction, including without limitation the
-// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-// sell copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-// IN THE SOFTWARE.
 
+import * as stream from 'stream';
 import * as events from 'events';
 
 // Exactly what the name suggests, this class is wraps a TCP/Unix stream
 // socket to send and receive JSON payloads
-export default class JsonDatagramSocket extends events.EventEmitter {
-    constructor(reader, writer, encoding) {
+export default class JsonDatagramSocket<ReadType, SendType> extends events.EventEmitter {
+    private _reader : stream.Readable|null;
+    private _writer : stream.Writable|null;
+    private _encoding : BufferEncoding;
+    private _partialMessage : string;
+
+    constructor(reader : stream.Readable, writer : stream.Writable, encoding : BufferEncoding) {
         super();
 
         this._reader = reader;
@@ -69,19 +53,30 @@ export default class JsonDatagramSocket extends events.EventEmitter {
         reader.on('end', () => {
             this.emit('end');
         });
-        reader.on('close', (hadError) => {
+        reader.on('close', (hadError : boolean) => {
             this.emit('close', hadError);
         });
     }
 
-    end(callback) {
-        this._writer.end(callback);
+    on(event : 'data', cb : (data : ReadType) => void) : this;
+    on(event : 'error', cb : (err : Error) => void) : this;
+    on(event : 'end', cb : () => void) : this;
+    on(event : 'close', cb : (hadError ?: boolean) => void) : this;
+    on(event : string, cb : any) {
+        return super.on(event, cb);
+    }
+
+    end(callback ?: (err ?: Error) => void) {
+        if (this._writer)
+            this._writer.end(callback);
         this._writer = null;
     }
 
     destroy() {
-        this._reader.destroy();
-        this._writer.destroy();
+        if (this._reader)
+            this._reader.destroy();
+        if (this._writer)
+            this._writer.destroy();
         this._reader = null;
         this._writer = null;
     }
@@ -89,7 +84,7 @@ export default class JsonDatagramSocket extends events.EventEmitter {
     _tryReadMessage() {
         let msg;
 
-        let split = this._partialMessage.split('\n');
+        const split = this._partialMessage.split('\n');
         this._partialMessage = split[split.length-1];
 
         for (let i = 0; i < split.length-1; i++) {
@@ -120,7 +115,9 @@ export default class JsonDatagramSocket extends events.EventEmitter {
         this._partialMessage = '';
     }
 
-    write(msg, callback) {
+    write(msg : SendType, callback ?: (err ?: Error|null) => void) : void {
+        if (!this._writer)
+            return;
         this._writer.write(JSON.stringify(msg), this._encoding);
         this._writer.write('\n', this._encoding, callback);
     }

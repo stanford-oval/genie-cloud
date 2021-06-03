@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -26,16 +26,16 @@ import * as util from 'util';
 import * as os from 'os';
 import * as events from 'events';
 import * as child_process from 'child_process';
-import * as smtlib from 'smtlib';
-const smtsolver = smtlib.LocalCVC4Solver;
+import { LocalCVC4Solver } from 'smtlib';
 import * as Tp from 'thingpedia';
+import * as rpc from 'transparent-rpc';
 
 import * as graphics from './graphics';
 import * as i18n from '../util/i18n';
 
-let _unzipApi = {
+const _unzipApi : Tp.Capabilities.UnzipApi = {
     unzip(zipPath, dir) {
-        let args = ['-uo', zipPath, '-d', dir];
+        const args = ['-uo', zipPath, '-d', dir];
         return util.promisify(child_process.execFile)('/usr/bin/unzip', args, {
             maxBuffer: 10 * 1024 * 1024 }).then(({ stdout, stderr }) => {
             console.log('stdout', stdout);
@@ -44,16 +44,31 @@ let _unzipApi = {
     }
 };
 
-class WebhookApi {
-    constructor(userId) {
+interface WebhookReply {
+    contentType ?: string;
+    code : number;
+    response ?: string;
+}
+
+// FIXME the definition in Tp.Capabilities is wrong because it's missing the potential webhook reply
+type WebhookCallback = (id : string, method : 'GET' | 'POST', query : URLQuery, headers : URLQuery, payload : unknown) => Promise<WebhookReply|void>;
+
+type URLQuery = { [key : string] : string|string[]|undefined };
+export class WebhookApi implements rpc.Stubbable {
+    $rpcMethods = ['handleCallback'] as const;
+    $free ?: () => void;
+    private _userId : string;
+    private _hooks : Record<string, WebhookCallback>;
+
+    constructor(userId : string) {
         this._hooks = {};
         this._userId = userId;
     }
 
-    handleCallback(id, method, query, headers, payload) {
+    handleCallback(id : string, method : 'GET' | 'POST', query : URLQuery, headers : URLQuery, payload : unknown) : Promise<WebhookReply|void> {
         return Promise.resolve().then(() => {
             if (id in this._hooks)
-                return this._hooks[id](method, query, headers, payload);
+                return this._hooks[id](id, method, query, headers, payload);
             else
                 console.log('Ignored webhook callback with ID ' + id);
             return Promise.resolve();
@@ -67,41 +82,49 @@ class WebhookApi {
         return _platform.getOrigin() + '/api/webhook/' + this._userId;
     }
 
-    registerWebhook(id, callback) {
+    registerWebhook(id : string, callback : WebhookCallback) {
         if (id in this._hooks)
             throw new Error('Duplicate webhook ' + id + ' registered');
 
         this._hooks[id] = callback;
     }
 
-    unregisterWebhook(id) {
+    unregisterWebhook(id : string) {
         delete this._hooks[id];
     }
 }
-WebhookApi.prototype.$rpcMethods = ['handleCallback'];
 
+interface WebSocket extends events.EventEmitter {
+    ping() : void;
+    pong() : void;
+    terminate() : void;
+    send(data : string) : void;
+}
+class WebSocketWrapper extends events.EventEmitter implements rpc.Stubbable, WebSocket {
+    $rpcMethods = ['onPing', 'onPong', 'onMessage', 'onClose'] as const;
+    $free ?: () => void;
+    private _delegate : rpc.Proxy<WebSocket>;
 
-class WebSocketWrapper extends events.EventEmitter {
-    constructor(delegate) {
+    constructor(delegate : rpc.Proxy<WebSocket>) {
         super();
 
         this._delegate = delegate;
     }
 
     ping() {
-        this._delegate.ping();
+        return this._delegate.ping();
     }
 
     pong() {
-        this._delegate.pong();
+        return this._delegate.pong();
     }
 
     terminate() {
-        this._delegate.terminate();
+        return this._delegate.terminate();
     }
 
-    send(data) {
-        this._delegate.send(data);
+    send(data : string) {
+        return this._delegate.send(data);
     }
 
     onPing() {
@@ -112,7 +135,7 @@ class WebSocketWrapper extends events.EventEmitter {
         this.emit('pong');
     }
 
-    onMessage(data) {
+    onMessage(data : string) {
         this.emit('message', data);
     }
 
@@ -120,27 +143,54 @@ class WebSocketWrapper extends events.EventEmitter {
         this.emit('close');
     }
 }
-WebSocketWrapper.prototype.$rpcMethods = ['onPing', 'onPong', 'onMessage', 'onClose'];
 
-class WebSocketApi extends events.EventEmitter {
+export class WebSocketApi extends events.EventEmitter implements Tp.Capabilities.WebSocketApi, rpc.Stubbable {
+    $rpcMethods = ['newConnection'] as const;
+    $free ?: () => void;
+
     constructor() {
         super();
     }
 
-    newConnection(delegate) {
-        let wrapper = new WebSocketWrapper(delegate);
+    newConnection(delegate : rpc.Proxy<WebSocket>) {
+        const wrapper = new WebSocketWrapper(delegate);
         this.emit('connection', wrapper);
         wrapper.on('close', () => {
             delegate.$free();
-            wrapper.$free();
+            if (wrapper.$free)
+                wrapper.$free();
         });
         return wrapper;
     }
 }
-WebSocketApi.prototype.$rpcMethods = ['newConnection'];
 
-class Platform extends Tp.BasePlatform {
-    constructor(thingpediaClient, options) {
+export interface PlatformOptions {
+    userId : number;
+    cloudId : string;
+    authToken : string;
+    developerKey : string|null;
+    locale : string;
+    timezone : string;
+    storageKey : string;
+    modelTag : string|null;
+}
+
+export class Platform extends Tp.BasePlatform {
+    private _cloudId : string;
+    private _authToken : string;
+    private _developerKey : string|null;
+    private _thingpediaClient : rpc.Proxy<Tp.BaseClient>|null;
+    private _locale : string;
+    private _timezone : string;
+    private _sqliteKey : string;
+    // TODO
+    private _gettext : ReturnType<(typeof i18n)['get']>;
+    private _writabledir : string;
+    private _prefs : Tp.Helpers.FilePreferences;
+    private _webhookApi : WebhookApi;
+    private _websocketApi : WebSocketApi;
+
+    constructor(thingpediaClient : rpc.Proxy<Tp.BaseClient>|null, options : PlatformOptions) {
         super();
         this._cloudId = options.cloudId;
         this._authToken = options.authToken;
@@ -198,13 +248,13 @@ class Platform extends Tp.BasePlatform {
     // this platform
     // (eg we don't need discovery on the cloud, and we don't need graphdb,
     // messaging or the apps on the phone client)
-    hasFeature(feature) {
+    hasFeature(feature : string) {
         switch (feature) {
         case 'discovery':
             return false;
 
         case 'permissions':
-            return smtsolver !== null;
+            return LocalCVC4Solver !== null;
 
         default:
             return true;
@@ -216,7 +266,7 @@ class Platform extends Tp.BasePlatform {
     // connectivity, stable IP, local device discovery, bluetooth, etc.)
     //
     // Which capabilities are available affects which apps are allowed to run
-    hasCapability(cap) {
+    hasCapability(cap : keyof Tp.Capabilities.CapabilityMap) {
         switch (cap) {
         case 'code-download':
             // If downloading code from the thingpedia server is allowed on
@@ -235,7 +285,7 @@ class Platform extends Tp.BasePlatform {
             return true;
 
         case 'smt-solver':
-            return smtsolver !== null;
+            return LocalCVC4Solver !== null;
 
         default:
             return false;
@@ -246,7 +296,7 @@ class Platform extends Tp.BasePlatform {
     // platform
     //
     // This will return null if hasCapability(cap) is false
-    getCapability(cap) {
+    getCapability(cap : keyof Tp.Capabilities.CapabilityMap) {
         switch (cap) {
         case 'code-download':
             // We have the support to download code
@@ -268,7 +318,7 @@ class Platform extends Tp.BasePlatform {
             return this._gettext;
 
         case 'smt-solver':
-            return smtsolver;
+            return LocalCVC4Solver;
 
         default:
             return null;
@@ -291,11 +341,6 @@ class Platform extends Tp.BasePlatform {
     // and metadata
     getCacheDir() {
         return this._writabledir + '/cache';
-    }
-
-    // Make a symlink potentially to a file that does not exist physically
-    makeVirtualSymlink(file, link) {
-        fs.symlinkSync(file, link);
     }
 
     // Get a temporary directory
@@ -345,66 +390,75 @@ class Platform extends Tp.BasePlatform {
     // Change the auth token
     // Returns true if a change actually occurred, false if the change
     // was rejected
-    setAuthToken(authToken) {
+    setAuthToken(authToken : string) {
         // the auth token is stored outside in the mysql db, we can never
         // change it
         return false;
     }
 }
 
-let _shared;
-const _platform = {
+let _shared : boolean;
+class PlatformModule {
+    private _thingpediaUrl ! : string;
+    private _nlServerUrl ! : string;
+    private _oauthRedirectOrigin ! : string;
+
     // Initialize the platform code
     // Will be called before instantiating the engine
-    init(options) {
+    init(options : {
+        shared : boolean;
+        thingpedia_url : string;
+        nl_server_url : string;
+        oauth_redirect_origin : string;
+    }) {
         _shared = options.shared;
         this._thingpediaUrl = options.thingpedia_url;
         this._nlServerUrl = options.nl_server_url;
         this._oauthRedirectOrigin = options.oauth_redirect_origin;
-    },
+    }
 
     get thingpediaUrl() {
         return this._thingpediaUrl;
-    },
+    }
     get nlServerUrl() {
         return this._nlServerUrl;
-    },
+    }
 
     get shared() {
         return _shared;
-    },
+    }
 
-    newInstance(thingpediaClient, options) {
+    newInstance(thingpediaClient : rpc.Proxy<Tp.BaseClient>|null, options : PlatformOptions) {
         return new Platform(thingpediaClient, options);
-    },
+    }
 
     // for compat with existing code that does platform.getOrigin()
     getOrigin() {
         return this._oauthRedirectOrigin;
-    },
+    }
 
     // Check if this platform has the required capability
     // This is only for compat with existing code
-    hasCapability(cap) {
+    hasCapability(cap : keyof Tp.Capabilities.CapabilityMap) {
         switch (cap) {
         case 'graphics-api':
             return true;
         default:
             return false;
         }
-    },
+    }
 
     // Check if this platform has the required capability
     // This is only about caps that don't consider the current context
     // for compat with existing code
-    getCapability(cap) {
+    getCapability(cap : keyof Tp.Capabilities.CapabilityMap) {
         switch (cap) {
         case 'graphics-api':
             return graphics;
         default:
             return null;
         }
-    },
+    }
 
     // Stop the main loop and exit
     // (In Android, this only stops the node.js thread)
@@ -412,6 +466,7 @@ const _platform = {
     // code, after stopping the engine
     exit() {
         return process.exit();
-    },
-};
+    }
+}
+const _platform = new PlatformModule();
 export default _platform;

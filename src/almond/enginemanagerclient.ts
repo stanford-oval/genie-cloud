@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,40 +18,60 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import * as net from 'net';
 import * as events from 'events';
 import * as rpc from 'transparent-rpc';
+import express from 'express';
 import sockaddr from 'sockaddr';
 
 import JsonDatagramSocket from '../util/json_datagram_socket';
 import userToShardId from './shard';
+import * as proto from './protocol';
+import type Engine from './engine';
+import type { WebSocketApi, WebhookApi } from './platform';
+import type EngineManager from './enginemanager';
 
 import * as Config from '../config';
 
-let _instance;
+let _instance : EngineManagerClient;
 
-function connectToMaster(shardId) {
+function connectToMaster(shardId : number) {
     const shard = Config.THINGENGINE_MANAGER_ADDRESS[shardId];
 
     const socket = new net.Socket();
     socket.connect(sockaddr(shard));
 
-    const jsonSocket = new JsonDatagramSocket(socket, socket, 'utf8');
+    const jsonSocket = new JsonDatagramSocket<proto.MasterToFrontend, proto.FrontendToMaster>(socket, socket, 'utf8');
     if (Config.THINGENGINE_MANAGER_AUTHENTICATION !== null)
         jsonSocket.write({ control: 'auth', token: Config.THINGENGINE_MANAGER_AUTHENTICATION });
 
     return jsonSocket;
 }
 
+type EngineProxy = rpc.Proxy<Engine> & {
+    websocket : rpc.Proxy<WebSocketApi>;
+    webhook : rpc.Proxy<WebhookApi>;
+}
+
+interface CachedEngine {
+    engine : Promise<EngineProxy>;
+    socket : rpc.Socket;
+}
+
 export default class EngineManagerClient extends events.EventEmitter {
+    private _cachedEngines : Map<number, CachedEngine>;
+    private _expectClose : boolean;
+
+    private _nShards : number;
+    private _rpcControls : Array<rpc.Proxy<EngineManager>|null>;
+    private _rpcSockets : Array<rpc.Socket|null>;
+
     constructor() {
         super();
         this.setMaxListeners(Infinity);
         this._cachedEngines = new Map;
 
         this._expectClose = false;
-        this._reconnectTimeout = null;
 
         _instance = this;
 
@@ -65,9 +85,9 @@ export default class EngineManagerClient extends events.EventEmitter {
         return _instance;
     }
 
-    getEngine(userId) {
+    getEngine(userId : number) : Promise<EngineProxy> {
         if (this._cachedEngines.has(userId)) {
-            let cached = this._cachedEngines.get(userId);
+            const cached = this._cachedEngines.get(userId)!;
             return cached.engine;
         }
 
@@ -87,12 +107,12 @@ export default class EngineManagerClient extends events.EventEmitter {
             deleted = true;
         });
 
-        const promise = new Promise((resolve, reject) => {
+        const promise = new Promise<EngineProxy>((resolve, reject) => {
             // if we still can, catch the error early and fail the request
             rpcSocket.on('error', reject);
-            const initError = (msg) => {
-                if (msg.error) {
-                    const err = new Error(msg.error);
+            const initError = (msg : proto.MasterToFrontend) => {
+                if ('error' in msg) {
+                    const err : Error & { code ?: string } = new Error(msg.error);
                     err.code = msg.code;
                     reject(err);
                 }
@@ -100,18 +120,18 @@ export default class EngineManagerClient extends events.EventEmitter {
             jsonSocket.on('data', initError);
 
             const stub = {
-                ready(engine, websocket, webhook) {
+                ready(engine : EngineProxy, websocket : rpc.Proxy<WebSocketApi>, webhook : rpc.Proxy<WebhookApi>) {
                     jsonSocket.removeListener('data', initError);
                     engine.websocket = websocket;
                     engine.webhook = webhook;
 
                     resolve(engine);
                 },
-                error(message) {
+                error(message : string) {
                     reject(new Error(message));
                 },
 
-                $rpcMethods: ['ready', 'error']
+                $rpcMethods: ['ready', 'error'] as const
             };
             const replyId = rpcSocket.addStub(stub);
             jsonSocket.write({ control:'direct', target: userId, replyId: replyId });
@@ -123,11 +143,12 @@ export default class EngineManagerClient extends events.EventEmitter {
         return promise;
     }
 
-    dispatchWebhook(userId, req, res) {
+    dispatchWebhook(userId : number, req : express.Request, res : express.Response) {
         const id = req.params.id;
 
         return this.getEngine(userId).then((engine) => {
-            return engine.webhook.handleCallback(id, req.method, req.query, req.headers, req.body);
+            return engine.webhook.handleCallback(id, req.method as 'GET'|'POST',
+                req.query as Record<string, string|string[]|undefined>, req.headers, req.body);
         }).then((result) => {
             if (result) {
                 if (result.contentType)
@@ -141,7 +162,7 @@ export default class EngineManagerClient extends events.EventEmitter {
         });
     }
 
-    _connect(shardId) {
+    private _connect(shardId : number) {
         if (this._rpcControls[shardId])
             return;
 
@@ -149,10 +170,10 @@ export default class EngineManagerClient extends events.EventEmitter {
         const rpcSocket = new rpc.Socket(jsonSocket);
         this._rpcSockets[shardId] = rpcSocket;
 
-        const ready = (msg) => {
-            if (msg.control === 'ready') {
+        const ready = (msg : proto.MasterToFrontend) => {
+            if ('control' in msg && msg.control === 'ready') {
                 console.log(`Control channel to EngineManager[${shardId}] ready`);
-                this._rpcControls[shardId] = rpcSocket.getProxy(msg.rpcId);
+                this._rpcControls[shardId] = rpcSocket.getProxy(msg.rpcId) as rpc.Proxy<EngineManager>;
                 jsonSocket.removeListener('data', ready);
             }
         };
@@ -182,91 +203,100 @@ export default class EngineManagerClient extends events.EventEmitter {
     }
 
     stop() {
-        _instance = null;
         this._expectClose = true;
 
-        for (let engine of this._cachedEngines.values())
+        for (const engine of this._cachedEngines.values())
             engine.socket.end();
         this._cachedEngines.clear();
 
         for (let i = 0; i < this._nShards; i++) {
-            if (!this._rpcSockets[i])
+            const socket = this._rpcSockets[i];
+            if (!socket)
                 continue;
-            this._rpcSockets[i].end();
+            socket.end();
         }
     }
 
     async killAllUsers() {
         let ok = true;
         for (let i = 0; i < this._nShards; i++) {
-            if (!this._rpcControls[i]) {
+            const ctrl = this._rpcControls[i];
+            if (!ctrl) {
                 ok = false;
                 continue;
             }
-            if (!await this._rpcControls[i].killAllUsers())
+            if (!await ctrl.killAllUsers())
                 ok = false;
         }
         return ok;
     }
 
-    async isRunning(userId) {
+    async isRunning(userId : number) {
         const shardId = userToShardId(userId);
-        if (!this._rpcControls[shardId])
+        const ctrl = this._rpcControls[shardId];
+        if (!ctrl)
              return false;
-        return this._rpcControls[shardId].isRunning(userId);
+        return ctrl.isRunning(userId);
     }
 
-    async getProcessId(userId) {
+    async getProcessId(userId : number) {
         const shardId = userToShardId(userId);
-        if (!this._rpcControls[shardId])
+        const ctrl = this._rpcControls[shardId];
+        if (!ctrl)
             return -1;
-        return this._rpcControls[shardId].getProcessId(userId);
+        return ctrl.getProcessId(userId);
     }
 
-    async startUser(userId) {
+    async startUser(userId : number) {
         const shardId = userToShardId(userId);
-        if (!this._rpcControls[shardId])
+        const ctrl = this._rpcControls[shardId];
+        if (!ctrl)
             throw new Error('EngineManager died');
-        return this._rpcControls[shardId].startUser(userId);
+        return ctrl.startUser(userId);
     }
 
-    async killUser(userId) {
+    async killUser(userId : number) {
         this._cachedEngines.delete(userId);
         const shardId = userToShardId(userId);
-        if (!this._rpcControls[shardId])
+        const ctrl = this._rpcControls[shardId];
+        if (!ctrl)
             throw new Error('EngineManager died');
-        return this._rpcControls[shardId].killUser(userId);
+        return ctrl.killUser(userId);
     }
 
-    async deleteUser(userId) {
+    async deleteUser(userId : number) {
         this._cachedEngines.delete(userId);
         const shardId = userToShardId(userId);
-        if (!this._rpcControls[shardId])
+        const ctrl = this._rpcControls[shardId];
+        if (!ctrl)
             throw new Error('EngineManager died');
-        return this._rpcControls[shardId].deleteUser(userId);
+        return ctrl.deleteUser(userId);
     }
 
-    async clearCache(userId) {
+    async clearCache(userId : number) {
         this._cachedEngines.delete(userId);
         const shardId = userToShardId(userId);
-        if (!this._rpcControls[shardId])
+        const ctrl = this._rpcControls[shardId];
+        if (!ctrl)
             throw new Error('EngineManager died');
-        return this._rpcControls[shardId].clearCache(userId);
+        return ctrl.clearCache(userId);
     }
 
-    async restartUser(userId) {
+    async restartUser(userId : number) {
         this._cachedEngines.delete(userId);
         const shardId = userToShardId(userId);
-        if (!this._rpcControls[shardId])
+        const ctrl = this._rpcControls[shardId];
+        if (!ctrl)
             throw new Error('EngineManager died');
-        return this._rpcControls[shardId].restartUser(userId);
+        return ctrl.restartUser(userId);
     }
 
-    async restartUserWithoutCache(userId) {
+    async restartUserWithoutCache(userId : number) {
         this._cachedEngines.delete(userId);
         const shardId = userToShardId(userId);
-        if (!this._rpcControls[shardId])
+        const ctrl = this._rpcControls[shardId];
+        if (!ctrl)
             throw new Error('EngineManager died');
-        return this._rpcControls[shardId].restartUserWithoutCache(userId);
+        return ctrl.restartUserWithoutCache(userId);
     }
 }

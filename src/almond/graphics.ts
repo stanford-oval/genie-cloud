@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,48 +18,39 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 // Graphics API abstraction, based on nodejs-gm
 
 import gm from 'gm';
-
-function ninvoke(obj, method, ...args) {
-    return new Promise((resolve, reject) => {
-        obj[method](...args, (err, res) => {
-            if (err)
-                reject(err);
-            else
-                resolve(res);
-        });
-    });
-}
+import * as util from 'util';
 
 class Image {
-    constructor(how) {
+    private _gm : gm.State;
+
+    constructor(how : string|Buffer) {
         this._gm = gm(how);
     }
 
     getSize() {
-        return ninvoke(this._gm, 'size');
+        return util.promisify(this._gm.size).call(this._gm);
     }
 
-    resizeFit(width, height) {
+    resizeFit(width : number, height : number) {
         this._gm = this._gm.resize(width, height);
     }
 
-    stream(format) {
-        return ninvoke(this._gm, 'stream', format);
+    stream(format : string) {
+        return util.promisify<string>(this._gm.stream).call(this._gm, format);
     }
 
     toBuffer() {
-        return ninvoke(this._gm, 'toBuffer');
+        return util.promisify(this._gm.toBuffer).call(this._gm);
     }
 }
 
-export function createImageFromPath(path) {
+export function createImageFromPath(path : string) {
     return new Image(path);
 }
 
-export function createImageFromBuffer(buffer) {
+export function createImageFromBuffer(buffer : Buffer) {
     return new Image(buffer);
 }

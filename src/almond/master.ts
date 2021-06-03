@@ -1,5 +1,4 @@
-#!/usr/bin/env node
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -19,30 +18,38 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+/// <reference types="./transparent-rpc" />
+/// <reference types="./sockaddr" />
 
+import * as argparse from 'argparse';
 import assert from 'assert';
 import * as events from 'events';
 import * as rpc from 'transparent-rpc';
 import * as net from 'net';
 import sockaddr from 'sockaddr';
 import * as os from 'os';
+import * as stream from 'stream';
 
 import EngineManager from './enginemanager';
 import JsonDatagramSocket from '../util/json_datagram_socket';
 import { InternalError } from '../util/errors';
+import * as proto from './protocol';
 
 import * as Config from '../config';
 assert(Array.isArray(Config.THINGENGINE_MANAGER_ADDRESS));
 
 class ControlSocket extends events.EventEmitter {
-    constructor(engines, socket) {
+    private _socket : stream.Duplex|null;
+    private _authenticated : boolean;
+
+    constructor(engines : EngineManager, socket : net.Socket) {
         super();
 
         this._socket = socket;
-        const jsonSocket = new JsonDatagramSocket(socket, socket, 'utf8');
+        const jsonSocket = new JsonDatagramSocket<proto.FrontendToMaster, proto.MasterToFrontend>(socket, socket, 'utf8');
 
         this._authenticated = Config.THINGENGINE_MANAGER_AUTHENTICATION === null;
-        const initListener = (msg) => {
+        const initListener = (msg : proto.FrontendToMaster) => {
             if (msg.control === 'auth') {
                 if (msg.token === Config.THINGENGINE_MANAGER_AUTHENTICATION) {
                     this._authenticated = true;
@@ -77,13 +84,13 @@ class ControlSocket extends events.EventEmitter {
                     jsonSocket.end();
                 });
             } else if (msg.control === 'master') {
-                this._rpcSocket = new rpc.Socket(jsonSocket);
-                this._rpcSocket.on('close', () => this.emit('close'));
-                this._rpcSocket.on('error', () => {
+                const rpcSocket = new rpc.Socket(jsonSocket);
+                rpcSocket.on('close', () => this.emit('close'));
+                rpcSocket.on('error', () => {
                     // ignore the error, the connection will be closed soon
                 });
 
-                const id = this._rpcSocket.addStub(engines);
+                const id = rpcSocket.addStub(engines);
                 jsonSocket.write({ control: 'ready', rpcId: id });
             } else {
                 this.emit('close');
@@ -95,12 +102,17 @@ class ControlSocket extends events.EventEmitter {
     }
 
     end() {
-        this._socket.end();
+        if (this._socket)
+            this._socket.end();
     }
 }
 
 class ControlSocketServer {
-    constructor(engines, shardId, k8s) {
+    private _server : net.Server;
+    private _address : sockaddr.SocketAddress;
+    private _connections : Set<ControlSocket>;
+
+    constructor(engines : EngineManager, shardId : number, k8s : boolean) {
         this._server = net.createServer();
         // In K8S, we assume the container port is the same as the service port
         if (k8s)
@@ -116,18 +128,15 @@ class ControlSocketServer {
     }
 
     start() {
-        return new Promise((resolve, reject) => {
-            this._server.listen(this._address, (err) => {
-                if (err)
-                    reject(err);
-                else
-                    resolve();
+        return new Promise<void>((resolve, reject) => {
+            this._server.listen(this._address, () => {
+                resolve();
             });
         });
     }
 
     stop() {
-        for (let conn of this._connections) {
+        for (const conn of this._connections) {
             try {
                 conn.end();
             } catch(e) {
@@ -138,7 +147,7 @@ class ControlSocketServer {
     }
 }
 
-export function initArgparse(subparsers) {
+export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('run-almond', {
         description: 'Run the master Web Almond process'
     });
@@ -155,17 +164,18 @@ export function initArgparse(subparsers) {
     });
 }
 
-export async function main(argv) {
+export async function main(argv : any) {
     if (argv.k8s) {
         console.log(`Running in Kubernetes.`);
         const hostname = os.hostname();
-        const match = /-([0-9]+)$/.exec(hostname);
+        const match = /-([0-9]+)$/.exec(hostname)!;
         argv.shard = parseInt(match[1], 10);
         console.log(`Inferred hostname: ${hostname}, shard: ${argv.shard}`);
     }
 
-    if (Number.isNaN(argv.shard) || argv.shard < 0 || argv.shard >= Config.THINGENGINE_MANAGER_ADDRESS.length)
-        throw new InternalError('E_INVALID_CONFIG', `Invalid shard number ${argv.shard}, must be between 0 and ${Config.THINGENGINE_MANAGER_ADDRESS.length-1}`);
+    const numshards = Config.THINGENGINE_MANAGER_ADDRESS.length;
+    if (Number.isNaN(argv.shard) || argv.shard < 0 || argv.shard >= numshards)
+        throw new InternalError('E_INVALID_CONFIG', `Invalid shard number ${argv.shard}, must be between 0 and ${numshards-1}`);
 
     const enginemanager = new EngineManager(argv.shard);
 

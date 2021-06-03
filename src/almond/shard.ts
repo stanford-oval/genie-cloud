@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -22,7 +22,7 @@
 import * as Config from '../config';
 
 // If you change this file, you must also change model/user.js:getAllForShardId
-export default function userToShardId(userId) {
+export default function userToShardId(userId : number) {
     const nShards = Config.THINGENGINE_MANAGER_ADDRESS.length;
 
     // this sharding is not perfect (it can cause the number of developer
