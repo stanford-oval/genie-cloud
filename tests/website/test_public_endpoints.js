@@ -19,13 +19,13 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const assert = require('assert');
-const { assertHttpError, sessionRequest, dbQuery } = require('./scaffold');
-const { startSession } = require('../login');
+import assert from 'assert';
+import { assertHttpError, sessionRequest, dbQuery } from './scaffold';
+import { startSession } from '../login';
 
-const db = require('../../src/util/db');
+import * as db from '../../src/util/db';
 
-const Config = require('../../src/config');
+import * as Config from '../../src/config';
 
 async function testCommandpediaSuggest(nobody) {
     await assertHttpError(sessionRequest('/thingpedia/commands/suggest', 'POST', { description: '' }, nobody),
@@ -46,6 +46,6 @@ async function main() {
 
     await db.tearDown();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

@@ -19,10 +19,10 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const assert = require('assert');
+import assert from 'assert';
 
-const Lock = require('../../src/util/lock');
-const sleep = require('../../src/util/sleep');
+import Lock from '../../src/util/lock';
+import sleep from '../../src/util/sleep';
 
 async function withTimeout(promise, timeout = 30000) {
     await Promise.race([
@@ -122,6 +122,6 @@ async function main() {
     await withTimeout(testInterleave());
     await withTimeout(testQueue());
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

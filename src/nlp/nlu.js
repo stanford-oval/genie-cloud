@@ -18,15 +18,14 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-const db = require('../util/db');
-const exampleModel = require('../model/example');
+import * as db from '../util/db';
+import * as exampleModel from '../model/example';
 
 function isValidDeveloperKey(developerKey) {
     return developerKey && developerKey !== 'null' && developerKey !== 'undefined';
 }
 
-async function runNLU(query, params, data, service, res) {
+export default async function runNLU(query, params, data, service, res) {
     const store = data.store || 'no';
     if (store !== 'yes' && store !== 'no') {
         res.status(400).json({ error: 'Invalid store parameter' });
@@ -114,5 +113,3 @@ async function runNLU(query, params, data, service, res) {
         candidates, tokens, entities, intent
     };
 }
-
-module.exports = runNLU;

@@ -19,18 +19,17 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 // load thingpedia to initialize the polyfill
-require('thingpedia');
+import 'thingpedia';
 
-const stream = require('stream');
-const rpc = require('transparent-rpc');
-const argparse = require('argparse');
+import * as stream from 'stream';
+import * as rpc from 'transparent-rpc';
+import * as argparse from 'argparse';
 
-const PlatformModule = require('./platform');
-const JsonDatagramSocket = require('../util/json_datagram_socket');
-const i18n = require('../util/i18n');
-const Engine = require('./engine');
+import PlatformModule from './platform';
+import JsonDatagramSocket from '../util/json_datagram_socket';
+import * as i18n from '../util/i18n';
+import Engine from './engine';
 
 class ParentProcessSocket extends stream.Duplex {
     constructor() {
@@ -186,7 +185,7 @@ function main() {
             case 'exit':
                 handleSignal();
                 break;
-        
+
             case 'direct':
                 handleDirectSocket(message.target, message.replyId, socket);
                 break;

@@ -18,14 +18,13 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-const assert = require('assert');
-const binarySearch = require('./binary_search');
+import assert from 'assert';
+import binarySearch from './binary_search';
 
 /**
  * A Buffer-like class that automatically grows in size.
  */
-class GrowableBuffer {
+export default class GrowableBuffer {
     constructor() {
         this._size = 0;
         this._capacity = 0;
@@ -167,4 +166,3 @@ class GrowableBuffer {
         }
     }
 }
-module.exports = GrowableBuffer;

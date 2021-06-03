@@ -18,23 +18,22 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
 
-const express = require('express');
+import * as db from '../util/db';
+import * as organization from '../model/organization';
+import * as device from '../model/device';
+import * as oauth2 from '../model/oauth2';
+import * as userModel from '../model/user';
+import * as user from '../util/user';
+import * as SendMail from '../util/sendmail';
+import * as iv from '../util/input_validation';
+import { tokenize } from '../util/tokenize';
+import { BadRequestError } from '../util/errors';
 
-const db = require('../util/db');
-const organization = require('../model/organization');
-const device = require('../model/device');
-const oauth2 = require('../model/oauth2');
-const userModel = require('../model/user');
-const user = require('../util/user');
-const SendMail = require('../util/sendmail');
-const iv = require('../util/input_validation');
-const { tokenize } = require('../util/tokenize');
-const { BadRequestError } = require('../util/errors');
+import * as Config from '../config';
 
-const Config = require('../config');
-
-const EngineManager = require('../almond/enginemanagerclient');
+import EngineManager from '../almond/enginemanagerclient';
 
 let router = express.Router();
 
@@ -269,4 +268,4 @@ if (Config.WITH_THINGPEDIA === 'embedded') {
     });
 }
 
-module.exports = router;
+export default router;

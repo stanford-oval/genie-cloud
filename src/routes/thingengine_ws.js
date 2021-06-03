@@ -18,16 +18,14 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
 
-const express = require('express');
+import * as db from '../util/db';
+import * as userModel from '../model/user';
 
-const db = require('../util/db');
-const userModel = require('../model/user');
-
-const CloudSync = require('./cloud-sync');
+import * as CloudSync from './cloud-sync';
 
 let router = express.Router();
-
 
 router.ws('/:cloud_id', (ws, req) => {
     const delegate = CloudSync.handle(ws);
@@ -44,4 +42,4 @@ router.ws('/:cloud_id', (ws, req) => {
     });
 });
 
-module.exports = router;
+export default router;

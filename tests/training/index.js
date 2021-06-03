@@ -18,21 +18,19 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-require('../polyfill');
 process.on('unhandledRejection', (up) => { throw up; });
-require('../../src/util/config_init');
+import '../../src/util/config_init';
 process.env.TEST_MODE = '1';
 
-const assert = require('assert');
+import assert from 'assert';
 
-const db = require('../../src/util/db');
-const sleep = require('../../src/util/sleep');
-const trainingJobModel = require('../../src/model/training_job');
-const TrainingServer = require('../../src/util/training_server');
-const AbstractFS = require('../../src/util/abstract_fs');
+import * as db from '../../src/util/db';
+import sleep from '../../src/util/sleep';
+import * as trainingJobModel from '../../src/model/training_job';
+import TrainingServer from '../../src/util/training_server';
+import * as AbstractFS from '../../src/util/abstract_fs';
 
-const Config = require('../../src/config');
+import * as Config from '../../src/config';
 
 async function waitUntilAllJobsDone() {
     for (;;) {
@@ -281,6 +279,4 @@ async function main() {
 
     await db.tearDown();
 }
-module.exports = main;
-if (!module.parent)
-    main();
+main();

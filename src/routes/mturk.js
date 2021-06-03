@@ -19,21 +19,20 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
+import * as ThingTalk from 'thingtalk';
+import * as Genie from 'genie-toolkit';
 
-const express = require('express');
-const ThingTalk = require('thingtalk');
-const Genie = require('genie-toolkit');
+import * as db from '../util/db';
+import * as model from '../model/mturk';
+import * as deviceModel from '../model/device';
+import * as example from '../model/example';
+import AdminThingpediaClient from '../util/admin-thingpedia-client';
+import * as iv from '../util/input_validation';
+import * as i18n from '../util/i18n';
+import { BadRequestError, ForbiddenError, NotFoundError } from '../util/errors';
 
-const db = require('../util/db');
-const model = require('../model/mturk');
-const deviceModel = require('../model/device');
-const example = require('../model/example');
-const AdminThingpediaClient = require('../util/admin-thingpedia-client');
-const iv = require('../util/input_validation');
-const i18n = require('../util/i18n');
-const { BadRequestError, ForbiddenError, NotFoundError } = require('../util/errors');
-
-const MTurkUtils = require('../util/mturk');
+import * as MTurkUtils from '../util/mturk';
 
 let router = express.Router();
 
@@ -288,4 +287,4 @@ router.get(`/validate/:batch/:hit`, (req, res, next) => {
     }).catch(next);
 });
 
-module.exports = router;
+export default router;

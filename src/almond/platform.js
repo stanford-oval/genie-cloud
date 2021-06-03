@@ -21,17 +21,17 @@
 
 // Cloud platform
 
-const fs = require('fs');
-const util = require('util');
-const os = require('os');
-const events = require('events');
-const child_process = require('child_process');
-const smtlib = require('smtlib');
+import * as fs from 'fs';
+import * as util from 'util';
+import * as os from 'os';
+import * as events from 'events';
+import * as child_process from 'child_process';
+import * as smtlib from 'smtlib';
 const smtsolver = smtlib.LocalCVC4Solver;
-const Tp = require('thingpedia');
+import * as Tp from 'thingpedia';
 
-const graphics = require('./graphics');
-const i18n = require('../util/i18n');
+import * as graphics from './graphics';
+import * as i18n from '../util/i18n';
 
 let _unzipApi = {
     unzip(zipPath, dir) {
@@ -64,7 +64,7 @@ class WebhookApi {
     }
 
     getWebhookBase() {
-        return module.exports.getOrigin() + '/api/webhook/' + this._userId;
+        return _platform.getOrigin() + '/api/webhook/' + this._userId;
     }
 
     registerWebhook(id, callback) {
@@ -224,7 +224,7 @@ class Platform extends Tp.BasePlatform {
             return true;
 
         case 'thingpedia-client':
-            return module.exports.thingpediaUrl === '/thingpedia';
+            return _platform.thingpediaUrl === '/thingpedia';
 
         case 'graphics-api':
         case 'webhook-api':
@@ -331,7 +331,7 @@ class Platform extends Tp.BasePlatform {
     // installation. This is primarily used for OAuth redirects, and
     // so must match what the upstream services accept.
     getOrigin() {
-        return module.exports.getOrigin();
+        return _platform.getOrigin();
     }
 
     getCloudId() {
@@ -353,8 +353,7 @@ class Platform extends Tp.BasePlatform {
 }
 
 let _shared;
-
-module.exports = {
+const _platform = {
     // Initialize the platform code
     // Will be called before instantiating the engine
     init(options) {
@@ -415,3 +414,4 @@ module.exports = {
         return process.exit();
     },
 };
+export default _platform;

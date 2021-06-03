@@ -18,9 +18,8 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-const fs = require('fs');
-const util = require('util');
+import * as fs from 'fs';
+import * as util from 'util';
 
 async function safeMkdir(dir, options) {
     try {
@@ -42,7 +41,7 @@ function safeMkdirSync(dir, options) {
     }
 }
 
-module.exports = {
+export {
     safeMkdir,
     safeMkdirSync
 };

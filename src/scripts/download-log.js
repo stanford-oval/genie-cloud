@@ -19,47 +19,44 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as fs from 'fs';
 
-const fs = require('fs');
+import * as db from '../util/db';
+import * as StreamUtils from '../util/stream-utils';
 
-const db = require('../util/db');
-const StreamUtils = require('../util/stream-utils');
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('download-log', {
+        add_help: true,
+        description: 'Download utterance log'
+    });
+    parser.add_argument('-l', '--language', {
+        required: true,
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream,
+        help: 'Output path',
+    });
+}
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('download-log', {
-            add_help: true,
-            description: 'Download utterance log'
-        });
-        parser.add_argument('-l', '--language', {
-            required: true,
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream,
-            help: 'Output path',
-        });
-    },
+export async function main(argv) {
+    const language = argv.language;
 
-    async main(argv) {
-        const language = argv.language;
+    const [dbClient, dbDone] = await db.connect();
 
-        const [dbClient, dbDone] = await db.connect();
+    let query = `select id,preprocessed,target_code,time from utterance_log
+            where language = ? order by id asc`;
+    query = dbClient.query(query, [language]);
 
-        let query = `select id,preprocessed,target_code,time from utterance_log
-                where language = ? order by id asc`;
-        query = dbClient.query(query, [language]);
+    query.on('result', (row) => {
+        argv.output.write(row.id + '\t' + row.preprocessed + '\t' + row.target_code + '\t' + row.time.toISOString() + '\n');
+    });
+    query.on('end', () => {
+        argv.output.end();
+        dbDone();
+    });
+    query.on('error', (e) => { throw e; });
 
-        query.on('result', (row) => {
-            argv.output.write(row.id + '\t' + row.preprocessed + '\t' + row.target_code + '\t' + row.time.toISOString() + '\n');
-        });
-        query.on('end', () => {
-            argv.output.end();
-            dbDone();
-        });
-        query.on('error', (e) => { throw e; });
-
-        await StreamUtils.waitFinish(argv.output);
-        await db.tearDown();
-    }
-};
+    await StreamUtils.waitFinish(argv.output);
+    await db.tearDown();
+}

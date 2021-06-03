@@ -19,18 +19,16 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 // load thingpedia to initialize the polyfill
-require('thingpedia');
-require('./polyfill');
+import 'thingpedia';
 process.on('unhandledRejection', (up) => { throw up; });
-require('../src/util/config_init');
+import '../src/util/config_init';
 
-const assert = require('assert');
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
+import assert from 'assert';
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
 
-const Config = require('../src/config');
+import * as Config from '../src/config';
 assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
 assert.strictEqual(Config.THINGPEDIA_URL, '/thingpedia');
 

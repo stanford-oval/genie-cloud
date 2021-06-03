@@ -42,7 +42,7 @@ done | sort -n | while read date commit migration ; do
 		$srcdir/dist/main.js execute-sql-file $migration
 		;;
 	*)
-		$migration
+		npx ts-node $migration
 		;;
 	esac
 done

@@ -18,16 +18,15 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as AbstractFS from '../util/abstract_fs';
+import * as db from '../util/db';
+import * as trainingJobModel from '../model/training_job';
 
-const AbstractFS = require('../util/abstract_fs');
-const db = require('../util/db');
-const trainingJobModel = require('../model/training_job');
+import * as Config from '../config';
 
-const Config = require('../config');
+import JobSpecs from './job_specs';
 
-const JobSpecs = require('./job_specs');
-
-module.exports = class Job {
+export default class Job {
     constructor(daemon, jobRow) {
         this._daemon = daemon;
         this.data = jobRow;
@@ -36,7 +35,6 @@ module.exports = class Job {
         this._killed = false;
         this.child = null;
         this._allTasks = JobSpecs[this.data.job_type];
-        this._backend = require('./backends/' + Config.TRAINING_TASK_BACKEND);
 
         this.jobDir = AbstractFS.resolve(Config.TRAINING_DIR, './jobs/' + this.id);
     }
@@ -50,6 +48,8 @@ module.exports = class Job {
     }
 
     async start(dbClient) {
+        this._backend = (await import('./backends/' + Config.TRAINING_TASK_BACKEND)).default;
+
         console.log(`Starting ${this.data.job_type} job ${this.data.id} for model @${this.data.model_tag}/${this.data.language}`);
 
         await this._doStart(dbClient);
@@ -165,4 +165,4 @@ module.exports = class Job {
     get error() {
         return this.data.error;
     }
-};
+}

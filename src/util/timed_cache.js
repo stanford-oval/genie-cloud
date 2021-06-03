@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-module.exports = class TimedCache {
+export default class TimedCache {
     constructor() {
         this._store = new Map;
     }
@@ -103,4 +103,4 @@ module.exports = class TimedCache {
         }
         return this;
     }
-};
+}

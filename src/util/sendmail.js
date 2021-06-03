@@ -18,11 +18,10 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as util from 'util';
+import * as nodemailer from 'nodemailer';
 
-const util = require('util');
-const nodemailer = require('nodemailer');
-
-const { MAILGUN_USER, MAILGUN_PASSWORD }  = require('../config');
+import { MAILGUN_USER, MAILGUN_PASSWORD } from '../config';
 
 let transporter = null;
 function ensureTransporter() {
@@ -39,14 +38,12 @@ function ensureTransporter() {
     return transporter;
 }
 
-module.exports = {
-    send(mailOptions) {
-        if (MAILGUN_USER === null || MAILGUN_PASSWORD === null) {
-            console.error(`Ignored email to ${mailOptions.to} with subject "${mailOptions.subject}"`);
-            return Promise.resolve();
-        }
-
-        const transporter = ensureTransporter();
-        return util.promisify(transporter.sendMail).call(transporter, mailOptions);
+export function send(mailOptions) {
+    if (MAILGUN_USER === null || MAILGUN_PASSWORD === null) {
+        console.error(`Ignored email to ${mailOptions.to} with subject "${mailOptions.subject}"`);
+        return Promise.resolve();
     }
-};
+
+    const transporter = ensureTransporter();
+    return util.promisify(transporter.sendMail).call(transporter, mailOptions);
+}

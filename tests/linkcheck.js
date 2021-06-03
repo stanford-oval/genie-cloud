@@ -18,12 +18,10 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 // load thingpedia to initialize the polyfill
-require('thingpedia');
-require('./polyfill');
+import 'thingpedia';
 process.on('unhandledRejection', (up) => { throw up; });
-require('../src/util/config_init');
+import '../src/util/config_init';
 
 // Recursive link-checker
 //
@@ -38,11 +36,11 @@ require('../src/util/config_init');
 // Set the COOKIE environment variable to set a cookie
 // on request pages.
 
-const Tp = require('thingpedia');
-const Url = require('url');
-const minidom = require('./util/minidom');
+import * as Tp from 'thingpedia';
+import * as Url from 'url';
+import * as minidom from './util/minidom';
 
-const Config = require('../src/config');
+import * as Config from '../src/config';
 
 // some pages are intentionally missing from the test
 // environment, but they exist in the real thing

@@ -18,27 +18,26 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
+import * as path from 'path';
+import * as Stream from 'stream';
+import * as seedrandom from 'seedrandom';
+import csvstringify from 'csv-stringify';
 
-const assert = require('assert');
-const path = require('path');
-const Stream = require('stream');
-const seedrandom = require('seedrandom');
-const csvstringify = require('csv-stringify');
+import * as ThingTalk from 'thingtalk';
+import * as Genie from 'genie-toolkit';
 
-const ThingTalk = require('thingtalk');
-const Genie = require('genie-toolkit');
+import BaseThingpediaClient from '../../util/thingpedia-client';
+import { parseFlags } from '../../util/genie_flag_utils';
+import * as StreamUtils from '../../util/stream-utils';
+import * as genSynthetic from '../sandboxed_synthetic_gen';
+import DatabaseParameterProvider from './param_provider';
+import { parseConstant, parseConstantFile } from './constant-file';
 
-const BaseThingpediaClient = require('../../util/thingpedia-client');
-const { parseFlags } = require('../../util/genie_flag_utils');
-const StreamUtils = require('../../util/stream-utils');
-const genSynthetic = require('../sandboxed_synthetic_gen');
-const DatabaseParameterProvider = require('./param_provider');
-const { parseConstant, parseConstantFile } = require('./constant-file');
-
-const schemaModel = require('../../model/schema');
-const orgModel = require('../../model/organization');
-const db = require('../../util/db');
-const { coin } = require('../../util/random');
+import * as schemaModel from '../../model/schema';
+import * as orgModel from '../../model/organization';
+import * as db from '../../util/db';
+import { coin } from '../../util/random';
 
 const MAX_SPAN_LENGTH = 10;
 
@@ -140,7 +139,7 @@ class OrgThingpediaClient extends BaseThingpediaClient {
     }
 }
 
-module.exports = class DatasetGenerator {
+export default class DatasetGenerator {
     constructor(task, forDevices, options) {
         this._task = task;
 
@@ -418,4 +417,4 @@ module.exports = class DatasetGenerator {
             }
         }, 'repeatable read', 'read only');
     }
-};
+}

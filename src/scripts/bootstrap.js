@@ -23,28 +23,28 @@
 // Bootstrap an installation of Almond Cloud by creating the
 // database schema and adding the requisite initial data
 
-const path = require('path');
-const fs = require('fs');
-const util = require('util');
-const yaml = require('js-yaml');
-const child_process = require('child_process');
+import * as path from 'path';
+import * as fs from 'fs';
+import * as util from 'util';
+import * as yaml from 'js-yaml';
+import * as child_process from 'child_process';
 
-const db = require('../util/db');
-const user = require('../util/user');
-const userModel = require('../model/user');
-const organization = require('../model/organization');
-const entityModel = require('../model/entity');
-const stringModel = require('../model/strings');
-const nlpModelsModel = require('../model/nlp_models');
-const templatePackModel = require('../model/template_files');
-const { makeRandom } = require('../util/random');
+import * as db from '../util/db';
+import * as user from '../util/user';
+import * as userModel from '../model/user';
+import * as organization from '../model/organization';
+import * as entityModel from '../model/entity';
+import * as stringModel from '../model/strings';
+import * as nlpModelsModel from '../model/nlp_models';
+import * as templatePackModel from '../model/template_files';
+import { makeRandom } from '../util/random';
 
-const Importer = require('../util/import_device');
-const { clean } = require('../util/tokenize');
-const codeStorage = require('../util/code_storage');
-const execSql = require('../util/exec_sql');
+import * as Importer from '../util/import_device';
+import { clean } from '../util/tokenize';
+import * as codeStorage from '../util/code_storage';
+import * as execSql from '../util/exec_sql';
 
-const Config = require('../config');
+import * as Config from '../config';
 
 const req = { _(x) { return x; } };
 
@@ -417,50 +417,48 @@ async function isAlreadyBootstrapped() {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('bootstrap', {
-            description: 'Bootstrap an installation of Almond Cloud'
-        });
-        parser.add_argument('--force', {
-            action: 'store_true',
-            default: false,
-            help: 'Force bootstrapping even if it appears to have occurred already.'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('bootstrap', {
+        description: 'Bootstrap an installation of Almond Cloud'
+    });
+    parser.add_argument('--force', {
+        action: 'store_true',
+        default: false,
+        help: 'Force bootstrapping even if it appears to have occurred already.'
+    });
+}
 
-    async main(argv) {
-        // Check if we bootstrapped already
-        if (!argv.force) {
-            if (await isAlreadyBootstrapped()) {
-                console.error(`Almond appears to be already bootstrapped, refusing to bootstrap again.`);
+export async function main(argv) {
+    // Check if we bootstrapped already
+    if (!argv.force) {
+        if (await isAlreadyBootstrapped()) {
+            console.error(`Almond appears to be already bootstrapped, refusing to bootstrap again.`);
 
-                await db.tearDown();
-                return;
-            }
+            await db.tearDown();
+            return;
+        }
+    }
+
+    // initialize the schema
+    await execSql.exec(path.resolve(path.dirname(module.filename), '../../model/schema.sql'));
+
+    // initialize the default data in the database
+    await db.withTransaction(async (dbClient) => {
+        const rootOrg = await createRootOrg(dbClient);
+        await createDefaultUsers(dbClient, rootOrg);
+
+        if (Config.WITH_LUINET === 'embedded') {
+            const templatePack = await importStandardTemplatePack(dbClient, rootOrg);
+            await importDefaultNLPModels(dbClient, rootOrg, templatePack);
         }
 
-        // initialize the schema
-        await execSql.exec(path.resolve(path.dirname(module.filename), '../../model/schema.sql'));
+        if (Config.WITH_THINGPEDIA === 'embedded') {
+            await importStandardEntities(dbClient);
+            await importStandardStringTypes(dbClient, rootOrg);
+            await importStandardSchemas(dbClient, rootOrg);
+            await importBuiltinDevices(dbClient, rootOrg);
+        }
+    });
 
-        // initialize the default data in the database
-        await db.withTransaction(async (dbClient) => {
-            const rootOrg = await createRootOrg(dbClient);
-            await createDefaultUsers(dbClient, rootOrg);
-
-            if (Config.WITH_LUINET === 'embedded') {
-                const templatePack = await importStandardTemplatePack(dbClient, rootOrg);
-                await importDefaultNLPModels(dbClient, rootOrg, templatePack);
-            }
-
-            if (Config.WITH_THINGPEDIA === 'embedded') {
-                await importStandardEntities(dbClient);
-                await importStandardStringTypes(dbClient, rootOrg);
-                await importStandardSchemas(dbClient, rootOrg);
-                await importBuiltinDevices(dbClient, rootOrg);
-            }
-        });
-
-        await db.tearDown();
-    }
-};
+    await db.tearDown();
+}

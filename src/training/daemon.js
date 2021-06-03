@@ -20,25 +20,24 @@
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const assert = require('assert');
-const express = require('express');
+import assert from 'assert';
+import express from 'express';
+import logger from 'morgan';
+import bodyParser from 'body-parser';
+import Prometheus from 'prom-client';
 
-const logger = require('morgan');
-const bodyParser = require('body-parser');
-const Prometheus = require('prom-client');
+import * as SendMail from '../util/sendmail';
+import * as db from '../util/db';
+import Metrics from '../util/metrics';
+import * as modelsModel from '../model/nlp_models';
+import * as trainingJobModel from '../model/training_job';
+import * as errorHandling from '../util/error_handling';
 
-const SendMail = require('../util/sendmail');
-const db = require('../util/db');
-const Metrics = require('../util/metrics');
-const modelsModel = require('../model/nlp_models');
-const trainingJobModel = require('../model/training_job');
-const errorHandling = require('../util/error_handling');
+import Job from './training_job';
 
-const Job = require('./training_job');
+import * as Config from '../config';
 
-const Config = require('../config');
-
-const JobSpecs = require('./job_specs');
+import JobSpecs from './job_specs';
 const JOB_TYPES = Object.keys(JobSpecs);
 
 class TrainingDaemon {
@@ -326,26 +325,24 @@ Check the logs for further information.`
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('run-training', {
-            description: 'Run the training controller process'
-        });
-        parser.add_argument('-p', '--port', {
-            required: false,
-            type: Number,
-            help: 'Listen on the given port',
-            default: 8090
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('run-training', {
+        description: 'Run the training controller process'
+    });
+    parser.add_argument('-p', '--port', {
+        required: false,
+        type: Number,
+        help: 'Listen on the given port',
+        default: 8090
+    });
+}
 
-    async main(argv) {
-        const daemon = new TrainingDaemon();
+export async function main(argv) {
+    const daemon = new TrainingDaemon();
 
-        await daemon.checkExistingJobs();
-        daemon.initFrontend(argv.port);
+    await daemon.checkExistingJobs();
+    daemon.initFrontend(argv.port);
 
-        if (Config.ENABLE_PROMETHEUS)
-            Prometheus.collectDefaultMetrics();
-    }
-};
+    if (Config.ENABLE_PROMETHEUS)
+        Prometheus.collectDefaultMetrics();
+}

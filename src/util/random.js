@@ -19,8 +19,8 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const assert = require('assert');
-const crypto = require('crypto');
+import assert from 'assert';
+import * as crypto from 'crypto';
 
 function choose(from, n, rng = Math.random) {
     if (n === 0)
@@ -77,7 +77,7 @@ function makeRandom(size = 32) {
     return crypto.randomBytes(size).toString('hex');
 }
 
-module.exports = {
+export {
     coin,
     uniform,
     choose,

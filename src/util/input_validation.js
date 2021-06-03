@@ -18,8 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-const typeIs = require('type-is');
+import typeIs from 'type-is';
 
 function checkKey(value, type) {
     if (Array.isArray(type)) {
@@ -133,7 +132,7 @@ function validatePOST(keys, options) {
     };
 }
 
-module.exports = {
+export {
     validateGET,
     validatePOST,
 

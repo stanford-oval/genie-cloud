@@ -18,21 +18,20 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import passport from 'passport';
+import * as oauth2orize from 'oauth2orize';
+import * as util from 'util';
+import * as jwt from 'jsonwebtoken';
 
-const passport = require('passport');
-const oauth2orize = require('oauth2orize');
-const util = require('util');
-const jwt = require('jsonwebtoken');
+import { BasicStrategy } from 'passport-http';
+import { Strategy as ClientPasswordStrategy } from 'passport-oauth2-client-password';
 
-const BasicStrategy = require('passport-http').BasicStrategy;
-const ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy;
+import * as model from '../model/oauth2';
+import * as db from '../util/db';
+import * as secret from '../util/secret_key';
 
 // create OAuth 2.0 server
 const server = oauth2orize.createServer();
-
-const model = require('../model/oauth2');
-const db = require('../util/db');
-const secret = require('../util/secret_key');
 
 // These strategies are used to authenticate oauth2 clients, not
 // to authenticate users
@@ -178,4 +177,4 @@ server.exchange(oauth2orize.exchange.refreshToken((client, refreshToken, scope, 
     }).catch(done);
 }));
 
-module.exports = server;
+export default server;

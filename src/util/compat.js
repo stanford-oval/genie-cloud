@@ -18,10 +18,9 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as ThingTalk from 'thingtalk';
 
-const ThingTalk = require('thingtalk');
-
-function parseOldOrNewSyntax(code) {
+export function parseOldOrNewSyntax(code) {
     try {
         return ThingTalk.Syntax.parse(code);
     } catch(e1) {
@@ -36,7 +35,3 @@ function parseOldOrNewSyntax(code) {
         }
     }
 }
-
-module.exports = {
-    parseOldOrNewSyntax
-};

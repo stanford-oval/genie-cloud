@@ -18,16 +18,15 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
+import * as crypto from 'crypto';
 
-const express = require('express');
-const crypto = require('crypto');
+import * as db from '../util/db';
+import * as orgModel from '../model/organization';
+import * as userModel from '../model/user';
+import * as deviceModel from '../model/device';
 
-const db = require('../util/db');
-const orgModel = require('../model/organization');
-const userModel = require('../model/user');
-const deviceModel = require('../model/device');
-
-const user = require('../util/user');
+import * as user from '../util/user';
 
 let router = express.Router();
 
@@ -87,4 +86,4 @@ router.get('/user/:cloud_id', (req, res, next) => {
     }).catch(next);
 });
 
-module.exports = router;
+export default router;

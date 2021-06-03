@@ -18,21 +18,21 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
+import highlightjs from 'highlight.js';
+import ttlang from '../util/highlightjs-thingtalk';
+highlightjs.registerLanguage('tt', ttlang);
 
-const express = require('express');
-const highlightjs = require('highlight.js');
-highlightjs.registerLanguage('tt', require('../util/highlightjs-thingtalk'));
+import * as db from '../util/db';
+import * as user from '../util/user';
+import * as deviceModel from '../model/device';
+import * as schemaModel from '../model/schema';
+import * as exampleModel from '../model/example';
 
-const db = require('../util/db');
-const user = require('../util/user');
-const deviceModel = require('../model/device');
-const schemaModel = require('../model/schema');
-const exampleModel = require('../model/example');
-
-const SchemaUtils = require('../util/manifest_to_schema');
-const DatasetUtils = require('../util/dataset');
-const I18n = require('../util/i18n');
-const { parseOldOrNewSyntax } = require('../util/compat');
+import * as SchemaUtils from '../util/manifest_to_schema';
+import * as DatasetUtils from '../util/dataset';
+import * as I18n from '../util/i18n';
+import { parseOldOrNewSyntax } from '../util/compat';
 
 let router = express.Router();
 
@@ -96,4 +96,4 @@ router.get('/by-id/:kind', (req, res, next) => {
     }).catch(next);
 });
 
-module.exports = router;
+export default router;

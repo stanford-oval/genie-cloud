@@ -18,11 +18,10 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
+import express from 'express';
 
-const express = require('express');
-
-const user = require('../util/user');
-const EngineManager = require('../almond/enginemanagerclient');
+import * as user from '../util/user';
+import EngineManager from '../almond/enginemanagerclient';
 
 const router = express.Router();
 
@@ -179,4 +178,4 @@ router.get('/log/:id', (req, res, next) => {
     }).catch(next);
 });
 
-module.exports = router;
+export default router;

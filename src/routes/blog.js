@@ -18,18 +18,17 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as Url from 'url';
+import express from 'express';
+import RSS from 'rss';
 
-const Url = require('url');
-const express = require('express');
-const RSS = require('rss');
+import * as blogModel from '../model/blog';
 
-const blogModel = require('../model/blog');
+import * as db from '../util/db';
+import * as user from '../util/user';
+import { NotFoundError } from '../util/errors';
 
-const db = require('../util/db');
-const user = require('../util/user');
-const { NotFoundError } = require('../util/errors');
-
-const Config = require('../config');
+import * as Config from '../config';
 
 let router = express.Router();
 
@@ -99,4 +98,4 @@ router.get('/:id_slug', (req, res, next) => {
     }).catch(next);
 });
 
-module.exports = router;
+export default router;

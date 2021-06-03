@@ -20,18 +20,18 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const assert = require('assert');
-const events = require('events');
-const rpc = require('transparent-rpc');
-const net = require('net');
-const sockaddr = require('sockaddr');
-const os = require('os');
+import assert from 'assert';
+import * as events from 'events';
+import * as rpc from 'transparent-rpc';
+import * as net from 'net';
+import sockaddr from 'sockaddr';
+import * as os from 'os';
 
-const EngineManager = require('./enginemanager');
-const JsonDatagramSocket = require('../util/json_datagram_socket');
-const { InternalError } = require('../util/errors');
+import EngineManager from './enginemanager';
+import JsonDatagramSocket from '../util/json_datagram_socket';
+import { InternalError } from '../util/errors';
 
-const Config = require('../config');
+import * as Config from '../config';
 assert(Array.isArray(Config.THINGENGINE_MANAGER_ADDRESS));
 
 class ControlSocket extends events.EventEmitter {
@@ -138,67 +138,65 @@ class ControlSocketServer {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('run-almond', {
-            description: 'Run the master Web Almond process'
-        });
-        parser.add_argument('-s', '--shard', {
-            required: false,
-            type: Number,
-            help: 'Shard number for this process',
-            default: 0
-        });
-        parser.add_argument('--k8s', {
-            action: 'store_true',
-            default: false,
-            help: 'Enable running in kubernetes. The shard number will be inferred from the hostname.'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('run-almond', {
+        description: 'Run the master Web Almond process'
+    });
+    parser.add_argument('-s', '--shard', {
+        required: false,
+        type: Number,
+        help: 'Shard number for this process',
+        default: 0
+    });
+    parser.add_argument('--k8s', {
+        action: 'store_true',
+        default: false,
+        help: 'Enable running in kubernetes. The shard number will be inferred from the hostname.'
+    });
+}
 
-    main(argv) {
-        if (argv.k8s) {
-            console.log(`Running in Kubernetes.`);
-            const hostname = os.hostname();
-            const match = /-([0-9]+)$/.exec(hostname);
-            argv.shard = parseInt(match[1], 10);
-            console.log(`Inferred hostname: ${hostname}, shard: ${argv.shard}`);
-        }
+export async function main(argv) {
+    if (argv.k8s) {
+        console.log(`Running in Kubernetes.`);
+        const hostname = os.hostname();
+        const match = /-([0-9]+)$/.exec(hostname);
+        argv.shard = parseInt(match[1], 10);
+        console.log(`Inferred hostname: ${hostname}, shard: ${argv.shard}`);
+    }
 
-        if (Number.isNaN(argv.shard) || argv.shard < 0 || argv.shard >= Config.THINGENGINE_MANAGER_ADDRESS.length)
-            throw new InternalError('E_INVALID_CONFIG', `Invalid shard number ${argv.shard}, must be between 0 and ${Config.THINGENGINE_MANAGER_ADDRESS.length-1}`);
+    if (Number.isNaN(argv.shard) || argv.shard < 0 || argv.shard >= Config.THINGENGINE_MANAGER_ADDRESS.length)
+        throw new InternalError('E_INVALID_CONFIG', `Invalid shard number ${argv.shard}, must be between 0 and ${Config.THINGENGINE_MANAGER_ADDRESS.length-1}`);
 
-        const enginemanager = new EngineManager(argv.shard);
+    const enginemanager = new EngineManager(argv.shard);
 
-        const controlSocket = new ControlSocketServer(enginemanager, argv.shard, argv.k8s);
+    const controlSocket = new ControlSocketServer(enginemanager, argv.shard, argv.k8s);
 
-        controlSocket.start().then(() => {
-            return enginemanager.start();
-        }).catch((e) => {
-            console.error('Failed to start: ' + e.message);
+    controlSocket.start().then(() => {
+        return enginemanager.start();
+    }).catch((e) => {
+        console.error('Failed to start: ' + e.message);
+        console.error(e.stack);
+        process.exit(1);
+    });
+
+    let _stopping = false;
+    async function stop() {
+        if (_stopping)
+            return;
+        _stopping = true;
+        try {
+            await Promise.all([
+                enginemanager.stop(),
+                controlSocket.stop()
+            ]);
+        } catch(e) {
+            console.error('Failed to stop: ' + e.message);
             console.error(e.stack);
             process.exit(1);
-        });
-
-        let _stopping = false;
-        async function stop() {
-            if (_stopping)
-                return;
-            _stopping = true;
-            try {
-                await Promise.all([
-                    enginemanager.stop(),
-                    controlSocket.stop()
-                ]);
-            } catch(e) {
-                console.error('Failed to stop: ' + e.message);
-                console.error(e.stack);
-                process.exit(1);
-            }
-            process.exit(0);
         }
-
-        process.on('SIGINT', stop);
-        process.on('SIGTERM', stop);
+        process.exit(0);
     }
-};
+
+    process.on('SIGINT', stop);
+    process.on('SIGTERM', stop);
+}

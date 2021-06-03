@@ -18,15 +18,14 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
 
-const express = require('express');
+import * as DatasetUtils from '../util/dataset';
+import * as I18n from '../util/i18n';
+import * as tokenize from '../util/tokenize';
+import * as iv from '../util/input_validation';
 
-const DatasetUtils = require('../util/dataset');
-const I18n = require('../util/i18n');
-const tokenize = require('../util/tokenize');
-const iv = require('../util/input_validation');
-
-const Config = require('../config');
+import * as Config from '../config';
 
 let router = express.Router();
 
@@ -42,4 +41,4 @@ router.get('/', iv.validateGET({ platform: '?string' }), (req, res, next) => {
     }).catch(next);
 });
 
-module.exports = router;
+export default router;

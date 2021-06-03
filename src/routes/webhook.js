@@ -18,12 +18,11 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
 
-const express = require('express');
-
-const user = require('../model/user');
-const db = require('../util/db');
-const EngineManager = require('../almond/enginemanagerclient');
+import * as user from '../model/user';
+import * as db from '../util/db';
+import EngineManager from '../almond/enginemanagerclient';
 
 let router = express.Router();
 
@@ -47,4 +46,4 @@ router.get('/:user_id/:id', (req, res, next) => {
     }).catch(next);
 });
 
-module.exports = router;
+export default router;

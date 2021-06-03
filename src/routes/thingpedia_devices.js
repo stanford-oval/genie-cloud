@@ -18,28 +18,27 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
+import express from 'express';
 
-const assert = require('assert');
-const express = require('express');
+import * as db from '../util/db';
+import * as model from '../model/device';
+import * as user from '../util/user';
+import * as schemaModel from '../model/schema';
+import * as exampleModel from '../model/example';
+import * as trainingJobModel from '../model/training_job';
+import * as I18n from '../util/i18n';
+import * as tokenize from '../util/tokenize';
 
-const db = require('../util/db');
-const model = require('../model/device');
-const user = require('../util/user');
-const schemaModel = require('../model/schema');
-const exampleModel = require('../model/example');
-const trainingJobModel = require('../model/training_job');
-const I18n = require('../util/i18n');
-const tokenize = require('../util/tokenize');
-
-const SchemaUtils = require('../util/manifest_to_schema');
-const DatasetUtils = require('../util/dataset');
-const Importer = require('../util/import_device');
-const codeStorage = require('../util/code_storage');
-const iv = require('../util/input_validation');
-const { NotFoundError } = require('../util/errors');
-const { parseOldOrNewSyntax } = require('../util/compat');
-const stringModel = require('../model/strings');
-const entityModel = require('../model/entity');
+import * as SchemaUtils from '../util/manifest_to_schema';
+import * as DatasetUtils from '../util/dataset';
+import * as Importer from '../util/import_device';
+import * as codeStorage from '../util/code_storage';
+import * as iv from '../util/input_validation';
+import { NotFoundError } from '../util/errors';
+import { parseOldOrNewSyntax } from '../util/compat';
+import * as stringModel from '../model/strings';
+import * as entityModel from '../model/entity';
 
 let router = express.Router();
 
@@ -308,4 +307,4 @@ router.post('/delete', iv.validatePOST({ kind: 'string' }), (req, res, next) => 
     }).catch(next);
 });
 
-module.exports = router;
+export default router;

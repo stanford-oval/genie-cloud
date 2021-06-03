@@ -18,15 +18,14 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
+import * as child_process from 'child_process';
 
-const express = require('express');
-const child_process = require('child_process');
+import * as user from '../util/user';
+import * as iv from '../util/input_validation';
 
-const user = require('../util/user');
-const iv = require('../util/input_validation');
-
-const EngineManager = require('../almond/enginemanagerclient');
-const userToShardId = require('../almond/shard');
+import EngineManager from '../almond/enginemanagerclient';
+import userToShardId from '../almond/shard';
 
 const router = express.Router();
 router.use(user.requireLogIn);
@@ -153,4 +152,4 @@ router.post('/update-module/:kind', (req, res, next) => {
     }).catch(next);
 });
 
-module.exports = router; 
+export default router;

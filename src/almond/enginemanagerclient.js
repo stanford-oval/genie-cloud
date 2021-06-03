@@ -19,15 +19,15 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const net = require('net');
-const events = require('events');
-const rpc = require('transparent-rpc');
-const sockaddr = require('sockaddr');
+import * as net from 'net';
+import * as events from 'events';
+import * as rpc from 'transparent-rpc';
+import sockaddr from 'sockaddr';
 
-const JsonDatagramSocket = require('../util/json_datagram_socket');
-const userToShardId = require('./shard');
+import JsonDatagramSocket from '../util/json_datagram_socket';
+import userToShardId from './shard';
 
-const Config = require('../config');
+import * as Config from '../config';
 
 let _instance;
 
@@ -44,7 +44,7 @@ function connectToMaster(shardId) {
     return jsonSocket;
 }
 
-class EngineManagerClient extends events.EventEmitter {
+export default class EngineManagerClient extends events.EventEmitter {
     constructor() {
         super();
         this.setMaxListeners(Infinity);
@@ -270,5 +270,3 @@ class EngineManagerClient extends events.EventEmitter {
         return this._rpcControls[shardId].restartUserWithoutCache(userId);
     }
 }
-
-module.exports = EngineManagerClient;

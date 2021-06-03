@@ -18,15 +18,14 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-const Tp = require('thingpedia');
-const seedrandom = require('seedrandom');
+import * as Tp from 'thingpedia';
+import * as seedrandom from 'seedrandom';
 
 // FIXME: we cannot require "genie-toolkit" because that will try and load mmap-io
 // which is incompatible with worker use
-const { ContextualSentenceGenerator } = require('genie-toolkit/lib/sentence-generator');
+import { ContextualSentenceGenerator } from 'genie-toolkit/lib/sentence-generator';
 
-module.exports = function worker(args, shard) {
+export default function worker(args, shard) {
     const tpClient = new Tp.FileClient(args);
     const options = {
         rng: seedrandom.alea(args.random_seed + ':' + shard),
@@ -40,4 +39,4 @@ module.exports = function worker(args, shard) {
         debug: args.debug,
     };
     return new ContextualSentenceGenerator(options);
-};
+}

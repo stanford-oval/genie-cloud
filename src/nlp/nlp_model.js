@@ -18,18 +18,17 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as fs from "fs";
+import * as path from 'path';
+import * as Genie from 'genie-toolkit';
+import * as Tp from 'thingpedia';
 
-const fs = require("fs");
-const path = require('path');
-const Genie = require('genie-toolkit');
-const Tp = require('thingpedia');
+import BaseThingpediaClient from '../util/thingpedia-client';
+import * as AbstractFS from '../util/abstract_fs';
+import * as localfs from '../util/local_fs';
 
-const BaseThingpediaClient = require('../util/thingpedia-client');
-const AbstractFS = require('../util/abstract_fs');
-const localfs = require('../util/local_fs');
-
-const Config = require('../config');
-const kfInferenceUrl = require('../util/kf_inference_url');
+import * as Config from '../config';
+import kfInferenceUrl from '../util/kf_inference_url';
 
 // A ThingpediaClient that operates under the credentials of a specific organization
 class OrgThingpediaClient extends BaseThingpediaClient {
@@ -118,7 +117,7 @@ class DummyPlatform extends Tp.BasePlatform {
 
 const nprocesses = 1;
 
-module.exports = class NLPModel {
+export default class NLPModel {
     constructor(spec, service) {
         this.id = `@${spec.tag}/${spec.language}`;
         this._kfUrl = null;
@@ -209,4 +208,4 @@ module.exports = class NLPModel {
             this.exact, this.tpClient, { id: this.id, nprocesses });
         await this.predictor.start();
     }
-};
+}

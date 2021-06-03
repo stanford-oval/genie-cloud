@@ -18,25 +18,22 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as fs from 'fs';
+import * as util from 'util';
+import * as path from 'path';
+import * as Url from 'url';
+import * as child_process from 'child_process';
+import * as Tp from 'thingpedia';
+import * as seedrandom from 'seedrandom';
+import * as Genie from 'genie-toolkit';
 
-require('../util/config_init');
+import * as db from '../util/db';
+import * as DatasetUtils from '../util/dataset';
+import { clean } from '../util/tokenize';
+import { choose } from '../util/random';
+import { safeMkdir } from '../util/fsutils';
 
-const fs = require('fs');
-const util = require('util');
-const path = require('path');
-const Url = require('url');
-const child_process = require('child_process');
-const Tp = require('thingpedia');
-const seedrandom = require('seedrandom');
-const Genie = require('genie-toolkit');
-
-const db = require('../util/db');
-const DatasetUtils = require('../util/dataset');
-const { clean } = require('../util/tokenize');
-const { choose } = require('../util/random');
-const { safeMkdir } = require('../util/fsutils');
-
-const Config = require('../config');
+import * as Config from '../config';
 const texOptions = [
     // height is set to a large number since the whitespace will be trimmed afterwards
     { height: 50, width: 22, ncols: 6 }, // dense landscape mode
@@ -191,102 +188,100 @@ async function execCommand(command, argv, options) {
     });
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('generate-cheatsheet', {
-            description: 'Generate a cheatsheet in pdf format.'
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en',
-            help: 'The language to generate (defaults to \'en\', English)'
-        });
-        parser.add_argument('-o', '--output', {
-            required: false,
-            default: './cheatsheet',
-            help: 'The output directory for the tex file.'
-        });
-        parser.add_argument('--thingpedia', {
-            required: false,
-            help: 'Path to JSON file containing signature, type and mixin definitions.'
-        });
-        parser.add_argument('--dataset', {
-            required: false,
-            help: 'Path to file containing primitive templates, in ThingTalk syntax.'
-        });
-        parser.add_argument('--count', {
-            required: false,
-            default: 1,
-            type: 'int',
-            help: 'The number of cheatsheet to generate (when generating from files, the ' +
-                'cheatsheet will randomly pick an utterance for each example).'
-        });
-        parser.add_argument('--sample', {
-            required: false,
-            type: 'int',
-            help: 'The number of devices on the cheatsheet.'
-        });
-        parser.add_argument('--random-seed', {
-            default: 'almond is awesome',
-            help: 'Random seed'
-        });
-        parser.add_argument('--suffix', {
-            required: false,
-            help: 'The suffix of generated files (for generating domain-specific cheatsheet).'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('generate-cheatsheet', {
+        description: 'Generate a cheatsheet in pdf format.'
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en',
+        help: 'The language to generate (defaults to \'en\', English)'
+    });
+    parser.add_argument('-o', '--output', {
+        required: false,
+        default: './cheatsheet',
+        help: 'The output directory for the tex file.'
+    });
+    parser.add_argument('--thingpedia', {
+        required: false,
+        help: 'Path to JSON file containing signature, type and mixin definitions.'
+    });
+    parser.add_argument('--dataset', {
+        required: false,
+        help: 'Path to file containing primitive templates, in ThingTalk syntax.'
+    });
+    parser.add_argument('--count', {
+        required: false,
+        default: 1,
+        type: 'int',
+        help: 'The number of cheatsheet to generate (when generating from files, the ' +
+            'cheatsheet will randomly pick an utterance for each example).'
+    });
+    parser.add_argument('--sample', {
+        required: false,
+        type: 'int',
+        help: 'The number of devices on the cheatsheet.'
+    });
+    parser.add_argument('--random-seed', {
+        default: 'almond is awesome',
+        help: 'Random seed'
+    });
+    parser.add_argument('--suffix', {
+        required: false,
+        help: 'The suffix of generated files (for generating domain-specific cheatsheet).'
+    });
+}
 
-    async main(args) {
-        try {
-            const locale = args.locale;
-            const outputpath = path.resolve(args.output);
-            await safeMkdir(outputpath);
+export async function main(args) {
+    try {
+        const locale = args.locale;
+        const outputpath = path.resolve(args.output);
+        await safeMkdir(outputpath);
 
-            const rng = seedrandom(args.random_seed);
+        const rng = seedrandom(args.random_seed);
 
-            for (let i = 0; i < args.count; i++) {
-                const devices = await getDevices(locale, args.thingpedia, args.dataset, args.sample, rng);
-                const icons = devices.map((d) => d.primary_kind);
-                await safeMkdir(`${outputpath}/icons`);
+        for (let i = 0; i < args.count; i++) {
+            const devices = await getDevices(locale, args.thingpedia, args.dataset, args.sample, rng);
+            const icons = devices.map((d) => d.primary_kind);
+            await safeMkdir(`${outputpath}/icons`);
 
-                const baseUrl = Url.resolve(Config.SERVER_ORIGIN, Config.CDN_HOST);
-                for (let icon of icons) {
-                    const iconfile = `${outputpath}/icons/${icon}.png`;
-                    if (fs.existsSync(iconfile))
-                        continue;
-                    const url = Url.resolve(baseUrl, `/icons/${icon}.png`);
-                    try {
-                        await saveFile(url, iconfile);
-                    } catch(e) {
-                        console.error(`Failed to download icon for ${icon}`);
-                    }
+            const baseUrl = Url.resolve(Config.SERVER_ORIGIN, Config.CDN_HOST);
+            for (let icon of icons) {
+                const iconfile = `${outputpath}/icons/${icon}.png`;
+                if (fs.existsSync(iconfile))
+                    continue;
+                const url = Url.resolve(baseUrl, `/icons/${icon}.png`);
+                try {
+                    await saveFile(url, iconfile);
+                } catch(e) {
+                    console.error(`Failed to download icon for ${icon}`);
                 }
-
-                const suffix = '-' + (args.suffix ? args.suffix : '') + i;
-                await genTex(devices, outputpath, suffix);
-                await execCommand('latexmk',
-                    ['-pdf', `cheatsheet${suffix}.tex`], {
-                    cwd: outputpath,
-                    stdio: ['ignore', 'inherit', 'inherit'],
-                });
-                await execCommand('pdfcrop',
-                    ['--margins', '25', `cheatsheet${suffix}.pdf`], {
-                    cwd: outputpath,
-                    stdio: ['ignore', 'inherit', 'inherit']
-                });
-                await execCommand('convert',
-                    ['-density', '100', `cheatsheet${suffix}-crop.pdf`, `cheatsheet${suffix}.png`], {
-                    cwd: outputpath,
-                    stdio: ['ignore', 'inherit', 'inherit']
-                });
-                await execCommand('rm',
-                    [`cheatsheet${suffix}.pdf`, `cheatsheet${suffix}.aux`, `cheatsheet${suffix}.fdb_latexmk`, `cheatsheet${suffix}.fls`, `cheatsheet${suffix}.log`], {
-                    cwd: outputpath,
-                    stdio: ['ignore', 'inherit', 'inherit']
-                });
             }
-        } finally {
-            await db.tearDown();
+
+            const suffix = '-' + (args.suffix ? args.suffix : '') + i;
+            await genTex(devices, outputpath, suffix);
+            await execCommand('latexmk',
+                ['-pdf', `cheatsheet${suffix}.tex`], {
+                cwd: outputpath,
+                stdio: ['ignore', 'inherit', 'inherit'],
+            });
+            await execCommand('pdfcrop',
+                ['--margins', '25', `cheatsheet${suffix}.pdf`], {
+                cwd: outputpath,
+                stdio: ['ignore', 'inherit', 'inherit']
+            });
+            await execCommand('convert',
+                ['-density', '100', `cheatsheet${suffix}-crop.pdf`, `cheatsheet${suffix}.png`], {
+                cwd: outputpath,
+                stdio: ['ignore', 'inherit', 'inherit']
+            });
+            await execCommand('rm',
+                [`cheatsheet${suffix}.pdf`, `cheatsheet${suffix}.aux`, `cheatsheet${suffix}.fdb_latexmk`, `cheatsheet${suffix}.fls`, `cheatsheet${suffix}.log`], {
+                cwd: outputpath,
+                stdio: ['ignore', 'inherit', 'inherit']
+            });
         }
+    } finally {
+        await db.tearDown();
     }
-};
+}

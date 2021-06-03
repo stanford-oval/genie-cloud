@@ -18,13 +18,12 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as argparse from 'argparse';
 
-const argparse = require('argparse');
-
-module.exports =  class ActionSetFlag extends argparse.Action {
+export default class ActionSetFlag extends argparse.Action {
     call(parser, namespace, value) {
         if (!namespace.flags)
             namespace.flags = {};
         namespace.flags[value] = this.const;
     }
-};
+}

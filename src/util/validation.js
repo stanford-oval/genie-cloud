@@ -19,18 +19,18 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const assert = require('assert');
-const ThingTalk = require('thingtalk');
+import assert from 'assert';
+import * as ThingTalk from 'thingtalk';
 
-const entityModel = require('../model/entity');
-const stringModel = require('../model/strings');
+import * as entityModel from '../model/entity';
+import * as stringModel from '../model/strings';
 
-const { clean, splitParams } = require('./tokenize');
-const ThingpediaClient = require('./thingpedia-client');
-const getExampleName = require('./example_names');
-const { ValidationError } = require('./errors');
-const userUtils = require('./user');
-const I18n = require('./i18n');
+import { clean, splitParams } from './tokenize';
+import ThingpediaClient from './thingpedia-client';
+import getExampleName from './example_names';
+import { ValidationError } from './errors';
+import * as userUtils from './user';
+import * as I18n from './i18n';
 
 assert(typeof ThingpediaClient === 'function');
 
@@ -468,7 +468,7 @@ function validateTag(tag, user, adminRole) {
     }
 }
 
-module.exports = {
+export {
     ValidationError,
 
     JAVASCRIPT_MODULE_TYPES,

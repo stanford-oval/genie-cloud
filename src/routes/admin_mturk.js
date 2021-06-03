@@ -19,13 +19,12 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
+import * as db from '../util/db';
+import * as user from '../util/user';
+import * as model from '../model/mturk';
 
-const express = require('express');
-const db = require('../util/db');
-const user = require('../util/user');
-const model = require('../model/mturk');
-
-const MTurkUtils = require('../util/mturk');
+import * as MTurkUtils from '../util/mturk';
 
 let router = express.Router();
 
@@ -76,4 +75,4 @@ router.post('/close', (req, res, next) => {
     }).catch(next);
 });
 
-module.exports = router;
+export default router;

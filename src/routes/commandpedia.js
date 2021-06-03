@@ -17,16 +17,15 @@
 // limitations under the License.
 //
 
+import express from 'express';
 
-const express = require('express');
-
-const db = require('../util/db');
-const commandModel = require('../model/example');
-const iv = require('../util/input_validation');
-const userUtils = require('../util/user');
-const { validatePageAndSize } = require('../util/pagination');
-const I18n = require('../util/i18n');
-const { getCommandDetails } = require('../util/commandpedia');
+import * as db from '../util/db';
+import * as commandModel from '../model/example';
+import * as iv from '../util/input_validation';
+import * as userUtils from '../util/user';
+import { validatePageAndSize } from '../util/pagination';
+import * as I18n from '../util/i18n';
+import { getCommandDetails } from '../util/commandpedia';
 
 let router = express.Router();
 
@@ -73,4 +72,4 @@ router.get('/search', iv.validateGET({ q: 'string', page: '?number', locale: '?s
     }).catch(next);
 });
 
-module.exports = router;
+export default router;

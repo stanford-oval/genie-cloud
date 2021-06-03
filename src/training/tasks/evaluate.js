@@ -18,17 +18,16 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import byline from 'byline';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as Genie from 'genie-toolkit';
+import * as ThingTalk from 'thingtalk';
 
-const byline = require('byline');
-const path = require('path');
-const fs = require('fs');
-const Genie = require('genie-toolkit');
-const ThingTalk = require('thingtalk');
+import AdminThingpediaClient from '../../util/admin-thingpedia-client';
+import * as AbstractFS from '../../util/abstract_fs';
 
-const AdminThingpediaClient = require('../../util/admin-thingpedia-client');
-const AbstractFS = require('../../util/abstract_fs');
-
-module.exports = async function main(task, argv) {
+export default async function main(task, argv) {
     task.handleKill();
 
     const jobdir = await AbstractFS.download(task.jobDir + '/');
@@ -66,4 +65,4 @@ module.exports = async function main(task, argv) {
         parser.stop(),
         AbstractFS.removeTemporary(jobdir)
     ]);
-};
+}

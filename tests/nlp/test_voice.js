@@ -18,19 +18,18 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
+import FormData from 'form-data';
+import * as path from 'path';
+import * as fs from 'fs';
+import WebSocket from 'ws';
 
-const assert = require('assert');
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
-const FormData = require('form-data');
-const path = require('path');
-const fs = require('fs');
-const WebSocket = require('ws');
-
-const Config = require('../../src/config');
+import * as Config from '../../src/config';
 assert.strictEqual(Config.WITH_THINGPEDIA, 'external');
 
-const { assertHttpError, } = require('../website/scaffold');
+import { assertHttpError, } from '../website/scaffold';
 
 function formRequest(url, fd, options = {}) {
     options.dataContentType = 'multipart/form-data; boundary=' + fd.getBoundary();
@@ -160,6 +159,6 @@ async function main() {
     await testCombinedSTTAndNLU();
     await testTTS();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

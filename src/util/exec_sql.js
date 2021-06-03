@@ -18,47 +18,44 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as Url from 'url';
+import * as mysql from 'mysql';
+import * as util from 'util';
+import * as fs from 'fs';
 
-const Url = require('url');
-const mysql = require('mysql');
-const util = require('util');
-const fs = require('fs');
+import * as Config from '../config';
 
-const Config = require('../config');
+export async function exec(filename) {
+    const parsed = Url.parse(Config.DATABASE_URL);
+    const [user, pass] = parsed.auth.split(':');
 
-module.exports = {
-    async exec(filename) {
-        const parsed = Url.parse(Config.DATABASE_URL);
-        const [user, pass] = parsed.auth.split(':');
+    const options = {
+        host: parsed.hostname,
+        port: parsed.port,
+        database: parsed.pathname.substring(1),
+        user: user,
+        password: pass,
+    };
+    Object.assign(options, parsed.query);
 
-        const options = {
-            host: parsed.hostname,
-            port: parsed.port,
-            database: parsed.pathname.substring(1),
-            user: user,
-            password: pass,
-        };
-        Object.assign(options, parsed.query);
+    options.multipleStatements = true;
 
-        options.multipleStatements = true;
+    const queries = await util.promisify(fs.readFile)(filename, { encoding: 'utf8' });
 
-        const queries = await util.promisify(fs.readFile)(filename, { encoding: 'utf8' });
+    await new Promise((resolve, reject) => {
+        const connection = mysql.createConnection(options);
+        connection.query(queries, (error) => {
+            if (error) {
+                reject(error);
+                return;
+            }
 
-        await new Promise((resolve, reject) => {
-            const connection = mysql.createConnection(options);
-            connection.query(queries, (error) => {
-                if (error) {
+            connection.end((error) => {
+                if (error)
                     reject(error);
-                    return;
-                }
-
-                connection.end((error) => {
-                    if (error)
-                        reject(error);
-                    else
-                        resolve();
-                });
+                else
+                    resolve();
             });
         });
-    }
-};
+    });
+}

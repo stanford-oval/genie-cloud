@@ -19,19 +19,19 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const express = require('express');
-const ThingTalk = require('thingtalk');
-const Tp = require('thingpedia');
-const Genie = require('genie-toolkit');
+import express from 'express';
+import * as ThingTalk from 'thingtalk';
+import * as Tp from 'thingpedia';
+import * as Genie from 'genie-toolkit';
 
 const router = express.Router();
 
-const db = require('../util/db');
-const iv = require('../util/input_validation');
-const I18n = require('../util/i18n');
-const userModel = require('../model/user');
-const exampleModel = require('../model/example');
-const Config = require('../config');
+import * as db from '../util/db';
+import * as iv from '../util/input_validation';
+import * as I18n from '../util/i18n';
+import * as userModel from '../model/user';
+import * as exampleModel from '../model/example';
+import * as Config from '../config';
 
 const LATEST_THINGTALK_VERSION = ThingTalk.version;
 
@@ -178,4 +178,4 @@ router.post('/:locale/learn',
     iv.validatePOST({ q: 'string', store: 'string', access_token: '?string', thingtalk_version: 'string', target: 'string', owner: '?string' }, { json: true }),
     (req, res, next) => { learn(req, res).catch(next); });
 
-module.exports = router;
+export default router;

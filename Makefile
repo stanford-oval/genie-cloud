@@ -1,4 +1,5 @@
 sources = \
+	src/*.js \
 	src/*.ts \
 	src/*/*.js \
 	src/*/*.ts \

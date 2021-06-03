@@ -18,44 +18,46 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
+import expressWS from 'express-ws';
+import * as http from 'http';
+import * as url from 'url';
+import * as path from 'path';
+import morgan from 'morgan';
+import favicon from 'serve-favicon';
+import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
+import session from 'express-session';
+import mysqlSession from 'express-mysql-session';
+import csurf from 'csurf';
+import passport from 'passport';
+import connect_flash from 'connect-flash';
+import cacheable from 'cacheable-middleware';
+import xmlBodyParser from 'express-xml-bodyparser';
+import Prometheus from 'prom-client';
+import escapeHtml from 'escape-html';
 
-const express = require('express');
-const http = require('http');
-const url = require('url');
-const path = require('path');
-const morgan = require('morgan');
-const favicon = require('serve-favicon');
-const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser');
-const session = require('express-session');
-const MySQLStore = require('express-mysql-session')(session);
-const csurf = require('csurf');
-const passport = require('passport');
-const connect_flash = require('connect-flash');
-const cacheable = require('cacheable-middleware');
-const xmlBodyParser = require('express-xml-bodyparser');
-const Prometheus = require('prom-client');
-const escapeHtml = require('escape-html');
+import * as passportUtil from './util/passport';
+import * as secretKey from './util/secret_key';
+import * as db from './util/db';
+import * as I18n from './util/i18n';
+import * as userUtils from './util/user';
+import Metrics from './util/metrics';
+import * as errorHandling from './util/error_handling';
+import * as codeStorage from './util/code_storage';
+import EngineManager from './almond/enginemanagerclient';
 
-const passportUtil = require('./util/passport');
-const secretKey = require('./util/secret_key');
-const db = require('./util/db');
-const I18n = require('./util/i18n');
-const userUtils = require('./util/user');
-const Metrics = require('./util/metrics');
-const errorHandling = require('./util/error_handling');
-const codeStorage = require('./util/code_storage');
-const EngineManager = require('./almond/enginemanagerclient');
-
-const Config = require('./config');
+import * as Config from './config';
 
 class Frontend {
-    constructor(port) {
+    constructor() {
         // all environments
         this._app = express();
-
         this.server = http.createServer(this._app);
-        require('express-ws')(this._app, this.server);
+    }
+
+    async init(port) {
+        expressWS(this._app, this.server);
 
         this._app.set('port', port);
         this._app.set('views', path.join(path.dirname(module.filename), '../views'));
@@ -187,19 +189,20 @@ class Frontend {
         this._app.post('/sinkhole', (req, res, next) => {
             res.send('');
         });
-        this._app.use('/api/webhook', require('./routes/webhook'));
-        this._app.use('/me/api/gassistant', require('./routes/bridges/gassistant'));
-        this._app.use('/me/api', require('./routes/my_api'));
+        this._app.use('/api/webhook', (await import('./routes/webhook')).default);
+        this._app.use('/me/api/gassistant', (await import('./routes/bridges/gassistant')).default);
+        this._app.use('/me/api', (await import('./routes/my_api')).default);
 
         // legacy route for /me/api/sync, uses auth tokens instead of full OAuth2
-        this._app.use('/ws', require('./routes/thingengine_ws'));
+        this._app.use('/ws', (await import('./routes/thingengine_ws')).default);
 
         if (Config.WITH_THINGPEDIA === 'embedded')
-            this._app.use('/thingpedia/api', require('./routes/thingpedia_api'));
+            this._app.use('/thingpedia/api', (await import('./routes/thingpedia_api')).default);
 
         // now initialize cookies, session and session-based logins
 
         this._app.use(cookieParser(secretKey.getSecretKey()));
+        const MySQLStore = mysqlSession(session);
         this._sessionStore = new MySQLStore({
             expiration: 86400000 // 1 day, in ms
         }, db.getPool());
@@ -246,14 +249,14 @@ class Frontend {
         // because file upload uses multer, which must be initialized before csurf
         // MAKE SURE ALL ROUTES HAVE CSURF
         if (Config.WITH_THINGPEDIA === 'embedded') {
-            this._app.use('/thingpedia/upload', require('./routes/thingpedia_upload'));
-            this._app.use('/thingpedia/entities', require('./routes/thingpedia_entities'));
-            this._app.use('/thingpedia/strings', require('./routes/thingpedia_strings'));
+            this._app.use('/thingpedia/upload', (await import('./routes/thingpedia_upload')).default);
+            this._app.use('/thingpedia/entities', (await import('./routes/thingpedia_entities')).default);
+            this._app.use('/thingpedia/strings', (await import('./routes/thingpedia_strings')).default);
         }
         if (Config.WITH_LUINET === 'embedded')
-            this._app.use('/developers/mturk', require('./routes/developer_mturk'));
-        this._app.use('/developers/oauth', require('./routes/developer_oauth2'));
-        this._app.use('/admin/blog/upload', require('./routes/admin_upload'));
+            this._app.use('/developers/mturk', (await import('./routes/developer_mturk')).default);
+        this._app.use('/developers/oauth', (await import('./routes/developer_oauth2')).default);
+        this._app.use('/admin/blog/upload', (await import('./routes/admin_upload')).default);
 
         this._app.use(csurf({ cookie: false }));
         this._app.use((req, res, next) => {
@@ -261,38 +264,38 @@ class Frontend {
             next();
         });
 
-        this._app.use('/', require('./routes/about'));
-        this._app.use('/', require('./routes/qrcode'));
-        this._app.use('/blog', require('./routes/blog'));
-        this._app.use('/mturk', require('./routes/mturk'));
+        this._app.use('/', (await import('./routes/about')).default);
+        this._app.use('/', (await import('./routes/qrcode')).default);
+        this._app.use('/blog', (await import('./routes/blog')).default);
+        this._app.use('/mturk', (await import('./routes/mturk')).default);
 
-        this._app.use('/me/ws', require('./routes/my_internal_api'));
-        this._app.use('/me', require('./routes/my_stuff'));
-        this._app.use('/me/api/oauth2', require('./routes/my_oauth2'));
-        this._app.use('/me/devices', require('./routes/devices'));
-        this._app.use('/me/status', require('./routes/status'));
-        this._app.use('/me/recording', require('./routes/my_recording'));
-        this._app.use('/devices', require('./routes/devices_compat'));
+        this._app.use('/me/ws', (await import('./routes/my_internal_api')).default);
+        this._app.use('/me', (await import('./routes/my_stuff')).default);
+        this._app.use('/me/api/oauth2', (await import('./routes/my_oauth2')).default);
+        this._app.use('/me/devices', (await import('./routes/devices')).default);
+        this._app.use('/me/status', (await import('./routes/status')).default);
+        this._app.use('/me/recording', (await import('./routes/my_recording')).default);
+        this._app.use('/devices', (await import('./routes/devices_compat')).default);
 
-        this._app.use('/developers', require('./routes/developer_console'));
+        this._app.use('/developers', (await import('./routes/developer_console')).default);
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
-            this._app.use('/thingpedia', require('./routes/thingpedia_portal'));
-            this._app.use('/thingpedia/commands', require('./routes/commandpedia'));
+            this._app.use('/thingpedia', (await import('./routes/thingpedia_portal')).default);
+            this._app.use('/thingpedia/commands', (await import('./routes/commandpedia')).default);
 
-            this._app.use('/thingpedia/examples', require('./routes/thingpedia_examples'));
-            this._app.use('/thingpedia/devices', require('./routes/thingpedia_devices'));
-            this._app.use('/thingpedia/classes', require('./routes/thingpedia_schemas'));
-            this._app.use('/thingpedia/translate', require('./routes/thingpedia_translate'));
-            this._app.use('/thingpedia/cheatsheet', require('./routes/thingpedia_cheatsheet'));
-            this._app.use('/thingpedia/snapshots', require('./routes/thingpedia_snapshots'));
+            this._app.use('/thingpedia/examples', (await import('./routes/thingpedia_examples')).default);
+            this._app.use('/thingpedia/devices', (await import('./routes/thingpedia_devices')).default);
+            this._app.use('/thingpedia/classes', (await import('./routes/thingpedia_schemas')).default);
+            this._app.use('/thingpedia/translate', (await import('./routes/thingpedia_translate')).default);
+            this._app.use('/thingpedia/cheatsheet', (await import('./routes/thingpedia_cheatsheet')).default);
+            this._app.use('/thingpedia/snapshots', (await import('./routes/thingpedia_snapshots')).default);
         }
 
-        this._app.use('/profiles', require('./routes/thingpedia_profiles'));
-        this._app.use('/user', require('./routes/user'));
-        this._app.use('/admin', require('./routes/admin'));
-        this._app.use('/admin/mturk', require('./routes/admin_mturk'));
-        this._app.use('/proxy', require('./routes/proxy'));
+        this._app.use('/profiles', (await import('./routes/thingpedia_profiles')).default);
+        this._app.use('/user', (await import('./routes/user')).default);
+        this._app.use('/admin', (await import('./routes/admin')).default);
+        this._app.use('/admin/mturk', (await import('./routes/admin_mturk')).default);
+        this._app.use('/proxy', (await import('./routes/proxy')).default);
 
         this._app.use((req, res) => {
             // if we get here, we have a 404 response
@@ -337,41 +340,40 @@ class Frontend {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('run-frontend', {
-            description: 'Run a Web Almond frontend'
-        });
-        parser.add_argument('-p', '--port', {
-            required: false,
-            type: Number,
-            help: 'Listen on the given port',
-            default: 8080
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('run-frontend', {
+        description: 'Run a Web Almond frontend'
+    });
+    parser.add_argument('-p', '--port', {
+        required: false,
+        type: Number,
+        help: 'Listen on the given port',
+        default: 8080
+    });
+}
 
-    main(argv) {
-        const frontend = new Frontend(argv.port);
-        const enginemanager = new EngineManager();
-        enginemanager.start();
+export async function main(argv) {
+    const frontend = new Frontend();
+    await frontend.init(argv.port);
+    const enginemanager = new EngineManager();
+    enginemanager.start();
 
-        let metricsInterval = null;
-        if (Config.ENABLE_PROMETHEUS)
-            metricsInterval = Prometheus.collectDefaultMetrics();
+    let metricsInterval = null;
+    if (Config.ENABLE_PROMETHEUS)
+        metricsInterval = Prometheus.collectDefaultMetrics();
 
-        async function handleSignal() {
-            if (metricsInterval)
-                clearInterval(metricsInterval);
-            await frontend.close();
-            await enginemanager.stop();
-            await db.tearDown();
-            process.exit();
-        }
-
-        process.on('SIGINT', handleSignal);
-        process.on('SIGTERM', handleSignal);
-
-        // open the HTTP server
-        frontend.open();
+    async function handleSignal() {
+        if (metricsInterval)
+            clearInterval(metricsInterval);
+        await frontend.close();
+        await enginemanager.stop();
+        await db.tearDown();
+        process.exit();
     }
-};
+
+    process.on('SIGINT', handleSignal);
+    process.on('SIGTERM', handleSignal);
+
+    // open the HTTP server
+    frontend.open();
+}

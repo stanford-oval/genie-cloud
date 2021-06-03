@@ -19,16 +19,16 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const Tp = require('thingpedia');
+import * as Tp from 'thingpedia';
 
-const AbstractFS = require('../util/abstract_fs');
-const db = require('../util/db');
-const modelsModel = require('../model/nlp_models');
-const trainingJobModel = require('../model/training_job');
+import * as AbstractFS from '../util/abstract_fs';
+import * as db from '../util/db';
+import * as modelsModel from '../model/nlp_models';
+import * as trainingJobModel from '../model/training_job';
 
-const Config = require('../config');
+import * as Config from '../config';
 
-module.exports = {
+export default {
     'update-dataset': [
         {
             name: 'update-dataset',

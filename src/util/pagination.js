@@ -39,6 +39,6 @@ function validatePageAndSize(req, defaultValue, maxValue) {
     return [page, page_size];
 }
 
-module.exports = {
+export {
     validatePageAndSize
 };

@@ -17,17 +17,16 @@
 // limitations under the License.
 //
 
-
 // All pages that are "website" (marketing, research, projects, team, Terms of Service, about...)
 // go here
 // Pages can be enabled or disabled from the configuration
 
-const express = require('express');
+import express from 'express';
 
-const Config = require('../config');
-const db = require('../util/db');
-const deviceModel = require('../model/device');
-const blogModel = require('../model/blog');
+import * as Config from '../config';
+import * as db from '../util/db';
+import * as deviceModel from '../model/device';
+import * as blogModel from '../model/blog';
 
 let router = express.Router();
 
@@ -75,4 +74,4 @@ router.get('/about/privacy', (req, res, next) => {
     });
 });
 
-module.exports = router;
+export default router;

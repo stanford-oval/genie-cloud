@@ -18,11 +18,10 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as k8s from '@kubernetes/client-node';
+import * as Tp from 'thingpedia';
 
-const k8s = require('@kubernetes/client-node');
-const Tp = require('thingpedia');
-
-const Config = require('../../config');
+import * as Config from '../../config';
 
 const kc = new k8s.KubeConfig();
 kc.loadFromDefault();
@@ -117,7 +116,7 @@ const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
             }
         });
     }
-    
+
     _processJob(k8sJob, type) {
         const jobName = k8sJob.metadata.name;
         console.log('processing job', jobName, type);
@@ -197,8 +196,7 @@ class KubernetesTaskRunner {
     }
 }
 
-
-module.exports = async function execTask(job, spec) {
+export default async function execTask(job, spec) {
     const jobName = Config.TRAINING_KUBERNETES_JOB_NAME_PREFIX + 'training-job-' + job.id + '-' + spec.name;
     const k8sJob = {
         apiVersion: 'batch/v1',
@@ -302,4 +300,4 @@ module.exports = async function execTask(job, spec) {
     } catch(err) {
         throw new Error('Failed to create Kubernetes job:' + JSON.stringify(err));
     }
-};
+}

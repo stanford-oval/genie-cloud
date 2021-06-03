@@ -18,22 +18,19 @@
 //
 // Author: Jim Deng
 
+import * as Config from '../config';
 
-const Config = require('../config');
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('get-config', {
+        description: 'Print a configuration value'
+    });
+    parser.add_argument('key', {
+        help: 'The configuration key to print',
+    });
+}
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('get-config', {
-            description: 'Print a configuration value'
-        });
-        parser.add_argument('key', {
-            help: 'The configuration key to print',
-        });
-    },
-
-    main(argv) {
-        if (Config[argv.key] === undefined) // null/false/0 are valid configuration values, so don't use !
-            throw Error(`Invalid configuration key ${argv.key}`);
-        console.log(Config[argv.key]);
-    }
-};
+export async function main(argv) {
+    if (Config[argv.key] === undefined) // null/false/0 are valid configuration values, so don't use !
+        throw Error(`Invalid configuration key ${argv.key}`);
+    console.log(Config[argv.key]);
+}

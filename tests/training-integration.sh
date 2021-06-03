@@ -19,6 +19,7 @@ on_error() {
     wait
 
     rm -fr $workdir
+    rm -f $srcdir/secret_config.js
 }
 trap on_error ERR INT TERM
 
@@ -73,7 +74,7 @@ ${srcdir}/dist/main.js bootstrap --force
 
 # load some more data into Thingpedia
 test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/api/v3/devices/package/com.bing -O $srcdir/tests/data/com.bing.zip
-eval $(node $srcdir/tests/load_test_thingpedia.js)
+eval $(ts-node $srcdir/tests/load_test_thingpedia.js)
 
 # set the config on all models
 tr -d '\n' > training-config.json <<EOF
@@ -115,7 +116,7 @@ else
     # sleep until the process is settled
     sleep 30
 
-    node $srcdir/tests/training
+    ts-node $srcdir/tests/training
 fi
 
 kill $serverpid
@@ -126,3 +127,4 @@ wait
 
 
 rm -rf $workdir
+rm -f $srcdir/secret_config.js

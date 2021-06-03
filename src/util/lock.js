@@ -37,7 +37,7 @@
 // when acquire() returns, the lock is owned by the calling promise
 // chain (async-await pseudo-thread); concurrent calls to acquire()
 // will block in `await oldQueue` until `unlockCallback` is called
-module.exports = class Lock {
+export default class Lock {
     constructor() {
         this._queue = Promise.resolve();
     }
@@ -52,4 +52,4 @@ module.exports = class Lock {
         await oldQueue;
         return unlockCallback;
     }
-};
+}

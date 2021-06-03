@@ -18,22 +18,21 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
+import * as ThingTalk from 'thingtalk';
 
-const express = require('express');
-const ThingTalk = require('thingtalk');
-
-const db = require('../util/db');
-const user = require('../util/user');
-const model = require('../model/schema');
-const exampleModel = require('../model/example');
-const iv = require('../util/input_validation');
-const { NotFoundError } = require('../util/errors');
-const I18n = require('../util/i18n');
-const ThingpediaClient = require('../util/thingpedia-client');
-const DatasetUtils = require('../util/dataset');
-const Validation = require('../util/validation');
-const Importer = require('../util/import_device');
-const { BadRequestError } = require('../util/errors');
+import * as db from '../util/db';
+import * as user from '../util/user';
+import * as model from '../model/schema';
+import * as exampleModel from '../model/example';
+import * as iv from '../util/input_validation';
+import { NotFoundError } from '../util/errors';
+import * as I18n from '../util/i18n';
+import ThingpediaClient from '../util/thingpedia-client';
+import * as DatasetUtils from '../util/dataset';
+import * as Validation from '../util/validation';
+import * as Importer from '../util/import_device';
+import { BadRequestError } from '../util/errors';
 
 let router = express.Router();
 
@@ -307,4 +306,4 @@ router.post('/by-id/:kind', user.requireLogIn, iv.validatePOST({ language: 'stri
     }).catch(next);
 });
 
-module.exports = router;
+export default router;

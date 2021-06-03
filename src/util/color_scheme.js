@@ -18,9 +18,8 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
-
-
-const colorExtractor = require('img-color-extractor');
+import colorExtractor from 'img-color-extractor';
+import ColorScheme from 'color-scheme';
 
 const defaultsOptions = {
     background: '#FFFFFF',
@@ -29,9 +28,7 @@ const defaultsOptions = {
     greyVa: -1,
 };
 
-const ColorScheme = require('color-scheme');
-
-module.exports = async function makeColorScheme(stream) {
+export default async function makeColorScheme(stream) {
     let colors_dominant = await colorExtractor.extract(stream, defaultsOptions);
     const scheme = new ColorScheme;
 
@@ -58,4 +55,4 @@ module.exports = async function makeColorScheme(stream) {
         colors_palette_default: JSON.stringify(colors_palette_default),
         colors_palette_light: JSON.stringify(colors_palette_light)
     };
-};
+}

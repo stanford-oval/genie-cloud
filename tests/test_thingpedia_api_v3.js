@@ -21,23 +21,22 @@
 
 
 // load thingpedia to initialize the polyfill
-require('thingpedia');
-require('./polyfill');
+import 'thingpedia';
 process.on('unhandledRejection', (up) => { throw up; });
-require('../src/util/config_init');
+import '../src/util/config_init';
 
-const fs = require('fs');
-const assert = require('assert');
-const path = require('path');
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
-const FormData = require('form-data');
-const JSZip = require('jszip');
+import * as fs from 'fs';
+import assert from 'assert';
+import * as path from 'path';
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
+import FormData from 'form-data';
+import JSZip from 'jszip';
 
-const { sessionRequest, assertHttpError } = require('./website/scaffold');
-const { login, startSession } = require('./login');
+import { sessionRequest, assertHttpError } from './website/scaffold';
+import { login, startSession } from './login';
 
-const Config = require('../src/config');
+import * as Config from '../src/config';
 assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
 assert.strictEqual(Config.THINGPEDIA_URL, '/thingpedia');
 
@@ -1869,7 +1868,7 @@ const NEW_DEVICE1_ICON = fs.readFileSync(path.resolve(path.dirname(module.filena
 
 const NEW_DEVICE1_CODE = `
 "use strict";
-const Tp = require('thingpedia');
+import * as Tp from 'thingpedia';
 module.exports = class TestDevice extends Tp.BaseDevice {
     get_foo() {
         return [{ text: "foo" }];

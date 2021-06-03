@@ -19,9 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const db = require('../util/db');
+import * as db from '../util/db';
 
-function create(client, snapshot) {
+export async function create(client, snapshot) {
     snapshot.date = new Date;
 
     return db.insertOne(client, 'insert into snapshot set ?', [snapshot]).then((id) => {
@@ -33,15 +33,11 @@ function create(client, snapshot) {
     }).then(() => snapshot);
 }
 
-module.exports = {
-    create,
-
-    getAll(client, start, end) {
-        if (start !== undefined && end !== undefined) {
-            return db.selectAll(client, "select * from snapshot order by snapshot_id asc limit ?,?",
-                                [start, end]);
-        } else {
-            return db.selectAll(client, "select * from snapshot order by snapshot_id asc");
-        }
-    },
-};
+export async function getAll(client, start, end) {
+    if (start !== undefined && end !== undefined) {
+        return db.selectAll(client, "select * from snapshot order by snapshot_id asc limit ?,?",
+                            [start, end]);
+    } else {
+        return db.selectAll(client, "select * from snapshot order by snapshot_id asc");
+    }
+}

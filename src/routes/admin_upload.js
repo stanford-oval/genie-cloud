@@ -18,18 +18,17 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
+import * as fs from 'fs';
+import * as util from 'util';
+import multer from 'multer';
+import csurf from 'csurf';
+import * as crypto from 'crypto';
+import * as os from 'os';
 
-const express = require('express');
-const fs = require('fs');
-const util = require('util');
-const multer = require('multer');
-const csurf = require('csurf');
-const crypto = require('crypto');
-const os = require('os');
+import * as code_storage from '../util/code_storage';
 
-const code_storage = require('../util/code_storage');
-
-const user = require('../util/user');
+import * as user from '../util/user';
 
 let router = express.Router();
 
@@ -81,4 +80,4 @@ router.post('/', (req, res, next) => {
     upload(req, res).catch(next);
 });
 
-module.exports = router;
+export default router;

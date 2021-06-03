@@ -18,13 +18,12 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
 
-const express = require('express');
+import * as iv from '../util/input_validation';
+import * as I18n from '../util/i18n';
 
-const iv = require('../util/input_validation');
-const I18n = require('../util/i18n');
-
-const runNLU = require('./nlu');
+import runNLU from './nlu';
 
 let router = express.Router();
 
@@ -108,4 +107,4 @@ router.post('/:locale/tokenize', iv.validatePOST({ q: 'string' }, { json: true }
     tokenize(req.params, req.body, res).catch(next);
 });
 
-module.exports = router;
+export default router;

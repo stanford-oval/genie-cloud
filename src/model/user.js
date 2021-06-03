@@ -18,103 +18,100 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
 
-const assert = require('assert');
+import * as db from '../util/db';
 
-const db = require('../util/db');
+import * as Config from '../config';
+const nshards = Config.THINGENGINE_MANAGER_ADDRESS.length;
 
-const nshards = require('../config').THINGENGINE_MANAGER_ADDRESS.length;
-
-function create(client, user) {
+export async function create(client, user) {
     return db.insertOne(client, `insert into users set ?`, [user]).then((id) => {
         user.id = id;
         return user;
     });
 }
 
-module.exports = {
-    get(client, id) {
-        return db.selectOne(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
-                            + " on u.developer_org = o.id where u.id = ?", [id]);
-    },
+export async function get(client, id) {
+    return db.selectOne(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
+                        + " on u.developer_org = o.id where u.id = ?", [id]);
+}
 
-    getSearch(client, search) {
-        search = '%' + search + '%';
-        return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
-                            + " on u.developer_org = o.id where username like ? or human_name like ? or email like ?",
-                            [search, search, search]);
-    },
+export async function getSearch(client, search) {
+    search = '%' + search + '%';
+    return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
+                        + " on u.developer_org = o.id where username like ? or human_name like ? or email like ?",
+                        [search, search, search]);
+}
 
-    getByName(client, username) {
-        return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
-                            + " on u.developer_org = o.id where username = ?", [username]);
-    },
+export async function getByName(client, username) {
+    return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
+                        + " on u.developer_org = o.id where username = ?", [username]);
+}
 
-    getByEmail(client, email) {
-        return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
-                            + " on u.developer_org = o.id where email = ?", [email]);
-    },
+export async function getByEmail(client, email) {
+    return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
+                        + " on u.developer_org = o.id where email = ?", [email]);
+}
 
-    getByGoogleAccount(client, googleId) {
-        return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
-                            + " on u.developer_org = o.id where google_id = ?", [googleId]);
-    },
+export async function getByGoogleAccount(client, googleId) {
+    return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
+                        + " on u.developer_org = o.id where google_id = ?", [googleId]);
+}
 
-    getByGithubAccount(client, githubId) {
-        return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
-                            + " on u.developer_org = o.id where github_id = ?", [githubId]);
-    },
+export async function getByGithubAccount(client, githubId) {
+    return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
+                        + " on u.developer_org = o.id where github_id = ?", [githubId]);
+}
 
-    getByCloudId(client, cloudId) {
-        return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
-                            + " on u.developer_org = o.id where cloud_id = ?", [cloudId]);
-    },
+export async function getByCloudId(client, cloudId) {
+    return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
+                        + " on u.developer_org = o.id where cloud_id = ?", [cloudId]);
+}
 
-    getByCloudIdForProfile(client, cloudId) {
-        return db.selectOne(client, "select u.*, o.developer_key, o.name as developer_org_name, o.id_hash as developer_org_id_hash from users u left join organizations o"
-                            + " on u.developer_org = o.id where cloud_id = ?", [cloudId]);
-    },
+export async function getByCloudIdForProfile(client, cloudId) {
+    return db.selectOne(client, "select u.*, o.developer_key, o.name as developer_org_name, o.id_hash as developer_org_id_hash from users u left join organizations o"
+                        + " on u.developer_org = o.id where cloud_id = ?", [cloudId]);
+}
 
-    getIdByCloudId(client, cloudId) {
-        return db.selectOne(client, "select id from users u where cloud_id = ?", [cloudId]);
-    },
+export async function getIdByCloudId(client, cloudId) {
+    return db.selectOne(client, "select id from users u where cloud_id = ?", [cloudId]);
+}
 
-    getByDeveloperOrg(client, developerOrg) {
-        return db.selectAll(client, "select u.* from users u where u.developer_org = ?", [developerOrg]);
-    },
+export async function getByDeveloperOrg(client, developerOrg) {
+    return db.selectAll(client, "select u.* from users u where u.developer_org = ?", [developerOrg]);
+}
 
-    create,
+export async function update(client, id, user) {
+    return db.query(client, "update users set ? where id = ?", [user, id]);
+}
+async function _delete(client, id) {
+    return db.query(client, "delete from users where id = ?", [id]);
+}
+export { _delete as delete };
 
-    update(client, id, user) {
-        return db.query(client, "update users set ? where id = ?", [user, id]);
-    },
-    delete(client, id) {
-        return db.query(client, "delete from users where id = ?", [id]);
-    },
+export async function getAll(client, start, end, sort) {
+    const [sortField, sortDirection] = sort.split('/');
+    assert(sortDirection === 'asc' || sortDirection === 'desc');
 
-    getAll(client, start, end, sort) {
-        const [sortField, sortDirection] = sort.split('/');
-        assert(sortDirection === 'asc' || sortDirection === 'desc');
+    return db.selectAll(client, `select u.*, o.developer_key, o.name as developer_org_name
+        from users u left join organizations o on u.developer_org = o.id
+        order by ?? ${sortDirection} limit ?,?`, [sortField, start, end]);
+}
 
-        return db.selectAll(client, `select u.*, o.developer_key, o.name as developer_org_name
-            from users u left join organizations o on u.developer_org = o.id
-            order by ?? ${sortDirection} limit ?,?`, [sortField, start, end]);
-    },
+export async function getAllForShardId(client, shardId) {
+    return db.selectAll(client, `select u.*, o.developer_key, o.name as developer_org_name
+        from users u left join organizations o on u.developer_org = o.id where u.id % ? = ? order by id`, [nshards, shardId]);
+}
 
-    getAllForShardId(client, shardId) {
-        return db.selectAll(client, `select u.*, o.developer_key, o.name as developer_org_name
-            from users u left join organizations o on u.developer_org = o.id where u.id % ? = ? order by id`, [nshards, shardId]);
-    },
+export async function recordLogin(client, userId) {
+    return db.query(client, "update users set lastlog_time = current_timestamp where id = ?", [userId]);
+}
 
-    recordLogin(client, userId) {
-        return db.query(client, "update users set lastlog_time = current_timestamp where id = ?", [userId]);
-    },
+export async function subscribe(client, email) {
+    return db.query(client, "insert into subscribe (email) values (?)", email);
+}
 
-    subscribe(client, email) {
-        return db.query(client, "insert into subscribe (email) values (?)", email);
-    },
-
-    verifyEmail(client, cloudId, email) {
-        return db.query(client, "update users set email_verified = true where cloud_id = ? and email = ?", [cloudId, email]);
-    }
-};
+export async function verifyEmail(client, cloudId, email) {
+    return db.query(client, "update users set email_verified = true where cloud_id = ? and email = ?", [cloudId, email]);
+}

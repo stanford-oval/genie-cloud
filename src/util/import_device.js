@@ -18,33 +18,32 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as fs from 'fs';
+import JSZip from 'jszip';
+import * as ThingTalk from 'thingtalk';
+import * as stream from 'stream';
+import deq from 'deep-equal';
+import * as util from 'util';
 
-const fs = require('fs');
-const JSZip = require('jszip');
-const ThingTalk = require('thingtalk');
-const stream = require('stream');
-const deq = require('deep-equal');
-const util = require('util');
+import * as model from '../model/device';
+import * as schemaModel from '../model/schema';
+import * as exampleModel from '../model/example';
+import * as entityModel from '../model/entity';
 
-const model = require('../model/device');
-const schemaModel = require('../model/schema');
-const exampleModel = require('../model/example');
-const entityModel = require('../model/entity');
+import * as user from './user';
+import * as I18n from './i18n';
+import * as graphics from '../almond/graphics';
+import colorScheme from './color_scheme';
+import * as Validation from './validation';
+import * as code_storage from './code_storage';
+import * as SchemaUtils from './manifest_to_schema';
+import * as DatasetUtils from './dataset';
+import * as FactoryUtils from './device_factories';
+import TrainingServer from './training_server';
+import { NotFoundError, ForbiddenError, BadRequestError } from './errors';
+import * as db from './db';
 
-const user = require('./user');
-const I18n = require('./i18n');
-const graphics = require('../almond/graphics');
-const colorScheme = require('./color_scheme');
-const Validation = require('./validation');
-const code_storage = require('./code_storage');
-const SchemaUtils = require('./manifest_to_schema');
-const DatasetUtils = require('./dataset');
-const FactoryUtils = require('./device_factories');
-const TrainingServer = require('./training_server');
-const { NotFoundError, ForbiddenError, BadRequestError } = require('./errors');
-const db = require('./db');
-
-const EngineManager = require('../almond/enginemanagerclient');
+import EngineManager from '../almond/enginemanagerclient';
 
 function areMetaIdentical(one, two) {
     for (let what of ['queries', 'actions']) {
@@ -611,7 +610,7 @@ async function uploadDevice(req) {
     }
 }
 
-module.exports = {
+export {
     ensurePrimarySchema,
     ensureDataset,
 

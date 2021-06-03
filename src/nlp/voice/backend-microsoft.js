@@ -19,20 +19,20 @@
 // Author: Euirim Choi <euirim@cs.stanford.edu>
 
 
-const Tp = require('thingpedia');
-const fs = require('fs');
-const xmlbuilder = require('xmlbuilder');
-const https = require('https');
-const {
+import * as Tp from 'thingpedia';
+import * as fs from 'fs';
+import xmlbuilder from 'xmlbuilder';
+import * as https from 'https';
+import {
   AudioInputStream,
   ResultReason,
   AudioConfig,
   SpeechConfig,
   SpeechRecognizer,
-} = require('microsoft-cognitiveservices-speech-sdk');
-const wav = require('wav');
+} from 'microsoft-cognitiveservices-speech-sdk';
+import * as wav from 'wav';
 
-const Config = require('../../config');
+import * as Config from '../../config';
 
 class SpeechToTextFailureError extends Error {
     constructor(status, code, message) {
@@ -215,7 +215,7 @@ async function textToSpeech(locale, gender = 'male', text) {
     });
 }
 
-module.exports = {
+export {
     SpeechToText,
     textToSpeech
 };

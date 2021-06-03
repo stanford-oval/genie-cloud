@@ -18,8 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-const EngineManager = require('../almond/enginemanagerclient');
+import EngineManager from '../almond/enginemanagerclient';
 
 class CloudSyncWebsocketDelegate {
     constructor(ws) {
@@ -103,8 +102,6 @@ class CloudSyncWebsocketDelegate {
 }
 CloudSyncWebsocketDelegate.prototype.$rpcMethods = ['ping', 'pong', 'terminate', 'send'];
 
-module.exports = {
-    handle(ws) {
-        return new CloudSyncWebsocketDelegate(ws);
-    }
-};
+export function handle(ws) {
+    return new CloudSyncWebsocketDelegate(ws);
+}

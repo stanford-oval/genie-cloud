@@ -18,10 +18,9 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+export const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})/;
 
-const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})/;
-
-function* split(pattern, regexp) {
+export function* split(pattern, regexp) {
     // a split that preserves capturing parenthesis
 
     let clone = new RegExp(regexp, 'g');
@@ -39,7 +38,7 @@ function* split(pattern, regexp) {
         yield pattern.substring(i, pattern.length);
 }
 
-function stripUnsafeTokens(tokens) {
+export function stripUnsafeTokens(tokens) {
     const cleaned = [];
 
     for (let tok of tokens) {
@@ -58,29 +57,22 @@ function stripUnsafeTokens(tokens) {
     return cleaned;
 }
 
-module.exports = {
-    PARAM_REGEX,
+export function splitParams(utterance) {
+    return Array.from(split(utterance, PARAM_REGEX));
+}
 
-    splitParams(utterance) {
-        return Array.from(split(utterance, PARAM_REGEX));
-    },
-    split,
+export function clean(name) {
+    if (/^[vwgpd]_/.test(name))
+        name = name.substr(2);
+    return name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+}
 
-    clean(name) {
-        if (/^[vwgpd]_/.test(name))
-            name = name.substr(2);
-        return name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
-    },
+export function tokenize(string) {
+    let tokens = string.split(/(\s+|[,."'!?])/g);
+    return tokens.filter((t) => !(/^\s*$/).test(t)).map((t) => t.toLowerCase());
+}
 
-    tokenize(string) {
-        let tokens = string.split(/(\s+|[,."'!?])/g);
-        return tokens.filter((t) => !(/^\s*$/).test(t)).map((t) => t.toLowerCase());
-    },
-
-    rejoin(tokens) {
-        // FIXME: do something sensible wrt , and .
-        return tokens.join(' ');
-    },
-
-    stripUnsafeTokens,
-};
+export function rejoin(tokens) {
+    // FIXME: do something sensible wrt , and .
+    return tokens.join(' ');
+}

@@ -50,6 +50,7 @@ on_error() {
     # remove workdir after the processes have died, or they'll fail
     # to write to it
     rm -fr $workdir
+    rm -f $srcdir/secret_config.js
 }
 trap on_error ERR INT TERM
 
@@ -62,7 +63,7 @@ for x in blog-assets ; do
     mkdir -p $workdir/shared/download/$x
 done
 
-node $srcdir/tests/load_test_webalmond.js
+ts-node $srcdir/tests/load_test_webalmond.js
 
 export THINGENGINE_DISABLE_SANDBOX=1
 ${srcdir}/dist/main.js run-almond --shard 0 &
@@ -83,23 +84,23 @@ else
     sleep 30
 
     # login as bob
-    bob_cookie=$(node $srcdir/tests/login.js bob 12345678)
+    bob_cookie=$(ts-node $srcdir/tests/login.js bob 12345678)
     # login as root
-    root_cookie=$(node $srcdir/tests/login.js root rootroot)
+    root_cookie=$(ts-node $srcdir/tests/login.js root rootroot)
 
     # run the automated link checker
     # first without login
-    node $srcdir/tests/linkcheck.js
+    ts-node $srcdir/tests/linkcheck.js
     # then as bob (developer)
-    COOKIE="${bob_cookie}" node $srcdir/tests/linkcheck.js
+    COOKIE="${bob_cookie}" ts-node $srcdir/tests/linkcheck.js
     # then as root (admin)
-    COOKIE="${root_cookie}" node $srcdir/tests/linkcheck.js
+    COOKIE="${root_cookie}" ts-node $srcdir/tests/linkcheck.js
 
     # test the website by making HTTP requests directly
-    node $srcdir/tests/website
+    ts-node $srcdir/tests/website
 
     # test the website in a browser
-    SELENIUM_BROWSER=firefox node $srcdir/tests/test_website_selenium.js
+    SELENIUM_BROWSER=firefox ts-node $srcdir/tests/test_website_selenium.js
 fi
 
 kill $frontendpid
@@ -111,3 +112,4 @@ masterpid2=
 wait
 
 rm -rf $workdir
+rm -f $srcdir/secret_config.js

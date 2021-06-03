@@ -18,12 +18,11 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-const minidom = require('./minidom');
+import * as minidom from './minidom';
 
 function getCsrfToken(htmlString) {
     const [body] = minidom.getElementsByTagName(minidom.parse(htmlString), 'body');
     return minidom.getAttribute(body, 'data-csrf-token');
 }
 
-module.exports = { getCsrfToken };
+export { getCsrfToken };

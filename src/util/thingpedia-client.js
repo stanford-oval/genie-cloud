@@ -18,30 +18,29 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as semver from 'semver';
 
-const semver = require('semver');
+import * as Tp from 'thingpedia';
+import * as TpDiscovery from 'thingpedia-discovery';
+import * as ThingTalk from 'thingtalk';
 
-const Tp = require('thingpedia');
-const TpDiscovery = require('thingpedia-discovery');
-const ThingTalk = require('thingtalk');
+import * as Config from '../config';
 
-const Config = require('../config');
+import * as db from './db';
+import * as device from '../model/device';
+import * as organization from '../model/organization';
+import * as schemaModel from '../model/schema';
+import * as exampleModel from '../model/example';
+import * as entityModel from '../model/entity';
+import * as stringModel from '../model/strings';
 
-const db = require('./db');
-const device = require('../model/device');
-const organization = require('../model/organization');
-const schemaModel = require('../model/schema');
-const exampleModel = require('../model/example');
-const entityModel = require('../model/entity');
-const stringModel = require('../model/strings');
-
-const DatasetUtils = require('./dataset');
-const SchemaUtils = require('./manifest_to_schema');
-const I18n = require('./i18n');
-const codeStorage = require('./code_storage');
-const { NotFoundError, ForbiddenError, BadRequestError } = require('./errors');
-const resolveLocation = require('./location-linking');
-const { parseOldOrNewSyntax } = require('./compat');
+import * as DatasetUtils from './dataset';
+import * as SchemaUtils from './manifest_to_schema';
+import * as I18n from './i18n';
+import * as codeStorage from './code_storage';
+import { NotFoundError, ForbiddenError, BadRequestError } from './errors';
+import resolveLocation from './location-linking';
+import { parseOldOrNewSyntax } from './compat';
 
 class ThingpediaDiscoveryDatabase {
     getByDiscoveryService(discoveryType, service) {
@@ -74,7 +73,7 @@ let _discoveryServer = new TpDiscovery.Server(new ThingpediaDiscoveryDatabase())
 
 const CATEGORIES = new Set(['media', 'social-network', 'home', 'communication', 'health', 'service', 'data-management']);
 
-module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
+export default class ThingpediaClientCloud extends Tp.BaseClient {
     constructor(developerKey, locale, thingtalk_version, dbClient = null) {
         super();
 
@@ -422,8 +421,8 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
             }));
         });
     }
-};
-module.exports.prototype.$rpcMethods = [
+}
+ThingpediaClientCloud.prototype.$rpcMethods = [
     'getModuleLocation',
     'getDeviceCode',
     'getSchemas',

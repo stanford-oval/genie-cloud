@@ -19,8 +19,8 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-module.exports = async function sleep(ms) {
+export default async function sleep(ms) {
     return new Promise((resolve, reject) => {
         setTimeout(resolve, ms);
     });
-};
+}

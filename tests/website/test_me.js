@@ -19,14 +19,14 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const assert = require('assert');
-const { assertHttpError, assertRedirect, assertLoginRequired, sessionRequest, dbQuery } = require('./scaffold');
-const { login, startSession } = require('../login');
+import assert from 'assert';
+import { assertHttpError, assertRedirect, assertLoginRequired, sessionRequest, dbQuery } from './scaffold';
+import { login, startSession } from '../login';
 
-const db = require('../../src/util/db');
-const EngineManagerClient = require('../../src/almond/enginemanagerclient');
+import * as db from '../../src/util/db';
+import EngineManagerClient from '../../src/almond/enginemanagerclient';
 
-const Config = require('../../src/config');
+import * as Config from '../../src/config';
 
 async function testMyStuff(bob, nobody) {
     await assertRedirect(sessionRequest('/me', 'GET', null, nobody, { followRedirects: false }), '/user/login');
@@ -120,6 +120,6 @@ async function main() {
     await db.tearDown();
     await emc.stop();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

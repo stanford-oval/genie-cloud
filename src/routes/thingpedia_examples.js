@@ -18,12 +18,11 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
 
-const express = require('express');
-
-const user = require('../util/user');
-const model = require('../model/example');
-const db = require('../util/db');
+import * as user from '../util/user';
+import * as model from '../model/example';
+import * as db from '../util/db';
 
 let router = express.Router();
 
@@ -67,4 +66,4 @@ router.post('/delete/:id', user.requireLogIn, user.requireRole(user.Role.THINGPE
     }).catch(next);
 });
 
-module.exports = router;
+export default router;

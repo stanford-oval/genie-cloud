@@ -16,20 +16,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
-//
-// This file is part of Almond
-//
-// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
-//
 // Author: Jim Deng <jim.deng@alumni.stanford.edu>
 
-
-const httpProxy = require('http-proxy');
-const queryString = require('querystring');
-const k8s = require('@kubernetes/client-node');
-const os = require('os');
+import httpProxy from 'http-proxy';
+import queryString from 'querystring';
+import * as k8s from '@kubernetes/client-node';
+import * as os from 'os';
 
 function getLocalIps() {
     const localIps = [];
@@ -43,9 +35,9 @@ function getLocalIps() {
     return localIps;
 }
 
-// ProxyServer fans out http requests to all replicas in 
+// ProxyServer fans out http requests to all replicas in
 // a kubernetes service.  Can only be used with kubernetes backend.
-module.exports = class ProxyServer {
+export default class ProxyServer {
     constructor(name) {
         // k8s service name
         this.name = name;
@@ -64,9 +56,9 @@ module.exports = class ProxyServer {
             // use original url in proxy request
             proxyReq.path = req.originalUrl;
 
-            // restream parsed body before proxying. Otherwise, 
+            // restream parsed body before proxying. Otherwise,
             // the the proxy request will hang in reading a stream.
-            if (!req.body || !Object.keys(req.body).length) 
+            if (!req.body || !Object.keys(req.body).length)
               return;
 
             let contentType = proxyReq.getHeader('Content-Type');
@@ -75,7 +67,7 @@ module.exports = class ProxyServer {
             if (contentType === 'application/json')
               bodyData = JSON.stringify(req.body);
 
-            if (contentType === 'application/x-www-form-urlencoded') 
+            if (contentType === 'application/x-www-form-urlencoded')
               bodyData = queryString.stringify(req.body);
 
             if (bodyData) {
@@ -84,7 +76,7 @@ module.exports = class ProxyServer {
             }
         });
 
-        this.localIps = getLocalIps(); 
+        this.localIps = getLocalIps();
     }
 
     async fanout(req, res) {
@@ -105,7 +97,7 @@ module.exports = class ProxyServer {
         const ipPorts = [];
         const resp = await this.coreApi.listEndpointsForAllNamespaces(
             undefined /*allowWatchBookmarks*/,
-            undefined /*_continue*/, 
+            undefined /*_continue*/,
             `metadata.name=${name}` /*fieldSelector*/);
         for (const item of resp.body.items) {
             for (const subset of item.subsets) {
@@ -132,4 +124,4 @@ module.exports = class ProxyServer {
     isProxy(req) {
         return req.header('X-Almond-Fanout') === 'true';
     }
-};
+}

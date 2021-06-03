@@ -19,13 +19,13 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const express = require('express');
+import express from 'express';
 
-const db = require('../util/db');
-const i18n = require('../util/i18n');
-const Config = require('../config');
-const modelsModel = require('../model/nlp_models');
-const exampleModel = require('../model/example');
+import * as db from '../util/db';
+import * as i18n from '../util/i18n';
+import * as Config from '../config';
+import * as modelsModel from '../model/nlp_models';
+import * as exampleModel from '../model/example';
 
 const router = express.Router();
 
@@ -88,4 +88,4 @@ router.post('/reload/@:model_tag/:locale', (req, res, next) => {
     }, 'repeatable read', 'read only');
 });
 
-module.exports = router;
+export default router;

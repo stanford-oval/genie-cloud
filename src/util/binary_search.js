@@ -18,8 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-module.exports = function binarySearch(cumsum, value) {
+export default function binarySearch(cumsum, value) {
     if (cumsum.length === 0)
         return undefined;
     let a = 0, b = cumsum.length;
@@ -38,5 +37,4 @@ module.exports = function binarySearch(cumsum, value) {
         else
             a = m;
     }
-};
-
+}

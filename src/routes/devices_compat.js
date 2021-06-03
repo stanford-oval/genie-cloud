@@ -18,11 +18,10 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
 
-const express = require('express');
-
-const user = require('../util/user');
-const EngineManager = require('../almond/enginemanagerclient');
+import * as user from '../util/user';
+import EngineManager from '../almond/enginemanagerclient';
 
 let router = express.Router();
 
@@ -52,4 +51,4 @@ router.get('/oauth2/callback/:kind', (req, res, next) => {
     }
 });
 
-module.exports = router;
+export default router;

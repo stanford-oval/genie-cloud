@@ -18,19 +18,18 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
+import { stringEscape } from './escaping';
+import { splitParams } from './tokenize';
 
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
-const { stringEscape } = require('./escaping');
-const { splitParams } = require('./tokenize');
+import * as db from './db';
+import * as exampleModel from '../model/example';
+import * as deviceModel from '../model/device';
+import { InternalError } from './errors';
+import { uniform } from './random';
 
-const db = require('./db');
-const exampleModel = require('../model/example');
-const deviceModel = require('../model/device');
-const { InternalError } = require('./errors');
-const { uniform } = require('./random');
-
-function exampleToCode(example) {
+export function exampleToCode(example) {
     const clone = example.clone();
     clone.id = -1;
     clone.utterances = [];
@@ -48,7 +47,7 @@ const platformDevices = {
     'org.thingpedia.builtin.thingengine.phone': 'android',
 };
 
-function getCheatsheet(language, options) {
+export function getCheatsheet(language, options) {
     return loadThingpedia(language, options).then(([devices, examples]) => {
         const deviceMap = new Map;
         devices.forEach((d, i) => {
@@ -211,7 +210,7 @@ function rowsToExamples(rows, { editMode = false, skipId = false }) {
     return buffer.join('');
 }
 
-function sortAndChunkExamples(rows) {
+export function sortAndChunkExamples(rows) {
     let functionTypes = new Map;
 
     let trigger_ex = [], query_ex = [], action_ex = [], other_ex = [];
@@ -283,31 +282,23 @@ function sortAndChunkExamples(rows) {
     return [].concat(trigger_ex, query_ex, action_ex);
 }
 
-module.exports = {
-    exampleToCode,
-
-    async examplesToDataset(name, language, rows, options = {}) {
-        const code = `dataset @${name}
+export async function examplesToDataset(name, language, rows, options = {}) {
+    const code = `dataset @${name}
 #[language="${language}"] {
 ${rowsToExamples(rows, options)}}`;
 
-        // convert code to thingtalk 1 if necessary
-        if (options.needs_compatibility) {
-            const AdminThingpediaClient = require('./admin-thingpedia-client');
-            const tpClient = new AdminThingpediaClient(language, options.dbClient || null);
-            const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
+    // convert code to thingtalk 1 if necessary
+    if (options.needs_compatibility) {
+        const AdminThingpediaClient = (await import('./admin-thingpedia-client')).default;
+        const tpClient = new AdminThingpediaClient(language, options.dbClient || null);
+        const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
-            const parsed = ThingTalk.Syntax.parse(code);
-            await parsed.typecheck(schemas, false);
-            return ThingTalk.Syntax.serialize(parsed, ThingTalk.Syntax.SyntaxType.Normal, undefined, {
-                compatibility: options.thingtalk_version
-            });
-        } else {
-            return code;
-        }
-    },
-
-    sortAndChunkExamples,
-
-    getCheatsheet
-};
+        const parsed = ThingTalk.Syntax.parse(code);
+        await parsed.typecheck(schemas, false);
+        return ThingTalk.Syntax.serialize(parsed, ThingTalk.Syntax.SyntaxType.Normal, undefined, {
+            compatibility: options.thingtalk_version
+        });
+    } else {
+        return code;
+    }
+}

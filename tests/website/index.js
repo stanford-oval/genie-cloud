@@ -17,12 +17,11 @@
 // limitations under the License.
 //
 
-
 process.on('unhandledRejection', (up) => { throw up; });
-require('../../src/util/config_init');
+import '../../src/util/config_init';
 process.env.TEST_MODE = '1';
 
-const Config = require('../../src/config');
+import * as Config from '../../src/config';
 
 /*async function par(array) {
     await Promise.all(array.map((fn) => fn()));
@@ -32,7 +31,7 @@ async function seq(array) {
         if (fn === null)
             continue;
         console.log(`Running tests for ${fn}`);
-        await require(fn)();
+        await (await import(fn)).default();
     }
 }
 

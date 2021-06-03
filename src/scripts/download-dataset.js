@@ -19,100 +19,97 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as fs from 'fs';
 
-const fs = require('fs');
+import * as Genie from 'genie-toolkit';
 
-const Genie = require('genie-toolkit');
+import * as db from '../util/db';
+import { parseFlags } from '../util/genie_flag_utils';
+import * as StreamUtils from '../util/stream-utils';
 
-const db = require('../util/db');
-const { parseFlags } = require('../util/genie_flag_utils');
-const StreamUtils = require('../util/stream-utils');
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('download-dataset', {
+        add_help: true,
+        description: 'Download Thingpedia Dataset'
+    });
+    parser.add_argument('-l', '--language', {
+        required: true,
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream,
+        help: 'Output path',
+    });
+    parser.add_argument('-d', '--device', {
+        action: 'append',
+        metavar: 'DEVICE',
+        help: 'Restrict download to commands of the given device. This option can be passed multiple times to specify multiple devices',
+        dest: 'forDevices',
+    });
+    parser.add_argument('-t', '--type', {
+        action: 'append',
+        metavar: 'TYPE',
+        help: 'Restrict download to commands in the given dataset type.',
+        dest: 'types',
+    });
+    parser.add_argument('--include-obsolete', {
+        action: 'store_true',
+        help: 'Include obsolete sentences (sentences that no longer typecheck).',
+    });
+}
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('download-dataset', {
-            add_help: true,
-            description: 'Download Thingpedia Dataset'
-        });
-        parser.add_argument('-l', '--language', {
-            required: true,
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream,
-            help: 'Output path',
-        });
-        parser.add_argument('-d', '--device', {
-            action: 'append',
-            metavar: 'DEVICE',
-            help: 'Restrict download to commands of the given device. This option can be passed multiple times to specify multiple devices',
-            dest: 'forDevices',
-        });
-        parser.add_argument('-t', '--type', {
-            action: 'append',
-            metavar: 'TYPE',
-            help: 'Restrict download to commands in the given dataset type.',
-            dest: 'types',
-        });
-        parser.add_argument('--include-obsolete', {
-            action: 'store_true',
-            help: 'Include obsolete sentences (sentences that no longer typecheck).',
-        });
-    },
+export async function main(argv) {
+    const language = argv.language;
+    const forDevices = argv.forDevices || [];
+    const types = argv.types || [];
 
-    async main(argv) {
-        const language = argv.language;
-        const forDevices = argv.forDevices || [];
-        const types = argv.types || [];
+    const [dbClient, dbDone] = await db.connect();
 
-        const [dbClient, dbDone] = await db.connect();
-
-        let query;
-        let args = [language];
-        let includeSyntheticClause = `and not find_in_set('synthetic',flags)`;
-        let includeObsoleteClause = argv.include_obsolete ? '' : `and not find_in_set('obsolete',flags)`;
-        let filterClause = '';
-        if (forDevices.length > 0) {
-            const regexp = ' @(' + forDevices.map((d) => d.replace(/[.\\]/g, '\\$&')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';
-            filterClause = 'and target_code rlike ?';
-            args.push(regexp);
-        } else if (types.length === 1) {
-            if (types[0] === 'generated')
-                includeSyntheticClause ='';
-            filterClause = 'and type like ?';
-            args.push(types[0]);
-        } else if (types.length > 0) {
-            filterClause = 'and type in (?)';
-            args.push(types);
-        } else {
-            includeSyntheticClause = '';
-        }
-
-        query = `select id,flags,preprocessed,target_code from example_utterances
-                where language = ? and find_in_set('training',flags) and not find_in_set('template',flags)
-                ${includeSyntheticClause} ${includeObsoleteClause} ${filterClause}
-                and target_code<>'' and preprocessed<>''
-                order by id asc`;
-        query = dbClient.query(query, args);
-        if (argv.test)
-            argv.eval_prob *= 2;
-
-        const writer = new Genie.DatasetStringifier();
-        writer.pipe(argv.output);
-
-        query.on('result', (row) => {
-            row.flags = parseFlags(row.flags);
-            row.flags.replaced = false;
-            row.flags.eval = row.flags.exact;
-            writer.write(row);
-        });
-        query.on('end', () => {
-            writer.end();
-            dbDone();
-        });
-        query.on('error', (e) => { throw e; });
-
-        await StreamUtils.waitFinish(argv.output);
-        await db.tearDown();
+    let query;
+    let args = [language];
+    let includeSyntheticClause = `and not find_in_set('synthetic',flags)`;
+    let includeObsoleteClause = argv.include_obsolete ? '' : `and not find_in_set('obsolete',flags)`;
+    let filterClause = '';
+    if (forDevices.length > 0) {
+        const regexp = ' @(' + forDevices.map((d) => d.replace(/[.\\]/g, '\\$&')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';
+        filterClause = 'and target_code rlike ?';
+        args.push(regexp);
+    } else if (types.length === 1) {
+        if (types[0] === 'generated')
+            includeSyntheticClause ='';
+        filterClause = 'and type like ?';
+        args.push(types[0]);
+    } else if (types.length > 0) {
+        filterClause = 'and type in (?)';
+        args.push(types);
+    } else {
+        includeSyntheticClause = '';
     }
-};
+
+    query = `select id,flags,preprocessed,target_code from example_utterances
+            where language = ? and find_in_set('training',flags) and not find_in_set('template',flags)
+            ${includeSyntheticClause} ${includeObsoleteClause} ${filterClause}
+            and target_code<>'' and preprocessed<>''
+            order by id asc`;
+    query = dbClient.query(query, args);
+    if (argv.test)
+        argv.eval_prob *= 2;
+
+    const writer = new Genie.DatasetStringifier();
+    writer.pipe(argv.output);
+
+    query.on('result', (row) => {
+        row.flags = parseFlags(row.flags);
+        row.flags.replaced = false;
+        row.flags.eval = row.flags.exact;
+        writer.write(row);
+    });
+    query.on('end', () => {
+        writer.end();
+        dbDone();
+    });
+    query.on('error', (e) => { throw e; });
+
+    await StreamUtils.waitFinish(argv.output);
+    await db.tearDown();
+}

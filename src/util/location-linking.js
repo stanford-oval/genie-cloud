@@ -19,18 +19,18 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const Tp = require('thingpedia');
-const qs = require('qs');
-const addressFormatter = require('@fragaria/address-formatter');
+import * as Tp from 'thingpedia';
+import * as qs from 'qs';
+import * as addressFormatter from '@fragaria/address-formatter';
 
-const I18n = require('./i18n');
+import * as I18n from './i18n';
 
-const Config = require('../config');
+import * as Config from '../config';
 
 const URL = 'http://open.mapquestapi.com/nominatim/v1/search.php'; // key=%s&format=jsonv2&accept-language=%s&limit=5&q=%s";
 const FREE_URL = 'http://nominatim.openstreetmap.org/search/?'; //?format=jsonv2&accept-language=%s&limit=5&q=%s
 
-module.exports = async function resolveLocation(locale = 'en-US', searchKey, around) {
+export default async function resolveLocation(locale = 'en-US', searchKey, around) {
     let url;
     if (Config.MAPQUEST_KEY)
         url = URL + '?key=' + Config.MAPQUEST_KEY + '&';
@@ -81,4 +81,4 @@ module.exports = async function resolveLocation(locale = 'en-US', searchKey, aro
             address: result.address
         };
     });
-};
+}

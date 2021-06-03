@@ -19,16 +19,16 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const assert = require('assert');
-const FormData = require('form-data');
-const { assertHttpError, assertRedirect, assertLoginRequired, assertBlocked, sessionRequest, dbQuery } = require('./scaffold');
-const { login, startSession } = require('../login');
+import assert from 'assert';
+import FormData from 'form-data';
+import { assertHttpError, assertRedirect, assertLoginRequired, assertBlocked, sessionRequest, dbQuery } from './scaffold';
+import { login, startSession } from '../login';
 
-const db = require('../../src/util/db');
-const sleep = require('../../src/util/sleep');
-const EngineManagerClient = require('../../src/almond/enginemanagerclient');
+import * as db from '../../src/util/db';
+import sleep from '../../src/util/sleep';
+import EngineManagerClient from '../../src/almond/enginemanagerclient';
 
-const Config = require('../../src/config');
+import * as Config from '../../src/config';
 
 async function testAdminUsers(root, bob, nobody) {
     await assertBlocked('/admin/users', bob, nobody);
@@ -259,6 +259,6 @@ async function main() {
     await db.tearDown();
     await emc.stop();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

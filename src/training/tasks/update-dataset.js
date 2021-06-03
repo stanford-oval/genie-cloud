@@ -18,24 +18,23 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as Stream from 'stream';
+import * as seedrandom from 'seedrandom';
+import assert from 'assert';
 
-const Stream = require('stream');
-const seedrandom = require('seedrandom');
-const assert = require('assert');
+import * as ThingTalk from 'thingtalk';
+import * as Genie from 'genie-toolkit';
 
-const ThingTalk = require('thingtalk');
-const Genie = require('genie-toolkit');
+import * as exampleModel from '../../model/example';
 
-const exampleModel = require('../../model/example');
+import AdminThingpediaClient from '../../util/admin-thingpedia-client';
+import { makeFlags } from '../../util/genie_flag_utils';
+import * as StreamUtils from '../../util/stream-utils';
+import * as AbstractFS from '../../util/abstract_fs';
 
-const AdminThingpediaClient = require('../../util/admin-thingpedia-client');
-const { makeFlags } = require('../../util/genie_flag_utils');
-const StreamUtils = require('../../util/stream-utils');
-const AbstractFS = require('../../util/abstract_fs');
+import * as db from '../../util/db';
 
-const db = require('../../util/db');
-
-const Config = require('../../config');
+import * as Config from '../../config';
 
 const SYNTHETIC_DEPTH = 8;
 const TARGET_PRUNING_SIZE = 1000;
@@ -274,11 +273,11 @@ class DatasetUpdater {
     }
 }
 
-module.exports = async function main(task, argv) {
+export default async function main(task, argv) {
     task.handleKill();
 
     const updater = new DatasetUpdater(task.language, task.forDevices, {
         debug: argv.debug
     });
     await updater.run();
-};
+}

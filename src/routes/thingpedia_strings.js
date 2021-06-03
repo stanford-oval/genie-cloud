@@ -18,20 +18,19 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
+import multer from 'multer';
+import csurf from 'csurf';
+import csvstringify from 'csv-stringify';
+import * as os from 'os';
 
-const express = require('express');
-const multer = require('multer');
-const csurf = require('csurf');
-const csvstringify = require('csv-stringify');
-const os = require('os');
-
-const db = require('../util/db');
-const stringModel = require('../model/strings');
-const user = require('../util/user');
-const I18n = require('../util/i18n');
-const iv = require('../util/input_validation');
-const { ForbiddenError } = require('../util/errors');
-const { uploadStringDataset } = require('../util/upload_dataset');
+import * as db from '../util/db';
+import * as stringModel from '../model/strings';
+import * as user from '../util/user';
+import * as I18n from '../util/i18n';
+import * as iv from '../util/input_validation';
+import { ForbiddenError } from '../util/errors';
+import { uploadStringDataset } from '../util/upload_dataset';
 
 const router = express.Router();
 
@@ -87,4 +86,4 @@ router.get('/download/:id', user.requireLogIn, (req, res, next) => {
 });
 
 
-module.exports = router;
+export default router;

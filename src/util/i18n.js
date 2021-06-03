@@ -18,17 +18,16 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as path from 'path';
+import Gettext from 'node-gettext';
+import * as gettextParser from 'gettext-parser';
+import * as fs from 'fs';
+import acceptLanguage from 'accept-language';
+import assert from 'assert';
+import * as Genie from 'genie-toolkit';
 
-const path = require('path');
-const Gettext = require('node-gettext');
-const gettextParser = require('gettext-parser');
-const fs = require('fs');
-const acceptLanguage = require('accept-language');
-const assert = require('assert');
-const Genie = require('genie-toolkit');
-
-const { InternalError } = require('./errors');
-const userUtils = require('./user');
+import { InternalError } from './errors';
+import * as userUtils from './user';
 
 function N_(x) { return x; }
 const ALLOWED_LANGUAGES = {
@@ -67,111 +66,108 @@ function loadTextdomainDirectory(gt, locale, domain, modir) {
     }
 }
 
-const self = {
-    init(langs) {
-         _enabledLanguages = langs;
-        if (langs.length === 0)
-            throw new InternalError('E_INVALID_CONFIG', `Configuration error: must enable at least one language`);
+export function init(langs) {
+        _enabledLanguages = langs;
+    if (langs.length === 0)
+        throw new InternalError('E_INVALID_CONFIG', `Configuration error: must enable at least one language`);
 
-        for (let locale of langs) {
-            if (!(locale in ALLOWED_LANGUAGES))
-                throw new InternalError('E_INVALID_CONFIG', `Configuration error: locale ${locale} is enabled but is not supported`);
+    for (let locale of langs) {
+        if (!(locale in ALLOWED_LANGUAGES))
+            throw new InternalError('E_INVALID_CONFIG', `Configuration error: locale ${locale} is enabled but is not supported`);
 
-            let gt = new Gettext();
-            if (locale !== 'en-US') {
-                let modir = path.resolve(path.dirname(module.filename), '../../po');//'
-                loadTextdomainDirectory(gt, locale, 'almond-cloud', modir);
-                modir = path.resolve(path.dirname(module.filename), '../../node_modules/genie-toolkit/po');
-                loadTextdomainDirectory(gt, locale, 'genie-toolkit', modir);
-            }
-            gt.textdomain('almond-cloud');
-            gt.setLocale(locale);
-
-            // prebind the gt for ease of use, because the usual gettext API is not object-oriented
-            const prebound = {
-                locale,
-                genie: Genie.I18n.get(locale),
-
-                gettext: gt.gettext.bind(gt),
-                ngettext: gt.ngettext.bind(gt),
-                pgettext: gt.pgettext.bind(gt),
-
-                dgettext: gt.dgettext.bind(gt),
-                dngettext: gt.dngettext.bind(gt),
-                dpgettext: gt.dpgettext.bind(gt),
-            };
-
-            let split = locale.split('-');
-            while (split.length > 0) {
-                languages[split.join('-')] = prebound;
-                split.pop();
-            }
+        let gt = new Gettext();
+        if (locale !== 'en-US') {
+            let modir = path.resolve(path.dirname(module.filename), '../../po');//'
+            loadTextdomainDirectory(gt, locale, 'almond-cloud', modir);
+            modir = path.resolve(path.dirname(module.filename), '../../node_modules/genie-toolkit/po');
+            loadTextdomainDirectory(gt, locale, 'genie-toolkit', modir);
         }
+        gt.textdomain('almond-cloud');
+        gt.setLocale(locale);
 
-        acceptLanguage.languages(langs);
-    },
+        // prebind the gt for ease of use, because the usual gettext API is not object-oriented
+        const prebound = {
+            locale,
+            genie: Genie.I18n.get(locale),
 
-    getLangName(_, lang) {
-        return _(ALLOWED_LANGUAGES[lang]);
-    },
+            gettext: gt.gettext.bind(gt),
+            ngettext: gt.ngettext.bind(gt),
+            pgettext: gt.pgettext.bind(gt),
 
-    localeToLanguage(locale = 'en') {
-        locale = locale.toLowerCase();
+            dgettext: gt.dgettext.bind(gt),
+            dngettext: gt.dngettext.bind(gt),
+            dpgettext: gt.dpgettext.bind(gt),
+        };
 
-        // for Chinese, we need to distinguish Traditional vs Simplified
-        if (locale === 'zh-tw' || locale === 'zh-cn')
-            return locale;
-
-        // for other languages, we only keep the language part of the locale
-
-        // FIXME: in the future, we definitely need to distinguish en-US from
-        // other en-*, because our templates and datasets are very Americentric
-        return locale.split(/[-_@.]/)[0];
-    },
-
-    get(locale, fallback = true) {
-        if (!_enabledLanguages)
-            throw new InternalError('E_I18N_NOT_INIT', `Internationalization support was not initialized`);
-
-        locale = locale.split(/[-_@.,]/);
-        let lang = languages[locale.join('-')];
-        while (!lang && locale.length > 0) {
-            locale.pop();
-            lang = languages[locale.join('-')];
+        let split = locale.split('-');
+        while (split.length > 0) {
+            languages[split.join('-')] = prebound;
+            split.pop();
         }
-        if (!lang && fallback)
-            lang = languages['en-US'];
-        return lang;
-    },
-
-    handler(req, res, next) {
-        if (!_enabledLanguages)
-            throw new InternalError('E_I18N_NOT_INIT', `Internationalization support was not initialized`);
-
-        let locale = typeof req.query.locale === 'string' ? req.query.locale : undefined;
-        if (!locale && userUtils.isAuthenticated(req))
-            locale = req.user.locale;
-        if (!locale && req.headers['accept-language'])
-            locale = acceptLanguage.get(req.headers['accept-language']);
-        if (!locale)
-            locale = _enabledLanguages[0];
-        let lang = self.get(locale);
-
-        req.locale = locale;
-        req.gettext = lang.gettext;
-        req._ = req.gettext;
-        req.pgettext = lang.pgettext;
-        req.ngettext = lang.ngettext;
-
-        res.locals.I18n = self;
-        res.locals.locale = locale;
-        res.locals.gettext = req.gettext;
-        res.locals._ = req._;
-        res.locals.pgettext = req.pgettext;
-        res.locals.ngettext = req.ngettext;
-
-        res.locals.timezone = req.user ? req.user.timezone : 'America/Los_Angeles';
-        next();
     }
-};
-module.exports = self;
+
+    acceptLanguage.languages(langs);
+}
+
+export function getLangName(_, lang) {
+    return _(ALLOWED_LANGUAGES[lang]);
+}
+
+export function localeToLanguage(locale = 'en') {
+    locale = locale.toLowerCase();
+
+    // for Chinese, we need to distinguish Traditional vs Simplified
+    if (locale === 'zh-tw' || locale === 'zh-cn')
+        return locale;
+
+    // for other languages, we only keep the language part of the locale
+
+    // FIXME: in the future, we definitely need to distinguish en-US from
+    // other en-*, because our templates and datasets are very Americentric
+    return locale.split(/[-_@.]/)[0];
+}
+
+export function get(locale, fallback = true) {
+    if (!_enabledLanguages)
+        throw new InternalError('E_I18N_NOT_INIT', `Internationalization support was not initialized`);
+
+    locale = locale.split(/[-_@.,]/);
+    let lang = languages[locale.join('-')];
+    while (!lang && locale.length > 0) {
+        locale.pop();
+        lang = languages[locale.join('-')];
+    }
+    if (!lang && fallback)
+        lang = languages['en-US'];
+    return lang;
+}
+
+export function handler(req, res, next) {
+    if (!_enabledLanguages)
+        throw new InternalError('E_I18N_NOT_INIT', `Internationalization support was not initialized`);
+
+    let locale = typeof req.query.locale === 'string' ? req.query.locale : undefined;
+    if (!locale && userUtils.isAuthenticated(req))
+        locale = req.user.locale;
+    if (!locale && req.headers['accept-language'])
+        locale = acceptLanguage.get(req.headers['accept-language']);
+    if (!locale)
+        locale = _enabledLanguages[0];
+    let lang = get(locale);
+
+    req.locale = locale;
+    req.gettext = lang.gettext;
+    req._ = req.gettext;
+    req.pgettext = lang.pgettext;
+    req.ngettext = lang.ngettext;
+
+    res.locals.I18n = module.exports;
+    res.locals.locale = locale;
+    res.locals.gettext = req.gettext;
+    res.locals._ = req._;
+    res.locals.pgettext = req.pgettext;
+    res.locals.ngettext = req.ngettext;
+
+    res.locals.timezone = req.user ? req.user.timezone : 'America/Los_Angeles';
+    next();
+}

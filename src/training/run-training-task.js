@@ -19,14 +19,14 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const events = require('events');
+import * as events from 'events';
 
-const trainingJobModel = require('../model/training_job');
-const modelsModel = require('../model/nlp_models');
-const db = require('../util/db');
+import * as trainingJobModel from '../model/training_job';
+import * as modelsModel from '../model/nlp_models';
+import * as db from '../util/db';
 
-const Tasks = require('./tasks');
-const JobSpecs = require('./job_specs');
+import Tasks from './tasks';
+import JobSpecs from './job_specs';
 
 class Task extends events.EventEmitter {
     constructor(jobId, jobDir, name) {
@@ -141,50 +141,48 @@ class Task extends events.EventEmitter {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('run-training-task', {
-            help: 'Run a training task',
-        });
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('run-training-task', {
+        help: 'Run a training task',
+    });
 
-        parser.add_argument('-t', '--task-name', {
-            help: 'The name of the task to run',
-            choices: Object.keys(Tasks),
-            required: true
-        });
+    parser.add_argument('-t', '--task-name', {
+        help: 'The name of the task to run',
+        choices: Object.keys(Tasks),
+        required: true
+    });
 
-        parser.add_argument('--job-id', {
-            help: 'The ID of the job to run',
-            type: Number,
-            required: true
-        });
-        parser.add_argument('--job-directory', {
-            help: 'The directory where to save job specific files',
-            required: true
-        });
+    parser.add_argument('--job-id', {
+        help: 'The ID of the job to run',
+        type: Number,
+        required: true
+    });
+    parser.add_argument('--job-directory', {
+        help: 'The directory where to save job specific files',
+        required: true
+    });
 
-        parser.add_argument('--debug', {
-            action: 'store_true',
-            help: 'Enable debugging.',
-            default: false
-        });
-        parser.add_argument('--no-debug', {
-            action: 'store_false',
-            dest: 'debug',
-            help: 'Disable debugging.',
-        });
-    },
+    parser.add_argument('--debug', {
+        action: 'store_true',
+        help: 'Enable debugging.',
+        default: false
+    });
+    parser.add_argument('--no-debug', {
+        action: 'store_false',
+        dest: 'debug',
+        help: 'Disable debugging.',
+    });
+}
 
-    async main(argv) {
-        const task = new Task(argv.job_id, argv.job_directory, argv.task_name);
-        await task.load();
-        await task.setProgress(0);
-        process.on('SIGINT', () => task.kill());
-        process.on('SIGTERM', () => task.kill());
+export async function main(argv) {
+    const task = new Task(argv.job_id, argv.job_directory, argv.task_name);
+    await task.load();
+    await task.setProgress(0);
+    process.on('SIGINT', () => task.kill());
+    process.on('SIGTERM', () => task.kill());
 
-        await Tasks[argv.task_name](task, argv);
+    await Tasks[argv.task_name](task, argv);
 
-        await task.setProgress(1);
-        await db.tearDown();
-    }
-};
+    await task.setProgress(1);
+    await db.tearDown();
+}

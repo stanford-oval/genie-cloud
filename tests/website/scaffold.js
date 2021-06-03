@@ -18,18 +18,15 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
+import * as Tp from 'thingpedia';
+import * as qs from 'qs';
+import * as Url from 'url';
+import FormData from 'form-data';
 
-require('../polyfill');
+import * as Config from '../../src/config';
 
-const assert = require('assert');
-const Tp = require('thingpedia');
-const qs = require('qs');
-const Url = require('url');
-const FormData = require('form-data');
-
-const Config = require('../../src/config');
-
-const db = require('../../src/util/db');
+import * as db from '../../src/util/db';
 
 const DEBUG = false;
 
@@ -145,7 +142,7 @@ async function assertBlocked(path, bob, nobody) {
         403, 'You do not have permission to perform this operation.');
 }
 
-module.exports = {
+export {
     dbQuery,
     request,
     sessionRequest,

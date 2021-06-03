@@ -18,9 +18,8 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-const AbstractFS = require('../../util/abstract_fs');
-const DatasetGenerator = require('../lib/dataset_generator');
+import * as AbstractFS from '../../util/abstract_fs';
+import DatasetGenerator from '../lib/dataset_generator';
 
 const DEFAULT_TRAINING_CONFIG = {
     synthetic_depth: 7,
@@ -31,7 +30,7 @@ const DEFAULT_TRAINING_CONFIG = {
     dataset_split_strategy: 'sentence'
 };
 
-module.exports = async function main(task, argv) {
+export default async function main(task, argv) {
     task.handleKill();
 
     await AbstractFS.mkdirRecursive(AbstractFS.resolve(task.jobDir, 'dataset'));
@@ -69,4 +68,4 @@ module.exports = async function main(task, argv) {
         debug: argv.debug
     });
     await generator.run();
-};
+}

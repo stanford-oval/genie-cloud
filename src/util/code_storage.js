@@ -18,13 +18,12 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as Url from 'url';
+import express from 'express';
+import sanitize from 'sanitize-filename';
 
-const Url = require('url');
-const express = require('express');
-const sanitize = require('sanitize-filename');
-
-const Config = require('../config');
-const AbstractFS = require('./abstract_fs');
+import * as Config from '../config';
+import * as AbstractFS from './abstract_fs';
 
 function getDownloadLocation(kind, version, developer) {
     // FIXME: when using the S3 backend, we should generate a signed request
@@ -37,8 +36,7 @@ function getDownloadLocation(kind, version, developer) {
 
 const writableDirectory = AbstractFS.resolve(Config.FILE_STORAGE_DIR);
 
-module.exports = {
-    initFrontend(app) {
+export function initFrontend(app) {
         // if the user has configured a CDN for downloads, we have nothing to do
         if (Config.CDN_HOST !== '/download')
             return;
@@ -58,30 +56,31 @@ module.exports = {
                     .pipe(res);
             });
         }
-    },
+}
 
-    storeIcon(blob, name) {
-        return AbstractFS.writeFile(AbstractFS.resolve(writableDirectory, 'icons/' + name + '.png'), blob, {
-            contentType: 'image/png'
-        });
-    },
-    storeBlogAsset(blob, name, contentType = 'application/octet-stream') {
-        return AbstractFS.writeFile(AbstractFS.resolve(writableDirectory, 'blog-assets/' + name), blob, {
-            contentType
-        });
-    },
-    async storeZipFile(blob, name, version, directory = 'devices') {
-        name = sanitize(name);
-        const filename = directory + '/' + name + '-v' + version + '.zip';
-        await AbstractFS.writeFile(AbstractFS.resolve(writableDirectory, filename), blob, {
-            contentType: 'application/zip'
-        });
-    },
+export function storeIcon(blob, name) {
+    return AbstractFS.writeFile(AbstractFS.resolve(writableDirectory, 'icons/' + name + '.png'), blob, {
+        contentType: 'image/png'
+    });
+}
+export function storeBlogAsset(blob, name, contentType = 'application/octet-stream') {
+    return AbstractFS.writeFile(AbstractFS.resolve(writableDirectory, 'blog-assets/' + name), blob, {
+        contentType
+    });
+}
+export async function storeZipFile(blob, name, version, directory = 'devices') {
+    name = sanitize(name);
+    const filename = directory + '/' + name + '-v' + version + '.zip';
+    await AbstractFS.writeFile(AbstractFS.resolve(writableDirectory, filename), blob, {
+        contentType: 'application/zip'
+    });
+}
 
-    downloadZipFile(name, version, directory = 'devices') {
-        name = sanitize(name);
-        const filename = directory + '/' + name + '-v' + version + '.zip';
-        return AbstractFS.createReadStream(AbstractFS.resolve(writableDirectory, filename));
-    },
-    getDownloadLocation
-};
+export function downloadZipFile(name, version, directory = 'devices') {
+    name = sanitize(name);
+    const filename = directory + '/' + name + '-v' + version + '.zip';
+    return AbstractFS.createReadStream(AbstractFS.resolve(writableDirectory, filename));
+}
+
+export { getDownloadLocation };
+

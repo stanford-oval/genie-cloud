@@ -19,10 +19,10 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const assert = require('assert');
-const ThingTalk = require('thingtalk');
+import assert from 'assert';
+import * as ThingTalk from 'thingtalk';
 
-const DeviceFactoryUtils = require('../../src/util/device_factories');
+import * as DeviceFactoryUtils from '../../src/util/device_factories';
 
 const TEST_CASES = [
     [`class @com.bing {
@@ -153,6 +153,6 @@ async function main() {
     for (let i = 0; i < TEST_CASES.length; i++)
         await testCase(i);
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

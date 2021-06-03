@@ -18,15 +18,10 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-function stringEscape(str) {
+export function stringEscape(str) {
     if (str === null || str === undefined)
         return 'null';
     return '"' + str.replace(/(["\\])/g, '\\$1').replace(/\n/g, '\\n') + '"';
     // the following comment fixes broken syntax highlighting in GtkSourceView
     //]/
 }
-
-module.exports = {
-    stringEscape
-};

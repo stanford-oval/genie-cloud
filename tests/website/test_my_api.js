@@ -18,15 +18,14 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
+import WebSocket from 'ws';
+import { assertHttpError, request, sessionRequest, dbQuery } from './scaffold';
+import { login, } from '../login';
 
-const assert = require('assert');
-const WebSocket = require('ws');
-const { assertHttpError, request, sessionRequest, dbQuery } = require('./scaffold');
-const { login, } = require('../login');
+import * as db from '../../src/util/db';
 
-const db = require('../../src/util/db');
-
-const Config = require('../../src/config');
+import * as Config from '../../src/config';
 
 async function getAccessToken(session) {
     return JSON.parse(await sessionRequest('/user/token', 'POST', '', session, {
@@ -390,6 +389,6 @@ async function main() {
 
     await db.tearDown();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

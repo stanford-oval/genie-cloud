@@ -18,12 +18,11 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as child_process from 'child_process';
+import byline from 'byline';
+import * as path from 'path';
 
-const child_process = require('child_process');
-const byline = require('byline');
-const path = require('path');
-
-const Config = require('../../config');
+import * as Config from '../../config';
 
 class TaskRunner {
     constructor(child) {
@@ -57,7 +56,7 @@ class TaskRunner {
     }
 }
 
-module.exports = function execTask(job, spec) {
+export default function execTask(job, spec) {
     const nodejs = process.execPath;
     const args = process.execArgv.concat([
         '--max_old_space_size=' + Config.TRAINING_MEMORY_USAGE,
@@ -86,4 +85,4 @@ module.exports = function execTask(job, spec) {
     });
 
     return new TaskRunner(child);
-};
+}

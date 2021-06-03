@@ -18,12 +18,9 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import { Ast, Type } from 'thingtalk';
 
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
-
-const { clean } = require('./tokenize');
+import { clean } from './tokenize';
 
 function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
     const args = [];
@@ -124,72 +121,70 @@ function mergeFunctionDefAndSchema(fnDef, schema) {
     return complete;
 }
 
-module.exports = {
-    mergeClassDefAndSchema(classDef, schema) {
-        let complete = true;
-        for (let name in classDef.queries)
-            complete = mergeFunctionDefAndSchema(classDef.queries[name], schema.queries[name]) && complete;
-        for (let name in classDef.actions)
-            complete = mergeFunctionDefAndSchema(classDef.actions[name], schema.actions[name]) && complete;
-        return complete;
-    },
+export function mergeClassDefAndSchema(classDef, schema) {
+    let complete = true;
+    for (let name in classDef.queries)
+        complete = mergeFunctionDefAndSchema(classDef.queries[name], schema.queries[name]) && complete;
+    for (let name in classDef.actions)
+        complete = mergeFunctionDefAndSchema(classDef.actions[name], schema.actions[name]) && complete;
+    return complete;
+}
 
-    schemaListToClassDefs(rows, isMeta) {
-        const classes = [];
-        for (let row of rows)
-            classes.push(makeSchemaClassDef(row.kind, row, isMeta));
-        return new Ast.Input.Library(null, classes, []);
-    },
+export function schemaListToClassDefs(rows, isMeta) {
+    const classes = [];
+    for (let row of rows)
+        classes.push(makeSchemaClassDef(row.kind, row, isMeta));
+    return new Ast.Input.Library(null, classes, []);
+}
 
-    classDefToSchema(classDef) {
-        const result = {
-            actions: {},
-            queries: {}
-        };
+export function classDefToSchema(classDef) {
+    const result = {
+        actions: {},
+        queries: {}
+    };
 
-        for (let what of ['actions', 'queries']) {
-            const into = result[what];
-            for (let name in classDef[what]) {
-                const fnDef = classDef[what][name];
+    for (let what of ['actions', 'queries']) {
+        const into = result[what];
+        for (let name in classDef[what]) {
+            const fnDef = classDef[what][name];
 
-                const out = into[name] = {
-                    doc: fnDef.annotations.doc ? fnDef.annotations.doc.toJS() : '',
-                    confirmation: fnDef.metadata.confirmation,
-                    confirmation_remote: fnDef.metadata.confirmation_remote || '',
-                    canonical: Array.isArray(fnDef.metadata.canonical) ? fnDef.metadata.canonical[0] : fnDef.metadata.canonical,
-                    formatted: fnDef.metadata.formatted || [],
-                    is_list: fnDef.is_list,
-                    is_monitorable: fnDef.is_monitorable,
-                    confirm: fnDef.annotations.confirm.toJS(),
-                    extends: fnDef.extends,
-                    types: [],
-                    args: [],
-                    argcanonicals: [],
-                    questions: [],
-                    required: [],
-                    is_input: [],
-                    string_values: []
-                };
-                for (let argname of fnDef.args) {
-                    const arg = fnDef.getArgument(argname);
-                    out.types.push(arg.type.prettyprint());
-                    out.args.push(argname);
-                    // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
+            const out = into[name] = {
+                doc: fnDef.annotations.doc ? fnDef.annotations.doc.toJS() : '',
+                confirmation: fnDef.metadata.confirmation,
+                confirmation_remote: fnDef.metadata.confirmation_remote || '',
+                canonical: Array.isArray(fnDef.metadata.canonical) ? fnDef.metadata.canonical[0] : fnDef.metadata.canonical,
+                formatted: fnDef.metadata.formatted || [],
+                is_list: fnDef.is_list,
+                is_monitorable: fnDef.is_monitorable,
+                confirm: fnDef.annotations.confirm.toJS(),
+                extends: fnDef.extends,
+                types: [],
+                args: [],
+                argcanonicals: [],
+                questions: [],
+                required: [],
+                is_input: [],
+                string_values: []
+            };
+            for (let argname of fnDef.args) {
+                const arg = fnDef.getArgument(argname);
+                out.types.push(arg.type.prettyprint());
+                out.args.push(argname);
+                // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
 
-                    const argcanonical = arg.metadata.canonical || clean(argname);
-                    out.argcanonicals.push(argcanonical);
-                    out.questions.push(arg.metadata.prompt || '');
-                    out.required.push(!!arg.required);
-                    out.is_input.push(!!arg.is_input);
+                const argcanonical = arg.metadata.canonical || clean(argname);
+                out.argcanonicals.push(argcanonical);
+                out.questions.push(arg.metadata.prompt || '');
+                out.required.push(!!arg.required);
+                out.is_input.push(!!arg.is_input);
 
-                    if (arg.annotations.string_values)
-                        out.string_values.push(arg.annotations.string_values.toJS());
-                    else
-                        out.string_values.push(null);
-                }
+                if (arg.annotations.string_values)
+                    out.string_values.push(arg.annotations.string_values.toJS());
+                else
+                    out.string_values.push(null);
             }
         }
-
-        return result;
     }
-};
+
+    return result;
+}

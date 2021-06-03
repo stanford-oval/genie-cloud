@@ -18,10 +18,9 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-const assert = require('assert');
-const fs = require('fs');
-const byline = require('byline');
+import assert from 'assert';
+import * as fs from 'fs';
+import byline from 'byline';
 
 function parseMeasure(valueString) {
     const match = /^(-?(?:[0-9]+(?:\.[0-9]*)?(?:e[0-9]+)?|\.[0-9]+(?:e[0-9]+)?))([A-Za-z_][A-Za-z0-9_]*)/.exec(valueString);
@@ -177,4 +176,4 @@ function parseConstantFile(locale, filename) {
     });
 }
 
-module.exports = { parseConstant, parseConstantFile };
+export { parseConstant, parseConstantFile };

@@ -19,11 +19,11 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
-const path = require('path');
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
+import * as path from 'path';
 
-const getExampleName = require('../../src/util/example_names');
+import getExampleName from '../../src/util/example_names';
 
 const _schemaRetriever = new ThingTalk.SchemaRetriever(new Tp.FileClient({
     thingpedia: path.resolve(path.dirname(module.filename), './thingpedia.tt')
@@ -93,6 +93,6 @@ async function main() {
     for (let i = 0; i < TEST_CASES.length; i++)
         await testCase(i);
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

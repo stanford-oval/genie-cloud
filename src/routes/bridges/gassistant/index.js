@@ -18,22 +18,21 @@
 //
 // Author: Swee Kiat Lim <sweekiat@cs.stanford.edu>
 
+import express from 'express';
+import passport from 'passport';
+import * as util from 'util';
+import * as jwt from 'jsonwebtoken';
 
-const express = require('express');
-const passport = require('passport');
-const util = require('util');
-const jwt = require('jsonwebtoken');
-
-const EngineManager = require('../../../almond/enginemanagerclient');
-const { actionssdk, Image, Suggestions, BasicCard, Button, SignIn } = require('actions-on-google');
+import EngineManager from '../../../almond/enginemanagerclient';
+import { actionssdk, Image, Suggestions, BasicCard, Button, SignIn } from 'actions-on-google';
 // Refer to https://developers.google.com/assistant/conversational/responses for full list of response types
 
-const db = require('../../../util/db');
-const gAssistantUserUtils = require('../../../util/user');
-const gAssistantUserModel = require('../../../model/user');
-const secret = require('../../../util/secret_key');
+import * as db from '../../../util/db';
+import * as gAssistantUserUtils from '../../../util/user';
+import * as gAssistantUserModel from '../../../model/user';
+import * as secret from '../../../util/secret_key';
 
-const Config = require('../../../config');
+import * as Config from '../../../config';
 
 let router = express.Router();
 
@@ -238,4 +237,4 @@ app.intent('actions.intent.TEXT', async (conv, input) => {
 
 router.post('/fulfillment', app);
 
-module.exports = router;
+export default router;

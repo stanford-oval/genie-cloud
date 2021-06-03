@@ -17,10 +17,12 @@
 // limitations under the License.
 //
 
+// note: this module is special and must use module.exports because it is
+// imported from browser code as well
 module.exports = function(hljs) {
   let KEYWORDS = {
-    keyword: 
-      'let join edge monitor new as of in out req opt ' + 
+    keyword:
+      'let join edge monitor new as of in out req opt ' +
       'class extends dataset mixin this import null enum query action stream from language'
     ,
     literal:
@@ -47,7 +49,7 @@ module.exports = function(hljs) {
       hljs.C_BLOCK_COMMENT_MODE,
       NUMBER,
       {
-        className: 'symbol', 
+        className: 'symbol',
         begin: /@/,
         end: /[\s(]/,
         excludeEnd: true

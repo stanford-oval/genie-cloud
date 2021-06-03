@@ -18,13 +18,12 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as ThingTalk from 'thingtalk';
+import * as Genie from 'genie-toolkit';
 
-const ThingTalk = require('thingtalk');
-const Genie = require('genie-toolkit');
-
-const AdminThingpediaClient = require('../util/admin-thingpedia-client');
-const db = require('../util/db');
-const i18n = require('../util/i18n');
+import AdminThingpediaClient from '../util/admin-thingpedia-client';
+import * as db from '../util/db';
+import * as i18n from '../util/i18n';
 
 const ENTITIES = {
     DURATION_0: { value: 2, unit: 'ms' },
@@ -54,57 +53,55 @@ const ENTITIES = {
 };
 Object.freeze(ENTITIES);
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('migrate-dataset', {
-            description: 'Migrate the dataset to the latest version of ThingTalk'
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en-US',
-            help: `BGP 47 locale tag of the language to migrate (defaults to 'en-US', English)`
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('migrate-dataset', {
+        description: 'Migrate the dataset to the latest version of ThingTalk'
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to migrate (defaults to 'en-US', English)`
+    });
+}
 
-    async main(argv) {
-        const language = i18n.localeToLanguage(argv.locale);
-        await db.withTransaction(async (dbClient) => {
-            const tpClient = new AdminThingpediaClient('en', dbClient);
-            const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, true);
+export async function main(argv) {
+    const language = i18n.localeToLanguage(argv.locale);
+    await db.withTransaction(async (dbClient) => {
+        const tpClient = new AdminThingpediaClient('en', dbClient);
+        const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
-            const rows = await db.selectAll(dbClient, `select id,preprocessed,target_code from example_utterances where type not in ('thingpedia','log','generated') and target_code<>'' and not find_in_set('obsolete', flags) and not find_in_set('replaced', flags) and not find_in_set('augmented', flags) and language = ?`, [language]);
+        const rows = await db.selectAll(dbClient, `select id,preprocessed,target_code from example_utterances where type not in ('thingpedia','log','generated') and target_code<>'' and not find_in_set('obsolete', flags) and not find_in_set('replaced', flags) and not find_in_set('augmented', flags) and language = ?`, [language]);
 
-            await Promise.all(rows.map(async (row) => {
+        await Promise.all(rows.map(async (row) => {
+                try {
+                    const entities = Genie.EntityUtils.makeDummyEntities(row.preprocessed);
+                    let parsed;
                     try {
-                        const entities = Genie.EntityUtils.makeDummyEntities(row.preprocessed);
-                        let parsed;
-                        try {
-                            parsed = await Genie.ThingTalkUtils.parsePrediction(row.target_code, entities, {
-                                thingpediaClient: tpClient,
-                                schemaRetriever: schemaRetriever
-                            }, true);
-                        } catch(e) {
-                            console.error(`Failed to handle ${row.id}: ${e.message}`);
-                            return;
-                        }
-
-                        const regenerated = Genie.ThingTalkUtils.serializePrediction(parsed, row.preprocessed, entities, {
-                            locale: argv.locale
-                        }).join(' ');
-
-                        // if strictly equal, nothing to do
-                        if (row.target_code === regenerated)
-                            return;
-
-                        await db.query(dbClient, `update example_utterances set target_code = ? where id = ?`,
-                                       [regenerated, row.id]);
+                        parsed = await Genie.ThingTalkUtils.parsePrediction(row.target_code, entities, {
+                            thingpediaClient: tpClient,
+                            schemaRetriever: schemaRetriever
+                        }, true);
                     } catch(e) {
                         console.error(`Failed to handle ${row.id}: ${e.message}`);
-                        console.error(e.stack);
+                        return;
                     }
-            }));
-        });
 
-        await db.tearDown();
-    }
-};
+                    const regenerated = Genie.ThingTalkUtils.serializePrediction(parsed, row.preprocessed, entities, {
+                        locale: argv.locale
+                    }).join(' ');
+
+                    // if strictly equal, nothing to do
+                    if (row.target_code === regenerated)
+                        return;
+
+                    await db.query(dbClient, `update example_utterances set target_code = ? where id = ?`,
+                                    [regenerated, row.id]);
+                } catch(e) {
+                    console.error(`Failed to handle ${row.id}: ${e.message}`);
+                    console.error(e.stack);
+                }
+        }));
+    });
+
+    await db.tearDown();
+}

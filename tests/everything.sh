@@ -12,7 +12,7 @@ export TZ
 $srcdir/tests/check-migrations.sh
 
 # unit tests
-node $srcdir/tests/unit
+ts-node $srcdir/tests/unit
 
 # integration tests
 # (these spawn the whole system, with all the bells and whistles,

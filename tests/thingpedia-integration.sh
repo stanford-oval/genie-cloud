@@ -20,6 +20,7 @@ on_error() {
     wait
 
     rm -fr $workdir
+    rm -f $srcdir/secret_config.js
 }
 trap on_error ERR INT TERM
 
@@ -73,7 +74,7 @@ ${srcdir}/dist/main.js bootstrap --force
 
 # load some more data into Thingpedia
 test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/api/v3/devices/package/com.bing -O $srcdir/tests/data/com.bing.zip
-eval $(node $srcdir/tests/load_test_thingpedia.js)
+eval $(ts-node $srcdir/tests/load_test_thingpedia.js)
 
 ${srcdir}/dist/main.js run-frontend &
 frontendpid=$!
@@ -88,10 +89,10 @@ else
     sleep 30
 
     # login as bob
-    bob_cookie=$(node $srcdir/tests/login.js bob 12345678)
+    bob_cookie=$(ts-node $srcdir/tests/login.js bob 12345678)
 
-    COOKIE="${bob_cookie}" node $srcdir/tests/test_thingpedia_api_tt1.js
-    COOKIE="${bob_cookie}" node $srcdir/tests/test_thingpedia_api_v3.js
+    COOKIE="${bob_cookie}" ts-node $srcdir/tests/test_thingpedia_api_tt1.js
+    COOKIE="${bob_cookie}" ts-node $srcdir/tests/test_thingpedia_api_v3.js
 fi
 
 kill $frontendpid
@@ -120,23 +121,23 @@ else
     # enabled
 
     # login as bob
-    bob_cookie=$(node $srcdir/tests/login.js bob 12345678)
+    bob_cookie=$(ts-node $srcdir/tests/login.js bob 12345678)
     # login as root
-    root_cookie=$(node $srcdir/tests/login.js root rootroot)
+    root_cookie=$(ts-node $srcdir/tests/login.js root rootroot)
 
     # run the automated link checker
     # first without login
-    node $srcdir/tests/linkcheck.js
+    ts-node $srcdir/tests/linkcheck.js
     # then as bob (developer)
-    COOKIE="${bob_cookie}" node $srcdir/tests/linkcheck.js
+    COOKIE="${bob_cookie}" ts-node $srcdir/tests/linkcheck.js
     # then as root (admin)
-    COOKIE="${root_cookie}" node $srcdir/tests/linkcheck.js
+    COOKIE="${root_cookie}" ts-node $srcdir/tests/linkcheck.js
 
     # test the website by making HTTP requests directly
-    node $srcdir/tests/website
+    ts-node $srcdir/tests/website
 
     # test the website in a browser
-    SELENIUM_BROWSER=firefox node $srcdir/tests/test_website_selenium.js
+    SELENIUM_BROWSER=firefox ts-node $srcdir/tests/test_website_selenium.js
 fi
 
 kill $frontendpid
@@ -171,3 +172,4 @@ da196ff692022c15b11dde6d147b716be0f339237b6fcd2cf5bd7f19fbfd1ed1  ./training/job
 EOF
 
 rm -rf $workdir
+rm -f $srcdir/secret_config.js

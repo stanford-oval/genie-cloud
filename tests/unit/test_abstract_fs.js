@@ -18,13 +18,12 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
+import * as fs from 'fs';
+import proxyquire from 'proxyquire';
+import * as tmpSync from 'tmp';
 
-const assert = require('assert');
-const fs = require('fs');
-const proxyquire = require('proxyquire');
-const tmpSync = require('tmp');
-
-const StreamUtils = require('../../src/util/stream-utils');
+import * as StreamUtils from '../../src/util/stream-utils';
 
 const cmdStub = {
     lastCmds: [],
@@ -215,6 +214,6 @@ async function main() {
     await testSync();
     await testCreateWriteStream();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

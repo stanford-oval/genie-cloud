@@ -16,8 +16,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+// Author: Jim Deng
 
-const crypto = require('crypto');
+import * as crypto from 'crypto';
 
 function getKfInferenceUrl(id, namespace) {
     // kfserving inference name has following limitations:
@@ -25,7 +26,7 @@ function getKfInferenceUrl(id, namespace) {
     //   * can only contain alphanumeric (lower cased) and '-'
     //   * can only start with an alphabet
     // To work around these limitations, we will:
-    //   * escape each non-supported character with x{hex} 
+    //   * escape each non-supported character with x{hex}
     //   * replace '.' with '-' since '.' is quite common in model names
     //   * if escaped name is longer than 45, trim its length to 45 and replace
     //     the last 5 character with the first 5 character of its hash.
@@ -39,6 +40,6 @@ function getKfInferenceUrl(id, namespace) {
     return `http://${escapedId}.${namespace}.svc.cluster.local/v1/models/${escapedId}:predict`;
 }
 
-module.exports = function kfInferenceUrl(id, namespace) {
+export default function kfInferenceUrl(id, namespace) {
     return getKfInferenceUrl(id, namespace);
-};
+}

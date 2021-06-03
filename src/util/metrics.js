@@ -18,14 +18,13 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as Url from 'url';
+import Prometheus from 'prom-client';
+import onFinished from 'on-finished';
 
-const Url = require('url');
-const Prometheus = require('prom-client');
-const onFinished = require('on-finished');
+import * as Config from '../config';
 
-const Config = require('../config');
-
-module.exports = function(app) {
+export default function(app) {
     const httpRequestsTotal = new Prometheus.Counter({
         name: 'http_requests_total',
         help: 'Count the number of HTTP requests (grouped by method, route)',
@@ -62,7 +61,7 @@ module.exports = function(app) {
             next();
             return;
         }
-    
+
         // this code is inspired by how morgan tracks connection duration
         const reqStart = new Date;
         onFinished(res, () => {
@@ -110,4 +109,4 @@ module.exports = function(app) {
         res.set('Content-Type', Prometheus.register.contentType);
         res.end(Prometheus.register.metrics());
     });
-};
+}

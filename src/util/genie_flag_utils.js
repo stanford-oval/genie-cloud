@@ -18,7 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 function parseFlags(flags) {
     const parsed = {};
     for (let flag of flags.split(','))
@@ -30,7 +29,7 @@ function makeFlags(flags) {
     return Object.keys(flags).filter((k) => !!flags[k]).join(',');
 }
 
-module.exports = {
+export {
     parseFlags,
     makeFlags,
 };

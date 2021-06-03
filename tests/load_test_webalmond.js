@@ -18,18 +18,17 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 // load thingpedia to initialize the polyfill
-require('thingpedia');
+import 'thingpedia';
 process.on('unhandledRejection', (up) => { throw up; });
-require('../src/util/config_init');
+import '../src/util/config_init';
 
-const assert = require('assert');
+import assert from 'assert';
 
-const db = require('../src/util/db');
-const user = require('../src/util/user');
+import * as db from '../src/util/db';
+import * as user from '../src/util/user';
 
-const Config = require('../src/config');
+import * as Config from '../src/config';
 assert.strictEqual(Config.WITH_THINGPEDIA, 'external');
 
 const req = { _(x) { return x; } };

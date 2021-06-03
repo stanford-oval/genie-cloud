@@ -18,18 +18,17 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as Url from 'url';
+import * as path from 'path';
+import * as util from 'util';
+import * as fs from 'fs';
+import * as Genie from 'genie-toolkit';
 
-const Url = require('url');
-const path = require('path');
-const util = require('util');
-const fs = require('fs');
-const Genie = require('genie-toolkit');
+import * as AbstractFS from '../../util/abstract_fs';
+import sleep from '../../util/sleep';
+import * as Config from '../../config';
 
-const AbstractFS = require('../../util/abstract_fs');
-const sleep = require('../../util/sleep');
-const Config = require('../../config');
-
-module.exports = async function main(task, argv) {
+export default async function main(task, argv) {
     // on kubernetes, we might encounter a race when this pod is scheduled on a
     // newly started node, where the pod is started before the kube2iam daemonset
     // is ready
@@ -105,4 +104,4 @@ module.exports = async function main(task, argv) {
         await AbstractFS.upload(outputdir, AbstractFS.resolve(task.jobDir, 'output'));
         await AbstractFS.removeTemporary(jobdir);
     }
-};
+}

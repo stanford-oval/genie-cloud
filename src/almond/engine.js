@@ -18,9 +18,8 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-const fs = require('fs');
-const Genie = require('genie-toolkit');
+import * as fs from 'fs';
+import * as Genie from 'genie-toolkit';
 
 // API wrappers for Genie's classes that expose the $rpcMethods interface
 // used by transparent-rpc
@@ -121,7 +120,7 @@ class NotificationWrapper {
 }
 NotificationWrapper.prototype.$rpcMethods = ['destroy'];
 
-class Engine extends Genie.AssistantEngine {
+export default class Engine extends Genie.AssistantEngine {
     constructor(platform, options) {
         super(platform, options);
     }
@@ -206,4 +205,3 @@ Engine.prototype.$rpcMethods = [
     'setCloudId',
     'setServerAddress',
 ];
-module.exports = Engine;

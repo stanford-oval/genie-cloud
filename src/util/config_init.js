@@ -18,12 +18,15 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 // This file must be imported by all processes before any other module is required
 
-const fs = require('fs');
-const yaml = require('js-yaml');
-const path = require('path');
+// this module will modify the exported values in config.js so we need to use the
+// low-level CommonJS interface
+/* eslint @typescript-eslint/no-var-requires: off */
+
+import * as fs from 'fs';
+import * as yaml from 'js-yaml';
+import * as path from 'path';
 
 // base config
 const Config = require('../config');

@@ -18,8 +18,11 @@
 //
 // Author: Jim Deng <jim.deng@alumni.stanford.edu>
 
+import assert from 'assert';
+import * as k8s from '@kubernetes/client-node';
 
-// Tests k8s api signature does not change after upgrades 
+// Tests k8s api signature does not change after upgrades
+
 function getArgs(func) {
   let args = func.toString().match(/\S+\s*?\(([^)]*)\)/)[1];
   return args.split(',').map((arg) => {
@@ -29,8 +32,6 @@ function getArgs(func) {
   });
 }
 
-const assert = require('assert');
-const k8s = require('@kubernetes/client-node');
 const fakeConfig = {
     clusters: [
         {
@@ -71,6 +72,6 @@ function main() {
     testDeleteNamespacedJob();
     testListEndpointsForAllNamespaces();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

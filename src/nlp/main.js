@@ -18,26 +18,25 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
+import expressWS from 'express-ws';
+import logger from 'morgan';
+import bodyParser from 'body-parser';
+import cacheable from 'cacheable-middleware';
+import Prometheus from 'prom-client';
+import * as Genie from 'genie-toolkit';
 
-const express = require('express');
+import * as db from '../util/db';
+import Metrics from '../util/metrics';
+import * as errorHandling from '../util/error_handling';
+import * as modelsModel from '../model/nlp_models';
+import * as I18n from '../util/i18n';
+import * as AbstractFS from '../util/abstract_fs';
 
-const logger = require('morgan');
-const bodyParser = require('body-parser');
-const cacheable = require('cacheable-middleware');
-const Prometheus = require('prom-client');
-const Genie = require('genie-toolkit');
+import NLPModel from './nlp_model';
+import ProxyServer from './proxy';
 
-const db = require('../util/db');
-const Metrics = require('../util/metrics');
-const errorHandling = require('../util/error_handling');
-const modelsModel = require('../model/nlp_models');
-const I18n = require('../util/i18n');
-const AbstractFS = require('../util/abstract_fs');
-
-const NLPModel = require('./nlp_model');
-const ProxyServer = require('./proxy');
-
-const Config = require('../config');
+import * as Config from '../config';
 
 class NLPInferenceServer {
     constructor() {
@@ -116,9 +115,9 @@ class NLPInferenceServer {
         console.log(`Loaded ${this._models.size} models`);
     }
 
-    initFrontend(port) {
+    async initFrontend(port) {
         const app = express();
-        require('express-ws')(app);
+        expressWS(app);
 
         // proxy enables requests fanout to all replcas in a nlp service
         if (Config.TRAINING_TASK_BACKEND === 'kubernetes')
@@ -145,10 +144,10 @@ class NLPInferenceServer {
             next();
         });
 
-        app.use('/admin', require('./admin'));
-        app.use(require('./query'));
-        app.use(require('./learn'));
-        app.use(require('./voice'));
+        app.use('/admin', (await import('./admin')).default);
+        app.use((await import('./query')).default);
+        app.use((await import('./learn')).default);
+        app.use((await import('./voice')).default);
 
         // if we get here, we have a 404 error
         app.use('/', (req, res) => {
@@ -160,26 +159,24 @@ class NLPInferenceServer {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('run-nlp', {
-            description: 'Run the Voice & NLP inference process'
-        });
-        parser.add_argument('-p', '--port', {
-            required: false,
-            type: Number,
-            help: 'Listen on the given port',
-            default: 8400
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('run-nlp', {
+        description: 'Run the Voice & NLP inference process'
+    });
+    parser.add_argument('-p', '--port', {
+        required: false,
+        type: Number,
+        help: 'Listen on the given port',
+        default: 8400
+    });
+}
 
-    main(argv) {
-        const daemon = new NLPInferenceServer();
+export async function main(argv) {
+    const daemon = new NLPInferenceServer();
 
-        daemon.loadAllLanguages();
-        daemon.initFrontend(argv.port);
+    daemon.loadAllLanguages();
+    await daemon.initFrontend(argv.port);
 
-        if (Config.ENABLE_PROMETHEUS)
-            Prometheus.collectDefaultMetrics();
-    }
-};
+    if (Config.ENABLE_PROMETHEUS)
+        Prometheus.collectDefaultMetrics();
+}

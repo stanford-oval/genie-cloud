@@ -19,8 +19,8 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const assert = require('assert');
-const Stream = require('stream');
+import assert from 'assert';
+import * as Stream from 'stream';
 
 class ChainStream extends Stream.Readable {
     constructor(chain, options = {}) {
@@ -86,17 +86,13 @@ class ChainStream extends Stream.Readable {
     }
 }
 
-function chain(streams, options) {
+export function chain(streams, options) {
     return new ChainStream(streams, options);
 }
 
-module.exports = {
-    chain,
-
-    waitFinish(stream) {
-        return new Promise((resolve, reject) => {
-            stream.once('finish', resolve);
-            stream.on('error', reject);
-        });
-    }
-};
+export function waitFinish(stream) {
+    return new Promise((resolve, reject) => {
+        stream.once('finish', resolve);
+        stream.on('error', reject);
+    });
+}

@@ -18,14 +18,13 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as mysql from 'mysql';
+import * as util from 'util';
+import Prometheus from 'prom-client';
 
-const mysql = require('mysql');
-const util = require('util');
-const Prometheus = require('prom-client');
+import { NotFoundError, InternalError } from './errors';
 
-const { NotFoundError, InternalError } = require('./errors');
-
-const Config = require('../config');
+import * as Config from '../config';
 
 function getDBCommand(query) {
     const match = /^\s*\(\*([a-z]+)\s/i.exec(query);
@@ -152,73 +151,75 @@ function connect() {
     });
 }
 
-module.exports = {
+export {
     getPool,
     connect,
-    tearDown() {
-        if (_pool === undefined)
-            return Promise.resolve();
-        const pool = _pool;
-        _pool = undefined;
-        return new Promise((resolve, reject) => {
-            pool.end((err) => {
-                if (err)
-                    reject(err);
-                else
-                    resolve();
-            });
+};
+export function tearDown() {
+    if (_pool === undefined)
+        return Promise.resolve();
+    const pool = _pool;
+    _pool = undefined;
+    return new Promise((resolve, reject) => {
+        pool.end((err) => {
+            if (err)
+                reject(err);
+            else
+                resolve();
         });
-    },
+    });
+}
 
-    withClient(callback) {
-        return connect().then(async ([client, done]) => {
-            return Promise.resolve(callback(client)).then((result) => {
-                done();
-                return result;
-            }, (err) => {
-                done();
-                throw err;
-            });
+export function withClient(callback) {
+    return connect().then(async ([client, done]) => {
+        return Promise.resolve(callback(client)).then((result) => {
+            done();
+            return result;
+        }, (err) => {
+            done();
+            throw err;
         });
-    },
+    });
+}
 
-    async withTransaction(transaction, isolationLevel = 'serializable', readOnly = 'read write') {
-        dbTransactionTotal.inc();
-        const [client, done] = await connect();
-        // danger! we're pasting strings into SQL
-        // this is ok because the argument NEVER comes from user input
+export async function withTransaction(transaction, isolationLevel = 'serializable', readOnly = 'read write') {
+    dbTransactionTotal.inc();
+    const [client, done] = await connect();
+    // danger! we're pasting strings into SQL
+    // this is ok because the argument NEVER comes from user input
+    try {
+        await query(client, `set transaction isolation level ${isolationLevel}`);
+        await query(client, `start transaction ${readOnly}`);
         try {
-            await query(client, `set transaction isolation level ${isolationLevel}`);
-            await query(client, `start transaction ${readOnly}`);
-            try {
-                const result = await transaction(client);
-                await query(client, 'commit');
-                done();
-                return result;
-            } catch(err) {
-                await rollback(client, err, done);
-                throw err;
-            }
-        } catch(error) {
-            done(error);
-            throw error;
+            const result = await transaction(client);
+            await query(client, 'commit');
+            done();
+            return result;
+        } catch(err) {
+            await rollback(client, err, done);
+            throw err;
         }
-    },
+    } catch(error) {
+        done(error);
+        throw error;
+    }
+}
 
-    async insertOne(client, string, args) {
-        const [result,] = await query(client, string, args);
-        if (result.insertId === undefined)
-            throw new InternalError('E_NO_ID', "Row does not have ID");
+export async function insertOne(client, string, args) {
+    const [result,] = await query(client, string, args);
+    if (result.insertId === undefined)
+        throw new InternalError('E_NO_ID', "Row does not have ID");
 
-        return result.insertId;
-    },
+    return result.insertId;
+}
 
-    insertIgnore(client, string, args) {
-        return query(client, string, args).then(([result, fields]) => {
-            return result.affectedRows > 0;
-        });
-    },
+export function insertIgnore(client, string, args) {
+    return query(client, string, args).then(([result, fields]) => {
+        return result.affectedRows > 0;
+    });
+}
 
+export {
     selectOne,
     selectAll,
     query

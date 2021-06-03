@@ -18,21 +18,20 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
+import multer from 'multer';
+import csurf from 'csurf';
+import * as os from 'os';
 
-const express = require('express');
-const multer = require('multer');
-const csurf = require('csurf');
-const os = require('os');
+import * as db from '../util/db';
+import * as model from '../model/device';
+import * as exampleModel from '../model/example';
 
-const db = require('../util/db');
-const model = require('../model/device');
-const exampleModel = require('../model/example');
-
-const Importer = require('../util/import_device');
-const DatasetUtils = require('../util/dataset');
-const iv = require('../util/input_validation');
-const user = require('../util/user');
-const { ValidationError, BadRequestError, ForbiddenError } = require('../util/errors');
+import * as Importer from '../util/import_device';
+import * as DatasetUtils from '../util/dataset';
+import * as iv from '../util/input_validation';
+import * as user from '../util/user';
+import { ValidationError, BadRequestError, ForbiddenError } from '../util/errors';
 
 let router = express.Router();
 
@@ -142,4 +141,4 @@ router.post('/update/:kind', iv.validatePOST(updateArguments), (req, res, next) 
     doCreateOrUpdate(req.params.kind, false, req, res).catch(next);
 });
 
-module.exports = router;
+export default router;

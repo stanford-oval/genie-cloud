@@ -19,16 +19,15 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as fs from 'fs';
+import byline from 'byline';
+import * as Stream from 'stream';
+import * as Genie from 'genie-toolkit';
 
-const fs = require('fs');
-const byline = require('byline');
-const Stream = require('stream');
-const Genie = require('genie-toolkit');
-
-const db = require('../util/db');
-const { makeFlags } = require('../util/genie_flag_utils');
-const StreamUtils = require('../util/stream-utils');
-const exampleModel = require('../model/example');
+import * as db from '../util/db';
+import { makeFlags } from '../util/genie_flag_utils';
+import * as StreamUtils from '../util/stream-utils';
+import * as exampleModel from '../model/example';
 
 function maybeCreateReadStream(filename) {
     if (filename === '-')
@@ -41,89 +40,87 @@ function readAllLines(files, separator = '') {
     return StreamUtils.chain(files.map((s) => s.setEncoding('utf8').pipe(byline())), { objectMode: true, separator });
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('upload-dataset', {
-            add_help: true,
-            description: 'Upload Thingpedia Dataset'
-        });
-        parser.add_argument('-l', '--language', {
-            required: true,
-        });
-        parser.add_argument('-t', '--type', {
-            required: true,
-            help: 'The type to assign to this dataset.',
-        });
-        parser.add_argument('--contextual', {
-            action: 'store_true',
-            default: false,
-            help: 'Process a contextual dataset.'
-        });
-        parser.add_argument('--exact', {
-            action: 'store_true',
-            default: false,
-            help: 'Include this dataset in the exact match.'
-        });
-        parser.add_argument('--no-exact', {
-            action: 'store_false',
-            dest: 'exact',
-            help: 'Do not include this dataset in the exact match.'
-        });
-        parser.add_argument('--training', {
-            action: 'store_true',
-            default: true,
-            help: 'Use this dataset for training.'
-        });
-        parser.add_argument('--no-training', {
-            action: 'store_false',
-            dest: 'training',
-            help: 'Do not use this dataset for training.'
-        });
-        parser.add_argument('--preserve-id', {
-            action: 'store_true',
-            default: false,
-            help: 'Preserve IDs of uploaded sentences (and update the existing sentence if they already exist)'
-        });
-        parser.add_argument('input_file', {
-            nargs: '+',
-            type: maybeCreateReadStream,
-            help: 'Input datasets to import (in TSV format); use - for standard input'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('upload-dataset', {
+        add_help: true,
+        description: 'Upload Thingpedia Dataset'
+    });
+    parser.add_argument('-l', '--language', {
+        required: true,
+    });
+    parser.add_argument('-t', '--type', {
+        required: true,
+        help: 'The type to assign to this dataset.',
+    });
+    parser.add_argument('--contextual', {
+        action: 'store_true',
+        default: false,
+        help: 'Process a contextual dataset.'
+    });
+    parser.add_argument('--exact', {
+        action: 'store_true',
+        default: false,
+        help: 'Include this dataset in the exact match.'
+    });
+    parser.add_argument('--no-exact', {
+        action: 'store_false',
+        dest: 'exact',
+        help: 'Do not include this dataset in the exact match.'
+    });
+    parser.add_argument('--training', {
+        action: 'store_true',
+        default: true,
+        help: 'Use this dataset for training.'
+    });
+    parser.add_argument('--no-training', {
+        action: 'store_false',
+        dest: 'training',
+        help: 'Do not use this dataset for training.'
+    });
+    parser.add_argument('--preserve-id', {
+        action: 'store_true',
+        default: false,
+        help: 'Preserve IDs of uploaded sentences (and update the existing sentence if they already exist)'
+    });
+    parser.add_argument('input_file', {
+        nargs: '+',
+        type: maybeCreateReadStream,
+        help: 'Input datasets to import (in TSV format); use - for standard input'
+    });
+}
 
-    async main(argv) {
-        await db.withTransaction(async (dbClient) => {
-            const output = readAllLines(argv.input_file)
-                .pipe(new Genie.DatasetParser({ contextual: argv.contextual }))
-                .pipe(new Stream.Transform({
-                    objectMode: true,
+export async function main(argv) {
+    await db.withTransaction(async (dbClient) => {
+        const output = readAllLines(argv.input_file)
+            .pipe(new Genie.DatasetParser({ contextual: argv.contextual }))
+            .pipe(new Stream.Transform({
+                objectMode: true,
 
-                    transform(ex, encoding, callback) {
-                        ex.flags.training = argv.training;
-                        ex.flags.exact = argv.exact;
-                        callback(null, {
-                            id: argv.preserve_id ? ex.id : undefined,
-                            language: argv.language,
-                            utterance: ex.preprocessed,
-                            preprocessed: ex.preprocessed,
-                            target_json: '',
-                            target_code: ex.target_code,
-                            context: ex.context || null,
-                            type: argv.type,
-                            flags: makeFlags(ex.flags),
-                            is_base: 0
-                        });
-                    },
+                transform(ex, encoding, callback) {
+                    ex.flags.training = argv.training;
+                    ex.flags.exact = argv.exact;
+                    callback(null, {
+                        id: argv.preserve_id ? ex.id : undefined,
+                        language: argv.language,
+                        utterance: ex.preprocessed,
+                        preprocessed: ex.preprocessed,
+                        target_json: '',
+                        target_code: ex.target_code,
+                        context: ex.context || null,
+                        type: argv.type,
+                        flags: makeFlags(ex.flags),
+                        is_base: 0
+                    });
+                },
 
-                    flush(callback) {
-                        process.nextTick(callback);
-                    }
-                }))
-                .pipe(exampleModel.insertStream(dbClient, argv.preserve_id));
+                flush(callback) {
+                    process.nextTick(callback);
+                }
+            }))
+            .pipe(exampleModel.insertStream(dbClient, argv.preserve_id));
 
-            await StreamUtils.waitFinish(output);
-        });
+        await StreamUtils.waitFinish(output);
+    });
 
-        await db.tearDown();
-    }
-};
+    await db.tearDown();
+}

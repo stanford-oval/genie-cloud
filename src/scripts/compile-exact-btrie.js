@@ -18,14 +18,13 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as Stream from 'stream';
+import byline from 'byline';
+import * as fs from 'fs';
+import assert from 'assert';
+import * as Genie from 'genie-toolkit';
 
-const Stream = require('stream');
-const byline = require('byline');
-const fs = require('fs');
-const assert = require('assert');
-const Genie = require('genie-toolkit');
-
-const StreamUtils = require('../util/stream-utils');
+import * as StreamUtils from '../util/stream-utils';
 
 function maybeCreateReadStream(filename) {
     if (filename === '-')
@@ -38,50 +37,47 @@ function readAllLines(files, separator = '') {
     return StreamUtils.chain(files.map((s) => s.setEncoding('utf8').pipe(byline())), { objectMode: true, separator });
 }
 
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('compile-exact-btrie', {
+        add_help: true,
+        description: 'Compile an exact match dataset'
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream,
+    });
+    parser.add_argument('input_file', {
+        nargs: '+',
+        type: maybeCreateReadStream,
+        help: 'Input datasets to import (in TSV format); use - for standard input'
+    });
+}
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('compile-exact-btrie', {
-            add_help: true,
-            description: 'Compile an exact match dataset'
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream,
-        });
-        parser.add_argument('input_file', {
-            nargs: '+',
-            type: maybeCreateReadStream,
-            help: 'Input datasets to import (in TSV format); use - for standard input'
-        });
-    },
+export async function main(argv) {
+    const matcher = new Genie.ExactMatcher;
 
-    async main(argv) {
-        const matcher = new Genie.ExactMatcher;
+    const output = readAllLines(argv.input_file)
+        .pipe(new Genie.DatasetParser({ contextual: argv.contextual }))
+        .pipe(new Stream.Writable({
+            objectMode: true,
 
-        const output = readAllLines(argv.input_file)
-            .pipe(new Genie.DatasetParser({ contextual: argv.contextual }))
-            .pipe(new Stream.Writable({
-                objectMode: true,
+            write(ex, encoding, callback) {
+                matcher.add(ex.preprocessed.split(' '), ex.target_code.split(' '));
+                callback();
+            },
+        }));
+    await StreamUtils.waitFinish(output);
 
-                write(ex, encoding, callback) {
-                    matcher.add(ex.preprocessed.split(' '), ex.target_code.split(' '));
-                    callback();
-                },
-            }));
-        await StreamUtils.waitFinish(output);
+    const builder = new Genie.BTrie.BTrieBuilder((existing, newValue) => {
+        assert(typeof newValue === 'string');
+        if (existing === undefined)
+            return newValue;
+        else
+            return existing + '\0' + newValue;
+    });
+    for (let [key, value] of matcher)
+        builder.insert(key, value);
 
-        const builder = new Genie.BTrie.BTrieBuilder((existing, newValue) => {
-            assert(typeof newValue === 'string');
-            if (existing === undefined)
-                return newValue;
-            else
-                return existing + '\0' + newValue;
-        });
-        for (let [key, value] of matcher)
-            builder.insert(key, value);
-
-        argv.output.end(builder.build());
-        await StreamUtils.waitFinish(argv.output);
-    }
-};
+    argv.output.end(builder.build());
+    await StreamUtils.waitFinish(argv.output);
+}

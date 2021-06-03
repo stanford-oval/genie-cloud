@@ -18,7 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 class HTTPError extends Error {
     constructor(status, message) {
         super(message);
@@ -68,7 +67,7 @@ class InternalError extends Error {
     }
 }
 
-module.exports = {
+export {
     HTTPError,
     BadRequestError,
     ForbiddenError,

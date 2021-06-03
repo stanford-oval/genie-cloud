@@ -18,17 +18,16 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
+import * as Stream from 'stream';
+import * as Url from 'url';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as tmpSync from 'tmp';
+import * as tmp from 'tmp-promise';
 
-const assert = require('assert');
-const Stream = require('stream');
-const Url = require('url');
-const fs = require('fs');
-const path = require('path');
-const tmpSync = require('tmp');
-const tmp = require('tmp-promise');
-
-const cmd = require('./command');
-const { safeMkdir } = require('./fsutils');
+import * as cmd from './command';
+import { safeMkdir } from './fsutils';
 
 // An abstraction over file system operations, that supports local files and s3:// URIs
 
@@ -94,7 +93,7 @@ const _backends = {
             const stream = fs.createWriteStream(tmpFile, { fd: tmpFD });
             stream.on('finish', async () => {
                 await this.upload(tmpFile, url);
-                await fs.unlink(tmpFile, (err) => { 
+                await fs.unlink(tmpFile, (err) => {
                     if (err) throw (err);
                 });
             });
@@ -106,6 +105,7 @@ const _backends = {
                 return this.createLocalWriteStream(url);
 
             // lazy-load AWS, which is optional
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
             const AWS = require('aws-sdk');
 
             const s3 = new AWS.S3();
@@ -128,6 +128,7 @@ const _backends = {
         },
         createReadStream(url) {
             // lazy-load AWS, which is optional
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
             const AWS = require('aws-sdk');
 
             const s3 = new AWS.S3();
@@ -140,6 +141,7 @@ const _backends = {
         },
         async getDownloadLinkOrStream(url) {
             // lazy-load AWS, which is optional
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
             const AWS = require('aws-sdk');
 
             const s3 = new AWS.S3();
@@ -153,6 +155,7 @@ const _backends = {
 
         async writeFile(url, blob, options = {}) {
             // lazy-load AWS, which is optional
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
             const AWS = require('aws-sdk');
 
             const s3 = new AWS.S3();
@@ -245,91 +248,89 @@ function getBackend(url) {
     return [parsed, _backends[parsed.protocol]];
 }
 
-module.exports = {
-    /**
-      A path.resolve()-like interface that supports s3:// and file:// URIs correctly.
+/**
+     A path.resolve()-like interface that supports s3:// and file:// URIs correctly.
 
-      Can be called with one argument to make it absolute, or 2 or more arguments
-      to perform path resolution.
+    Can be called with one argument to make it absolute, or 2 or more arguments
+    to perform path resolution.
 
-      Note that path resolution is not the same as URL resolution:
-      Url.resolve('file://foo', 'bar') = 'file://bar'
-      path.resolve('/foo', 'bar') = 'foo/bar'
-      AbstractFS.resolve('file://foo', 'bar') = 'file://foo/bar'
-      AbstractFS.resolve('/foo', 'bar') = '/foo/bar'
-    */
-    resolve(url, ...others) {
-        url = Url.resolve(cwd, url);
-        for (let other of others)
-            url = Url.resolve(url + '/', other);
-        return url;
-    },
+    Note that path resolution is not the same as URL resolution:
+    Url.resolve('file://foo', 'bar') = 'file://bar'
+    path.resolve('/foo', 'bar') = 'foo/bar'
+    AbstractFS.resolve('file://foo', 'bar') = 'file://foo/bar'
+    AbstractFS.resolve('/foo', 'bar') = '/foo/bar'
+*/
+export function resolve(url, ...others) {
+    url = Url.resolve(cwd, url);
+    for (let other of others)
+        url = Url.resolve(url + '/', other);
+    return url;
+}
 
-    async mkdirRecursive(url) {
-        const [parsed, backend] = getBackend(url);
-        return backend.mkdirRecursive(parsed);
-    },
+export async function mkdirRecursive(url) {
+    const [parsed, backend] = getBackend(url);
+    return backend.mkdirRecursive(parsed);
+}
 
-    async download(url, ...extraArgs) {
-        const [parsed, backend] = getBackend(url);
-        return backend.download(parsed, ...extraArgs);
-    },
+export async function download(url, ...extraArgs) {
+    const [parsed, backend] = getBackend(url);
+    return backend.download(parsed, ...extraArgs);
+}
 
-    async upload(localdir, url, ...extraArgs) {
-        const [parsed, backend] = getBackend(url);
-        return backend.upload(localdir, parsed, ...extraArgs);
-    },
+export async function upload(localdir, url, ...extraArgs) {
+    const [parsed, backend] = getBackend(url);
+    return backend.upload(localdir, parsed, ...extraArgs);
+}
 
-    async removeRecursive(url) {
-        const [parsed, backend] = getBackend(url);
-        return backend.removeRecursive(parsed);
-    },
+export async function removeRecursive(url) {
+    const [parsed, backend] = getBackend(url);
+    return backend.removeRecursive(parsed);
+}
 
-    async sync(url1, url2, ...extraArgs) {
-        const [parsed1, backend1] = getBackend(url1);
-        const [parsed2, backend2] = getBackend(url2);
+export async function sync(url1, url2, ...extraArgs) {
+    const [parsed1, backend1] = getBackend(url1);
+    const [parsed2, backend2] = getBackend(url2);
 
-        if (backend1 === backend2) {
-            await backend1.sync(parsed1, parsed2, ...extraArgs);
-            return;
-        }
-        // download to a temporary directory, then upload
-        const tmpdir = await backend1.download(parsed1, ...extraArgs);
-        await backend2.upload(tmpdir, parsed2, ...extraArgs);
-        // tmpdir is not created for local file
-        if (parsed1.protocol !== 'file:')
-            await module.exports.removeTemporary(tmpdir);
-    },
-    createWriteStream(url, localSpooling) {
-        const [parsed, backend] = getBackend(url);
-        return backend.createWriteStream(parsed, localSpooling);
-    },
-    createReadStream(url) {
-        const [parsed, backend] = getBackend(url);
-        return backend.createReadStream(parsed);
-    },
-    getDownloadLinkOrStream(url) {
-        const [parsed, backend] = getBackend(url);
-        return backend.getDownloadLinkOrStream(parsed);
-    },
-    async writeFile(url, blob, options) {
-        const [parsed, backend] = getBackend(url);
-        return backend.writeFile(parsed, blob, options);
-    },
-
-    async removeTemporary(pathname) {
-        if (!pathname.startsWith('/var/tmp'))
-            return;
-        await _backends['file:'].removeRecursive({ pathname });
-    },
-
-    isLocal(url) {
-        const [parsed,] = getBackend(url);
-        return parsed.protocol === 'file:' && !parsed.hostname;
-    },
-    getLocalPath(url) {
-        const [parsed,] = getBackend(url);
-        assert(parsed.protocol === 'file:');
-        return parsed.pathname;
+    if (backend1 === backend2) {
+        await backend1.sync(parsed1, parsed2, ...extraArgs);
+        return;
     }
-};
+    // download to a temporary directory, then upload
+    const tmpdir = await backend1.download(parsed1, ...extraArgs);
+    await backend2.upload(tmpdir, parsed2, ...extraArgs);
+    // tmpdir is not created for local file
+    if (parsed1.protocol !== 'file:')
+        await removeTemporary(tmpdir);
+}
+export function createWriteStream(url, localSpooling) {
+    const [parsed, backend] = getBackend(url);
+    return backend.createWriteStream(parsed, localSpooling);
+}
+export function createReadStream(url) {
+    const [parsed, backend] = getBackend(url);
+    return backend.createReadStream(parsed);
+}
+export function getDownloadLinkOrStream(url) {
+    const [parsed, backend] = getBackend(url);
+    return backend.getDownloadLinkOrStream(parsed);
+}
+export async function writeFile(url, blob, options) {
+    const [parsed, backend] = getBackend(url);
+    return backend.writeFile(parsed, blob, options);
+}
+
+export async function removeTemporary(pathname) {
+    if (!pathname.startsWith('/var/tmp'))
+        return;
+    await _backends['file:'].removeRecursive({ pathname });
+}
+
+export function isLocal(url) {
+    const [parsed,] = getBackend(url);
+    return parsed.protocol === 'file:' && !parsed.hostname;
+}
+export function getLocalPath(url) {
+    const [parsed,] = getBackend(url);
+    assert(parsed.protocol === 'file:');
+    return parsed.pathname;
+}

@@ -19,16 +19,15 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import csvstringify from 'csv-stringify';
+import * as Stream from 'stream';
+import * as seedrandom from 'seedrandom';
+import * as Genie from 'genie-toolkit';
 
-const csvstringify = require('csv-stringify');
-const Stream = require('stream');
-const seedrandom = require('seedrandom');
-const Genie = require('genie-toolkit');
+import * as model from '../model/mturk';
+import { BadRequestError, InternalError } from '../util/errors';
 
-const model = require('../model/mturk');
-const { BadRequestError, InternalError } = require('../util/errors');
-
-const Config = require('../config');
+import * as Config from '../config';
 
 const SYNTHETIC_PER_PARAPHRASE_HIT = 4;
 const PARAPHRASES_PER_SENTENCE = 2;
@@ -212,7 +211,7 @@ async function closeBatch(dbClient, batch, autoApprove) {
         await model.autoApproveUnvalidated(dbClient, batch.id);
 }
 
-module.exports = {
+export {
     SYNTHETIC_PER_PARAPHRASE_HIT,
     PARAPHRASES_PER_SENTENCE,
 

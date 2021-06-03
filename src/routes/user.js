@@ -18,36 +18,35 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as Url from 'url';
+import * as Tp from 'thingpedia';
+import express from 'express';
+import passport from 'passport';
+import * as jwt from 'jsonwebtoken';
+import * as util from 'util';
+import * as crypto from 'crypto';
+import * as thirtyTwo from 'thirty-two';
+import { totp } from 'notp';
+import DiscourseSSO from 'discourse-sso';
+import moment from 'moment-timezone';
 
-const Url = require('url');
-const Tp = require('thingpedia');
-const express = require('express');
-const passport = require('passport');
-const jwt = require('jsonwebtoken');
-const util = require('util');
-const crypto = require('crypto');
-const thirtyTwo = require('thirty-two');
-const totp = require('notp').totp;
-const DiscourseSSO = require('discourse-sso');
-const moment = require('moment-timezone');
+import * as userUtils from '../util/user';
+import * as exampleModel from '../model/example';
+import * as model from '../model/user';
+import * as oauthModel from '../model/oauth2';
+import * as organization from '../model/organization';
+import * as db from '../util/db';
+import * as secret from '../util/secret_key';
+import * as SendMail from '../util/sendmail';
+import { makeRandom } from '../util/random';
+import * as iv from '../util/input_validation';
+import * as i18n from '../util/i18n';
+import { tokenize } from '../util/tokenize';
+import { BadRequestError } from '../util/errors';
 
-const userUtils = require('../util/user');
-const exampleModel = require('../model/example');
-const model = require('../model/user');
-const oauthModel = require('../model/oauth2');
-const organization = require('../model/organization');
-const db = require('../util/db');
-const secret = require('../util/secret_key');
-const SendMail = require('../util/sendmail');
-const { makeRandom } = require('../util/random');
-const iv = require('../util/input_validation');
-const i18n = require('../util/i18n');
-const { tokenize } = require('../util/tokenize');
-const { BadRequestError } = require('../util/errors');
+import EngineManager from '../almond/enginemanagerclient';
 
-const EngineManager = require('../almond/enginemanagerclient');
-
-const Config = require('../config');
+import * as Config from '../config';
 
 const TOTP_PERIOD = 30; // duration in second of TOTP code
 
@@ -898,4 +897,4 @@ if (Config.DISCOURSE_SSO_SECRET && Config.DISCOURSE_SSO_REDIRECT) {
     });
 }
 
-module.exports = router;
+export default router;

@@ -19,19 +19,19 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const Url = require('url');
-const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
-const qs = require('qs');
-const FormData = require('form-data');
-const { assertHttpError, assertRedirect, assertLoginRequired, request, sessionRequest, dbQuery } = require('./scaffold');
-const { login, startSession } = require('../login');
-const minidom = require('../util/minidom');
+import * as Url from 'url';
+import assert from 'assert';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as qs from 'qs';
+import FormData from 'form-data';
+import { assertHttpError, assertRedirect, assertLoginRequired, request, sessionRequest, dbQuery } from './scaffold';
+import { login, startSession } from '../login';
+import * as minidom from '../util/minidom';
 
-const db = require('../../src/util/db');
+import * as db from '../../src/util/db';
 
-//const Config = require('../../src/config');
+//import * as Config from '../../src/config';
 
 async function testCreateOAuthClient(bob, david, nobody) {
     await assertLoginRequired(sessionRequest('/developers/oauth/create', 'POST', null, nobody));
@@ -272,6 +272,6 @@ async function main() {
         await db.tearDown();
     }
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

@@ -18,17 +18,16 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
+import multer from 'multer';
+import csurf from 'csurf';
+import * as os from 'os';
 
-const express = require('express');
-const multer = require('multer');
-const csurf = require('csurf');
-const os = require('os');
-
-const db = require('../util/db');
-const entityModel = require('../model/entity');
-const user = require('../util/user');
-const iv = require('../util/input_validation');
-const { uploadEntities } = require('../util/upload_dataset');
+import * as db from '../util/db';
+import * as entityModel from '../model/entity';
+import * as user from '../util/user';
+import * as iv from '../util/input_validation';
+import { uploadEntities } from '../util/upload_dataset';
 
 const router = express.Router();
 
@@ -67,4 +66,4 @@ router.get('/by-id/:id', (req, res, next) => {
     }).catch(next);
 });
 
-module.exports = router;
+export default router;

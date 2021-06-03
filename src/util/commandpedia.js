@@ -18,10 +18,9 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import { PARAM_REGEX } from './tokenize';
 
-const { PARAM_REGEX } = require('./tokenize');
-
-function getCommandDetails(_, commands) {
+export function getCommandDetails(_, commands) {
     for (let command of commands) {
         if (command.liked !== undefined)
             command.liked = !!command.liked;
@@ -49,7 +48,3 @@ function getCommandDetails(_, commands) {
         delete command.kind;
     }
 }
-
-module.exports = {
-    getCommandDetails
-};

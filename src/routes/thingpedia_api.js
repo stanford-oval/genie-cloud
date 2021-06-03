@@ -18,33 +18,32 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
+import accepts from 'accepts';
+import passport from 'passport';
+import multer from 'multer';
+import * as os from 'os';
+import * as ThingTalk from 'thingtalk';
 
-const express = require('express');
-const accepts = require('accepts');
-const passport = require('passport');
-const multer = require('multer');
-const os = require('os');
-const ThingTalk = require('thingtalk');
+import * as db from '../util/db';
+import * as entityModel from '../model/entity';
+import * as stringModel from '../model/strings';
+import * as commandModel from '../model/example';
+import * as orgModel from '../model/organization';
 
-const db = require('../util/db');
-const entityModel = require('../model/entity');
-const stringModel = require('../model/strings');
-const commandModel = require('../model/example');
-const orgModel = require('../model/organization');
+import ThingpediaClient from '../util/thingpedia-client';
+import * as SchemaUtils from '../util/manifest_to_schema';
+import * as userUtils from '../util/user';
+import * as iv from '../util/input_validation';
+import { ForbiddenError, AuthenticationError } from '../util/errors';
+import * as errorHandling from '../util/error_handling';
+import * as I18n from '../util/i18n';
+import { uploadEntities, uploadStringDataset } from '../util/upload_dataset';
+import { validatePageAndSize } from '../util/pagination';
+import { getCommandDetails } from '../util/commandpedia';
+import { uploadDevice } from '../util/import_device';
 
-const ThingpediaClient = require('../util/thingpedia-client');
-const SchemaUtils = require('../util/manifest_to_schema');
-const userUtils = require('../util/user');
-const iv = require('../util/input_validation');
-const { ForbiddenError, AuthenticationError } = require('../util/errors');
-const errorHandling = require('../util/error_handling');
-const I18n = require('../util/i18n');
-const { uploadEntities, uploadStringDataset } = require('../util/upload_dataset');
-const { validatePageAndSize } = require('../util/pagination');
-const { getCommandDetails } = require('../util/commandpedia');
-const { uploadDevice } = require('../util/import_device');
-
-const Config = require('../config');
+import * as Config from '../config';
 
 const everything = express.Router();
 
@@ -986,7 +985,7 @@ v3.get('/entities/lookup', (req, res, next) => {
         res.status(400).json({ error: 'missing query' });
         return;
     }
-    
+
     db.withClient((dbClient) => {
         return entityModel.lookup(dbClient, language, token);
     }).then((rows) => {
@@ -1038,7 +1037,7 @@ v3.get('/entities/lookup/:type', (req, res, next) => {
         res.status(400).json({ error: 'missing query' });
         return;
     }
-    
+
     db.withClient((dbClient) => {
         return Promise.all([entityModel.lookupWithType(dbClient, language, req.params.type, token),
                             entityModel.get(dbClient, req.params.type, language)]);
@@ -1491,4 +1490,4 @@ everything.use('/', (req, res) => {
 // if something failed, return a 500 in json form, or the appropriate status code
 everything.use(errorHandling.json);
 
-module.exports = everything;
+export default everything;

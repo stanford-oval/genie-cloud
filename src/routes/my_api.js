@@ -18,22 +18,21 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
+import passport from 'passport';
 
-const express = require('express');
-const passport = require('passport');
+import * as user from '../util/user';
+import EngineManager from '../almond/enginemanagerclient';
+import * as iv from '../util/input_validation';
+import { NotFoundError, BadRequestError } from '../util/errors';
+import * as errorHandling from '../util/error_handling';
+import oauth2server from '../util/oauth2';
+import { makeRandom } from '../util/random';
 
-const user = require('../util/user');
-const EngineManager = require('../almond/enginemanagerclient');
-const iv = require('../util/input_validation');
-const { NotFoundError, BadRequestError } = require('../util/errors');
-const errorHandling = require('../util/error_handling');
-const oauth2server = require('../util/oauth2');
-const { makeRandom } = require('../util/random');
+import * as Config from '../config';
 
-const Config = require('../config');
-
-const CloudSync = require('./cloud-sync');
-const MyConversation = require('./my_conversation');
+import * as CloudSync from './cloud-sync';
+import * as MyConversation from './my_conversation';
 
 let router = express.Router();
 
@@ -175,4 +174,4 @@ router.use('/', (req, res) => {
 // if something failed, return a 500 in json form, or the appropriate status code
 router.use(errorHandling.json);
 
-module.exports = router;
+export default router;

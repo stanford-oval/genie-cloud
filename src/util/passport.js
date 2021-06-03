@@ -19,28 +19,28 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const crypto = require('crypto');
-const util = require('util');
-const jwt = require('jsonwebtoken');
-const assert = require('assert');
+import * as crypto from 'crypto';
+import * as util from 'util';
+import * as jwt from 'jsonwebtoken';
+import assert from 'assert';
 
-const db = require('./db');
-const model = require('../model/user');
-const secret = require('./secret_key');
-const { ForbiddenError } = require('./errors');
-const userUtils = require('./user');
+import * as db from './db';
+import * as model from '../model/user';
+import * as secret from './secret_key';
+import { ForbiddenError } from './errors';
+import * as userUtils from './user';
 
-const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const GoogleOAuthStrategy = require('passport-google-oauth20').Strategy;
-const GitHubStrategy = require('passport-github').Strategy;
-const BearerStrategy = require('passport-http-bearer').Strategy;
-const BasicStrategy = require('passport-http').BasicStrategy;
-const TotpStrategy = require('passport-totp').Strategy;
+import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
+import { Strategy as GoogleOAuthStrategy } from 'passport-google-oauth20';
+import { Strategy as GitHubStrategy } from 'passport-github';
+import { Strategy as BearerStrategy } from 'passport-http-bearer';
+import { BasicStrategy } from 'passport-http';
+import { Strategy as TotpStrategy } from 'passport-totp';
 
-const EngineManager = require('../almond/enginemanagerclient');
+import EngineManager from '../almond/enginemanagerclient';
 
-const { OAUTH_REDIRECT_ORIGIN, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GITHUB_CLIENT_SECRET, GITHUB_CLIENT_ID} = require('../config');
+import { OAUTH_REDIRECT_ORIGIN, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GITHUB_CLIENT_SECRET, GITHUB_CLIENT_ID } from '../config';
 
 const TOTP_PERIOD = 30; // duration in second of TOTP code
 
@@ -218,7 +218,7 @@ function authenticateGithub(req, accessToken, refreshToken, profile, done) {
     }).then((user) => done(null, user), done);
 }
 
-exports.initialize = function() {
+export function initialize() {
     passport.serializeUser((user, done) => {
         done(null, user.id);
     });
@@ -315,4 +315,4 @@ exports.initialize = function() {
         else
             done(null, secret.decrypt(user.totp_key), TOTP_PERIOD);
     }));
-};
+}

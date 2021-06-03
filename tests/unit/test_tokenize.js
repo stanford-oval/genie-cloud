@@ -20,9 +20,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const assert = require('assert');
+import assert from 'assert';
 
-const { tokenize, rejoin, stripUnsafeTokens } = require('../../src/util/tokenize');
+import { tokenize, rejoin, stripUnsafeTokens } from '../../src/util/tokenize';
 
 function testTokenize() {
     assert.deepStrictEqual(tokenize('a b c'), ['a', 'b', 'c']);
@@ -61,6 +61,6 @@ function main() {
     testRejoin();
     testStripUnsafeTokens();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

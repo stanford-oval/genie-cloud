@@ -19,21 +19,21 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const child_process = require('child_process');
-const path = require('path');
-const fs = require('fs');
-const os = require('os');
-const events = require('events');
-const stream = require('stream');
-const rpc = require('transparent-rpc');
-const util = require('util');
+import * as child_process from 'child_process';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as events from 'events';
+import * as stream from 'stream';
+import * as rpc from 'transparent-rpc';
+import * as util from 'util';
 
-const user = require('../model/user');
-const db = require('../util/db');
-const ThingpediaClient = require('../util/thingpedia-client');
-const Lock = require('../util/lock');
-const Config = require('../config');
-const { InternalError } = require('../util/errors');
+import * as user from '../model/user';
+import * as db from '../util/db';
+import ThingpediaClient from '../util/thingpedia-client';
+import Lock from '../util/lock';
+import * as Config from '../config';
+import { InternalError } from '../util/errors';
 
 class ChildProcessSocket extends stream.Duplex {
     constructor(child) {
@@ -343,7 +343,7 @@ class EngineProcess extends events.EventEmitter {
     }
 }
 
-class EngineManager extends events.EventEmitter {
+export default class EngineManager extends events.EventEmitter {
     constructor(shardId) {
         super();
         this._shardId = shardId;
@@ -622,5 +622,3 @@ class EngineManager extends events.EventEmitter {
     }
 }
 EngineManager.prototype.$rpcMethods = ['isRunning', 'getProcessId', 'startUser', 'killUser', 'killAllUsers',  'restartUser', 'deleteUser', 'clearCache', 'restartUserWithoutCache'];
-
-module.exports = EngineManager;

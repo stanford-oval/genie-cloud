@@ -19,23 +19,22 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as util from 'util';
+import * as fs from 'fs';
+import csvparse from 'csv-parse';
+import express from 'express';
+import multer from 'multer';
+import csurf from 'csurf';
+import * as os from 'os';
 
-const util = require('util');
-const fs = require('fs');
-const csvparse = require('csv-parse');
-const express = require('express');
-const multer = require('multer');
-const csurf = require('csurf');
-const os = require('os');
+import * as db from '../util/db';
+import * as user from '../util/user';
+import * as model from '../model/mturk';
+import * as iv from '../util/input_validation';
+import { ForbiddenError } from '../util/errors';
+import { makeRandom } from '../util/random';
 
-const db = require('../util/db');
-const user = require('../util/user');
-const model = require('../model/mturk');
-const iv = require('../util/input_validation');
-const { ForbiddenError } = require('../util/errors');
-const { makeRandom } = require('../util/random');
-
-const MTurkUtils = require('../util/mturk');
+import * as MTurkUtils from '../util/mturk';
 
 let router = express.Router();
 
@@ -175,4 +174,4 @@ router.post('/close', (req, res, next) => {
     }).catch(next);
 });
 
-module.exports = router;
+export default router;

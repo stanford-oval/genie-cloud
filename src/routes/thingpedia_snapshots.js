@@ -18,13 +18,12 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
 
-const express = require('express');
-
-const user = require('../util/user');
-const snapshot = require('../model/snapshot');
-const db = require('../util/db');
-const iv = require('../util/input_validation');
+import * as user from '../util/user';
+import * as snapshot from '../model/snapshot';
+import * as db from '../util/db';
+import * as iv from '../util/input_validation';
 
 const router = express.Router();
 
@@ -60,4 +59,4 @@ router.post('/create',
     }).catch(next);
 });
 
-module.exports = router;
+export default router;

@@ -19,32 +19,31 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 // load thingpedia to initialize the polyfill
-require('thingpedia');
+import 'thingpedia';
 process.on('unhandledRejection', (up) => { throw up; });
-require('../src/util/config_init');
+import '../src/util/config_init';
 
-const assert = require('assert');
-const path = require('path');
-const util = require('util');
-const fs = require('fs');
-const yaml = require('js-yaml');
+import assert from 'assert';
+import * as path from 'path';
+import * as util from 'util';
+import * as fs from 'fs';
+import * as yaml from 'js-yaml';
 
-const db = require('../src/util/db');
-const userModel = require('../src/model/user');
-const organization = require('../src/model/organization');
-const entityModel = require('../src/model/entity');
-const exampleModel = require('../src/model/example');
-const snapshotModel = require('../src/model/snapshot');
-const alexaModelsModel = require('../src/model/alexa_model');
+import * as db from '../src/util/db';
+import * as userModel from '../src/model/user';
+import * as organization from '../src/model/organization';
+import * as entityModel from '../src/model/entity';
+import * as exampleModel from '../src/model/example';
+import * as snapshotModel from '../src/model/snapshot';
+import * as alexaModelsModel from '../src/model/alexa_model';
 
-const user = require('../src/util/user');
-const Importer = require('../src/util/import_device');
-const { makeRandom } = require('../src/util/random');
-const I18n = require('../src/util/i18n');
+import * as user from '../src/util/user';
+import * as Importer from '../src/util/import_device';
+import { makeRandom } from '../src/util/random';
+import * as I18n from '../src/util/i18n';
 
-const Config = require('../src/config');
+import * as Config from '../src/config';
 assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
 I18n.init(Config.SUPPORTED_LANGUAGES);
 

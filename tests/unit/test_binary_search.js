@@ -19,9 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const assert = require('assert');
+import assert from 'assert';
 
-const binarySearch = require('../../src/util/binary_search');
+import binarySearch from '../../src/util/binary_search';
 
 function main() {
     assert.strictEqual(binarySearch([0.1, 0.2, 0.5, 1.0], 0.0), 0);
@@ -34,6 +34,6 @@ function main() {
 
     assert.strictEqual(binarySearch([0, 4096], 4095), 1);
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

@@ -26,15 +26,15 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const Tp = require('thingpedia');
+import * as Tp from 'thingpedia';
 
-const trainingJobModel = require('../model/training_job');
-const { InternalError } = require('./errors');
+import * as trainingJobModel from '../model/training_job';
+import { InternalError } from './errors';
 
-const Config = require('../config');
+import * as Config from '../config';
 
 let _instance;
-class TrainingServer {
+export default class TrainingServer {
     constructor() {
     }
 
@@ -104,5 +104,4 @@ class TrainingServer {
         });
     }
 }
-_instance =  new TrainingServer();
-module.exports = TrainingServer;
+_instance = new TrainingServer();

@@ -18,34 +18,31 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as os from 'os';
 
-const os = require('os');
-
-const { safeMkdirSync } = require('./fsutils');
+import { safeMkdirSync } from './fsutils';
 
 let _writabledir = null;
 let _cachedir = null;
 
-module.exports = {
-    init() {
-        const rootdir = process.env.THINGENGINE_ROOTDIR || process.cwd();
-        process.env.THINGENGINE_ROOTDIR = rootdir;
+export function init() {
+    const rootdir = process.env.THINGENGINE_ROOTDIR || process.cwd();
+    process.env.THINGENGINE_ROOTDIR = rootdir;
 
-        _writabledir = rootdir + '/shared';
-        safeMkdirSync(_writabledir);
-        _cachedir = _writabledir + '/cache';
-        safeMkdirSync(_cachedir);
-    },
+    _writabledir = rootdir + '/shared';
+    safeMkdirSync(_writabledir);
+    _cachedir = _writabledir + '/cache';
+    safeMkdirSync(_cachedir);
+}
 
-    getWritableDir() {
-        return _writabledir;
-    },
+export function getWritableDir() {
+    return _writabledir;
+}
 
-    getCacheDir() {
-        return _cachedir;
-    },
+export function getCacheDir() {
+    return _cachedir;
+}
 
-    getTmpDir() {
-        return os.tmpdir();
-    }
-};
+export function getTmpDir() {
+    return os.tmpdir();
+}

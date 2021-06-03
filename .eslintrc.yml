@@ -27,7 +27,6 @@ rules:
   # temporary until migration is complete
   '@typescript-eslint/no-this-alias': off
   '@typescript-eslint/explicit-module-boundary-types': off
-  '@typescript-eslint/no-var-requires': off
 
   # correctness checks
   strict:

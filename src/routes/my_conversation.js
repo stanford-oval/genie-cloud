@@ -18,15 +18,14 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as user from '../util/user';
+import EngineManager from '../almond/enginemanagerclient';
+import { BadRequestError } from '../util/errors';
+import { makeRandom } from '../util/random';
 
-const user = require('../util/user');
-const EngineManager = require('../almond/enginemanagerclient');
-const { BadRequestError } = require('../util/errors');
-const { makeRandom } = require('../util/random');
+import * as Config from '../config';
 
-const Config = require('../config');
-
-module.exports.anonymous = function(ws, req) {
+export function anonymous(ws, req) {
     if (req.user) {
         ws.close();
         return;
@@ -35,7 +34,7 @@ module.exports.anonymous = function(ws, req) {
     user.getAnonymousUser().then((user) => {
         return doConversation(user, true, ws, req.query);
     });
-};
+}
 
 class WebsocketApiDelegate {
     constructor(ws) {
@@ -59,7 +58,7 @@ class WebsocketApiDelegate {
 }
 WebsocketApiDelegate.prototype.$rpcMethods = ['send'];
 
-module.exports.results = function(ws, req, next) {
+export function results(ws, req, next) {
     let user = req.user;
 
     Promise.resolve().then(async () => {
@@ -94,7 +93,7 @@ module.exports.results = function(ws, req, next) {
             ws.close();
         } catch(e) { /**/ }
     });
-};
+}
 
 
 class WebsocketAssistantDelegate {
@@ -203,6 +202,6 @@ async function doConversation(user, anonymous, ws, query) {
     }
 }
 
-module.exports.conversation = function(ws, req, next) {
+export function conversation(ws, req, next) {
     doConversation(req.user, false, ws, req.query);
-};
+}

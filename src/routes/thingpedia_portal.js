@@ -17,10 +17,9 @@
 // limitations under the License.
 //
 
+import express from 'express';
 
-const express = require('express');
-
-const db = require('../util/db');
+import * as db from '../util/db';
 
 let router = express.Router();
 
@@ -40,4 +39,4 @@ router.get('/training', (req, res, next) => {
     res.redirect(301, '/developers/train#sentence-to-code-block');
 });
 
-module.exports = router;
+export default router;

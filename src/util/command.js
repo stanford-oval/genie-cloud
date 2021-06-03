@@ -18,10 +18,9 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as child_process from 'child_process';
 
-const child_process = require('child_process');
-
-function exec(file, argv) {
+export function exec(file, argv) {
     return new Promise((resolve, reject) => {
         const stdio = ['ignore', 'inherit', 'inherit'];
         console.log(`${file} ${argv.map((a) => "'" + a + "'").join(' ')}`);
@@ -42,5 +41,3 @@ function exec(file, argv) {
         });
     });
 }
-
-module.exports = { exec };

@@ -18,27 +18,26 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
+import markdown from 'markdown-it';
+import * as Url from 'url';
 
-const express = require('express');
-const markdown = require('markdown-it');
-const Url = require('url');
+import * as user from '../util/user';
+import * as userUtils from '../util/user';
+import * as model from '../model/user';
+import * as organization from '../model/organization';
+import * as device from '../model/device';
+import * as blogModel from '../model/blog';
+import * as nlpModelsModel from '../model/nlp_models';
+import * as db from '../util/db';
+import TrainingServer from '../util/training_server';
+import * as iv from '../util/input_validation';
+import { makeRandom } from '../util/random';
+import { BadRequestError } from '../util/errors';
 
-const user = require('../util/user');
-const userUtils = require('../util/user');
-const model = require('../model/user');
-const organization = require('../model/organization');
-const device = require('../model/device');
-const blogModel = require('../model/blog');
-const nlpModelsModel = require('../model/nlp_models');
-const db = require('../util/db');
-const TrainingServer = require('../util/training_server');
-const iv = require('../util/input_validation');
-const { makeRandom } = require('../util/random');
-const { BadRequestError } = require('../util/errors');
+import EngineManager from '../almond/enginemanagerclient';
 
-const EngineManager = require('../almond/enginemanagerclient');
-
-const Config = require('../config');
+import * as Config from '../config';
 
 let router = express.Router();
 
@@ -416,17 +415,23 @@ function slugify(s) {
     return encodeURIComponent(String(s).trim().toLowerCase().replace(/\s+/g, '-')).replace(/[^a-z0-9-]/g, '');
 }
 
+import mdAnchor from 'markdown-it-anchor';
+import mdHighlight from 'markdown-it-highlightjs';
+import mdContainerPandoc from 'markdown-it-container-pandoc';
+import mdFootnote from 'markdown-it-footnote';
+import mdTOC from 'markdown-it-table-of-contents';
+
 router.post('/blog/update', user.requireRole(user.Role.BLOG_EDITOR),
     iv.validatePOST({ id: 'integer', title: 'string', image: 'string', blurb: 'string', source: 'string' }), (req, res, next) => {
     const md = new markdown({ html: true });
     md.renderer.rules.table_open = (tokens, idx) => {
         return '<table class="table">';
     };
-    md.use(require('markdown-it-anchor'));
-    md.use(require('markdown-it-highlightjs'));
-    md.use(require('markdown-it-container-pandoc'));
-    md.use(require('markdown-it-footnote'));
-    md.use(require('markdown-it-table-of-contents'), { includeLevel: [2,3] });
+    md.use(mdAnchor);
+    md.use(mdHighlight);
+    md.use(mdContainerPandoc);
+    md.use(mdFootnote);
+    md.use(mdTOC, { includeLevel: [2,3] });
 
     const image = Url.resolve(Config.SERVER_ORIGIN, req.body.image);
     const rendered = md.render(req.body.source);
@@ -454,11 +459,11 @@ router.post('/blog/create', user.requireRole(user.Role.BLOG_EDITOR),
     md.renderer.rules.table_open = (tokens, idx) => {
         return '<table class="table">';
     };
-    md.use(require('markdown-it-anchor'));
-    md.use(require('markdown-it-highlightjs'));
-    md.use(require('markdown-it-container-pandoc'));
-    md.use(require('markdown-it-footnote'));
-    md.use(require('markdown-it-table-of-contents'), { includeLevel: [2,3] });
+    md.use(mdAnchor);
+    md.use(mdHighlight);
+    md.use(mdContainerPandoc);
+    md.use(mdFootnote);
+    md.use(mdTOC, { includeLevel: [2,3] });
 
     const image = Url.resolve(Config.SERVER_ORIGIN, req.body.image);
     const rendered = md.render(req.body.source);
@@ -505,4 +510,4 @@ router.post('/blog/delete', user.requireRole(user.Role.BLOG_EDITOR), iv.validate
 });
 
 
-module.exports = router;
+export default router;

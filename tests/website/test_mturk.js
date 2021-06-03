@@ -19,14 +19,14 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const assert = require('assert');
-const csvstringify = require('csv-stringify');
-const FormData = require('form-data');
-const minidom = require('../util/minidom');
-const { assertHttpError, assertRedirect, sessionRequest, dbQuery } = require('./scaffold');
-const { login, startSession } = require('../login');
+import assert from 'assert';
+import csvstringify from 'csv-stringify';
+import FormData from 'form-data';
+import * as minidom from '../util/minidom';
+import { assertHttpError, assertRedirect, sessionRequest, dbQuery } from './scaffold';
+import { login, startSession } from '../login';
 
-const db = require('../../src/util/db');
+import * as db from '../../src/util/db';
 
 // a version of deepStrictEqual that works with RowDataPacket objects returned from mysql
 function deepStrictEqual(a, b, ...args) {
@@ -492,6 +492,6 @@ async function main() {
 
     await db.tearDown();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

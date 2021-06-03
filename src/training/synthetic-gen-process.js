@@ -19,22 +19,21 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 // load thingpedia to initialize the polyfill
-require('thingpedia');
+import 'thingpedia';
 
 process.on('unhandledRejection', (up) => { throw up; });
 
-const net = require('net');
-const argparse = require('argparse');
-const seedrandom = require('seedrandom');
-const byline = require('byline');
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
-const Genie = require('genie-toolkit');
+import * as net from 'net';
+import * as argparse from 'argparse';
+import * as seedrandom from 'seedrandom';
+import byline from 'byline';
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
+import * as Genie from 'genie-toolkit';
 
-const StreamUtils = require('../util/stream-utils');
-const ActionSetFlag = require('./lib/action_set_flag');
+import * as StreamUtils from '../util/stream-utils';
+import ActionSetFlag from './lib/action_set_flag';
 
 const PARALLEL_GENERATION = 4;
 

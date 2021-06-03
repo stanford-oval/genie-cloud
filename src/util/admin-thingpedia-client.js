@@ -18,12 +18,11 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-const BaseThingpediaClient = require('./thingpedia-client');
+import BaseThingpediaClient from './thingpedia-client';
 
 // A ThingpediaClient that always operates as admin, reading
 // the full database
-module.exports = class AdminThingpediaClient extends BaseThingpediaClient {
+export default class AdminThingpediaClient extends BaseThingpediaClient {
     constructor(locale, dbClient, onlyApproved = false) {
         super(null, locale, undefined, dbClient);
         this._onlyApproved = onlyApproved;
@@ -35,4 +34,4 @@ module.exports = class AdminThingpediaClient extends BaseThingpediaClient {
         else
             return { is_admin: true, id: 1 };
     }
-};
+}

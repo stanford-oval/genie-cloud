@@ -19,15 +19,14 @@
 // Author: Euirim Choi <euirim@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
+import multer from 'multer';
+import * as os from 'os';
+import * as iv from '../../util/input_validation';
+import * as I18n from '../../util/i18n';
 
-const express = require('express');
-const multer = require('multer');
-const os = require('os');
-const iv = require('../../util/input_validation');
-const I18n = require('../../util/i18n');
-
-const { SpeechToText, textToSpeech } = require('./backend-microsoft');
-const runNLU = require('../nlu');
+import { SpeechToText, textToSpeech } from './backend-microsoft';
+import runNLU from '../nlu';
 
 const upload = multer({ dest: os.tmpdir() });
 
@@ -196,4 +195,4 @@ router.post('/@:model_tag/:locale/voice/query', upload.single('audio'),
     iv.validatePOST({ metadata: 'string' }, { json: true }), restSTTAndNLU);
 router.post('/@:model_tag/:locale/voice/tts', iv.validatePOST({ text: 'string', gender: '?string' }, { json: true }), tts);
 
-module.exports = router;
+export default router;

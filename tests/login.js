@@ -18,22 +18,20 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 // load thingpedia to initialize the polyfill
-require('thingpedia');
-require('./polyfill');
+import 'thingpedia';
 process.on('unhandledRejection', (up) => { throw up; });
-require('../src/util/config_init');
+import '../src/util/config_init';
 
 // Login to Web Almond with username and password
 // returns a Cookie header that can be used in subsequent requests
 
-const assert = require('assert');
-const Tp = require('thingpedia');
-const tough = require('tough-cookie');
-const minidom = require('./util/minidom');
+import assert from 'assert';
+import * as Tp from 'thingpedia';
+import * as tough from 'tough-cookie';
+import * as minidom from './util/minidom';
 
-const Config = require('../src/config');
+import * as Config from '../src/config';
 
 function accumulateStream(stream) {
     return new Promise((resolve, reject) => {
@@ -83,7 +81,7 @@ async function login(username, password, session) {
     });
     return session;
 }
-module.exports = {
+export {
     login,
     startSession
 };

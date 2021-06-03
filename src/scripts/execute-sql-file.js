@@ -18,25 +18,22 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as execSql from '../util/exec_sql';
 
-const execSql = require('../util/exec_sql');
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('execute-sql-file', {
+        description: 'Execute a SQL script against the configured Almond Cloud database'
+    });
+    parser.add_argument('filename', {
+        help: "The file to execute"
+    });
+}
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('execute-sql-file', {
-            description: 'Execute a SQL script against the configured Almond Cloud database'
-        });
-        parser.add_argument('filename', {
-            help: "The file to execute"
-        });
-    },
-
-    async main(argv) {
-        try {
-            execSql.exec(argv.filename);
-        } catch(e) {
-            console.error(e);
-            process.exit(1);
-        }
+export async function main(argv) {
+    try {
+        execSql.exec(argv.filename);
+    } catch(e) {
+        console.error(e);
+        process.exit(1);
     }
-};
+}

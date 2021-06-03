@@ -21,7 +21,7 @@
 
 // Graphics API abstraction, based on nodejs-gm
 
-const gm = require('gm');
+import gm from 'gm';
 
 function ninvoke(obj, method, ...args) {
     return new Promise((resolve, reject) => {
@@ -56,13 +56,10 @@ class Image {
     }
 }
 
-module.exports = {
-    createImageFromPath(path) {
-        return new Image(path);
-    },
+export function createImageFromPath(path) {
+    return new Image(path);
+}
 
-    createImageFromBuffer(buffer) {
-        return new Image(buffer);
-    },
-};
-
+export function createImageFromBuffer(buffer) {
+    return new Image(buffer);
+}

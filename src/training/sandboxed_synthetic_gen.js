@@ -18,23 +18,22 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as fs from 'fs';
+import * as util from 'util';
+import * as path from 'path';
+import byline from 'byline';
+import * as child_process from 'child_process';
+import * as Genie from 'genie-toolkit';
+import * as tmp from 'tmp-promise';
 
-const fs = require('fs');
-const util = require('util');
-const path = require('path');
-const byline = require('byline');
-const child_process = require('child_process');
-const Genie = require('genie-toolkit');
-const tmp = require('tmp-promise');
-
-const schemaModel = require('../model/schema');
-const entityModel = require('../model/entity');
-const exampleModel = require('../model/example');
-const templatePackModel = require('../model/template_files');
-const SchemaUtils = require('../util/manifest_to_schema');
-const DatasetUtils = require('../util/dataset');
-const codeStorage = require('../util/code_storage');
-const { InternalError } = require('../util/errors');
+import * as schemaModel from '../model/schema';
+import * as entityModel from '../model/entity';
+import * as exampleModel from '../model/example';
+import * as templatePackModel from '../model/template_files';
+import * as SchemaUtils from '../util/manifest_to_schema';
+import * as DatasetUtils from '../util/dataset';
+import * as codeStorage from '../util/code_storage';
+import { InternalError } from '../util/errors';
 
 async function downloadThingpedia(dbClient, orgId, language, forDevices, tmpDir) {
     let snapshot;
@@ -230,7 +229,7 @@ function generate(tmpDir, options) {
     return stream;
 }
 
-module.exports = {
+export {
     prepare,
     generate,
 };

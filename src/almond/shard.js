@@ -19,10 +19,10 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-const Config = require('../config');
+import * as Config from '../config';
 
 // If you change this file, you must also change model/user.js:getAllForShardId
-module.exports = function userToShardId(userId) {
+export default function userToShardId(userId) {
     const nShards = Config.THINGENGINE_MANAGER_ADDRESS.length;
 
     // this sharding is not perfect (it can cause the number of developer
@@ -31,4 +31,4 @@ module.exports = function userToShardId(userId) {
     // if that turns out to be a problem, we can switch to shard based
     // on cloud_id, which is a guaranteed unique number
     return userId % nShards;
-};
+}

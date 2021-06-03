@@ -18,23 +18,22 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as Url from 'url';
+import express from 'express';
+import multer from 'multer';
+import csurf from 'csurf';
+import * as util from 'util';
+import * as fs from 'fs';
+import * as os from 'os';
 
-const Url = require('url');
-const express = require('express');
-const multer = require('multer');
-const csurf = require('csurf');
-const util = require('util');
-const fs = require('fs');
-const os = require('os');
-
-const model = require('../model/oauth2');
-const user = require('../util/user');
-const db = require('../util/db');
-const code_storage = require('../util/code_storage');
-const graphics = require('../almond/graphics');
-const iv = require('../util/input_validation');
-const { BadRequestError, ForbiddenError } = require('../util/errors');
-const { makeRandom } = require('../util/random');
+import * as model from '../model/oauth2';
+import * as user from '../util/user';
+import * as db from '../util/db';
+import * as code_storage from '../util/code_storage';
+import * as graphics from '../almond/graphics';
+import * as iv from '../util/input_validation';
+import { BadRequestError, ForbiddenError } from '../util/errors';
+import { makeRandom } from '../util/random';
 
 let router = express.Router();
 
@@ -121,4 +120,4 @@ router.post('/create',
     }).catch(next);
 });
 
-module.exports = router;
+export default router;

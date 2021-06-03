@@ -37,7 +37,7 @@ jobs:
       script:
       - npm run lint
       - ./tests/check-migrations.sh
-      - npx nyc node ./tests/unit
+      - npx nyc ts-node ./tests/unit
       after_success: npm run coverage
     -
       name: "Web Almond Integration Tests"

@@ -27,6 +27,7 @@ on_error() {
 
     cd $oldpwd
     rm -fr $workdir
+    rm -f $srcdir/secret_config.js
 }
 trap on_error ERR INT TERM
 
@@ -98,7 +99,7 @@ else
     # sleep until the process is settled
     sleep 30
 
-    node $srcdir/tests/nlp
+    ts-node $srcdir/tests/nlp
 fi
 
 kill $inferpid
@@ -107,3 +108,4 @@ wait
 
 cd $oldpwd
 rm -fr $workdir
+rm -f $srcdir/secret_config.js

@@ -18,13 +18,20 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import prepareTrainingSet from './prepare-training-set';
+import updateDataset from './update-dataset';
+import train from './train';
+import evaluate from './evaluate';
+import genCustomSynthetic from './gen-custom-synthetic';
+import genCustomAugmented from './gen-custom-augmented';
+import genCustomTurking from './gen-custom-turking';
 
-module.exports = {
-    'prepare-training-set': require('./prepare-training-set'),
-    'update-dataset': require('./update-dataset'),
-    'train': require('./train'),
-    'evaluate': require('./evaluate'),
-    'gen-custom-synthetic': require('./gen-custom-synthetic'),
-    'gen-custom-augmented': require('./gen-custom-augmented'),
-    'gen-custom-turking': require('./gen-custom-turking'),
+export default {
+    'prepare-training-set': prepareTrainingSet,
+    'update-dataset': updateDataset,
+    'train': train,
+    'evaluate': evaluate,
+    'gen-custom-synthetic': genCustomSynthetic,
+    'gen-custom-augmented': genCustomAugmented,
+    'gen-custom-turking': genCustomTurking
 };

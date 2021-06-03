@@ -18,8 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-const express = require('express');
+import express from 'express';
 
 const router = express.Router();
 
@@ -30,4 +29,4 @@ router.get('/qrcode-cloud/:cloud_id/:auth_token', (req, res, next) => {
                            cloudId: req.params.cloud_id });
 });
 
-module.exports = router;
+export default router;

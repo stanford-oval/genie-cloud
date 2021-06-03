@@ -18,14 +18,13 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
 
-const express = require('express');
+import * as Config from '../config';
 
-const Config = require('../config');
-
-const user = require('../util/user');
-const EngineManager = require('../almond/enginemanagerclient');
-const iv = require('../util/input_validation');
+import * as user from '../util/user';
+import EngineManager from '../almond/enginemanagerclient';
+import * as iv from '../util/input_validation';
 
 let router = express.Router();
 router.use(user.requireLogIn);
@@ -97,4 +96,4 @@ router.post('/conversation', iv.validatePOST({ command: 'string' }), (req, res) 
     res.render('my_conversation', { page_title: req._("Thingpedia - Web Almond"), command: req.body.command });
 });
 
-module.exports = router;
+export default router;

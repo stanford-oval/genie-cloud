@@ -18,11 +18,10 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as entityModel from '../../model/entity';
+import * as stringModel from '../../model/strings';
 
-const entityModel = require('../../model/entity');
-const stringModel = require('../../model/strings');
-
-module.exports = class DatabaseParameterProvider {
+export default class DatabaseParameterProvider {
     constructor(language, dbClient) {
         this._language = language;
         this._dbClient = dbClient;
@@ -62,4 +61,4 @@ module.exports = class DatabaseParameterProvider {
             throw new TypeError(`Unexpected value list type ${valueListType}`);
         }
     }
-};
+}

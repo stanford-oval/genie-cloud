@@ -21,7 +21,7 @@
 
 // compute the shard of a user, based on a simple hashing scheme
 
-module.exports = function shard(userId, nShards) {
+export default function shard(userId, nShards) {
     // in theory, we could just do userId % nShards
     // because userIds are assigned sequentially
     // so that would be balanced
@@ -36,4 +36,4 @@ module.exports = function shard(userId, nShards) {
     userId *= 7;
 
     return userId % nShards;
-};
+}

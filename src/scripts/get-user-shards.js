@@ -18,43 +18,40 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as db from '../util/db';
+import userToShardId from '../almond/shard';
 
-const db = require('../util/db');
-const userToShardId = require('../almond/shard');
+import * as Config from '../config';
 
-const Config = require('../config');
+export function initArgparse(subparsers) {
+    subparsers.add_parser('get-user-shards', {
+        description: 'Print the shard assigned to each user'
+    });
+}
 
-module.exports = {
-    initArgparse(subparsers) {
-        subparsers.add_parser('get-user-shards', {
-            description: 'Print the shard assigned to each user'
-        });
-    },
+export async function main() {
+    const shards = new Array(Config.THINGENGINE_MANAGER_ADDRESS.length);
+    for (let i = 0; i < shards.length; i++)
+        shards[i] = [];
 
-    async main() {
-        const shards = new Array(Config.THINGENGINE_MANAGER_ADDRESS.length);
-        for (let i = 0; i < shards.length; i++)
-            shards[i] = [];
-
-        await db.withClient((dbClient) => {
-            return new Promise((resolve, reject) => {
-                const stream = dbClient.query(`select id,cloud_id from users`);
-                stream.on('error', reject);
-                stream.on('end', resolve);
-                stream.on('result', (row) => {
-                    shards[userToShardId(row.id)].push(row.cloud_id);
-                });
+    await db.withClient((dbClient) => {
+        return new Promise((resolve, reject) => {
+            const stream = dbClient.query(`select id,cloud_id from users`);
+            stream.on('error', reject);
+            stream.on('end', resolve);
+            stream.on('result', (row) => {
+                shards[userToShardId(row.id)].push(row.cloud_id);
             });
         });
+    });
 
-        for (let i = 0; i < shards.length; i++) {
-            if (i > 0)
-                console.log();
-            console.log(`${i}:`);
-            for (let cloudId of shards[i])
-                console.log(cloudId);
-        }
-
-        await db.tearDown();
+    for (let i = 0; i < shards.length; i++) {
+        if (i > 0)
+            console.log();
+        console.log(`${i}:`);
+        for (let cloudId of shards[i])
+            console.log(cloudId);
     }
-};
+
+    await db.tearDown();
+}

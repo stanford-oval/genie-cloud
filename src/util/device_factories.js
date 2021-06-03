@@ -18,9 +18,8 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-const tokenizer = require('./tokenize');
-const { InternalError } = require('./errors');
+import * as tokenizer from './tokenize';
+import { InternalError } from './errors';
 
 function entityTypeToHTMLType(type) {
     switch (type) {
@@ -177,7 +176,7 @@ function getDiscoveryServices(classDef) {
     }
 }
 
-module.exports = {
+export {
     makeDeviceFactory,
     getDiscoveryServices
 };

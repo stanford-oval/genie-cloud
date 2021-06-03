@@ -18,13 +18,12 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
 
-const express = require('express');
-
-const user = require('../util/user');
-const { ForbiddenError } = require('../util/errors');
-const { isOriginOk } = require('../util/origin');
-const MyConversation = require('./my_conversation');
+import * as user from '../util/user';
+import { ForbiddenError } from '../util/errors';
+import { isOriginOk } from '../util/origin';
+import * as MyConversation from './my_conversation';
 
 let router = express.Router();
 
@@ -42,4 +41,4 @@ router.use(user.requireLogIn);
 router.ws('/results', MyConversation.results);
 router.ws('/conversation', MyConversation.conversation);
 
-module.exports = router;
+export default router;

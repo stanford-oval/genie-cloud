@@ -40,12 +40,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-
-const events = require('events');
+import * as events from 'events';
 
 // Exactly what the name suggests, this class is wraps a TCP/Unix stream
 // socket to send and receive JSON payloads
-module.exports = class JsonDatagramSocket extends events.EventEmitter {
+export default class JsonDatagramSocket extends events.EventEmitter {
     constructor(reader, writer, encoding) {
         super();
 
@@ -125,4 +124,4 @@ module.exports = class JsonDatagramSocket extends events.EventEmitter {
         this._writer.write(JSON.stringify(msg), this._encoding);
         this._writer.write('\n', this._encoding, callback);
     }
-};
+}

@@ -18,16 +18,15 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as Url from 'url';
+import express from 'express';
 
-const Url = require('url');
-const express = require('express');
+import * as user from '../util/user';
+import * as db from '../util/db';
+import * as oauthModel from '../model/oauth2';
+import * as oauth2orize from 'oauth2orize';
 
-const user = require('../util/user');
-const db = require('../util/db');
-const oauthModel = require('../model/oauth2');
-const oauth2orize = require('oauth2orize');
-
-const server = require('../util/oauth2');
+import server from '../util/oauth2';
 let router = express.Router();
 
 router.use(user.requireLogIn);
@@ -92,4 +91,4 @@ router.post('/authorize', server.decision((req, done) => {
     done(null, { scope: req.body.scope.split(' ') });
 }));
 
-module.exports = router;
+export default router;
