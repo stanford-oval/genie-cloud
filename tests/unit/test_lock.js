@@ -21,8 +21,8 @@
 
 const assert = require('assert');
 
-const Lock = require('../../util/lock');
-const sleep = require('../../util/sleep');
+const Lock = require('../../src/util/lock');
+const sleep = require('../../src/util/sleep');
 
 async function withTimeout(promise, timeout = 30000) {
     await Promise.race([

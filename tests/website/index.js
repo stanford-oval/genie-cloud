@@ -19,10 +19,10 @@
 "use strict";
 
 process.on('unhandledRejection', (up) => { throw up; });
-require('../../util/config_init');
+require('../../src/util/config_init');
 process.env.TEST_MODE = '1';
 
-const Config = require('../../config');
+const Config = require('../../src/config');
 
 /*async function par(array) {
     await Promise.all(array.map((fn) => fn()));

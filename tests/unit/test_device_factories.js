@@ -22,7 +22,7 @@
 const assert = require('assert');
 const ThingTalk = require('thingtalk');
 
-const DeviceFactoryUtils = require('../../util/device_factories');
+const DeviceFactoryUtils = require('../../src/util/device_factories');
 
 const TEST_CASES = [
     [`class @com.bing {

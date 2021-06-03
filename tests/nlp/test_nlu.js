@@ -25,9 +25,9 @@ const Gettext = require('node-gettext');
 const Tp = require('thingpedia');
 const Genie = require('genie-toolkit');
 
-const db = require('../../util/db');
-const Config = require('../../config');
-const localfs = require('../../util/local_fs');
+const db = require('../../src/util/db');
+const Config = require('../../src/config');
+const localfs = require('../../src/util/local_fs');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'external');
 
 const gettext = new Gettext();

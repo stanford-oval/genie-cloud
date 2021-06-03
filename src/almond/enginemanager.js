@@ -266,13 +266,13 @@ class EngineProcess extends events.EventEmitter {
                 this._addConfigArgs(args);
                 stdio = ['ignore', 1, 2, 'ignore', 'ipc'];
             } else {
-                processPath = path.resolve(managerPath, '../sandbox/sandbox');
+                processPath = path.resolve(managerPath, '../../sandbox/sandbox');
                 args = [process.execPath].concat(process.execArgv);
                 args.push(enginePath);
                 this._addConfigArgs(args);
                 stdio = ['ignore', 1, 2, 'pipe', 'ipc'];
 
-                const jsPrefix = path.resolve(path.dirname(managerPath));
+                const jsPrefix = path.resolve(path.dirname(managerPath), '..');
                 const nodepath = path.resolve(process.execPath);
                 if (!nodepath.startsWith('/usr/'))
                     env.THINGENGINE_PREFIX = jsPrefix + ':' + nodepath;
@@ -310,7 +310,7 @@ class EngineProcess extends events.EventEmitter {
                     clearTimeout(this._dyingTimeout);
                     this._dyingTimeout = null;
                 }
-            
+
                 if (this.shared || code !== 0)
                     console.error('Child with ID ' + this._id + ' exited with code ' + code);
                 reject(new InternalError('E_WORKER_ERROR', 'Exited with code ' + code));
@@ -592,7 +592,7 @@ class EngineManager extends events.EventEmitter {
         const dir = path.resolve('.', await this._getUserCloudIdForPath(userId), 'cache');
         await util.promisify(child_process.execFile)('/bin/rm',
             ['-rf', dir]);
-    } 
+    }
 
     async clearCache(userId) {
         console.log(`Clearing cache for ${userId}`);

@@ -16,12 +16,12 @@
     }
   ],
   "bin": {
-    "almond-cloud": "./main.js"
+    "almond-cloud": "./src/main.js"
   },
   "scripts": {
     "update-pot": "xgettext -f po/POTFILES -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}; xargs -a po/POTFILES.jade jsxgettext -k _,N_,gettext,ngettext,pgettext -L pug -o po/${npm_package_name}.pot -j",
     "update-po": "./build/update-po.sh",
-    "lint": "eslint almond/ browser/ model/ routes/ util/ stanford/ training/ nlp/ scripts/ config.js frontend.js",
+    "lint": "eslint src/",
     "test": "nyc ./tests/everything.sh",
     "prepare": "make prepare",
     "coverage": "nyc report --reporter=text-lcov | coveralls",

@@ -23,7 +23,7 @@
 // load thingpedia to initialize the polyfill
 require('thingpedia');
 process.on('unhandledRejection', (up) => { throw up; });
-require('../util/config_init');
+require('../src/util/config_init');
 
 const assert = require('assert');
 const path = require('path');
@@ -31,20 +31,20 @@ const util = require('util');
 const fs = require('fs');
 const yaml = require('js-yaml');
 
-const db = require('../util/db');
-const userModel = require('../model/user');
-const organization = require('../model/organization');
-const entityModel = require('../model/entity');
-const exampleModel = require('../model/example');
-const snapshotModel = require('../model/snapshot');
-const alexaModelsModel = require('../model/alexa_model');
+const db = require('../src/util/db');
+const userModel = require('../src/model/user');
+const organization = require('../src/model/organization');
+const entityModel = require('../src/model/entity');
+const exampleModel = require('../src/model/example');
+const snapshotModel = require('../src/model/snapshot');
+const alexaModelsModel = require('../src/model/alexa_model');
 
-const user = require('../util/user');
-const Importer = require('../util/import_device');
-const { makeRandom } = require('../util/random');
-const I18n = require('../util/i18n');
+const user = require('../src/util/user');
+const Importer = require('../src/util/import_device');
+const { makeRandom } = require('../src/util/random');
+const I18n = require('../src/util/i18n');
 
-const Config = require('../config');
+const Config = require('../src/config');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
 I18n.init(Config.SUPPORTED_LANGUAGES);
 

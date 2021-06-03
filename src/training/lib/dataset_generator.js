@@ -247,7 +247,7 @@ module.exports = class DatasetGenerator {
             // and run genie locally...
 
             // FIXME this is very hacky, and also English-specific...
-            const constantFile = path.resolve(path.dirname(module.filename), '../../node_modules/genie-toolkit/data/en-US/constants.tsv');
+            const constantFile = path.resolve(path.dirname(module.filename), '../../../node_modules/genie-toolkit/data/en-US/constants.tsv');
 
             constants = await parseConstantFile(this._locale, constantFile);
 

@@ -24,13 +24,13 @@
 require('thingpedia');
 require('./polyfill');
 process.on('unhandledRejection', (up) => { throw up; });
-require('../util/config_init');
+require('../src/util/config_init');
 
 const assert = require('assert');
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
-const Config = require('../config');
+const Config = require('../src/config');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
 assert.strictEqual(Config.THINGPEDIA_URL, '/thingpedia');
 

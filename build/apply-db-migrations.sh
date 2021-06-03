@@ -39,7 +39,7 @@ done | sort -n | while read date commit migration ; do
 
 	case $migration in
 	*.sql)
-		$srcdir/main.js execute-sql-file $migration
+		$srcdir/src/main.js execute-sql-file $migration
 		;;
 	*)
 		$migration

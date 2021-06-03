@@ -34,7 +34,7 @@ module.exports.DISCOURSE_SSO_REDIRECT = 'https://discourse.almond.stanford.edu';
 EOF
 
 # clean the database and bootstrap
-${srcdir}/main.js bootstrap --force
+${srcdir}/src/main.js bootstrap --force
 
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`
 workdir=`realpath $workdir`
@@ -65,12 +65,12 @@ done
 node $srcdir/tests/load_test_webalmond.js
 
 export THINGENGINE_DISABLE_SANDBOX=1
-${srcdir}/main.js run-almond --shard 0 &
+${srcdir}/src/main.js run-almond --shard 0 &
 masterpid1=$!
-${srcdir}/main.js run-almond --shard 1 &
+${srcdir}/src/main.js run-almond --shard 1 &
 masterpid2=$!
 
-${srcdir}/main.js run-frontend --port 7070 &
+${srcdir}/src/main.js run-frontend --port 7070 &
 frontendpid=$!
 
 # in interactive mode, sleep forever

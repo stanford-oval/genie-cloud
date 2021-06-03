@@ -23,9 +23,9 @@ const assert = require('assert');
 const { assertHttpError, sessionRequest, dbQuery } = require('./scaffold');
 const { startSession } = require('../login');
 
-const db = require('../../util/db');
+const db = require('../../src/util/db');
 
-const Config = require('../../config');
+const Config = require('../../src/config');
 
 async function testCommandpediaSuggest(nobody) {
     await assertHttpError(sessionRequest('/thingpedia/commands/suggest', 'POST', { description: '' }, nobody),

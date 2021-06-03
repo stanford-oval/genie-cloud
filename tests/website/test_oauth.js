@@ -29,9 +29,9 @@ const { assertHttpError, assertRedirect, assertLoginRequired, request, sessionRe
 const { login, startSession } = require('../login');
 const minidom = require('../util/minidom');
 
-const db = require('../../util/db');
+const db = require('../../src/util/db');
 
-//const Config = require('../../config');
+//const Config = require('../../src/config');
 
 async function testCreateOAuthClient(bob, david, nobody) {
     await assertLoginRequired(sessionRequest('/developers/oauth/create', 'POST', null, nobody));

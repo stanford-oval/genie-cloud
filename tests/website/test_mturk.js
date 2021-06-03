@@ -26,7 +26,7 @@ const minidom = require('../util/minidom');
 const { assertHttpError, assertRedirect, sessionRequest, dbQuery } = require('./scaffold');
 const { login, startSession } = require('../login');
 
-const db = require('../../util/db');
+const db = require('../../src/util/db');
 
 // a version of deepStrictEqual that works with RowDataPacket objects returned from mysql
 function deepStrictEqual(a, b, ...args) {

@@ -18,7 +18,7 @@
 //
 "use strict";
 
-const kfInferenceUrl = require('../../util/kf_inference_url');
+const kfInferenceUrl = require('../../src/util/kf_inference_url');
 
 const TEST_CASES = [
     ['@org.model/en', 'almond-staging',

@@ -27,7 +27,7 @@ const path = require('path');
 const fs = require('fs');
 const WebSocket = require('ws');
 
-const Config = require('../../config');
+const Config = require('../../src/config');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'external');
 
 const { assertHttpError, } = require('../website/scaffold');

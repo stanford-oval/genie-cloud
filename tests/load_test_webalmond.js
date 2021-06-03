@@ -22,14 +22,14 @@
 // load thingpedia to initialize the polyfill
 require('thingpedia');
 process.on('unhandledRejection', (up) => { throw up; });
-require('../util/config_init');
+require('../src/util/config_init');
 
 const assert = require('assert');
 
-const db = require('../util/db');
-const user = require('../util/user');
+const db = require('../src/util/db');
+const user = require('../src/util/user');
 
-const Config = require('../config');
+const Config = require('../src/config');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'external');
 
 const req = { _(x) { return x; } };

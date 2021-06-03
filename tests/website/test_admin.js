@@ -24,11 +24,11 @@ const FormData = require('form-data');
 const { assertHttpError, assertRedirect, assertLoginRequired, assertBlocked, sessionRequest, dbQuery } = require('./scaffold');
 const { login, startSession } = require('../login');
 
-const db = require('../../util/db');
-const sleep = require('../../util/sleep');
-const EngineManagerClient = require('../../almond/enginemanagerclient');
+const db = require('../../src/util/db');
+const sleep = require('../../src/util/sleep');
+const EngineManagerClient = require('../../src/almond/enginemanagerclient');
 
-const Config = require('../../config');
+const Config = require('../../src/config');
 
 async function testAdminUsers(root, bob, nobody) {
     await assertBlocked('/admin/users', bob, nobody);

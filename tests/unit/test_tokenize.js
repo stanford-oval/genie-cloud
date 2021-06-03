@@ -22,7 +22,7 @@
 
 const assert = require('assert');
 
-const { tokenize, rejoin, stripUnsafeTokens } = require('../../util/tokenize');
+const { tokenize, rejoin, stripUnsafeTokens } = require('../../src/util/tokenize');
 
 function testTokenize() {
     assert.deepStrictEqual(tokenize('a b c'), ['a', 'b', 'c']);

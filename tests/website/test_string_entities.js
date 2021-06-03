@@ -19,17 +19,17 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-require('../../util/config_init');
+require('../../src/util/config_init');
 const assert = require('assert');
 const FormData = require('form-data');
 const { assertHttpError, sessionRequest } = require('./scaffold');
 const { startSession, login } = require('../login');
 
-const db = require('../../util/db');
-const entityModel = require('../../model/entity');
-const stringModel = require('../../model/strings');
+const db = require('../../src/util/db');
+const entityModel = require('../../src/model/entity');
+const stringModel = require('../../src/model/strings');
 
-const Config = require('../../config');
+const Config = require('../../src/config');
 
 const ENTITY_FILE = `one,The First Entity
 two,The Second Entity

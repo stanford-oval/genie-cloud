@@ -34,7 +34,7 @@ router.use((req, res, next) => {
         res.status(401).json({ error: 'Not Authorized' });
         return;
     }
-    if (!req.app.proxy || req.app.proxy.isProxy(req)) 
+    if (!req.app.proxy || req.app.proxy.isProxy(req))
         next();
     else
         req.app.proxy.fanout(req, res);

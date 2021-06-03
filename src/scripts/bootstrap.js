@@ -235,11 +235,11 @@ async function importBuiltinDevices(dbClient, rootOrg) {
     for (let primaryKind of BUILTIN_DEVICES) {
         console.log(`Loading builtin device ${primaryKind}`);
 
-        const filename = path.resolve(path.dirname(module.filename), '../data/' + primaryKind + '.yaml');
+        const filename = path.resolve(path.dirname(module.filename), '../../data/' + primaryKind + '.yaml');
         const manifest = yaml.load((await util.promisify(fs.readFile)(filename)).toString(), { filename });
 
         const iconPath = path.resolve(path.dirname(module.filename),
-                                      '../data/' + getBuiltinIcon(primaryKind) + '.png');
+                                      '../../data/' + getBuiltinIcon(primaryKind) + '.png');
 
         await Importer.importDevice(dbClient, req, primaryKind, manifest, {
             owner: rootOrg.id,
@@ -281,7 +281,7 @@ async function importStandardTemplatePack(dbClient, rootOrg) {
         version: 0
     });
 
-    const geniedir = path.resolve(path.dirname(module.filename), '../node_modules/genie-toolkit');
+    const geniedir = path.resolve(path.dirname(module.filename), '../../node_modules/genie-toolkit');
     const { stdout, stderr } = await util.promisify(child_process.execFile)(
         'make', ['-C', geniedir, 'bundle/en.zip'], { maxBuffer: 1024 * 1024 });
     process.stdout.write(stdout);
@@ -441,7 +441,7 @@ module.exports = {
         }
 
         // initialize the schema
-        await execSql.exec(path.resolve(path.dirname(module.filename), '../model/schema.sql'));
+        await execSql.exec(path.resolve(path.dirname(module.filename), '../../model/schema.sql'));
 
         // initialize the default data in the database
         await db.withTransaction(async (dbClient) => {

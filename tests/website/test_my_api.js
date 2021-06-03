@@ -24,9 +24,9 @@ const WebSocket = require('ws');
 const { assertHttpError, request, sessionRequest, dbQuery } = require('./scaffold');
 const { login, } = require('../login');
 
-const db = require('../../util/db');
+const db = require('../../src/util/db');
 
-const Config = require('../../config');
+const Config = require('../../src/config');
 
 async function getAccessToken(session) {
     return JSON.parse(await sessionRequest('/user/token', 'POST', '', session, {

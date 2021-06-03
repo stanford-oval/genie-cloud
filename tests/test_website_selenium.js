@@ -23,7 +23,7 @@
 require('thingpedia');
 require('./polyfill');
 process.on('unhandledRejection', (up) => { throw up; });
-require('../util/config_init');
+require('../src/util/config_init');
 
 const assert = require('assert');
 const Tp = require('thingpedia');
@@ -32,7 +32,7 @@ const WD = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const firefox = require('selenium-webdriver/firefox');
 
-const Config = require('../config');
+const Config = require('../src/config');
 
 const BASE_URL = process.env.THINGENGINE_URL || Config.SERVER_ORIGIN;
 

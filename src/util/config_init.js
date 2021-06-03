@@ -30,7 +30,7 @@ const Config = require('../config');
 
 // load configuration overrides for non-secret data
 try {
-    Object.assign(Config, require('../custom_config'));
+    Object.assign(Config, require('../../custom_config'));
 } catch(e) {
     if (e.code !== 'MODULE_NOT_FOUND')
         throw e;
@@ -39,7 +39,7 @@ try {
 
 // legacy configuration override
 try {
-    Object.assign(Config, require('../secret_config'));
+    Object.assign(Config, require('../../secret_config'));
 } catch(e) {
     if (e.code !== 'MODULE_NOT_FOUND')
         throw e;

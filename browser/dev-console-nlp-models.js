@@ -21,5 +21,5 @@
 
 const highlightjs = require("highlight.js/lib/highlight.js");
 highlightjs.registerLanguage('json', require('highlight.js/lib/languages/json'));
-highlightjs.registerLanguage('tt', require('../util/highlightjs-thingtalk'));
+highlightjs.registerLanguage('tt', require('../src/util/highlightjs-thingtalk'));
 highlightjs.initHighlightingOnLoad();

@@ -23,7 +23,7 @@
 require('thingpedia');
 require('./polyfill');
 process.on('unhandledRejection', (up) => { throw up; });
-require('../util/config_init');
+require('../src/util/config_init');
 
 // Login to Web Almond with username and password
 // returns a Cookie header that can be used in subsequent requests
@@ -33,7 +33,7 @@ const Tp = require('thingpedia');
 const tough = require('tough-cookie');
 const minidom = require('./util/minidom');
 
-const Config = require('../config');
+const Config = require('../src/config');
 
 function accumulateStream(stream) {
     return new Promise((resolve, reject) => {

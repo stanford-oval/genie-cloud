@@ -21,17 +21,17 @@
 "use strict";
 
 process.on('unhandledRejection', (up) => { throw up; });
-require('../../util/config_init');
+require('../../src/util/config_init');
 
 const Tp = require('thingpedia');
 
-const db = require('../../util/db');
-const nlpModelsModel = require('../../model/nlp_models');
-const templatePackModel = require('../../model/template_files');
+const db = require('../../src/util/db');
+const nlpModelsModel = require('../../src/model/nlp_models');
+const templatePackModel = require('../../src/model/template_files');
 
-const codeStorage = require('../../util/code_storage');
+const codeStorage = require('../../src/util/code_storage');
 
-const Config = require('../../config');
+const Config = require('../../src/config');
 
 async function importStandardTemplatePack(dbClient, rootOrg) {
     const tmpl = await templatePackModel.create(dbClient, {

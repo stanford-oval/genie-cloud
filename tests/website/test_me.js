@@ -23,10 +23,10 @@ const assert = require('assert');
 const { assertHttpError, assertRedirect, assertLoginRequired, sessionRequest, dbQuery } = require('./scaffold');
 const { login, startSession } = require('../login');
 
-const db = require('../../util/db');
-const EngineManagerClient = require('../../almond/enginemanagerclient');
+const db = require('../../src/util/db');
+const EngineManagerClient = require('../../src/almond/enginemanagerclient');
 
-const Config = require('../../config');
+const Config = require('../../src/config');
 
 async function testMyStuff(bob, nobody) {
     await assertRedirect(sessionRequest('/me', 'GET', null, nobody, { followRedirects: false }), '/user/login');

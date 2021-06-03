@@ -24,7 +24,7 @@ const fs = require('fs');
 const proxyquire = require('proxyquire');
 const tmpSync = require('tmp');
 
-const StreamUtils = require('../../util/stream-utils');
+const StreamUtils = require('../../src/util/stream-utils');
 
 const cmdStub = {
     lastCmds: [],
@@ -39,7 +39,7 @@ const tmpStub = {
     }
 };
 
-const afs = proxyquire('../../util/abstract_fs', {
+const afs = proxyquire('../../src/util/abstract_fs', {
     './command': cmdStub,
     'tmp-promise': tmpStub,
 });
@@ -97,30 +97,30 @@ async function testUpload() {
 
         await expectCmd(afs.upload, [tmpDir.name, afs.resolve('/tmp', 'b')],
             [`rsync -av ${tmpDir.name} /tmp/b`]);
-    
+
         await expectCmd(afs.upload, [tmpDir.name, tmpDir.name], []);
-    
+
         await expectCmd(afs.upload, [tmpDir.name, afs.resolve('file://host1/tmp', 'b')],
             [`rsync -av ${tmpDir.name} host1:/tmp/b`]);
-    
+
         await expectCmd(afs.upload, [tmpDir.name, afs.resolve('s3://bucket/dir', 'a/')],
             [`aws s3 sync ${tmpDir.name} s3://bucket/dir/a/`]);
 
         await expectCmd(afs.upload, [tmpFile.name, afs.resolve('s3://bucket/dir', 'a')],
             [`aws s3 cp ${tmpFile.name} s3://bucket/dir/a`]);
-    
+
         await expectCmd(afs.upload,
             [tmpDir.name, afs.resolve('file://host1/tmp', 'b'), '--exclude=*', '--include=*tfevents*'],
             [`rsync -av ${tmpDir.name} host1:/tmp/b --exclude=* --include=*tfevents*`]);
-    
+
         await expectCmd(afs.upload,
             [tmpDir.name, afs.resolve('/tmp', 'b'), '--exclude=*', '--include=*tfevents*'],
             [`rsync -av ${tmpDir.name} /tmp/b --exclude=* --include=*tfevents*`]);
-    
+
         await expectCmd(afs.upload,
             [tmpDir.name, tmpDir.name, '--exclude=*', '--include=*tfevents*'],
             []);
-    
+
         await expectCmd(afs.upload,
             [tmpDir.name, afs.resolve('s3://bucket/dir', 'a/'), '--exclude=*', '--include=*tfevents*'],
             [`aws s3 sync ${tmpDir.name} s3://bucket/dir/a/ --exclude=* --include=*tfevents*`]);
@@ -128,7 +128,7 @@ async function testUpload() {
         await expectCmd(afs.upload,
             [tmpFile.name, afs.resolve('s3://bucket/dir', 'a/'), '--exclude=*', '--include=*tfevents*'],
             [`aws s3 cp ${tmpFile.name} s3://bucket/dir/a/`]);
-    
+
         const jobid = 15;
         await expectCmd(afs.upload,
             [tmpDir.name, afs.resolve('s3://bucket/dir', jobid.toString(), './tag:lang/'), '--exclude=*', '--include=*tfevents*'],
@@ -143,7 +143,7 @@ async function testSync() {
     await expectCmd(afs.sync, [afs.resolve('/tmp/a'), afs.resolve('/tmp', 'b')],
         ['rsync -av /tmp/a /tmp/b']);
 
-    await expectCmd(afs.sync, [afs.resolve('/tmp/a'), afs.resolve('/tmp', 'a')], 
+    await expectCmd(afs.sync, [afs.resolve('/tmp/a'), afs.resolve('/tmp', 'a')],
         ['rsync -av /tmp/a /tmp/a']);
 
     await expectCmd(afs.sync, [afs.resolve('/tmp/a'), afs.resolve('file://host1/tmp', 'b')],
@@ -187,7 +187,7 @@ async function testCreateWriteStream() {
             return { name: tmpFile, fd: tmpFD };
         }
     };
-    const tmpAFS = proxyquire('../../util/abstract_fs', {
+    const tmpAFS = proxyquire('../../src/util/abstract_fs', {
         './command': cmdStub,
         'tmp': tmpSyncStub,
         'fs': { unlink: function(){} },

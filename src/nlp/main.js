@@ -20,7 +20,6 @@
 "use strict";
 
 const express = require('express');
-const path = require('path');
 
 const logger = require('morgan');
 const bodyParser = require('body-parser');
@@ -127,8 +126,6 @@ class NLPInferenceServer {
 
         app.service = this;
         app.set('port', port);
-        app.set('views', path.join(__dirname, 'views'));
-        app.set('view engine', 'pug');
         app.enable('trust proxy');
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({ extended: true }));

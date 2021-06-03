@@ -21,7 +21,7 @@
 
 const assert = require('assert');
 
-const binarySearch = require('../../util/binary_search');
+const binarySearch = require('../../src/util/binary_search');
 
 function main() {
     assert.strictEqual(binarySearch([0.1, 0.2, 0.5, 1.0], 0.0), 0);

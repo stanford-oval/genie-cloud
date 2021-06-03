@@ -24,7 +24,7 @@ require('thingpedia');
 const qs = require('qs');
 const assert = require('assert');
 
-const iv = require('../../util/input_validation');
+const iv = require('../../src/util/input_validation');
 
 const TEST_CASES = [
     ['foo=bar', { foo: 'string' }, true],

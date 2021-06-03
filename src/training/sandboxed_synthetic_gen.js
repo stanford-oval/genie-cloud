@@ -151,7 +151,7 @@ function spawnSandboxed(tmpDir, script, scriptArgs, debug, contextual) {
         // (systemd journal or docker logs)
         stdio = ['pipe', 'inherit', 'inherit', 'pipe', 'pipe', 'ipc'];
     } else {
-        processPath = path.resolve(ourpath, '../sandbox/sandbox');
+        processPath = path.resolve(ourpath, '../../sandbox/sandbox');
         args = [process.execPath].concat(process.execArgv);
         args.push(script, ...scriptArgs);
 
@@ -159,7 +159,7 @@ function spawnSandboxed(tmpDir, script, scriptArgs, debug, contextual) {
         // (systemd journal or docker logs)
         stdio = ['pipe', 'inherit', 'inherit', 'pipe', 'pipe', 'ipc'];
 
-        const jsPrefix = path.resolve(ourpath, '..');
+        const jsPrefix = path.resolve(ourpath, '../..');
         const nodepath = path.resolve(process.execPath);
         if (!nodepath.startsWith('/usr/'))
             env.THINGENGINE_PREFIX = jsPrefix + ':' + nodepath;

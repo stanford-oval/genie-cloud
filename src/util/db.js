@@ -23,7 +23,7 @@ const mysql = require('mysql');
 const util = require('util');
 const Prometheus = require('prom-client');
 
-const { NotFoundError, InternalError } = require('../util/errors');
+const { NotFoundError, InternalError } = require('./errors');
 
 const Config = require('../config');
 

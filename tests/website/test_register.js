@@ -25,8 +25,8 @@ const { assertHttpError, assertBanner, assertLoginRequired, sessionRequest, dbQu
 const { startSession } = require('../login');
 const minidom = require('../util/minidom');
 
-const db = require('../../util/db');
-const EngineManagerClient = require('../../almond/enginemanagerclient');
+const db = require('../../src/util/db');
+const EngineManagerClient = require('../../src/almond/enginemanagerclient');
 
 async function testRegister(charlie) {
     await assertHttpError(sessionRequest('/user/register', 'POST', {}, charlie),

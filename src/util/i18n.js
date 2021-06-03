@@ -79,9 +79,9 @@ const self = {
 
             let gt = new Gettext();
             if (locale !== 'en-US') {
-                let modir = path.resolve(path.dirname(module.filename), '../po');//'
+                let modir = path.resolve(path.dirname(module.filename), '../../po');//'
                 loadTextdomainDirectory(gt, locale, 'almond-cloud', modir);
-                modir = path.resolve(path.dirname(module.filename), '../node_modules/genie-toolkit/po');
+                modir = path.resolve(path.dirname(module.filename), '../../node_modules/genie-toolkit/po');
                 loadTextdomainDirectory(gt, locale, 'genie-toolkit', modir);
             }
             gt.textdomain('almond-cloud');

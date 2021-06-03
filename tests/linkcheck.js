@@ -23,7 +23,7 @@
 require('thingpedia');
 require('./polyfill');
 process.on('unhandledRejection', (up) => { throw up; });
-require('../util/config_init');
+require('../src/util/config_init');
 
 // Recursive link-checker
 //
@@ -42,7 +42,7 @@ const Tp = require('thingpedia');
 const Url = require('url');
 const minidom = require('./util/minidom');
 
-const Config = require('../config');
+const Config = require('../src/config');
 
 // some pages are intentionally missing from the test
 // environment, but they exist in the real thing

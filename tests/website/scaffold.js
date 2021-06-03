@@ -27,9 +27,9 @@ const qs = require('qs');
 const Url = require('url');
 const FormData = require('form-data');
 
-const Config = require('../../config');
+const Config = require('../../src/config');
 
-const db = require('../../util/db');
+const db = require('../../src/util/db');
 
 const DEBUG = false;
 

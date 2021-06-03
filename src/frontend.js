@@ -58,7 +58,7 @@ class Frontend {
         require('express-ws')(this._app, this.server);
 
         this._app.set('port', port);
-        this._app.set('views', path.join(__dirname, 'views'));
+        this._app.set('views', path.join(path.dirname(module.filename), '../views'));
         this._app.set('view engine', 'pug');
         this._app.enable('trust proxy');
 
@@ -166,8 +166,8 @@ class Frontend {
             res.set('Access-Control-Allow-Origin', '*');
             next();
         });
-        this._app.use(favicon(__dirname + '/public/images/favicon.ico'));
-        this._app.use('/assets', express.static(path.join(__dirname, 'public'),
+        this._app.use(favicon(path.resolve(path.dirname(module.filename), '../public/images/favicon.ico')));
+        this._app.use('/assets', express.static(path.resolve(path.dirname(module.filename), '../public'),
                                                 { maxAge: 86400000 }));
         codeStorage.initFrontend(this._app);
         this._app.use(cacheable());

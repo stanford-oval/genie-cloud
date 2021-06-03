@@ -61,7 +61,7 @@ module.exports = {
     getByFuzzySearch(client, tag) {
         var pctag = '%' + tag + '%';
         return db.selectAll(client, `(select * from organizations where name like ? or comment like ?)
-                            union distinct (select o.* from organizations o where exists (select 1 from users 
+                            union distinct (select o.* from organizations o where exists (select 1 from users
                             where username = ? and developer_org = o.id))`,
                             [pctag, pctag, tag]);
     },

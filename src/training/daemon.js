@@ -22,7 +22,6 @@
 
 const assert = require('assert');
 const express = require('express');
-const path = require('path');
 
 const logger = require('morgan');
 const bodyParser = require('body-parser');
@@ -282,8 +281,6 @@ Check the logs for further information.`
         const app = express();
 
         app.set('port', port);
-        app.set('views', path.join(__dirname, 'views'));
-        app.set('view engine', 'pug');
         app.enable('trust proxy');
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({ extended: true }));
