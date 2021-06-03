@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -25,72 +25,111 @@ import * as db from '../util/db';
 import * as Config from '../config';
 const nshards = Config.THINGENGINE_MANAGER_ADDRESS.length;
 
-export async function create(client, user) {
+export interface Row {
+    id : number;
+    username : string;
+    human_name : string|null;
+    email : string;
+    email_verified : boolean;
+    locale : string;
+    timezone : string;
+    model_tag : string|null;
+    google_id : string|null;
+    github_id : string|null;
+    facebook_id : string|null;
+    omlet_id : string|null;
+    password : string|null;
+    salt : string|null;
+    totp_key : string|null;
+    cloud_id : string;
+    auth_token : string;
+    storage_key : string;
+    roles : number;
+    profile_flags : number;
+    assistant_feed_id : string|null;
+    developer_status : number;
+    developer_org : number|null;
+    force_separate_process : number;
+    registration_time : Date;
+    lastlog_time : Date;
+}
+export type OptionalFields = 'human_name' | 'email_verified' | 'locale' | 'timezone' |
+    'model_tag' | 'google_id' | 'github_id' | 'facebook_id' | 'omlet_id' | 'password' |
+    'salt' | 'totp_key' | 'roles' | 'profile_flags' | 'assistant_feed_id' | 'developer_status' |
+    'developer_org' | 'force_separate_process' | 'registration_time' | 'lastlog_time';
+
+export interface RowWithOrg extends Row {
+    developer_key : string|null;
+    developer_org_name : string|null;
+}
+
+export async function create<T extends db.Optional<Row, OptionalFields>>(client : db.Client, user : db.WithoutID<T>) : Promise<db.WithID<T>> {
     return db.insertOne(client, `insert into users set ?`, [user]).then((id) => {
         user.id = id;
-        return user;
+        return user as db.WithID<T>;
     });
 }
 
-export async function get(client, id) {
+export async function get(client : db.Client, id : number) : Promise<RowWithOrg> {
     return db.selectOne(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
                         + " on u.developer_org = o.id where u.id = ?", [id]);
 }
 
-export async function getSearch(client, search) {
+export async function getSearch(client : db.Client, search : string) : Promise<RowWithOrg[]> {
     search = '%' + search + '%';
     return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
                         + " on u.developer_org = o.id where username like ? or human_name like ? or email like ?",
                         [search, search, search]);
 }
 
-export async function getByName(client, username) {
+export async function getByName(client : db.Client, username : string) : Promise<RowWithOrg[]> {
     return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
                         + " on u.developer_org = o.id where username = ?", [username]);
 }
 
-export async function getByEmail(client, email) {
+export async function getByEmail(client : db.Client, email : string) : Promise<RowWithOrg[]> {
     return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
                         + " on u.developer_org = o.id where email = ?", [email]);
 }
 
-export async function getByGoogleAccount(client, googleId) {
+export async function getByGoogleAccount(client : db.Client, googleId : string) : Promise<RowWithOrg[]> {
     return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
                         + " on u.developer_org = o.id where google_id = ?", [googleId]);
 }
 
-export async function getByGithubAccount(client, githubId) {
+export async function getByGithubAccount(client : db.Client, githubId : string) : Promise<RowWithOrg[]> {
     return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
                         + " on u.developer_org = o.id where github_id = ?", [githubId]);
 }
 
-export async function getByCloudId(client, cloudId) {
+export async function getByCloudId(client : db.Client, cloudId : string) : Promise<RowWithOrg[]> {
     return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
                         + " on u.developer_org = o.id where cloud_id = ?", [cloudId]);
 }
 
-export async function getByCloudIdForProfile(client, cloudId) {
+export async function getByCloudIdForProfile(client : db.Client, cloudId : string) : Promise<RowWithOrg & { developer_org_id_hash : string|null }> {
     return db.selectOne(client, "select u.*, o.developer_key, o.name as developer_org_name, o.id_hash as developer_org_id_hash from users u left join organizations o"
                         + " on u.developer_org = o.id where cloud_id = ?", [cloudId]);
 }
 
-export async function getIdByCloudId(client, cloudId) {
+export async function getIdByCloudId(client : db.Client, cloudId : string) : Promise<Pick<Row, "id">> {
     return db.selectOne(client, "select id from users u where cloud_id = ?", [cloudId]);
 }
 
-export async function getByDeveloperOrg(client, developerOrg) {
+export async function getByDeveloperOrg(client : db.Client, developerOrg : number) : Promise<Row[]> {
     return db.selectAll(client, "select u.* from users u where u.developer_org = ?", [developerOrg]);
 }
 
-export async function update(client, id, user) {
-    return db.query(client, "update users set ? where id = ?", [user, id]);
+export async function update<T extends Partial<Row>>(client : db.Client, id : number, user : T) : Promise<T> {
+    await db.query(client, "update users set ? where id = ?", [user, id]);
+    return user;
 }
-async function _delete(client, id) {
-    return db.query(client, "delete from users where id = ?", [id]);
+async function _delete(client : db.Client, id : number) : Promise<void> {
+    await db.query(client, "delete from users where id = ?", [id]);
 }
 export { _delete as delete };
 
-export async function getAll(client, start, end, sort) {
+export async function getAll(client : db.Client, start : number, end : number, sort : string) : Promise<RowWithOrg[]> {
     const [sortField, sortDirection] = sort.split('/');
     assert(sortDirection === 'asc' || sortDirection === 'desc');
 
@@ -99,19 +138,19 @@ export async function getAll(client, start, end, sort) {
         order by ?? ${sortDirection} limit ?,?`, [sortField, start, end]);
 }
 
-export async function getAllForShardId(client, shardId) {
+export async function getAllForShardId(client : db.Client, shardId : number) : Promise<RowWithOrg[]> {
     return db.selectAll(client, `select u.*, o.developer_key, o.name as developer_org_name
         from users u left join organizations o on u.developer_org = o.id where u.id % ? = ? order by id`, [nshards, shardId]);
 }
 
-export async function recordLogin(client, userId) {
-    return db.query(client, "update users set lastlog_time = current_timestamp where id = ?", [userId]);
+export async function recordLogin(client : db.Client, userId : number) : Promise<void> {
+    await db.query(client, "update users set lastlog_time = current_timestamp where id = ?", [userId]);
 }
 
-export async function subscribe(client, email) {
-    return db.query(client, "insert into subscribe (email) values (?)", email);
+export async function subscribe(client : db.Client, email : string) : Promise<void> {
+    await db.query(client, "insert into subscribe (email) values (?)", [email]);
 }
 
-export async function verifyEmail(client, cloudId, email) {
-    return db.query(client, "update users set email_verified = true where cloud_id = ? and email = ?", [cloudId, email]);
+export async function verifyEmail(client : db.Client, cloudId : string, email : string) : Promise<void> {
+    await db.query(client, "update users set email_verified = true where cloud_id = ? and email = ?", [cloudId, email]);
 }

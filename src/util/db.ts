@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -26,7 +26,24 @@ import { NotFoundError, InternalError } from './errors';
 
 import * as Config from '../config';
 
-function getDBCommand(query) {
+export type Client = mysql.Connection;
+
+/**
+ * Utility type to construct a row interface where optional values can be omitted.
+ */
+export type Optional<T, Opt extends keyof T> = Omit<T, Opt> & { [K in Opt] ?: T[K] };
+
+/**
+ * Utility type to construct a row interface that does not need the ID.
+ */
+export type WithoutID<T extends { id ?: unknown }> = Optional<T, 'id'>;
+
+/**
+ * Utility type to construct a row interface that guarantees the ID is specified.
+ */
+ export type WithID<T extends { id ?: unknown }> = T & { id : Exclude<T['id'], null|undefined> };
+
+function getDBCommand(query : string) {
     const match = /^\s*\(\*([a-z]+)\s/i.exec(query);
     if (match === null)
         return 'unknown';
@@ -63,14 +80,14 @@ const dbRollbackTotal = new Prometheus.Counter({
 });
 
 function getDB() {
-    let url = Config.DATABASE_URL;
+    const url = Config.DATABASE_URL;
     if (url === undefined)
         return "mysql://thingengine:thingengine@localhost/thingengine?charset=utf8mb4_bin";
     else
         return url;
 }
 
-function doQuery(client, string, args) {
+function doQuery(client : mysql.Connection, string : string, args ?: unknown[]) : Promise<[any, mysql.FieldInfo[]|undefined]> {
     return new Promise((resolve, reject) => {
         client.query(string, args, (err, result, fields) => {
             if (err)
@@ -81,7 +98,7 @@ function doQuery(client, string, args) {
     });
 }
 
-function monitoredQuery(client, string, args) {
+function monitoredQuery(client : mysql.Connection, string : string, args ?: unknown[]) {
     const queryStartTime = new Date;
     const dbCommand = getDBCommand(string);
     const labels = { command: dbCommand, query: string };
@@ -97,14 +114,14 @@ function monitoredQuery(client, string, args) {
     });
 }
 
-function query(client, string, args) {
+export function query(client : mysql.Connection, string : string, args ?: unknown[]) {
     if (Config.ENABLE_PROMETHEUS && !/^(commit$|rollback$|start transaction |set transaction |)/i.test(string))
         return monitoredQuery(client, string, args);
     else
         return doQuery(client, string, args);
 }
 
-function rollback(client, err, done) {
+function rollback(client : mysql.Connection, err : Error, done : (err ?: Error) => void) {
     dbRollbackTotal.inc();
     return query(client, 'rollback').then(() => {
         done();
@@ -114,11 +131,11 @@ function rollback(client, err, done) {
 }
 
 
-function selectAll(client, string, args) {
+export function selectAll(client : mysql.Connection, string : string, args ?: unknown[]) : Promise<any[]> {
     return query(client, string, args).then(([rows, fields]) => rows);
 }
 
-function selectOne(client, string, args) {
+export function selectOne(client : mysql.Connection, string : string, args ?: unknown[]) {
     return selectAll(client, string, args).then((rows) => {
         if (rows.length !== 1) {
             if (rows.length === 0)
@@ -131,17 +148,17 @@ function selectOne(client, string, args) {
     });
 }
 
-let _pool;
-function getPool() {
+let _pool : mysql.Pool|undefined;
+export function getPool() : mysql.Pool {
     if (_pool === undefined)
         _pool = mysql.createPool(getDB());
     return _pool;
 }
 
-function connect() {
+export function connect() : Promise<[mysql.Connection, (err ?: Error) => void]> {
     const pool = getPool();
     return util.promisify(pool.getConnection).call(pool).then((connection) => {
-        function done(error) {
+        function done(error ?: Error) {
             if (error !== undefined)
                 connection.destroy();
             else
@@ -151,16 +168,12 @@ function connect() {
     });
 }
 
-export {
-    getPool,
-    connect,
-};
 export function tearDown() {
     if (_pool === undefined)
         return Promise.resolve();
     const pool = _pool;
     _pool = undefined;
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
         pool.end((err) => {
             if (err)
                 reject(err);
@@ -170,7 +183,7 @@ export function tearDown() {
     });
 }
 
-export function withClient(callback) {
+export function withClient<T>(callback : (client : mysql.Connection) => Promise<T>) : Promise<T> {
     return connect().then(async ([client, done]) => {
         return Promise.resolve(callback(client)).then((result) => {
             done();
@@ -182,7 +195,7 @@ export function withClient(callback) {
     });
 }
 
-export async function withTransaction(transaction, isolationLevel = 'serializable', readOnly = 'read write') {
+export async function withTransaction<T>(transaction : (client : mysql.Connection) => Promise<T>, isolationLevel = 'serializable', readOnly = 'read write') : Promise<T> {
     dbTransactionTotal.inc();
     const [client, done] = await connect();
     // danger! we're pasting strings into SQL
@@ -205,7 +218,7 @@ export async function withTransaction(transaction, isolationLevel = 'serializabl
     }
 }
 
-export async function insertOne(client, string, args) {
+export async function insertOne(client : mysql.Connection, string : string, args ?: unknown[]) : Promise<any> {
     const [result,] = await query(client, string, args);
     if (result.insertId === undefined)
         throw new InternalError('E_NO_ID', "Row does not have ID");
@@ -213,14 +226,8 @@ export async function insertOne(client, string, args) {
     return result.insertId;
 }
 
-export function insertIgnore(client, string, args) {
+export function insertIgnore(client : mysql.Connection, string : string, args ?: unknown[]) : Promise<boolean> {
     return query(client, string, args).then(([result, fields]) => {
         return result.affectedRows > 0;
     });
 }
-
-export {
-    selectOne,
-    selectAll,
-    query
-};

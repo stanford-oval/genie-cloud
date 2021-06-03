@@ -38,7 +38,7 @@
 
   Note: do not set this in `custom_config.js`, only in `/etc/almond-cloud/config.js`.
 */
-export let DATABASE_URL : string = process.env.DATABASE_URL!;
+export let DATABASE_URL : string|undefined = process.env.DATABASE_URL;
 
 /**
   Secret key for cookie signing.
