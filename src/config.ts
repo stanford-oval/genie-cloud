@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+/* eslint prefer-const: off, @typescript-eslint/no-inferrable-types: off */
 
 /**
   Database URL.
@@ -37,7 +38,7 @@
 
   Note: do not set this in `custom_config.js`, only in `/etc/almond-cloud/config.js`.
 */
-module.exports.DATABASE_URL = process.env.DATABASE_URL;
+export let DATABASE_URL : string = process.env.DATABASE_URL!;
 
 /**
   Secret key for cookie signing.
@@ -49,7 +50,7 @@ module.exports.DATABASE_URL = process.env.DATABASE_URL;
   Using environment variables is currently secure but deprecated (because it can lead to security bugs).
   The server will refuse to start if this option is not set.
 */
-module.exports.SECRET_KEY = process.env.SECRET_KEY;
+export let SECRET_KEY : string = process.env.SECRET_KEY!;
 
 /**
   Secret key for JsonWebToken signing (OAuth 2.0 tokens)
@@ -61,7 +62,7 @@ module.exports.SECRET_KEY = process.env.SECRET_KEY;
   Using environment variables is currently secure but deprecated (because it can lead to security bugs).
   The server will refuse to start if this option is not set.
 */
-module.exports.JWT_SIGNING_KEY = process.env.JWT_SIGNING_KEY;
+export let JWT_SIGNING_KEY : string = process.env.JWT_SIGNING_KEY!;
 
 /**
   Symmetric encryption key for user authentication material
@@ -75,7 +76,7 @@ module.exports.JWT_SIGNING_KEY = process.env.JWT_SIGNING_KEY;
   Using environment variables is currently secure but deprecated (because it can lead to security bugs).
   The server will refuse to start if this option is not set.
 */
-module.exports.AES_SECRET_KEY = process.env.AES_SECRET_KEY;
+export let AES_SECRET_KEY : string = process.env.AES_SECRET_KEY!;
 
 
 /**
@@ -94,7 +95,7 @@ module.exports.AES_SECRET_KEY = process.env.AES_SECRET_KEY;
   If the storage is not shared, use the `get-user-shards` to compute which user is
   assigned to which shard, and transfer the user's folder appropriately.
 */
-module.exports.THINGENGINE_MANAGER_ADDRESS = ['./control'];
+export let THINGENGINE_MANAGER_ADDRESS : string[] = ['./control'];
 /**
   Access token to communicate with the master process.
 
@@ -102,7 +103,7 @@ module.exports.THINGENGINE_MANAGER_ADDRESS = ['./control'];
   the default `null` value if communication happens over Unix domain sockets, in which
   case file system permissions are used to restrict access.
 */
-module.exports.THINGENGINE_MANAGER_AUTHENTICATION = null;
+export let THINGENGINE_MANAGER_AUTHENTICATION : string|null = null;
 
 /**
   Thingpedia configuration.
@@ -110,7 +111,7 @@ module.exports.THINGENGINE_MANAGER_AUTHENTICATION = null;
   Set this option to 'embedded' to enable the embedded Thingpedia,
   to 'external' to use the Thingpedia at THINGPEDIA_URL.
 */
-module.exports.WITH_THINGPEDIA = 'external';
+export let WITH_THINGPEDIA : 'external'|'embedded' = 'external';
 /**
   Thingpedia URL
 
@@ -118,7 +119,7 @@ module.exports.WITH_THINGPEDIA = 'external';
   and it is also used to construct links to Thingpedia from My Almond.
   It **must** be set to `'/thingpedia'` to use the embedded Thingpedia.
 */
-module.exports.THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
+export let THINGPEDIA_URL : string = 'https://thingpedia.stanford.edu/thingpedia';
 /**
   Default Thingpedia developer key to use for Web Almond.
 
@@ -132,7 +133,7 @@ module.exports.THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
   This key only affects users running Web Almond. To configure the key used by
   the embedded NLP server, set NL_THINGPEDIA_DEVELOPER_KEY.
 */
-module.exports.THINGPEDIA_DEVELOPER_KEY = null;
+export let THINGPEDIA_DEVELOPER_KEY : string|null = null;
 /**
   Thingpedia developer key to use for the root user in Web Almond.
 
@@ -142,7 +143,7 @@ module.exports.THINGPEDIA_DEVELOPER_KEY = null;
 
   This key has no effect in embedded Thingpedia mode.
 */
-module.exports.ROOT_THINGPEDIA_DEVELOPER_KEY = null;
+export let ROOT_THINGPEDIA_DEVELOPER_KEY : string|null = null;
 
 /**
   Where to store icons and zip files.
@@ -155,7 +156,7 @@ module.exports.ROOT_THINGPEDIA_DEVELOPER_KEY = null;
   NOTE: correct operation requires file: URIs to use the local hostname, that is, they should
   be of the form `file:///`, with 3 consecutive slashes.
 */
-module.exports.FILE_STORAGE_DIR = './shared/download';
+export let FILE_STORAGE_DIR : string = './shared/download';
 
 /**
   Where to cache entity icons and contact avatars.
@@ -168,7 +169,7 @@ module.exports.FILE_STORAGE_DIR = './shared/download';
   Note: unlike other _DIR configuration keys, this key cannot be a URL. The cache directory
   is always on the local machine where the Almond process runs.
 */
-module.exports.CACHE_DIR = './shared/cache';
+export let CACHE_DIR : string = './shared/cache';
 
 /**
   The location where icons and zip files can be retrieved.
@@ -178,7 +179,7 @@ module.exports.CACHE_DIR = './shared/cache';
   If using local storage, or if no CDN is available, it must be the
   exact string `"/download"`.
 */
-module.exports.CDN_HOST = '/download';
+export let CDN_HOST : string = '/download';
 
 /**
   The CDN to use for website assets (javascript, css, images files contained in public/ )
@@ -190,7 +191,7 @@ module.exports.CDN_HOST = '/download';
   Use the default `/assets` if you do not want to use a CDN, in which case assets will
   be loaded directly from your configured frontend server.
 */
-module.exports.ASSET_CDN = '/assets';
+export let ASSET_CDN : string = '/assets';
 
 /**
   Which branding to use for the website.
@@ -199,14 +200,14 @@ module.exports.ASSET_CDN = '/assets';
   footer). Note that the Stanford University logo is a registered trademark, and therefore
   using "stanford" branding requires permission.
 */
-module.exports.USE_BRAND = 'generic';
+export let USE_BRAND : string = 'generic';
 
 /**
   The origin (scheme, hostname, port) where the server is reachable.
 
   This is used for redirects and CORS checks.
 */
-module.exports.SERVER_ORIGIN = 'http://127.0.0.1:8080';
+export let SERVER_ORIGIN : string = 'http://127.0.0.1:8080';
 
 /**
   Enable redirection to SERVER_ORIGIN for requests with different hostname
@@ -214,7 +215,7 @@ module.exports.SERVER_ORIGIN = 'http://127.0.0.1:8080';
 
   Use this to enable transparent HTTP to HTTPS redirection.
 */
-module.exports.ENABLE_REDIRECT = true;
+export let ENABLE_REDIRECT : boolean = true;
 
 /**
   Enable HTTPs security headers.
@@ -222,7 +223,7 @@ module.exports.ENABLE_REDIRECT = true;
   Enable Strict-Transport-Security, Content-Security-Policy and other
   headers. This option has no effect if the server is not available over TLS.
 */
-module.exports.ENABLE_SECURITY_HEADERS = false;
+export let ENABLE_SECURITY_HEADERS : boolean = false;
 
 /**
   Override which pug file to use for about pages.
@@ -242,7 +243,7 @@ module.exports.ENABLE_SECURITY_HEADERS = false;
   Use ABOUT_OVERRIDE['index'] to override the whole website index.
   Note that "/about" with no page unconditionally redirects to "/",
 */
-module.exports.ABOUT_OVERRIDE = {};
+export let ABOUT_OVERRIDE : Record<string, string> = {};
 
 /**
   Adds new pages to the /about hierarchy
@@ -256,7 +257,7 @@ module.exports.ABOUT_OVERRIDE = {};
   }
   ```
 */
-module.exports.EXTRA_ABOUT_PAGES = [];
+export let EXTRA_ABOUT_PAGES : Array<{ url : string, title : string, view : string }> = [];
 
 /**
   Adds new links to the navbar
@@ -269,7 +270,7 @@ module.exports.EXTRA_ABOUT_PAGES = [];
   }
   ```
 */
-module.exports.EXTRA_NAVBAR = [];
+export let EXTRA_NAVBAR : Array<{ url : string, title : string }> = [];
 
 /**
   Additional origins that should be allowed to make Cookie-authenticated
@@ -278,7 +279,7 @@ module.exports.EXTRA_NAVBAR = [];
   Note: this is a very unsafe option, and can easily lead to credential
   leaks. Use this at your own risk.
 */
-module.exports.EXTRA_ORIGINS = [];
+export let EXTRA_ORIGINS : string[] = [];
 
 /**
   The base URL used for OAuth redirects
@@ -291,7 +292,7 @@ module.exports.EXTRA_ORIGINS = [];
   if you put a different value in the developer console / redirect URI
   fields of the various services.
 */
-module.exports.OAUTH_REDIRECT_ORIGIN = module.exports.SERVER_ORIGIN;
+export let OAUTH_REDIRECT_ORIGIN : string = SERVER_ORIGIN;
 
 /**
   Enable anonymous user.
@@ -299,7 +300,7 @@ module.exports.OAUTH_REDIRECT_ORIGIN = module.exports.SERVER_ORIGIN;
   Set this option to true to let users try out Almond without logging in.
   They will operate as the user "anonymous".
 */
-module.exports.ENABLE_ANONYMOUS_USER = false;
+export let ENABLE_ANONYMOUS_USER : boolean = false;
 
 /**
   Enable developer program.
@@ -308,7 +309,7 @@ module.exports.ENABLE_ANONYMOUS_USER = false;
   OAuth apps that access the Web Almond APIs, as well as new Thingpedia
   devices or LUInet models.
 */
-module.exports.ENABLE_DEVELOPER_PROGRAM = false;
+export let ENABLE_DEVELOPER_PROGRAM : boolean = false;
 
 /**
   LUInet (Natural Language model/server) configuration
@@ -319,7 +320,7 @@ module.exports.ENABLE_DEVELOPER_PROGRAM = false;
   Setting this to 'embedded' enables the configuration UI to manage models
   and train.
 */
-module.exports.WITH_LUINET = 'external';
+export let WITH_LUINET : 'embedded'|'external' = 'external';
 
 /**
   The URL of a genie-compatible Natural Language inference server.
@@ -327,7 +328,7 @@ module.exports.WITH_LUINET = 'external';
   This must be set to the full URL both if you use the public NL inference
   server, and if you use the embedded server.
 */
-module.exports.NL_SERVER_URL = 'https://almond-nl.stanford.edu';
+export let NL_SERVER_URL : string = 'https://almond-nl.stanford.edu';
 /**
   Access token for administrative operations in the NLP inference server.
 
@@ -336,7 +337,7 @@ module.exports.NL_SERVER_URL = 'https://almond-nl.stanford.edu';
 
   This must be not null if `WITH_LUINET` is set to 'embedded'.
 */
-module.exports.NL_SERVER_ADMIN_TOKEN = null;
+export let NL_SERVER_ADMIN_TOKEN : string|null = null;
 /**
   Developer key to use from the NLP server to access Thingpedia.
 
@@ -346,7 +347,7 @@ module.exports.NL_SERVER_ADMIN_TOKEN = null;
   This key only affects the embedded NLP server. To configure the key used by
   users running Web Almond and talking to this NLP server, set THINGPEDIA_DEVELOPER_KEY.
 */
-module.exports.NL_THINGPEDIA_DEVELOPER_KEY = null;
+export let NL_THINGPEDIA_DEVELOPER_KEY : string|null = null;
 
 /**
   Deployed model directory.
@@ -363,7 +364,7 @@ module.exports.NL_THINGPEDIA_DEVELOPER_KEY = null;
   If this is set to `null`, trained models will not be uploaded to a NLP inference
   server. This is not a valid setting for the inference server.
 */
-module.exports.NL_MODEL_DIR = './models';
+export let NL_MODEL_DIR : string = './models';
 
 /**
   Directory for exact match files.
@@ -373,15 +374,14 @@ module.exports.NL_MODEL_DIR = './models';
   Relative paths are interpreted relative to the current working directory, or
   the `THINGENGINE_ROOTDIR` environment variable if set.
 */
-module.exports.NL_EXACT_MATCH_DIR = './exact';
+export let NL_EXACT_MATCH_DIR : string = './exact';
 
 /**
   NLP Service name.
 
   The kubernetes service name for NLP server.
-
 */
-module.exports.NL_SERVICE_NAME = 'nlp';
+export let NL_SERVICE_NAME : string = 'nlp';
 
 
 /**
@@ -389,7 +389,7 @@ module.exports.NL_SERVICE_NAME = 'nlp';
 
   Will make HTTP requests to models that are hosted in kf-serving inference service.
 */
-module.exports.USE_KF_INFERENCE_SERVICE = false;
+export let USE_KF_INFERENCE_SERVICE : boolean = false;
 
 /**
   Training server URL.
@@ -397,21 +397,21 @@ module.exports.USE_KF_INFERENCE_SERVICE = false;
   This URL will be called from the Thingpedia web server when a new device
   is updated.
 */
-module.exports.TRAINING_URL = null;
+export let TRAINING_URL : string|null = null;
 
 /**
   Access token for the training server.
 
   This token protects all requests to the training server.
 */
-module.exports.TRAINING_ACCESS_TOKEN = null;
+export let TRAINING_ACCESS_TOKEN : string|null = null;
 
 /**
   Maximum memory usage for training processes.
 
   In megabytes.
 */
-module.exports.TRAINING_MEMORY_USAGE = 24000;
+export let TRAINING_MEMORY_USAGE : number = 24000;
 
 /**
   The directory to use to store training jobs (datasets, working directories and trained models).
@@ -423,7 +423,7 @@ module.exports.TRAINING_MEMORY_USAGE = 24000;
   NOTE: correct operation requires file: URIs to use the local hostname, that is, they should
   be of the form `file:///`, with 3 consecutive slashes.
 */
-module.exports.TRAINING_DIR = './training';
+export let TRAINING_DIR : string = './training';
 
 /**
   Which backend to use to run compute-intensive training tasks.
@@ -432,101 +432,103 @@ module.exports.TRAINING_DIR = './training';
   a Kubernetes Job. If `kubernetes` is chosen, the training controller must be executed in
   a training cluster and must run a service account with sufficient privileges to create and watch Jobs.
 */
-module.exports.TRAINING_TASK_BACKEND = 'local';
+export let TRAINING_TASK_BACKEND : 'local'|'kubernetes' = 'local';
 
 /**
   The Docker image to use for training using Kubernetes.
 
   The suffix `-cuda` will be appended to the version for GPU training.
 */
-module.exports.TRAINING_KUBERNETES_IMAGE = 'stanfordoval/almond-cloud:latest-decanlp';
+export let TRAINING_KUBERNETES_IMAGE : string = 'stanfordoval/almond-cloud:latest-decanlp';
 
 /**
   The namespace for Kubernetes Jobs created for training.
 */
-module.exports.TRAINING_KUBERNETES_NAMESPACE = 'default';
+export let TRAINING_KUBERNETES_NAMESPACE : string = 'default';
 
 /**
   Prefix to add to the Kubernetes Jobs and Pods created for training.
 */
-module.exports.TRAINING_KUBERNETES_JOB_NAME_PREFIX = '';
+export let TRAINING_KUBERNETES_JOB_NAME_PREFIX : string = '';
 
 /**
   Additional labels to add to the Kubernetes Jobs and Pods created for training.
+
+  @type {Record<string, unknown>}
 */
-module.exports.TRAINING_KUBERNETES_EXTRA_METADATA_LABELS = {};
+export let TRAINING_KUBERNETES_EXTRA_METADATA_LABELS = {};
 
 /**
   Additional annotations to add to the Kubernetes Jobs and Pods created for training.
 */
-module.exports.TRAINING_KUBERNETES_EXTRA_ANNOTATIONS = {};
+export let TRAINING_KUBERNETES_EXTRA_ANNOTATIONS : Record<string, unknown> = {};
 
 /**
   Additional fields to add to the Kubernetes Pods created for training.
 */
-module.exports.TRAINING_KUBERNETES_POD_SPEC_OVERRIDE = {};
+export let TRAINING_KUBERNETES_POD_SPEC_OVERRIDE : Record<string, unknown> = {};
 
 /**
   Additional fields to add to the Kubernetes Pods created for training.
 */
-module.exports.TRAINING_KUBERNETES_CONTAINER_SPEC_OVERRIDE = {};
+export let TRAINING_KUBERNETES_CONTAINER_SPEC_OVERRIDE : Record<string, unknown> = {};
 
 /**
   Number of tries to watch k8s job status. Setting to a negative number will try indefinitely.
 */
-module.exports.TRAINING_WATCH_NUM_TRIES = 5;
+export let TRAINING_WATCH_NUM_TRIES : number = 5;
 
 /**
   Directory in s3:// or file:// URI, where tensorboard events are synced to during training.
 */
-module.exports.TENSORBOARD_DIR = null;
+export let TENSORBOARD_DIR : string|null = null;
 
 /**
   OAuth Client ID to support Login With Google
 */
-module.exports.GOOGLE_CLIENT_ID = null;
+export let GOOGLE_CLIENT_ID : string|null = null;
 
 /**
   OAuth Client secret to support Login With Google
 */
-module.exports.GOOGLE_CLIENT_SECRET = null;
+export let GOOGLE_CLIENT_SECRET : string|null = null;
 
 /**
   OAuth Client ID to support Login With Github
 */
-module.exports.GITHUB_CLIENT_ID = null;
+export let GITHUB_CLIENT_ID : string|null = null;
 
 /**
   OAuth Client secret to support Login With Github
 */
-module.exports.GITHUB_CLIENT_SECRET = null;
+export let GITHUB_CLIENT_SECRET : string|null = null;
 
 /**
    Mailgun user name
 
    For emails sent from Almond
 */
-module.exports.MAILGUN_USER = null;
+export let MAILGUN_USER : string|null = null;
 
 /**
    Mailgun password
 
    For emails sent from Almond
 */
-module.exports.MAILGUN_PASSWORD = null;
+export let MAILGUN_PASSWORD : string|null = null;
 
 /**
   From: field of user emails (email verification, password reset, etc.)
 */
-module.exports.EMAIL_FROM_USER = 'Almond <noreply@almond.stanford.edu>';
+export let EMAIL_FROM_USER : string = 'Almond <noreply@almond.stanford.edu>';
 /**
   From: field of admin emails (review requests, developer requests, etc.)
 */
-module.exports.EMAIL_FROM_ADMIN = 'Almond <root@almond.stanford.edu>';
+export let EMAIL_FROM_ADMIN : string = 'Almond <root@almond.stanford.edu>';
 /**
   From: field of admin-training notifications
 */
-module.exports.EMAIL_FROM_TRAINING = 'Almond Training Service <almond-training@almond.stanford.edu>';
+export let EMAIL_FROM_TRAINING : string = 'Almond Training Service <almond-training@almond.stanford.edu>';
 
 /**
   To: field of admin emails
@@ -534,7 +536,7 @@ module.exports.EMAIL_FROM_TRAINING = 'Almond Training Service <almond-training@a
   Automatically generated email notifications (such as training failures)
   will be sent to this address.
 */
-module.exports.EMAIL_TO_ADMIN = 'thingpedia-admins@lists.stanford.edu';
+export let EMAIL_TO_ADMIN : string = 'thingpedia-admins@lists.stanford.edu';
 
 /**
   The primary "messaging" device.
@@ -542,14 +544,14 @@ module.exports.EMAIL_TO_ADMIN = 'thingpedia-admins@lists.stanford.edu';
   This is offered as the default device to configure for communicating
   assistants, if no other messaging device is available.
 */
-module.exports.MESSAGING_DEVICE = 'org.thingpedia.builtin.matrix';
+export let MESSAGING_DEVICE : string = 'org.thingpedia.builtin.matrix';
 
 /**
   Enable metric collection using Prometheus.
 
   If set to `true`, all web servers will expose a Prometheus-compatible `/metrics` endpoint.
 */
-module.exports.ENABLE_PROMETHEUS = false;
+export let ENABLE_PROMETHEUS : boolean = false;
 /**
   Access token to use for /metrics endpoint.
 
@@ -558,7 +560,7 @@ module.exports.ENABLE_PROMETHEUS = false;
 
   This value should match the "bearer_token" prometheus configuration value.
 */
-module.exports.PROMETHEUS_ACCESS_TOKEN = null;
+export let PROMETHEUS_ACCESS_TOKEN : string|null = null;
 
 /**
   Secret for Discourse Single-Sign-On
@@ -571,14 +573,14 @@ module.exports.PROMETHEUS_ACCESS_TOKEN = null;
   Unlike OAuth, there is no "confirm" step before user's data is sent to the
  requesting service, hence this secret REALLY must be secret.
 */
-module.exports.DISCOURSE_SSO_SECRET = null;
+export let DISCOURSE_SSO_SECRET : string|null = null;
 /**
   Redirect URL for Discourse Single-Sign-On.
 
   Set this to the URL of your Discourse installation. This should be the origin
   (scheme-hostname-port) only, `/session/sso_login` will be appended.
 */
-module.exports.DISCOURSE_SSO_REDIRECT = null;
+export let DISCOURSE_SSO_REDIRECT : string|null = null;
 
 /**
   What natural languages are enabled, as BCP47 locale tags.
@@ -588,7 +590,7 @@ module.exports.DISCOURSE_SSO_REDIRECT = null;
   Note that this must contain at least one language, or the server will fail
   to start.
 */
-module.exports.SUPPORTED_LANGUAGES = ['en-US'];
+export let SUPPORTED_LANGUAGES : string[] = ['en-US'];
 
 /**
   MapQuest API key.
@@ -596,43 +598,7 @@ module.exports.SUPPORTED_LANGUAGES = ['en-US'];
   This is key is used to provide the location querying API. If unset, it will
   fallback to the public Nominatim API, which has a low API quota.
 */
-module.exports.MAPQUEST_KEY = null;
- 
-/**
-  Enable on demand gpu training.
-
-  If true, will start a gpu node when a training request comes in and shuts down
-  the gpu node when training is done.
-*/
-module.exports.ENABLE_ON_DEMAND_GPU_TRAINING = false;
-
-/**
-  GPU training region
-
-  The AWS region where GPU training cluster is created.
-*/
-module.exports.GPU_REGION = null;
-
-/**
-  GPU training cluster
-
-  The name of gpu training cluster.
-*/
-module.exports.GPU_CLUSTER = null;
-
-/**
-  GPU training node group.
-
-  The name of the gpu nodegroup in the training cluster.
-*/
-module.exports.GPU_NODE_GROUP = null;
-
-/**
-  S3 work dir for GPU training.
-
-  S3 directory for temporary workdir storage.
-*/
-module.exports.GPU_S3_WORKDIR = null;
+export let MAPQUEST_KEY : string|null = null;
 
 /**
   URL of an [Ackee](https://github.com/electerious/Ackee) server to use for page tracking.
@@ -641,26 +607,26 @@ module.exports.GPU_S3_WORKDIR = null;
   and must not end with a slash.
   If null, tracking will be disabled.
 */
-module.exports.ACKEE_URL = null;
+export let ACKEE_URL : string|null = null;
 
 /**
   Domain ID to use for [Ackee](https://github.com/electerious/Ackee) tracking.
 
   This must be set if `ACKEE_URL` is set.
 */
-module.exports.ACKEE_DOMAIN_ID = null;
+export let ACKEE_DOMAIN_ID : string|null = null;
 
 /**
   URL of a server supporting speech-to-text and text-to-speech.
 */
-module.exports.VOICE_SERVER_URL = 'https://voice.almond.stanford.edu';
+export let VOICE_SERVER_URL : string = 'https://voice.almond.stanford.edu';
 
 /**
   Azure subscription key for Microsoft Speech Services SDK
 */
-module.exports.MS_SPEECH_SUBSCRIPTION_KEY = null;
+export let MS_SPEECH_SUBSCRIPTION_KEY : string|null = null;
 
 /**
   Azure region identifier for Microsoft Speech Services SDK
 */
-module.exports.MS_SPEECH_SERVICE_REGION = null;
+export let MS_SPEECH_SERVICE_REGION : string|null = null;
