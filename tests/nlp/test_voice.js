@@ -54,11 +54,11 @@ async function testSTT_WS_Promise(ver, pathname) {
             if (ver) ws.send(JSON.stringify({ ver: ver }));
 
             if (pathname)
-                fs.createReadStream(pathname).on('data', (buf) => {
+                {fs.createReadStream(pathname).on('data', (buf) => {
                     ws.send(buf);
                 }).on('end', () => {
                     ws.send();
-                });
+                });}
         });
     });
 }
@@ -93,7 +93,7 @@ async function testSTT_WS() {
     result = await testSTT_WS_Promise(1, pathname);
     console.log(result);
     assert.strictEqual(result.result, 'ok');
-    assert(result.text === 'Hello, this is a test.' || parsed.text === 'Hello this is a test.');
+    assert(result.text === 'Hello, this is a test.' || result.text === 'Hello this is a test.');
 }
 
 async function testSTT() {

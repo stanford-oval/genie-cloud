@@ -1,0 +1,5 @@
+public/javascripts/*-min.js
+public/javascripts/*.min.js
+public/javascripts/*-bundle.js
+public/javascripts/jsonlint.js
+public/javascripts/qrcode.js

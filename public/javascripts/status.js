@@ -1,4 +1,5 @@
-$(function() {
+"use strict";
+$(() => {
     function LinkedList(data) {
         this.data = data;
         this.next = null;
@@ -11,7 +12,7 @@ $(function() {
     }
     LinkedQueue.prototype.isEmpty = function() {
         return this.head === null;
-    }
+    };
     LinkedQueue.prototype.push = function(data) {
         if (this.tail === null) {
             this.head = this.tail = new LinkedList(data);
@@ -20,7 +21,7 @@ $(function() {
             this.tail = this.tail.next;
         }
         this.size ++;
-    }
+    };
     LinkedQueue.prototype.shift = function() {
         if (this.head === null)
             throw new Error('Empty queue');
@@ -30,17 +31,17 @@ $(function() {
             this.tail = null;
         this.size --;
         return node.data;
-    }
+    };
     LinkedQueue.prototype.peekOldest = function() {
         if (this.head === null)
             return null;
         return this.head.data;
-    }
+    };
     LinkedQueue.prototype.peekNewest = function() {
         if (this.tail === null)
             return null;
         return this.tail.data;
-    }
+    };
 
     var previous = undefined;
     var messages = new LinkedQueue();
@@ -65,10 +66,10 @@ $(function() {
             if (backoffTimer >= 76527504) // approx 21h
                 backoffTimer = 76527504;
 
-            setTimeout(function() {
+            setTimeout(() => {
                 startEventSource();
             }, oldbackoff);
-        }
+        };
 
         eventSource.onmessage = function(e) {
             backoffMsgCount ++;
@@ -111,10 +112,10 @@ $(function() {
 
             container.append(newP);
             messages.push(newP);
-        }
+        };
     }
 
-    $('#log-view').each(function() {
+    $('#log-view').each(() => {
         startEventSource();
     });
 });

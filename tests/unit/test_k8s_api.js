@@ -22,9 +22,9 @@
 // Tests k8s api signature does not change after upgrades 
 function getArgs(func) {
   var args = func.toString().match(/\S+\s*?\(([^)]*)\)/)[1];
-  return args.split(',').map(function(arg) {
+  return args.split(',').map((arg) => {
     return arg.replace(/\/\*.*\*\//, '').trim();
-  }).filter(function(arg) {
+  }).filter((arg) => {
     return arg;
   });
 }
@@ -63,7 +63,7 @@ function testDeleteNamespacedJob() {
 }
 
 function testListEndpointsForAllNamespaces() {
-    const args = getArgs(k8sCore.listEndpointsForAllNamespaces)
+    const args = getArgs(k8sCore.listEndpointsForAllNamespaces);
     assert.strictEqual(args[2], 'fieldSelector');
 }
 

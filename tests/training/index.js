@@ -25,8 +25,6 @@ require('../../src/util/config_init');
 process.env.TEST_MODE = '1';
 
 const assert = require('assert');
-const tar = require('tar');
-const Tp = require('thingpedia');
 
 const db = require('../../src/util/db');
 const sleep = require('../../src/util/sleep');
@@ -34,8 +32,6 @@ const trainingJobModel = require('../../src/model/training_job');
 const TrainingServer = require('../../src/util/training_server');
 const AbstractFS = require('../../src/util/abstract_fs');
 
-const { assertHttpError, sessionRequest } = require('../website/scaffold');
-const { login, } = require('../login');
 const Config = require('../../src/config');
 
 async function waitUntilAllJobsDone() {

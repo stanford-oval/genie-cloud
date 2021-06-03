@@ -157,7 +157,7 @@ async function testContextual() {
     });
 }
 
-async function expectAnswer(parser, input, expecting, expectedCode, expectedEntities) {
+/*async function expectAnswer(parser, input, expecting, expectedCode, expectedEntities) {
     const analyzed = await parser.sendUtterance(input, undefined, undefined, { expect: expecting });
 
     assert(Array.isArray(analyzed.candidates));
@@ -165,7 +165,7 @@ async function expectAnswer(parser, input, expecting, expectedCode, expectedEnti
 
     assert.strictEqual(analyzed.candidates[0].code.join(' '), expectedCode);
     assert.deepStrictEqual(analyzed.entities, expectedEntities);
-}
+}*/
 
 function testExpect() {
     const parser = Genie.ParserClient.get(Config.NL_SERVER_URL, 'en-US');

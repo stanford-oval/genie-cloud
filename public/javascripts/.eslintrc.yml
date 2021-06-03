@@ -3,6 +3,10 @@ env:
   es6: true
 globals:
   $: false
+  QRCode: false
+  jstz: false
+  Glide: false
+  ThingEngine: true
 extends: 'eslint:recommended'
 rules:
   indent: off
