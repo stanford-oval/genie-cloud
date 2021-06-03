@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,12 +18,15 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+/// <reference types="./passport-totp" />
 
 import * as crypto from 'crypto';
 import * as util from 'util';
 import * as jwt from 'jsonwebtoken';
 import assert from 'assert';
+import { Request, } from 'express';
 
+import '../types';
 import * as db from './db';
 import * as model from '../model/user';
 import * as secret from './secret_key';
@@ -44,16 +47,11 @@ import { OAUTH_REDIRECT_ORIGIN, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GITHUB_C
 
 const TOTP_PERIOD = 30; // duration in second of TOTP code
 
-function hashPassword(salt, password) {
-    return util.promisify(crypto.pbkdf2)(password, salt, 10000, 32, 'sha1')
-        .then((buffer) => buffer.toString('hex'));
-}
-
 function makeRandom(size = 32) {
     return crypto.randomBytes(size).toString('hex');
 }
 
-function makeUsername(email) {
+function makeUsername(email : string) {
     // use the local part of the email as the username (up to a + if present)
     let username = email.substring(0, email.indexOf('@'));
     if (username.indexOf('+') >= 0)
@@ -61,7 +59,7 @@ function makeUsername(email) {
     return username;
 }
 
-async function autoAdjustUsername(dbClient, username) {
+async function autoAdjustUsername(dbClient : db.Client, username : string) : Promise<string> {
     if (username.length > userUtils.MAX_USERNAME_LENGTH)
         username = username.substring(0, userUtils.MAX_USERNAME_LENGTH);
 
@@ -96,8 +94,9 @@ async function autoAdjustUsername(dbClient, username) {
     return username;
 }
 
-function authenticateGoogle(req, accessToken, refreshToken, profile, done) {
-    db.withTransaction(async (dbClient) => {
+function authenticateGoogle(req : Request, accessToken : string, refreshToken : string|undefined, profile : any,
+                            done : (err ?: Error|null, user ?: Express.User) => void) {
+    db.withTransaction(async (dbClient) : Promise<Express.User> =>  {
         const rows = await model.getByGoogleAccount(dbClient, profile.id);
         if (rows.length > 0) {
             await model.recordLogin(dbClient, rows[0].id);
@@ -121,7 +120,7 @@ function authenticateGoogle(req, accessToken, refreshToken, profile, done) {
 
         const username = await autoAdjustUsername(dbClient, profile.username || makeUsername(profile.emails[0].value));
 
-        const user = await model.create(dbClient, {
+        const row = await model.create(dbClient, {
             username: username,
             email: profile.emails[0].value,
             // we assume the email associated with a Google account is valid
@@ -134,9 +133,12 @@ function authenticateGoogle(req, accessToken, refreshToken, profile, done) {
             cloud_id: makeRandom(8),
             auth_token: makeRandom(),
             storage_key: makeRandom() });
+
+        // read back the full user record (including the defaults set by the database)
+        const user : Express.User = await model.get(dbClient, row.id);
         user.newly_created = true;
         return user;
-    }).then((user) => {
+    }).then(async (user) : Promise<Express.User> => {
         if (!user.newly_created)
             return user;
 
@@ -145,7 +147,7 @@ function authenticateGoogle(req, accessToken, refreshToken, profile, done) {
         // database connection) will not see the new user in the database
         return EngineManager.get().startUser(user.id).then(() => {
             // asynchronously inject google-account device
-            EngineManager.get().getEngine(user.id).then((engine) => {
+            EngineManager.get().getEngine(user.id).then((engine : any /* FIXME */) => {
                 return engine.createDeviceAndReturnInfo({
                     kind: 'com.google',
                     profileId: profile.id,
@@ -158,11 +160,12 @@ function authenticateGoogle(req, accessToken, refreshToken, profile, done) {
     }).then((user) => done(null, user), done);
 }
 
-function associateGoogle(user, accessToken, refreshToken, profile, done) {
+function associateGoogle(user : Express.User, accessToken : string, refreshToken : string|undefined, profile : any,
+                         done : (err ?: Error|null, user ?: Express.User) => void) {
     db.withTransaction((dbClient) => {
         return model.update(dbClient, user.id, { google_id: profile.id }).then(() => {
             // asynchronously inject google-account device
-            EngineManager.get().getEngine(user.id).then((engine) => {
+            EngineManager.get().getEngine(user.id).then((engine : any /* FIXME */) => {
                 return engine.createDeviceAndReturnInfo({
                     kind: 'com.google',
                     profileId: profile.id,
@@ -175,7 +178,8 @@ function associateGoogle(user, accessToken, refreshToken, profile, done) {
     }).then((user) => done(null, user), done);
 }
 
-function authenticateGithub(req, accessToken, refreshToken, profile, done) {
+function authenticateGithub(req : Request, accessToken : string, refreshToken : string|undefined, profile : any,
+                            done : (err ?: Error|null, user ?: Express.User) => void) {
     db.withTransaction(async (dbClient) => {
         const rows = await model.getByGithubAccount(dbClient, profile.id);
         if (rows.length > 0) {
@@ -200,7 +204,7 @@ function authenticateGithub(req, accessToken, refreshToken, profile, done) {
             return byEmail[0];
         }
 
-        const user = await model.create(dbClient, {
+        const row = await model.create(dbClient, {
             username: await autoAdjustUsername(dbClient, profile.username),
             email: email,
             // we assume the email associated with a Github account is valid
@@ -213,29 +217,34 @@ function authenticateGithub(req, accessToken, refreshToken, profile, done) {
             cloud_id: makeRandom(8),
             auth_token: makeRandom(),
             storage_key: makeRandom() });
+
+        // read back the full user record (including the defaults set by the database)
+        const user : Express.User = await model.get(dbClient, row.id);
         user.newly_created = true;
         return user;
     }).then((user) => done(null, user), done);
 }
+
+const jwtVerify = util.promisify<string, jwt.Secret | jwt.GetPublicKeyOrSecret, jwt.VerifyOptions, any>(jwt.verify);
 
 export function initialize() {
     passport.serializeUser((user, done) => {
         done(null, user.id);
     });
 
-    passport.deserializeUser((id, done) => {
+    passport.deserializeUser<number>((id, done) => {
         db.withClient((client) => model.get(client, id)).then((user) => done(null, user), done);
     });
 
     passport.use(new BearerStrategy(async (accessToken, done) => {
         try {
-            const decoded = await util.promisify(jwt.verify)(accessToken, secret.getJWTSigningKey(), {
+            const decoded = await jwtVerify(accessToken, secret.getJWTSigningKey(), {
                 algorithms: ['HS256'],
                 audience: 'oauth2',
                 clockTolerance: 30,
             });
             const scope = decoded.scope || ['profile'];
-            const [user, options] = await db.withClient(async (dbClient) => {
+            const [user, options] = await db.withClient(async (dbClient) : Promise<[Express.User|boolean, Express.AuthInfo|null]> => {
                 const rows = await model.getByCloudId(dbClient, decoded.sub);
                 if (rows.length < 1)
                     return [false, null];
@@ -243,14 +252,14 @@ export function initialize() {
                 await model.recordLogin(dbClient, rows[0].id);
                 return [rows[0], { scope, authMethod: 'oauth2' }];
             });
-            done(null, user, options);
+            done(null, user, options!);
         } catch(err) {
             done(err);
         }
     }));
 
-    function verifyCloudIdAuthToken(username, password, done) {
-        db.withClient((dbClient) => {
+    passport.use(new BasicStrategy((username, password, done) => {
+        db.withClient((dbClient) : Promise<Express.User|boolean> => {
             return model.getByCloudId(dbClient, username).then((rows) => {
                 if (rows.length < 1 || rows[0].auth_token !== password)
                     return false;
@@ -258,22 +267,22 @@ export function initialize() {
                 return model.recordLogin(dbClient, rows[0].id).then(() => rows[0]);
             });
         }).then((res) => done(null, res), (err) => done(err));
-    }
-
-    passport.use(new BasicStrategy(verifyCloudIdAuthToken));
+    }));
 
     passport.use(new LocalStrategy((username, password, done) => {
-        db.withClient((dbClient) => {
+        db.withClient((dbClient) : Promise<[Express.User|boolean, string]> => {
             return model.getByName(dbClient, username).then((rows) => {
                 if (rows.length < 1)
                     return [false, "Invalid username or password"];
+                if (!rows[0].salt)
+                    return [false, "Password not configured"];
 
-                return hashPassword(rows[0].salt, password).then((hash) => {
+                return userUtils.hashPassword(rows[0].salt, password).then((hash) => {
                     if (hash !== rows[0].password)
                         return [false, "Invalid username or password"];
 
                     return model.recordLogin(dbClient, rows[0].id).then(() => {
-                        return [rows[0], null];
+                        return [rows[0], ''];
                     });
                 });
             });
@@ -285,6 +294,7 @@ export function initialize() {
     }));
 
     if (GOOGLE_CLIENT_ID) {
+        assert(GOOGLE_CLIENT_SECRET);
         passport.use(new GoogleOAuthStrategy({
             clientID: GOOGLE_CLIENT_ID,
             clientSecret: GOOGLE_CLIENT_SECRET,
@@ -301,6 +311,7 @@ export function initialize() {
     }
 
     if (GITHUB_CLIENT_ID) {
+        assert(GITHUB_CLIENT_SECRET);
         passport.use(new GitHubStrategy({
             clientID: GITHUB_CLIENT_ID,
             clientSecret: GITHUB_CLIENT_SECRET,

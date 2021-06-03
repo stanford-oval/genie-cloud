@@ -52,26 +52,6 @@ import EngineManager from './almond/enginemanagerclient';
 
 import * as Config from './config';
 
-declare global {
-    namespace Express {
-        // These open interfaces may be extended in an application-specific manner via declaration merging.
-        // See for example method-override.d.ts (https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/method-override/index.d.ts)
-        interface Request {
-            locale : string;
-            gettext : (x : string) => string;
-            _ : (x : string) => string;
-            pgettext : (c : string, x : string) => string;
-            ngettext : (x : string, x1 : string, n : number) => string;
-        }
-    }
-}
-
-declare module 'express-session' {
-    interface SessionData {
-        completed2fa ?: boolean;
-    }
-}
-
 class Frontend {
     private _app : express.Application;
     private _sessionStore : mysqlSession.MySQLStore;

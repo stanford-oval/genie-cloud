@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,10 +18,12 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import assert from 'assert';
+import { Request, Response, NextFunction } from 'express';
 import * as crypto from 'crypto';
 import * as util from 'util';
+
+import '../types';
 import * as db from './db';
 import * as model from '../model/user';
 import { makeRandom } from './random';
@@ -29,12 +31,12 @@ import { ForbiddenError, BadRequestError, InternalError } from './errors';
 
 import * as Config from '../config';
 
-function hashPassword(salt, password) {
+export function hashPassword(salt : string, password : string) : Promise<string> {
     return util.promisify(crypto.pbkdf2)(password, salt, 10000, 32, 'sha1')
         .then((buffer) => buffer.toString('hex'));
 }
 
-const OAuthScopes = new Set([
+export const OAuthScopes = new Set([
     'profile', // minimum scope: see the user's profile
 
     'user-read', // read active commands and devices
@@ -45,9 +47,10 @@ const OAuthScopes = new Set([
     'developer-read', // read unapproved devices (equivalent to a developer key)
     'developer-upload', // upload new devices
     'developer-admin', // modify thingpedia organization settings, add/remove members
-]);
+] as const);
+export type OAuthScopes = Parameters<(typeof OAuthScopes)['has']>[0];
 
-export function isAuthenticated(req) {
+export function isAuthenticated(req : Request) : boolean {
     if (!req.user)
         return false;
 
@@ -59,14 +62,14 @@ export function isAuthenticated(req) {
     if (req.user.totp_key === null)
         return true;
 
-    return req.session.completed2fa;
+    return !!req.session.completed2fa;
 }
 
 const INVALID_USERNAMES = new Set('admin,moderator,administrator,mod,sys,system,community,info,you,name,username,user,nickname,discourse,discourseorg,discourseforum,support,hp,account-created,password-reset,admin-login,confirm-admin,account-created,activate-account,confirm-email-token,authorize-email,stanfordalmond,almondstanford,almond,root,noreply,stanford'.split(','));
 
 const MAX_USERNAME_LENGTH = 60;
 
-function validateUsername(username) {
+function validateUsername(username : string) {
     if (username.length > MAX_USERNAME_LENGTH ||
         INVALID_USERNAMES.has(username.toLowerCase()) ||
         /[^\w.-]/.test(username) ||
@@ -75,38 +78,33 @@ function validateUsername(username) {
     return true;
 }
 
-const DeveloperStatus = {
-    USER: 0,
-    DEVELOPER: 1,
-    ORG_ADMIN: 2,
-};
+export enum DeveloperStatus {
+    USER,
+    DEVELOPER,
+    ORG_ADMIN,
+}
 
-export {
-    OAuthScopes,
-    DeveloperStatus,
-};
-
-export const Role = {
-    ADMIN: 1,             // allows to view and manipulate users
-    BLOG_EDITOR: 2,       // allows to edit blogs
-    THINGPEDIA_ADMIN: 4,  // allows to view/edit/approve thingpedia entries (devices, datasets, strings, entities, examples, etc)
-    TRUSTED_DEVELOPER: 8, // allows to approve their own device
-    DISCOURSE_ADMIN: 16,  // admin of the community forum (through SSO)
-    NLP_ADMIN: 32,        // admin of datasets, mturk, and training
+export enum Role {
+    ADMIN = 1,             // allows to view and manipulate users
+    BLOG_EDITOR = 2,       // allows to edit blogs
+    THINGPEDIA_ADMIN = 4,  // allows to view/edit/approve thingpedia entries (devices, datasets, strings, entities, examples, etc)
+    TRUSTED_DEVELOPER = 8, // allows to approve their own device
+    DISCOURSE_ADMIN = 16,  // admin of the community forum (through SSO)
+    NLP_ADMIN = 32,        // admin of datasets, mturk, and training
 
     // all privileges
-    ROOT: 63,
+    ROOT = 63,
 
     // all roles that grant access to /admin hierarchy
-    ALL_ADMIN: 1+2+4+32,
-};
+    ALL_ADMIN = 1+2+4+32,
+}
 
-export const ProfileFlags = {
-    VISIBLE_ORGANIZATION_PROFILE: 1,
-    SHOW_HUMAN_NAME: 2,
-    SHOW_EMAIL: 4,
-    SHOW_PROFILE_PICTURE: 8,
-};
+export enum ProfileFlags {
+    VISIBLE_ORGANIZATION_PROFILE = 1,
+    SHOW_HUMAN_NAME = 2,
+    SHOW_EMAIL = 4,
+    SHOW_PROFILE_PICTURE = 8,
+}
 
 export const GOOGLE_SCOPES = ['openid','profile','email'].join(' ');
 
@@ -117,7 +115,21 @@ export {
     validateUsername,
 };
 
-export async function register(dbClient, req, options) {
+export interface RegisterOptions {
+    username : string;
+    human_name ?: string;
+    email : string;
+    email_verified ?: boolean;
+    password : string;
+    locale : string;
+    timezone : string;
+    developer_org ?: number;
+    developer_status ?: number;
+    roles ?: number;
+    profile_flags ?: number;
+}
+
+export async function register(dbClient : db.Client, req : Request, options : RegisterOptions) {
     const usernameRows = await model.getByName(dbClient, options.username);
     if (usernameRows.length > 0)
         throw new BadRequestError(req._("A user with this name already exists."));
@@ -149,11 +161,11 @@ export async function register(dbClient, req, options) {
     });
 }
 
-export function recordLogin(dbClient, userId) {
+export function recordLogin(dbClient : db.Client, userId : number) {
     return model.recordLogin(dbClient, userId);
 }
 
-export async function update(dbClient, user, oldpassword, password) {
+export async function update(dbClient : db.Client, user : db.WithID<Partial<model.Row>>, oldpassword : string, password : string) {
     if (user.salt && user.password) {
         const providedHash = await hashPassword(user.salt, oldpassword);
         if (user.password !== providedHash)
@@ -161,13 +173,15 @@ export async function update(dbClient, user, oldpassword, password) {
     }
     const salt = makeRandom();
     const newhash = await hashPassword(salt, password);
-    await model.update(dbClient, user.id, { salt: salt,
-                                                password: newhash });
+    await model.update(dbClient, user.id, {
+        salt: salt,
+        password: newhash
+    });
     user.salt = salt;
     user.password = newhash;
 }
 
-export async function resetPassword(dbClient, user, password) {
+export async function resetPassword(dbClient : db.Client, user : db.WithID<Partial<model.Row>>, password : string) {
     const salt = makeRandom();
     const newhash = await hashPassword(salt, password);
     await model.update(dbClient, user.id, { salt: salt,
@@ -176,7 +190,7 @@ export async function resetPassword(dbClient, user, password) {
     user.password = newhash;
 }
 
-export async function makeDeveloper(dbClient, userId, orgId, status = DeveloperStatus.ORG_ADMIN) {
+export async function makeDeveloper(dbClient : db.Client, userId : number, orgId : number, status = DeveloperStatus.ORG_ADMIN) {
     if (orgId !== null) {
         await model.update(dbClient, userId, {
             developer_org: orgId,
@@ -190,7 +204,7 @@ export async function makeDeveloper(dbClient, userId, orgId, status = DeveloperS
     }
 }
 
-export function requireLogIn(req, res, next) {
+export function requireLogIn(req : Request, res : Response, next : NextFunction) {
     if (isAuthenticated(req)) {
         next();
         return;
@@ -211,11 +225,11 @@ export function requireLogIn(req, res, next) {
     }
 }
 
-export function requireRole(role) {
+export function requireRole(role : Role) {
     if (role === undefined)
         throw new TypeError(`invalid requireRole call`);
-    return function(req, res, next) {
-        if ((req.user.roles & role) !== role) {
+    return function(req : Request, res : Response, next : NextFunction) {
+        if ((req.user!.roles & role) !== role) {
             res.status(403).render('error', {
                 page_title: req._("Thingpedia - Error"),
                 message: req._("You do not have permission to perform this operation.")
@@ -226,9 +240,9 @@ export function requireRole(role) {
     };
 }
 
-export function requireAnyRole(roleset) {
-    return function(req, res, next) {
-        if ((req.user.roles & roleset) === 0) {
+export function requireAnyRole(roleset : number) {
+    return function(req : Request, res : Response, next : NextFunction) {
+        if ((req.user!.roles & roleset) === 0) {
             res.status(403).render('error', {
                 page_title: req._("Thingpedia - Error"),
                 message: req._("You do not have permission to perform this operation.")
@@ -239,12 +253,12 @@ export function requireAnyRole(roleset) {
     };
 }
 
-export function requireDeveloper(required) {
+export function requireDeveloper(required ?: DeveloperStatus) {
     if (required === undefined)
         required = 1; // DEVELOPER
 
-    return function(req, res, next) {
-        if (req.user.developer_org === null || req.user.developer_status < required) {
+    return function(req : Request, res : Response, next : NextFunction) {
+        if (req.user!.developer_org === null || req.user!.developer_status < required!) {
             res.status(403).render('error', {
                 page_title: req._("Thingpedia - Error"),
                 message: req._("You do not have permission to perform this operation.")
@@ -255,9 +269,9 @@ export function requireDeveloper(required) {
     };
 }
 
-export function requireScope(scope) {
+export function requireScope(scope : OAuthScopes) {
     assert(OAuthScopes.has(scope));
-    return function(req, res, next) {
+    return function(req : Request, res : Response, next : NextFunction) {
         if (!req.authInfo) {
             next();
             return;
@@ -278,7 +292,7 @@ export function getAnonymousUser() {
     }).then(([user]) => user);
 }
 
-export function anonymousLogin(req, res, next) {
+export function anonymousLogin(req : Request, res : Response, next : NextFunction) {
     if (req.user) {
         next();
         return;
