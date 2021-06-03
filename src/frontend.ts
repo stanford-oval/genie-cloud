@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,6 +18,9 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+/// <reference types="./cacheable-middleware" />
+
+import * as argparse from 'argparse';
 import express from 'express';
 import expressWS from 'express-ws';
 import * as http from 'http';
@@ -49,14 +52,45 @@ import EngineManager from './almond/enginemanagerclient';
 
 import * as Config from './config';
 
+declare global {
+    namespace Express {
+        // These open interfaces may be extended in an application-specific manner via declaration merging.
+        // See for example method-override.d.ts (https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/method-override/index.d.ts)
+        interface Request {
+            locale : string;
+            gettext : (x : string) => string;
+            _ : (x : string) => string;
+            pgettext : (c : string, x : string) => string;
+            ngettext : (x : string, x1 : string, n : number) => string;
+        }
+    }
+}
+
+declare module 'express-session' {
+    interface SessionData {
+        completed2fa ?: boolean;
+    }
+}
+
 class Frontend {
+    private _app : express.Application;
+    private _sessionStore : mysqlSession.MySQLStore;
+    server : http.Server;
+
     constructor() {
         // all environments
         this._app = express();
         this.server = http.createServer(this._app);
+
+        // FIXME the type definitions for express-mysql-session are not correct, the expressSession module is
+        // imported with "import *" which is not correct
+        const MySQLStore = mysqlSession(session as any);
+        this._sessionStore = new MySQLStore({
+            expiration: 86400000 // 1 day, in ms
+        }, db.getPool());
     }
 
-    async init(port) {
+    async init(port : number) {
         expressWS(this._app, this.server);
 
         this._app.set('port', port);
@@ -105,11 +139,13 @@ class Frontend {
         // work around a crash in expressWs if a WebSocket route fails with an error
         // code and express-session tries to save the session
         this._app.use((req, res, next) => {
-            if (req.ws) {
-                const originalWriteHead = res.writeHead;
-                res.writeHead = function(statusCode) {
+            if ((req as any).ws) {
+                const originalWriteHead = res.writeHead as any;
+                res.writeHead = function(statusCode : number) : any {
+                    // eslint-disable-next-line prefer-rest-params
                     originalWriteHead.apply(this, arguments);
-                    http.ServerResponse.prototype.writeHead.apply(this, arguments);
+                    // eslint-disable-next-line prefer-rest-params
+                    return (http.ServerResponse.prototype.writeHead as any).apply(this, arguments);
                 };
             }
 
@@ -202,10 +238,6 @@ class Frontend {
         // now initialize cookies, session and session-based logins
 
         this._app.use(cookieParser(secretKey.getSecretKey()));
-        const MySQLStore = mysqlSession(session);
-        this._sessionStore = new MySQLStore({
-            expiration: 86400000 // 1 day, in ms
-        }, db.getPool());
         this._app.use(session({ resave: false,
                                 saveUninitialized: false,
                                 store: this._sessionStore,
@@ -220,10 +252,10 @@ class Frontend {
         // info (cloud id + auth token) in the browser
         // this is not great, but we must keep it until the app is updated to
         // use OAuth tokens instead
-        let basicAuth = passport.authenticate('basic', { failWithError: true });
+        const basicAuth = passport.authenticate('basic', { failWithError: true });
         this._app.use((req, res, next) => {
             if (req.query.auth === 'app') {
-                basicAuth(req, res, (err) => {
+                basicAuth(req, res, (err : Error) => {
                     if (err)
                         res.status(401);
                     // eat the error
@@ -305,19 +337,14 @@ class Frontend {
             });
         });
         this._app.use(errorHandling.html);
-
-        this._websocketEndpoints = {};
     }
 
     open() {
         // '::' means the same as 0.0.0.0 but for IPv6
         // without it, node.js will only listen on IPv4
-        return new Promise((resolve, reject) => {
-            this.server.listen(this._app.get('port'), '::', (err) => {
-                if (err)
-                    reject(err);
-                else
-                    resolve();
+        return new Promise<void>((resolve, reject) => {
+            this.server.listen(this._app.get('port') as number, '::', () => {
+                resolve();
             });
         }).then(() => {
             console.log('Express server listening on port ' + this._app.get('port'));
@@ -340,7 +367,7 @@ class Frontend {
     }
 }
 
-export function initArgparse(subparsers) {
+export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('run-frontend', {
         description: 'Run a Web Almond frontend'
     });
@@ -352,19 +379,16 @@ export function initArgparse(subparsers) {
     });
 }
 
-export async function main(argv) {
+export async function main(argv : any) {
     const frontend = new Frontend();
     await frontend.init(argv.port);
     const enginemanager = new EngineManager();
     enginemanager.start();
 
-    let metricsInterval = null;
     if (Config.ENABLE_PROMETHEUS)
-        metricsInterval = Prometheus.collectDefaultMetrics();
+        Prometheus.collectDefaultMetrics();
 
     async function handleSignal() {
-        if (metricsInterval)
-            clearInterval(metricsInterval);
         await frontend.close();
         await enginemanager.stop();
         await db.tearDown();
