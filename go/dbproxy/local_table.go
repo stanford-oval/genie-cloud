@@ -110,7 +110,7 @@ func localTableDeleteOne(c *gin.Context) {
 		}
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": "ok"})
+	c.JSON(http.StatusOK, gin.H{"data": true})
 }
 
 func localTableInsertOne(c *gin.Context) {
@@ -120,8 +120,7 @@ func localTableInsertOne(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
 	}
-
-	userID, err := parseUserID(c)
+	key, err := parseKey(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -132,19 +131,11 @@ func localTableInsertOne(c *gin.Context) {
 		return
 	}
 
-	if len(row.GetKey().UniqueID) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "uniqueId must be set"})
-		return
-	}
-
-	if row.GetKey().UserID != userID {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userId doesnot match"})
-		return
-	}
+	row.SetKey(*key)
 
 	if err := localTable.InsertOne(row); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": row})
+	c.JSON(http.StatusOK, gin.H{"data": true})
 }

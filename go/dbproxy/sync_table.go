@@ -134,7 +134,6 @@ func syncTableHandleChanges(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 	results, err := syncTable.HandleChanges(srows, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -225,25 +224,18 @@ func syncTableInsertIfRecent(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
 	}
-	userID, err := parseUserID(c)
+	key, err := parseKey(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
 	if err := c.ShouldBindJSON(m); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if m.GetKey().UserID != userID {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userid does not match"})
-		return
-	}
-
-	if len(m.GetKey().UniqueID) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "uniqueId must be set"})
-		return
-	}
+	m.SetKey(*key)
 
 	lastModified, err := strconv.ParseInt(c.Param("millis"), 10, 64)
 	if err != nil {
@@ -266,7 +258,7 @@ func syncTableInsertOne(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
 	}
-	userID, err := parseUserID(c)
+	key, err := parseKey(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -275,23 +267,13 @@ func syncTableInsertOne(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	if len(m.GetKey().UniqueID) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "uniqueId must be set"})
-		return
-	}
-
-	if m.GetKey().UserID != userID {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userid does not match"})
-		return
-	}
-
-	done, err := syncTable.InsertOne(m)
+	m.SetKey(*key)
+	lastModified, err := syncTable.InsertOne(m)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": done})
+	c.JSON(http.StatusOK, gin.H{"data": lastModified})
 }
 
 func syncTableDeleteIfRecent(c *gin.Context) {
@@ -338,16 +320,11 @@ func syncTableDeleteOne(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := c.ShouldBindJSON(m); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
 	m.SetKey(*key)
-	done, err := syncTable.DeleteOne(m)
+	lastModified, err := syncTable.DeleteOne(m)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": done})
+	c.JSON(http.StatusOK, gin.H{"data": lastModified})
 }
