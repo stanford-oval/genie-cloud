@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See LICENSE for details
-"use strict";
+
 
 const assert = require('assert');
 if (!assert.rejects) {

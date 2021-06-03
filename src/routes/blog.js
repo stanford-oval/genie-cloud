@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const Url = require('url');
 const express = require('express');
@@ -31,7 +31,7 @@ const { NotFoundError } = require('../util/errors');
 
 const Config = require('../config');
 
-var router = express.Router();
+let router = express.Router();
 
 const BLOG_POSTS_PER_PAGE = 10;
 

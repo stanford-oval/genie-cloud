@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 const ThingTalk = require('thingtalk');
@@ -35,7 +35,7 @@ const Validation = require('../util/validation');
 const Importer = require('../util/import_device');
 const { BadRequestError } = require('../util/errors');
 
-var router = express.Router();
+let router = express.Router();
 
 router.get('/', (req, res) => {
     res.render('thingpedia_translate_portal', { page_title: req._("Translate Thingpedia") });

@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 
@@ -25,7 +25,7 @@ const user = require('../util/user');
 const model = require('../model/example');
 const db = require('../util/db');
 
-var router = express.Router();
+let router = express.Router();
 
 router.post('/upvote/:id', user.requireLogIn, (req, res, next) => {
     db.withClient((dbClient) => {

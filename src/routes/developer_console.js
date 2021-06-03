@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 
@@ -36,7 +36,7 @@ const Config = require('../config');
 
 const EngineManager = require('../almond/enginemanagerclient');
 
-var router = express.Router();
+let router = express.Router();
 
 const HAS_ABOUT_GET_INVOLVED = Config.EXTRA_ABOUT_PAGES.some((p) => p.url === 'get-involved');
 

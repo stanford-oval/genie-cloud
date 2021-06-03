@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const assert = require('assert');
 const ThingTalk = require('thingtalk');
@@ -87,7 +87,7 @@ async function testEverything() {
             await program.typecheck(schemas, false);
             return program;
         }));
-        assert (candidates.length > 0, `Failed parsing ${test}`);
+        assert(candidates.length > 0, `Failed parsing ${test}`);
         console.log(`${i+1}: ${test} => ${candidates[0].prettyprint()}`);
     }
 }

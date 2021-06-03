@@ -17,14 +17,14 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 
 const user = require('../util/user');
 const EngineManager = require('../almond/enginemanagerclient');
 
-var router = express.Router();
+let router = express.Router();
 
 router.get('/oauth2/callback/:kind', (req, res, next) => {
     if (req.session.redirect) {

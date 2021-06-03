@@ -17,14 +17,14 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const os = require('os');
 
 const { safeMkdirSync } = require('./fsutils');
 
-var _writabledir = null;
-var _cachedir = null;
+let _writabledir = null;
+let _cachedir = null;
 
 module.exports = {
     init() {

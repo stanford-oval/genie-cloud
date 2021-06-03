@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const crypto = require('crypto');
 
@@ -28,7 +28,7 @@ const AES_BLOCK_SIZE = 16;
 const CIPHER_NAME = 'id-aes128-GCM';
 
 function getAESKey() {
-    var key = Config.AES_SECRET_KEY;
+    let key = Config.AES_SECRET_KEY;
     if (key === undefined)
         throw new InternalError('E_INVALID_CONFIG', "Configuration error: AES key missing!");
     if (key.length !== 2*AES_BLOCK_SIZE) // AES-128
@@ -38,14 +38,14 @@ function getAESKey() {
 
 module.exports = {
     getSecretKey() {
-        var key = Config.SECRET_KEY;
+        let key = Config.SECRET_KEY;
         if (key === undefined)
             throw new InternalError('E_INVALID_CONFIG', "Configuration error: secret key missing!");
         return key;
     },
 
     getJWTSigningKey() {
-        var key = Config.JWT_SIGNING_KEY;
+        let key = Config.JWT_SIGNING_KEY;
         if (key === undefined)
             throw new InternalError('E_INVALID_CONFIG', "Configuration error: secret key missing!");
         return key;

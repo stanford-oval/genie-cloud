@@ -17,14 +17,14 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const util = require('util');
 const nodemailer = require('nodemailer');
 
 const { MAILGUN_USER, MAILGUN_PASSWORD }  = require('../config');
 
-var transporter = null;
+let transporter = null;
 function ensureTransporter() {
     // create reusable transporter object using SMTP transport
     if (transporter)

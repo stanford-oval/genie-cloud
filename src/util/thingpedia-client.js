@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const semver = require('semver');
 
@@ -70,7 +70,7 @@ class ThingpediaDiscoveryDatabase {
     }
 }
 
-var _discoveryServer = new TpDiscovery.Server(new ThingpediaDiscoveryDatabase());
+let _discoveryServer = new TpDiscovery.Server(new ThingpediaDiscoveryDatabase());
 
 const CATEGORIES = new Set(['media', 'social-network', 'home', 'communication', 'health', 'service', 'data-management']);
 

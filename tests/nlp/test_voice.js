@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const assert = require('assert');
 const Tp = require('thingpedia');
@@ -54,11 +54,11 @@ async function testSTT_WS_Promise(ver, pathname) {
             if (ver) ws.send(JSON.stringify({ ver: ver }));
 
             if (pathname)
-                {fs.createReadStream(pathname).on('data', (buf) => {
+                { fs.createReadStream(pathname).on('data', (buf) => {
                     ws.send(buf);
                 }).on('end', () => {
                     ws.send();
-                });}
+                }); }
         });
     });
 }

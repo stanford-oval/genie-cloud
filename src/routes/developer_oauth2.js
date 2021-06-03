@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const Url = require('url');
 const express = require('express');
@@ -36,7 +36,7 @@ const iv = require('../util/input_validation');
 const { BadRequestError, ForbiddenError } = require('../util/errors');
 const { makeRandom } = require('../util/random');
 
-var router = express.Router();
+let router = express.Router();
 
 async function uploadIcon(clientId, file) {
     try {

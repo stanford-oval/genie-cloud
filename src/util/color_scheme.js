@@ -18,7 +18,7 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
-"use strict";
+
 
 const colorExtractor = require('img-color-extractor');
 

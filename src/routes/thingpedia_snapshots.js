@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 
@@ -51,7 +51,7 @@ router.post('/create',
     iv.validatePOST({ description: '?string' }),
     (req, res, next) => {
     db.withTransaction((dbClient) => {
-        var obj = {
+        let obj = {
             description: req.body.description || '',
         };
         return snapshot.create(dbClient, obj);

@@ -16,7 +16,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-"use strict";
+
 
 const fs = require('fs');
 const csvparse = require('csv-parse');
@@ -117,7 +117,7 @@ module.exports = {
                     let row;
                     try {
                         row = await schemaModel.getByKind(dbClient, prefix);
-                    } catch (e) {
+                    } catch(e) {
                         if (e.code !== 'ENOENT')
                             throw e;
                     }
@@ -139,7 +139,7 @@ module.exports = {
 
                     await entityModel.update(dbClient, existing.id, entity);
                     await entityModel.deleteValues(dbClient, existing.id);
-                } catch (e) {
+                } catch(e) {
                     if (e.code !== 'ENOENT') throw e;
                     await entityModel.create(dbClient, entity);
                 }
@@ -260,7 +260,7 @@ module.exports = {
 
                     await stringModel.update(dbClient, stringType.id, string);
                     await stringModel.deleteValues(dbClient, stringType.id);
-                } catch (e) {
+                } catch(e) {
                     stringType = await stringModel.create(dbClient, string);
                 }
 

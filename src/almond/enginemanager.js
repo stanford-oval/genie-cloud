@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const child_process = require('child_process');
 const path = require('path');
@@ -236,7 +236,7 @@ class EngineProcess extends events.EventEmitter {
         }
 
         const env = {};
-        for (var name in process.env) {
+        for (let name in process.env) {
             if (envIsAllowed(name))
                 env[name] = process.env[name];
         }
@@ -380,10 +380,10 @@ class EngineManager extends events.EventEmitter {
     }
 
     async _runUser(user) {
-        var engines = this._engines;
-        var obj = { cloudId: user.cloud_id, process: null, engine: null };
+        let engines = this._engines;
+        let obj = { cloudId: user.cloud_id, process: null, engine: null };
         engines[user.id] = obj;
-        var die = (manual) => {
+        let die = (manual) => {
             obj.process.removeListener('exit', die);
             obj.process.removeListener('engine-removed', onRemoved);
             if (obj.thingpediaClient)
@@ -405,7 +405,7 @@ class EngineManager extends events.EventEmitter {
                 }, 10000);
             }
         };
-        var onRemoved = (deadUserId) => {
+        let onRemoved = (deadUserId) => {
             if (user.id !== deadUserId)
                 return;
 

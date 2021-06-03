@@ -1,6 +1,20 @@
+sources = \
+	src/*.ts \
+	src/*/*.js \
+	src/*/*.ts \
+	src/*/*/*.js \
+	src/*/*/*.ts \
+	src/*/*/*/*.js \
+	src/*/*/*/*.ts
+
 all: install prepare
 
-prepare: prepare-bundles prepare-mo
+prepare: dist prepare-bundles prepare-mo
+
+dist: $(wildcard $(sources)) tsconfig.json
+	tsc --build tsconfig.json
+	chmod +x dist/main.js
+	touch dist
 
 public/javascripts/%-bundle.js : browser/%.js browser/deps/* package-lock.json
 	browserify -o $@ $<

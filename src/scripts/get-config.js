@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Jim Deng
-"use strict";
+
 
 const Config = require('../config');
 

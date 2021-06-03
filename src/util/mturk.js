@@ -18,7 +18,7 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const csvstringify = require('csv-stringify');
 const Stream = require('stream');

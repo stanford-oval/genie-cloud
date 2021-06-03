@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const db = require('../util/db');
 
@@ -87,13 +87,13 @@ function insertChannels(dbClient, schemaId, schemaKind, kindType, version, langu
 }
 
 function create(client, schema, meta) {
-    var KEYS = ['kind', 'kind_canonical', 'kind_type', 'owner', 'approved_version', 'developer_version'];
+    let KEYS = ['kind', 'kind_canonical', 'kind_type', 'owner', 'approved_version', 'developer_version'];
     KEYS.forEach((key) => {
         if (schema[key] === undefined)
             schema[key] = null;
     });
-    var vals = KEYS.map((key) => schema[key]);
-    var marks = KEYS.map(() => '?');
+    let vals = KEYS.map((key) => schema[key]);
+    let marks = KEYS.map(() => '?');
 
     return db.insertOne(client, 'insert into device_schema(' + KEYS.join(',') + ') '
                         + 'values (' + marks.join(',') + ')', vals).then((id) => {
@@ -113,8 +113,8 @@ function update(client, id, kind, schema, meta) {
 }
 
 function processMetaRows(rows) {
-    var out = [];
-    var current = null;
+    let out = [];
+    let current = null;
     rows.forEach((row) => {
         if (current === null || current.kind !== row.kind) {
             current = {
@@ -129,8 +129,8 @@ function processMetaRows(rows) {
         }
         if (row.channel_type === null)
             return;
-        var types = JSON.parse(row.types);
-        var obj = {
+        let types = JSON.parse(row.types);
+        let obj = {
             extends: JSON.parse(row.extends),
             types: types,
             args: JSON.parse(row.argnames),
@@ -149,7 +149,7 @@ function processMetaRows(rows) {
             string_values: JSON.parse(row.string_values) || [],
         };
         if (obj.args.length < types.length) {
-            for (var i = obj.args.length; i < types.length; i++)
+            for (let i = obj.args.length; i < types.length; i++)
                 obj.args[i] = 'arg' + (i+1);
         }
         switch (row.channel_type) {
@@ -170,8 +170,8 @@ function processMetaRows(rows) {
 }
 
 function processTypeRows(rows) {
-    var out = [];
-    var current = null;
+    let out = [];
+    let current = null;
     rows.forEach((row) => {
         if (current === null || current.kind !== row.kind) {
             current = {
@@ -185,7 +185,7 @@ function processTypeRows(rows) {
         }
         if (row.channel_type === null)
             return;
-        var obj = {
+        let obj = {
             extends: JSON.parse(row.extends),
             types: JSON.parse(row.types),
             args: JSON.parse(row.argnames),

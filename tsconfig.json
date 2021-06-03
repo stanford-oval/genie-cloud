@@ -1,10 +1,6 @@
 {
     "include": [
-        "lib/**/*",
-        "tool/**/*"
-    ],
-    "exclude": [
-        "languages/**/*"
+        "src/**/*"
     ],
     "compilerOptions": {
         "target": "es2019",
@@ -17,10 +13,9 @@
         "strict": true,
         "noUnusedLocals": true,
         "outDir": "dist",
-        "rootDir": ".",
         "sourceMap": true,
         "incremental": true,
-        "declaration": true
+        "declaration": false
     },
     "typedocOptions": {
         "out": "jsdoc",

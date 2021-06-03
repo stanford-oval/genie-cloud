@@ -18,7 +18,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 // Bootstrap an installation of Almond Cloud by creating the
 // database schema and adding the requisite initial data

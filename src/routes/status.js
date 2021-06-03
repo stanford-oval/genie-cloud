@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 const child_process = require('child_process');
@@ -32,7 +32,7 @@ const router = express.Router();
 router.use(user.requireLogIn);
 
 function readLogs(userId, startCursor) {
-    var args = ['-f', '-o', 'json-sse'];
+    let args = ['-f', '-o', 'json-sse'];
     if (startCursor) {
         args.push('--after-cursor');
         args.push(startCursor);
@@ -46,7 +46,7 @@ function readLogs(userId, startCursor) {
     args.push(unit);
     args.push('SYSLOG_IDENTIFIER=thingengine-child-' + userId);
 
-    var child = child_process.spawn('/bin/journalctl', args,
+    let child = child_process.spawn('/bin/journalctl', args,
                                     { stdio: ['ignore', 'pipe', 'ignore'] });
     return child;
 }
@@ -78,8 +78,8 @@ router.get('/', (req, res, next) => {
 });
 
 router.get('/logs', user.requireDeveloper(user.DeveloperStatus.USER), iv.validateGET({ startCursor: '?string' }), (req, res) => {
-    var child = readLogs(req.user.id, req.query.startCursor);
-    var stdout = child.stdout;
+    let child = readLogs(req.user.id, req.query.startCursor);
+    let stdout = child.stdout;
     res.set('Content-Type', 'text/event-stream');
     stdout.pipe(res, { end: false });
     res.on('close', () => {
@@ -93,14 +93,14 @@ router.get('/logs', user.requireDeveloper(user.DeveloperStatus.USER), iv.validat
 });
 
 router.post('/kill', (req, res) => {
-    var engineManager = EngineManager.get();
+    let engineManager = EngineManager.get();
 
     engineManager.killUser(req.user.id);
     res.redirect(303, '/me/status');
 });
 
 router.post('/start', (req, res, next) => {
-    var engineManager = EngineManager.get();
+    let engineManager = EngineManager.get();
 
     engineManager.isRunning(req.user.id).then((isRunning) => {
         if (isRunning)

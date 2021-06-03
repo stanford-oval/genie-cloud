@@ -18,7 +18,7 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const assert = require('assert');
 const express = require('express');
@@ -79,7 +79,7 @@ Check the logs for further information.`
         };
         try {
             await SendMail.send(mailOptions);
-        } catch (e) {
+        } catch(e) {
             console.error(`Failed to send notification email: ${e.message}`);
         }
     }

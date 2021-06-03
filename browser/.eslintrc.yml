@@ -2,6 +2,9 @@ env:
   browser: true
   es6: true
   node: true
+root: true
+parserOptions:
+  ecmaVersion: 2017
 globals:
   $: false
   ThingEngine: false

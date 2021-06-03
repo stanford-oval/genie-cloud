@@ -16,7 +16,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-"use strict";
+
 const crypto = require('crypto');
 
 function getKfInferenceUrl(id, namespace) {

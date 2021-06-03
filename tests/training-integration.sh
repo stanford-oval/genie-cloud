@@ -69,7 +69,7 @@ echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $w
 # clean the database and bootstrap
 # (this has to occur after setting up the download
 # directories because it copies the icon png files)
-${srcdir}/src/main.js bootstrap --force
+${srcdir}/dist/main.js bootstrap --force
 
 # load some more data into Thingpedia
 test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/api/v3/devices/package/com.bing -O $srcdir/tests/data/com.bing.zip
@@ -99,11 +99,11 @@ EOF
 
 cat training-config.json
 
-${srcdir}/src/main.js execute-sql-file /proc/self/fd/0 <<<"update models set config = '$(cat training-config.json)';"
+${srcdir}/dist/main.js execute-sql-file /proc/self/fd/0 <<<"update models set config = '$(cat training-config.json)';"
 
-${srcdir}/src/main.js run-frontend &
+${srcdir}/dist/main.js run-frontend &
 frontendpid=$!
-${srcdir}/src/main.js run-training &
+${srcdir}/dist/main.js run-training &
 serverpid=$!
 
 # in interactive mode, sleep forever

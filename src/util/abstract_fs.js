@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const assert = require('assert');
 const Stream = require('stream');
@@ -186,7 +186,7 @@ const _backends = {
         },
 
         async upload(localdir, url, ...extraArgs) {
-            var hostname = '';
+            let hostname = '';
             if (!url.hostname) {
                 if (path.resolve(localdir) === path.resolve(url.pathname))
                     return;

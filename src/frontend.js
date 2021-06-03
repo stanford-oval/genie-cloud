@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 const http = require('http');
@@ -217,7 +217,7 @@ class Frontend {
         // info (cloud id + auth token) in the browser
         // this is not great, but we must keep it until the app is updated to
         // use OAuth tokens instead
-        var basicAuth = passport.authenticate('basic', { failWithError: true });
+        let basicAuth = passport.authenticate('basic', { failWithError: true });
         this._app.use((req, res, next) => {
             if (req.query.auth === 'app') {
                 basicAuth(req, res, (err) => {

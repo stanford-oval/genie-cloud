@@ -18,7 +18,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const assert = require('assert');
 const events = require('events');
@@ -127,7 +127,7 @@ class ControlSocketServer {
     }
 
     stop() {
-        for (var conn of this._connections) {
+        for (let conn of this._connections) {
             try {
                 conn.end();
             } catch(e) {

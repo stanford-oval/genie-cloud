@@ -21,7 +21,7 @@
   "scripts": {
     "update-pot": "xgettext -f po/POTFILES -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}; xargs -a po/POTFILES.jade jsxgettext -k _,N_,gettext,ngettext,pgettext -L pug -o po/${npm_package_name}.pot -j",
     "update-po": "./build/update-po.sh",
-    "lint": "eslint src/ tests/ browser/ public/javascripts/",
+    "lint": "eslint  --ext .js,.jsx,.ts,.tsx src/ tests/ browser/ public/javascripts/",
     "test": "nyc ./tests/everything.sh",
     "prepare": "make prepare",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
@@ -110,6 +110,15 @@
     "xmlbuilder": "^15.1.0"
   },
   "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.1",
+    "@types/argparse": "^2.0.8",
+    "@types/express": "^4.17.12",
+    "@types/markdown-it": "^12.0.1",
+    "@types/node": "^15.6.1",
+    "@types/serve-static": "^1.13.9",
+    "@types/tmp": "^0.2.0",
+    "@typescript-eslint/eslint-plugin": "^4.26.0",
+    "@typescript-eslint/parser": "^4.26.0",
     "apidoc": "^0.28.1",
     "browserify": "^17.0.0",
     "byline": "^5.0.0",
@@ -129,7 +138,10 @@
     "proxyquire": "^2.0.0",
     "pug-lint": "^2.4.0",
     "qs": "^6.10.1",
-    "tough-cookie": "^4.0.0"
+    "source-map-support": "^0.5.19",
+    "tough-cookie": "^4.0.0",
+    "ts-node": "^10.0.0",
+    "typescript": "~4.2.4"
   },
   "optionalDependencies": {
     "@kubernetes/client-node": "^0.14.3",
@@ -137,6 +149,7 @@
     "selenium-webdriver": "^4.0.0-beta.3"
   },
   "nyc": {
+    "extends": "@istanbuljs/nyc-config-typescript",
     "exclude": [
       "coverage/**",
       "tests/**",

@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const mysql = require('mysql');
 const util = require('util');
@@ -64,7 +64,7 @@ const dbRollbackTotal = new Prometheus.Counter({
 });
 
 function getDB() {
-    var url = Config.DATABASE_URL;
+    let url = Config.DATABASE_URL;
     if (url === undefined)
         return "mysql://thingengine:thingengine@localhost/thingengine?charset=utf8mb4_bin";
     else
@@ -199,7 +199,7 @@ module.exports = {
                 await rollback(client, err, done);
                 throw err;
             }
-        } catch (error) {
+        } catch(error) {
             done(error);
             throw error;
         }

@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const EngineManager = require('../almond/enginemanagerclient');
 
@@ -91,13 +91,13 @@ class CloudSyncWebsocketDelegate {
 
             const remote = await engine.websocket.newConnection(this);
             await this.setRemote(remote);
-        } catch (error) {
+        } catch(error) {
             console.error('Error in cloud-sync websocket: ' + error.message);
 
             // ignore "Not Opened" error in closing
             try {
                 this._ws.close();
-            } catch(e) {/**/}
+            } catch(e) { /**/ }
         }
     }
 }

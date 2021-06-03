@@ -63,7 +63,7 @@ function check(synthetic, paraphrase) {
             },
             dataType: 'json',
             success: function(res) { entities_paraphrase = res.entities; }
-        }),
+        })
     ).then(() => {
         let counts = {};
         let countp = {};

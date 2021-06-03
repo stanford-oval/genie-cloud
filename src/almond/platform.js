@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 // Cloud platform
 
@@ -33,9 +33,9 @@ const Tp = require('thingpedia');
 const graphics = require('./graphics');
 const i18n = require('../util/i18n');
 
-var _unzipApi = {
+let _unzipApi = {
     unzip(zipPath, dir) {
-        var args = ['-uo', zipPath, '-d', dir];
+        let args = ['-uo', zipPath, '-d', dir];
         return util.promisify(child_process.execFile)('/usr/bin/unzip', args, {
             maxBuffer: 10 * 1024 * 1024 }).then(({ stdout, stderr }) => {
             console.log('stdout', stdout);
@@ -128,7 +128,7 @@ class WebSocketApi extends events.EventEmitter {
     }
 
     newConnection(delegate) {
-        var wrapper = new WebSocketWrapper(delegate);
+        let wrapper = new WebSocketWrapper(delegate);
         this.emit('connection', wrapper);
         wrapper.on('close', () => {
             delegate.$free();
@@ -199,7 +199,7 @@ class Platform extends Tp.BasePlatform {
     // (eg we don't need discovery on the cloud, and we don't need graphdb,
     // messaging or the apps on the phone client)
     hasFeature(feature) {
-        switch(feature) {
+        switch (feature) {
         case 'discovery':
             return false;
 
@@ -217,7 +217,7 @@ class Platform extends Tp.BasePlatform {
     //
     // Which capabilities are available affects which apps are allowed to run
     hasCapability(cap) {
-        switch(cap) {
+        switch (cap) {
         case 'code-download':
             // If downloading code from the thingpedia server is allowed on
             // this platform
@@ -247,7 +247,7 @@ class Platform extends Tp.BasePlatform {
     //
     // This will return null if hasCapability(cap) is false
     getCapability(cap) {
-        switch(cap) {
+        switch (cap) {
         case 'code-download':
             // We have the support to download code
             return _unzipApi;
@@ -352,7 +352,7 @@ class Platform extends Tp.BasePlatform {
     }
 }
 
-var _shared;
+let _shared;
 
 module.exports = {
     // Initialize the platform code
@@ -387,7 +387,7 @@ module.exports = {
     // Check if this platform has the required capability
     // This is only for compat with existing code
     hasCapability(cap) {
-        switch(cap) {
+        switch (cap) {
         case 'graphics-api':
             return true;
         default:
@@ -399,7 +399,7 @@ module.exports = {
     // This is only about caps that don't consider the current context
     // for compat with existing code
     getCapability(cap) {
-        switch(cap) {
+        switch (cap) {
         case 'graphics-api':
             return graphics;
         default:

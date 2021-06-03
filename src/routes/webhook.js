@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 
@@ -25,7 +25,7 @@ const user = require('../model/user');
 const db = require('../util/db');
 const EngineManager = require('../almond/enginemanagerclient');
 
-var router = express.Router();
+let router = express.Router();
 
 router.post('/:user_id/:id', (req, res, next) => {
     db.withClient((dbClient) => {

@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 
@@ -26,7 +26,7 @@ const I18n = require('../util/i18n');
 
 const runNLU = require('./nlu');
 
-var router = express.Router();
+let router = express.Router();
 
 async function tokenize(params, data, res) {
     const langPack = I18n.get(params.locale, false);

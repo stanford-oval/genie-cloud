@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 
@@ -28,7 +28,7 @@ const iv = require('../util/input_validation');
 
 const Config = require('../config');
 
-var router = express.Router();
+let router = express.Router();
 
 router.get('/', iv.validateGET({ platform: '?string' }), (req, res, next) => {
     const language = req.user ? I18n.localeToLanguage(req.user.locale) : 'en';

@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const fs = require('fs');
 const util = require('util');
@@ -112,7 +112,7 @@ function cleanEnv() {
         return false;
     }
     const env = {};
-    for (var name in process.env) {
+    for (let name in process.env) {
         if (envIsAllowed(name))
             env[name] = process.env[name];
     }

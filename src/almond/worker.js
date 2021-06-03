@@ -18,7 +18,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 // load thingpedia to initialize the polyfill
 require('thingpedia');
@@ -45,7 +45,7 @@ class ParentProcessSocket extends stream.Duplex {
 }
 
 const _engines = new Map;
-var _stopped = false;
+let _stopped = false;
 
 function handleSignal() {
     for (let obj of _engines.values()) {
@@ -179,8 +179,8 @@ function main() {
     process.on('SIGINT', handleSignal);
     process.on('SIGTERM', handleSignal);
 
-    var rpcWrapped = new ParentProcessSocket();
-    var rpcSocket = new rpc.Socket(rpcWrapped);
+    let rpcWrapped = new ParentProcessSocket();
+    let rpcSocket = new rpc.Socket(rpcWrapped);
     process.on('message', (message, socket) => {
         switch (message.type) {
             case 'exit':
@@ -196,13 +196,13 @@ function main() {
         }
     });
 
-    var factory = {
+    let factory = {
         $rpcMethods: ['runEngine', 'killEngine'],
 
         runEngine: runEngine,
         killEngine: killEngine,
     };
-    var rpcId = rpcSocket.addStub(factory);
+    let rpcId = rpcSocket.addStub(factory);
     PlatformModule.init(argv);
     process.send({ type: 'ready', id: rpcId });
 

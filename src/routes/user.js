@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const Url = require('url');
 const Tp = require('thingpedia');
@@ -51,7 +51,7 @@ const Config = require('../config');
 
 const TOTP_PERIOD = 30; // duration in second of TOTP code
 
-var router = express.Router();
+let router = express.Router();
 
 router.get('/oauth2/google', passport.authenticate('google', {
     scope: userUtils.GOOGLE_SCOPES,
@@ -71,7 +71,7 @@ router.get('/oauth2/google/callback', passport.authenticate('google'), (req, res
             authToken: req.user.auth_token });
     } else {
         // Redirection back to the original page
-        var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
+        let redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
         delete req.session.redirect_to;
         res.redirect(303, redirect_to);
     }
@@ -97,7 +97,7 @@ router.get('/oauth2/github/callback', passport.authenticate('github'), (req, res
             authToken: req.user.auth_token });
     } else {
         // Redirection back to the original page
-        var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
+        let redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
         delete req.session.redirect_to;
         res.redirect(303, redirect_to);
     }
@@ -131,7 +131,7 @@ router.post('/login', passport.authenticate('local', { failureRedirect: '/user/l
         res.redirect(303, '/user/2fa/login');
     } else {
         // Redirection back to the original page
-        var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
+        let redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
         delete req.session.redirect_to;
         if (redirect_to.startsWith('/user/login'))
             redirect_to = '/';
@@ -168,7 +168,7 @@ router.post('/2fa/login', passport.authenticate('totp', { failureRedirect: '/use
     }
 
     // Redirection back to the original page
-    var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
+    let redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
     delete req.session.redirect_to;
     if (redirect_to.startsWith('/user/login') || redirect_to.startsWith('/user/2fa/login'))
         redirect_to = '/';
@@ -291,7 +291,7 @@ function login(req, user) {
 }
 
 router.post('/register', iv.validatePOST(registerArguments), (req, res, next) => {
-    var options = {};
+    let options = {};
     try {
         if (!userUtils.validateUsername(req.body.username))
             throw new BadRequestError(req._("You must specify a valid username of at most 60 characters. Special characters or spaces are not allowed."));
@@ -723,7 +723,7 @@ router.post('/revoke-oauth2', userUtils.requireLogIn, iv.validatePOST({ client_i
 });
 
 router.post('/change-password', userUtils.requireLogIn, iv.validatePOST({ password: 'string', old_password: '?string', 'confirm-password': 'string' }), (req, res, next) => {
-    var password, oldpassword;
+    let password, oldpassword;
     Promise.resolve().then(() => {
         if (req.body['password'].length < 8 ||
             req.body['password'].length > 255)

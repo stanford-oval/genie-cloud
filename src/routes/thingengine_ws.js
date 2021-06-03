@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 
@@ -26,7 +26,7 @@ const userModel = require('../model/user');
 
 const CloudSync = require('./cloud-sync');
 
-var router = express.Router();
+let router = express.Router();
 
 
 router.ws('/:cloud_id', (ws, req) => {

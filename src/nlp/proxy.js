@@ -24,7 +24,7 @@
 // Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Jim Deng <jim.deng@alumni.stanford.edu>
-"use strict";
+
 
 const httpProxy = require('http-proxy');
 const queryString = require('querystring');
@@ -69,8 +69,8 @@ module.exports = class ProxyServer {
             if (!req.body || !Object.keys(req.body).length) 
               return;
 
-            var contentType = proxyReq.getHeader('Content-Type');
-            var bodyData;
+            let contentType = proxyReq.getHeader('Content-Type');
+            let bodyData;
 
             if (contentType === 'application/json')
               bodyData = JSON.stringify(req.body);
@@ -95,7 +95,7 @@ module.exports = class ProxyServer {
             console.log('fanout requests to', replicas);
             for (const ipPort of replicas)
                 this.proxy.web(req, res, { target: `http://${ipPort}`} );
-        } catch (e) {
+        } catch(e) {
             console.log('fanout error:', e);
             res.status(500).json({ error: 'Internal server errror' });
         }

@@ -24,7 +24,7 @@
 // Copyright 2015 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const Tp = require('thingpedia');
 

@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 
@@ -25,7 +25,7 @@ const user = require('../util/user');
 const EngineManager = require('../almond/enginemanagerclient');
 const iv = require('../util/input_validation');
 
-var router = express.Router();
+let router = express.Router();
 
 router.use(user.requireLogIn);
 
@@ -95,7 +95,7 @@ router.get('/oauth2/:kind', (req, res, next) => {
         if (result !== null) {
             const redirect = result[0];
             const session = result[1];
-            for (var key in session)
+            for (let key in session)
                 req.session[key] = session[key];
             res.redirect(303, redirect);
         } else {

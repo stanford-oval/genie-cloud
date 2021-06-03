@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 function validatePageAndSize(req, defaultValue, maxValue) {
     let page = req.query.page;

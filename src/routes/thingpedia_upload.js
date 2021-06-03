@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 const multer = require('multer');
@@ -34,7 +34,7 @@ const iv = require('../util/input_validation');
 const user = require('../util/user');
 const { ValidationError, BadRequestError, ForbiddenError } = require('../util/errors');
 
-var router = express.Router();
+let router = express.Router();
 
 router.use(multer({ dest: os.tmpdir() }).fields([
     { name: 'zipfile', maxCount: 1 },

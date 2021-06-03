@@ -16,7 +16,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-"use strict";
+
 
 // All pages that are "website" (marketing, research, projects, team, Terms of Service, about...)
 // go here

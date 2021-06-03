@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const Url = require('url');
 const express = require('express');
@@ -28,7 +28,7 @@ const oauthModel = require('../model/oauth2');
 const oauth2orize = require('oauth2orize');
 
 const server = require('../util/oauth2');
-var router = express.Router();
+let router = express.Router();
 
 router.use(user.requireLogIn);
 

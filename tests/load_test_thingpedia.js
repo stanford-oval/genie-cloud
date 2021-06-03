@@ -18,7 +18,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 // load thingpedia to initialize the polyfill
 require('thingpedia');

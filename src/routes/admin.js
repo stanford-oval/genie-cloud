@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 const markdown = require('markdown-it');
@@ -40,7 +40,7 @@ const EngineManager = require('../almond/enginemanagerclient');
 
 const Config = require('../config');
 
-var router = express.Router();
+let router = express.Router();
 
 const USERS_PER_PAGE = 50;
 const DEVICES_PER_PAGE = 50;

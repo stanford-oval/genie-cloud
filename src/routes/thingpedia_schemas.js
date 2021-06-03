@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 const highlightjs = require('highlight.js');
@@ -34,7 +34,7 @@ const DatasetUtils = require('../util/dataset');
 const I18n = require('../util/i18n');
 const { parseOldOrNewSyntax } = require('../util/compat');
 
-var router = express.Router();
+let router = express.Router();
 
 function getOrgId(req) {
     if (!req.user)

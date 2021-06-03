@@ -18,7 +18,7 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 const ThingTalk = require('thingtalk');
@@ -35,7 +35,7 @@ const { BadRequestError, ForbiddenError, NotFoundError } = require('../util/erro
 
 const MTurkUtils = require('../util/mturk');
 
-var router = express.Router();
+let router = express.Router();
 
 async function autoValidateParaphrase(dbClient, batchId, language, schemas, utterance, thingtalk) {
     // FIXME this should use Genie's ParaphraseValidator

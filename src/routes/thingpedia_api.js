@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 const accepts = require('accepts');
@@ -69,7 +69,7 @@ everything.options('/[^]{0,}', (req, res, next) => {
 everything.get('/devices', (req, res, next) => {
     if (!isValidDeviceClass(req, res))
         return;
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    let client = new ThingpediaClient(req.query.developer_key, req.query.locale);
     client.getDeviceFactories(req.query.class).then((obj) => {
         // convert to v1 format
         obj = obj.map((d) => {
@@ -182,7 +182,7 @@ v3.get('/devices/code/:kind', (req, res, next) => {
         return;
     }
 
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
+    let client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getDeviceCode(req.params.kind, accept).then((code) => {
         res.set('Vary', 'Accept');
         if (typeof code === 'string') {
@@ -259,8 +259,8 @@ v3.get('/devices/code/:kind', (req, res, next) => {
  *  }
  */
 v3.get('/devices/setup/:kinds', (req, res, next) => {
-    var kinds = req.params.kinds.split(',');
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
+    let kinds = req.params.kinds.split(',');
+    let client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getDeviceSetup(kinds).then((result) => {
         res.cacheFor(86400000);
         res.status(200).json({ result: 'ok', data: result });
@@ -365,7 +365,7 @@ function isValidDeviceClass(req, res) {
 v3.get('/devices/setup', (req, res, next) => {
     if (!isValidDeviceClass(req, res))
         return;
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
+    let client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getDeviceFactories(req.query.class).then((obj) => {
         res.cacheFor(86400000);
         res.json({ result: 'ok', data: obj });
@@ -419,7 +419,7 @@ v3.get('/devices/all', (req, res, next) => {
     if (!isValidDeviceClass(req, res))
         return;
 
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
+    let client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getDeviceList(req.query.class || null, page, page_size).then((devices) => {
         res.cacheFor(86400000);
         res.json({ result: 'ok', data: devices });
@@ -461,13 +461,13 @@ v3.get('/devices/all', (req, res, next) => {
  *  }
  */
 v3.get('/devices/search', (req, res, next) => {
-    var q = req.query.q;
+    let q = req.query.q;
     if (!q) {
         res.status(400).json({ error: 'missing query' });
         return;
     }
 
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
+    let client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getDeviceSearch(q).then((devices) => {
         res.cacheFor(86400000);
         res.json({ result: 'ok', data: devices });
@@ -620,7 +620,7 @@ v3.get('/commands/search', (req, res, next) => {
  */
 // the /discovery endpoint was moved to /devices/discovery in v3
 v3.post('/devices/discovery', (req, res, next) => {
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
+    let client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
 
     client.getKindByDiscovery(req.body).then((result) => {
         if (result === null) {
@@ -686,8 +686,8 @@ v3.post('/devices/discovery', (req, res, next) => {
  *
  */
 v3.get('/examples/by-kinds/:kinds', (req, res, next) => {
-    var kinds = req.params.kinds.split(',');
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
+    let kinds = req.params.kinds.split(',');
+    let client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     const accept = accepts(req).types(['application/x-thingtalk', 'application/x-thingtalk;editMode=1', 'text/html']);
     if (!accept) {
         res.status(405).json({ error: 'must accept application/x-thingtalk' });
@@ -753,7 +753,7 @@ v3.get('/examples/by-kinds/:kinds', (req, res, next) => {
  *
  */
 v3.get('/examples/all', (req, res, next) => {
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
+    let client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     const accept = accepts(req).types(['application/x-thingtalk', 'application/x-thingtalk;editMode=1', 'text/html']);
     if (!accept) {
         res.status(405).json({ error: 'must accept application/x-thingtalk' });
@@ -830,7 +830,7 @@ v3.get('/examples/search', (req, res, next) => {
         return;
     }
 
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
+    let client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
     client.getExamplesByKey(req.query.q, accept).then((result) => {
         res.cacheFor(300000);
         res.status(200);
@@ -861,7 +861,7 @@ v3.get('/examples/search', (req, res, next) => {
  *
  */
 v3.post('/examples/click/:id', (req, res, next) => {
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
+    let client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
 
     client.clickExample(req.params.id).then(() => {
         res.cacheFor(300000);
@@ -1264,7 +1264,7 @@ v3.get('/locations/lookup', (req, res, next) => {
         return;
     }
 
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
+    let client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
 
     client.lookupLocation(searchKey, req.query.latitude && req.query.longitude ? { latitude: req.query.latitude, longitude: req.query.longitude } : undefined).then((data) => {
         res.cacheFor(300000);

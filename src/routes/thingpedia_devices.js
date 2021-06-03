@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const assert = require('assert');
 const express = require('express');
@@ -41,7 +41,7 @@ const { parseOldOrNewSyntax } = require('../util/compat');
 const stringModel = require('../model/strings');
 const entityModel = require('../model/entity');
 
-var router = express.Router();
+let router = express.Router();
 
 function N_(x) { return x; }
 

@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 const fs = require('fs');
@@ -31,7 +31,7 @@ const code_storage = require('../util/code_storage');
 
 const user = require('../util/user');
 
-var router = express.Router();
+let router = express.Router();
 
 router.use(multer({ dest: os.tmpdir() }).single('file'));
 router.use(csurf({ cookie: false }));

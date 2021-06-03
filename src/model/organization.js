@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const db = require('../util/db');
 const { InternalError } = require('../util/errors');
@@ -59,7 +59,7 @@ module.exports = {
     },
 
     getByFuzzySearch(client, tag) {
-        var pctag = '%' + tag + '%';
+        let pctag = '%' + tag + '%';
         return db.selectAll(client, `(select * from organizations where name like ? or comment like ?)
                             union distinct (select o.* from organizations o where exists (select 1 from users
                             where username = ? and developer_org = o.id))`,

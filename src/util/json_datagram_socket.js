@@ -39,7 +39,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
-"use strict";
+
 
 const events = require('events');
 
@@ -88,12 +88,12 @@ module.exports = class JsonDatagramSocket extends events.EventEmitter {
     }
 
     _tryReadMessage() {
-        var msg;
+        let msg;
 
-        var split = this._partialMessage.split('\n');
+        let split = this._partialMessage.split('\n');
         this._partialMessage = split[split.length-1];
 
-        for (var i = 0; i < split.length-1; i++) {
+        for (let i = 0; i < split.length-1; i++) {
             if (!split[i])
                 continue;
             try {

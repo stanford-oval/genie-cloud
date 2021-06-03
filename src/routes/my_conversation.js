@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const user = require('../util/user');
 const EngineManager = require('../almond/enginemanagerclient');
@@ -60,7 +60,7 @@ class WebsocketApiDelegate {
 WebsocketApiDelegate.prototype.$rpcMethods = ['send'];
 
 module.exports.results = function(ws, req, next) {
-    var user = req.user;
+    let user = req.user;
 
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine(user.id);
@@ -92,7 +92,7 @@ module.exports.results = function(ws, req, next) {
         // ignore "Not Opened" error in closing
         try {
             ws.close();
-        } catch(e) {/**/}
+        } catch(e) { /**/ }
     });
 };
 
@@ -122,7 +122,7 @@ class WebsocketAssistantDelegate {
             // ignore "Not Opened" error in closing
             try {
                 this._ws.close();
-            } catch(e) {/**/}
+            } catch(e) { /**/ }
         }
     }
 }
@@ -170,7 +170,7 @@ async function doConversation(user, anonymous, ws, query) {
             Promise.resolve().then(() => {
                 const parsed = JSON.parse(data);
                 const platformData = {};
-                switch(parsed.type) {
+                switch (parsed.type) {
                 case 'command':
                     return wrapper.handleCommand(parsed.text, platformData);
                 case 'parsed':
@@ -190,7 +190,7 @@ async function doConversation(user, anonymous, ws, query) {
                 // ignore "Not Opened" error in closing
                 try {
                     ws.close();
-                } catch(e) {/**/}
+                } catch(e) { /**/ }
             });
         });
     } catch(error) {
@@ -199,7 +199,7 @@ async function doConversation(user, anonymous, ws, query) {
         // ignore "Not Opened" error in closing
         try {
             ws.close();
-        } catch(e) {/**/}
+        } catch(e) { /**/ }
     }
 }
 

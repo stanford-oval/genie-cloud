@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 require('../polyfill');
 process.on('unhandledRejection', (up) => { throw up; });

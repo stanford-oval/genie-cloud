@@ -17,11 +17,11 @@
 // limitations under the License.
 //
 // Author: Jim Deng <jim.deng@alumni.stanford.edu>
-'use strict';
+
 
 // Tests k8s api signature does not change after upgrades 
 function getArgs(func) {
-  var args = func.toString().match(/\S+\s*?\(([^)]*)\)/)[1];
+  let args = func.toString().match(/\S+\s*?\(([^)]*)\)/)[1];
   return args.split(',').map((arg) => {
     return arg.replace(/\/\*.*\*\//, '').trim();
   }).filter((arg) => {

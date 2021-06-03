@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Euirim Choi <euirim@cs.stanford.edu>
-"use strict";
+
 
 const Tp = require('thingpedia');
 const fs = require('fs');

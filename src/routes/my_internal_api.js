@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 
@@ -26,7 +26,7 @@ const { ForbiddenError } = require('../util/errors');
 const { isOriginOk } = require('../util/origin');
 const MyConversation = require('./my_conversation');
 
-var router = express.Router();
+let router = express.Router();
 
 // /me/ws is not under Access-Control-Allow-Origin, but we need to check
 // this manually because WebSockets are not subject to same-origin policy

@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const k8s = require('@kubernetes/client-node');
 const Tp = require('thingpedia');

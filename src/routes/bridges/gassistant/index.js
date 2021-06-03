@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Swee Kiat Lim <sweekiat@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 const passport = require('passport');
@@ -35,7 +35,7 @@ const secret = require('../../../util/secret_key');
 
 const Config = require('../../../config');
 
-var router = express.Router();
+let router = express.Router();
 
 class GoogleAssistantDelegate {
     constructor(locale) {
@@ -154,7 +154,7 @@ async function retrieveUser(accessToken) {
             const rows = await gAssistantUserModel.getByCloudId(dbClient, decoded.sub);
             if (rows.length < 1) {
                 anonymous = true;
-                return await gAssistantUserUtils.getAnonymousUser();
+                return gAssistantUserUtils.getAnonymousUser();
             }
             anonymous = false;
             return rows[0];

@@ -16,7 +16,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-"use strict";
+
 
 const kfInferenceUrl = require('../../src/util/kf_inference_url');
 

@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})/;
 
@@ -73,7 +73,7 @@ module.exports = {
     },
 
     tokenize(string) {
-        var tokens = string.split(/(\s+|[,."'!?])/g);
+        let tokens = string.split(/(\s+|[,."'!?])/g);
         return tokens.filter((t) => !(/^\s*$/).test(t)).map((t) => t.toLowerCase());
     },
 

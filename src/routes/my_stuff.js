@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 
@@ -27,7 +27,7 @@ const user = require('../util/user');
 const EngineManager = require('../almond/enginemanagerclient');
 const iv = require('../util/input_validation');
 
-var router = express.Router();
+let router = express.Router();
 router.use(user.requireLogIn);
 
 async function getInfo(req) {

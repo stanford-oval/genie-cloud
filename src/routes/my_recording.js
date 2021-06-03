@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 

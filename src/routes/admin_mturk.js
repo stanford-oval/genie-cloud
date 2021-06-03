@@ -18,7 +18,7 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 const db = require('../util/db');
@@ -27,7 +27,7 @@ const model = require('../model/mturk');
 
 const MTurkUtils = require('../util/mturk');
 
-var router = express.Router();
+let router = express.Router();
 
 router.use(user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN));
 

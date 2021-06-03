@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-'use strict';
+
 
 const assert = require('assert');
 const fs = require('fs');
@@ -82,7 +82,7 @@ async function expectCmd(fn, args, want) {
     await fn(...args);
     try {
         assert.deepEqual(cmdStub.lastCmds, want, `${fn.name}(${args})`);
-    } catch (err) {
+    } catch(err) {
         err.message = `${err}\n   got: ${err.actual}\n  want: ${err.expected}`;
         throw err;
     }

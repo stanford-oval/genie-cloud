@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const fs = require('fs');
 const JSZip = require('jszip');
@@ -83,7 +83,7 @@ async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
             return [existing.id, false];
         }
 
-        var obj = {
+        let obj = {
             kind_canonical: classDef.metadata.canonical,
             developer_version: existing.developer_version + 1
         };
@@ -93,7 +93,7 @@ async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
         await schemaModel.update(dbClient, existing.id, existing.kind, obj, metas);
         return [existing.id, true];
     }, async (e) => {
-        var obj = {
+        let obj = {
             kind: classDef.kind,
             kind_canonical: classDef.metadata.canonical,
             kind_type: 'primary',
@@ -235,7 +235,7 @@ async function ensureDataset(dbClient, schemaId, classDef, dataset) {
 }
 
 function uploadZipFile(req, obj, stream) {
-    var zipFile = new JSZip();
+    let zipFile = new JSZip();
 
     return Promise.resolve().then(() => {
         // unfortunately JSZip only loads from memory, so we need to load the entire file
@@ -243,8 +243,8 @@ function uploadZipFile(req, obj, stream) {
         // this is somewhat a problem, because the file can be up to 30-50MB in size
         // we just hope the GC will get rid of the buffer quickly
 
-        var buffers = [];
-        var length = 0;
+        let buffers = [];
+        let length = 0;
         return new Promise((callback, errback) => {
             stream.on('data', (buffer) => {
                 buffers.push(buffer);
@@ -258,14 +258,15 @@ function uploadZipFile(req, obj, stream) {
     }).then((buffer) => {
         return zipFile.loadAsync(buffer, { checkCRC32: false });
     }).then(() => {
-        var packageJson = zipFile.file('package.json');
+        let packageJson = zipFile.file('package.json');
         if (!packageJson)
             throw new BadRequestError(req._("package.json missing from device zip file"));
 
         return packageJson.async('string');
     }).then((text) => {
+        let parsed;
         try {
-            var parsed = JSON.parse(text);
+            parsed = JSON.parse(text);
         } catch(e) {
             throw new BadRequestError("Invalid package.json: SyntaxError at line " + e.lineNumber + ": " + e.message);
         }
@@ -288,7 +289,7 @@ function uploadZipFile(req, obj, stream) {
 }
 
 function uploadJavaScript(req, obj, stream) {
-    var zipFile = new JSZip();
+    let zipFile = new JSZip();
 
     return Promise.resolve().then(() => {
         zipFile.file('package.json', JSON.stringify({
@@ -346,7 +347,7 @@ function getCategory(classDef) {
 
 async function uploadIcon(primary_kind, iconPath, deleteAfterwards = true) {
     try {
-        var image = graphics.createImageFromPath(iconPath);
+        let image = graphics.createImageFromPath(iconPath);
         image.resizeFit(512, 512);
         const stdout = await image.stream('png');
 
@@ -601,7 +602,7 @@ async function uploadDevice(req) {
         // trigger updating the device on the user
         await tryUpdateDevice(req.body.primary_kind, req.user.id);
     } finally {
-        var toDelete = [];
+        let toDelete = [];
         if (req.files) {
             if (req.files.zipfile && req.files.zipfile.length)
                 toDelete.push(util.promisify(fs.unlink)(req.files.zipfile[0].path));

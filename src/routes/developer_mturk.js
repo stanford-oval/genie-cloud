@@ -18,7 +18,7 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const util = require('util');
 const fs = require('fs');
@@ -37,7 +37,7 @@ const { makeRandom } = require('../util/random');
 
 const MTurkUtils = require('../util/mturk');
 
-var router = express.Router();
+let router = express.Router();
 
 async function createMTurkBatch(dbClient, req, res) {
     const batch = await model.create(dbClient, {

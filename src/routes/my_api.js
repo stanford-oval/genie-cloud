@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const express = require('express');
 const passport = require('passport');
@@ -35,7 +35,7 @@ const Config = require('../config');
 const CloudSync = require('./cloud-sync');
 const MyConversation = require('./my_conversation');
 
-var router = express.Router();
+let router = express.Router();
 
 router.options('/[^]{0,}', (req, res, next) => {
     res.set('Access-Control-Max-Age', '86400');

@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 const net = require('net');
 const events = require('events');
@@ -29,7 +29,7 @@ const userToShardId = require('./shard');
 
 const Config = require('../config');
 
-var _instance;
+let _instance;
 
 function connectToMaster(shardId) {
     const shard = Config.THINGENGINE_MANAGER_ADDRESS[shardId];
