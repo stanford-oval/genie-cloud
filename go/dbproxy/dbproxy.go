@@ -39,6 +39,10 @@ func Run(args []string) {
 	almondConfig := config.GetAlmondConfig()
 	sql.InitMySQL(almondConfig.DatabaseURL)
 	r := gin.Default()
+	r.Use(func(c *gin.Context) {
+		debugDumpRequest(c.Request)
+		c.Next()
+	})
 
 	r.GET("/localtable/:name/:userid", localTableGetAll)
 	r.GET("/localtable/:name/:userid/:uniqueid", localTableGetOne)
@@ -52,7 +56,7 @@ func Run(args []string) {
 	r.POST("/synctable/changes/:name/:userid", syncTableHandleChanges)
 	r.POST("/synctable/sync/:name/:userid/:millis", syncTableSyncAt)
 	r.POST("/synctable/replace/:name/:userid", syncTableReplaceAll)
-	r.POST("/synctable/:name/:userid/uniqueid/:millis", syncTableInsertIfRecent)
+	r.POST("/synctable/:name/:userid/:uniqueid/:millis", syncTableInsertIfRecent)
 	r.POST("/synctable/:name/:userid/:uniqueid", syncTableInsertOne)
 	r.DELETE("/synctable/:name/:userid/:uniqueid/:millis", syncTableDeleteIfRecent)
 	r.DELETE("/synctable/:name/:userid/:uniqueid", syncTableDeleteOne)
