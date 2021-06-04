@@ -17,12 +17,12 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
 
-const Lock = require('../../util/lock');
-const sleep = require('../../util/sleep');
+import assert from 'assert';
+
+import Lock from '../../src/util/lock';
+import sleep from '../../src/util/sleep';
 
 async function withTimeout(promise, timeout = 30000) {
     await Promise.race([
@@ -122,6 +122,6 @@ async function main() {
     await withTimeout(testInterleave());
     await withTimeout(testQueue());
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

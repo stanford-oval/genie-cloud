@@ -17,13 +17,13 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
-const path = require('path');
 
-const getExampleName = require('../../util/example_names');
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
+import * as path from 'path';
+
+import getExampleName from '../../src/util/example_names';
 
 const _schemaRetriever = new ThingTalk.SchemaRetriever(new Tp.FileClient({
     thingpedia: path.resolve(path.dirname(module.filename), './thingpedia.tt')
@@ -93,6 +93,6 @@ async function main() {
     for (let i = 0; i < TEST_CASES.length; i++)
         await testCase(i);
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

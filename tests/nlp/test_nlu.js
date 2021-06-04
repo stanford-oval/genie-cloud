@@ -17,17 +17,16 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const ThingTalk = require('thingtalk');
-const Gettext = require('node-gettext');
-const Tp = require('thingpedia');
-const Genie = require('genie-toolkit');
+import assert from 'assert';
+import * as ThingTalk from 'thingtalk';
+import Gettext from 'node-gettext';
+import * as Tp from 'thingpedia';
+import * as Genie from 'genie-toolkit';
 
-const db = require('../../util/db');
-const Config = require('../../config');
-const localfs = require('../../util/local_fs');
+import * as db from '../../src/util/db';
+import * as Config from '../../src/config';
+import * as localfs from '../../src/util/local_fs';
 assert.strictEqual(Config.WITH_THINGPEDIA, 'external');
 
 const gettext = new Gettext();
@@ -67,7 +66,7 @@ const schemas = new ThingTalk.SchemaRetriever(new Tp.HttpClient({
 }, Config.THINGPEDIA_URL), null, true);
 
 async function testEverything() {
-    const TEST_CASES = require('./parser_test_cases');
+    const TEST_CASES = await import('./parser_test_cases');
     const parser = Genie.ParserClient.get(Config.NL_SERVER_URL, 'en-US');
 
     for (let i = 0; i < TEST_CASES.length; i++) {
@@ -87,7 +86,7 @@ async function testEverything() {
             await program.typecheck(schemas, false);
             return program;
         }));
-        assert (candidates.length > 0, `Failed parsing ${test}`);
+        assert(candidates.length > 0, `Failed parsing ${test}`);
         console.log(`${i+1}: ${test} => ${candidates[0].prettyprint()}`);
     }
 }
@@ -157,7 +156,7 @@ async function testContextual() {
     });
 }
 
-async function expectAnswer(parser, input, expecting, expectedCode, expectedEntities) {
+/*async function expectAnswer(parser, input, expecting, expectedCode, expectedEntities) {
     const analyzed = await parser.sendUtterance(input, undefined, undefined, { expect: expecting });
 
     assert(Array.isArray(analyzed.candidates));
@@ -165,7 +164,7 @@ async function expectAnswer(parser, input, expecting, expectedCode, expectedEnti
 
     assert.strictEqual(analyzed.candidates[0].code.join(' '), expectedCode);
     assert.deepStrictEqual(analyzed.entities, expectedEntities);
-}
+}*/
 
 function testExpect() {
     const parser = Genie.ParserClient.get(Config.NL_SERVER_URL, 'en-US');
@@ -276,6 +275,6 @@ async function main() {
 
     await db.tearDown();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

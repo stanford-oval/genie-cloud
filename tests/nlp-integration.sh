@@ -27,6 +27,7 @@ on_error() {
 
     cd $oldpwd
     rm -fr $workdir
+    rm -f $srcdir/secret_config.js
 }
 trap on_error ERR INT TERM
 
@@ -64,7 +65,7 @@ mkdir -p $workdir/shared/cache
 echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $workdir/shared/cache/index.json
 
 # clean the database and bootstrap
-${srcdir}/main.js bootstrap --force
+${srcdir}/dist/main.js bootstrap --force
 
 mkdir -p 'models/org.thingpedia.models.contextual:en'
 
@@ -75,7 +76,7 @@ tar xvf $srcdir/tests/embeddings/genienlp-v0.6.0a2.xz -C 'models/org.thingpedia.
 # we'll test the main models only (there is no difference really)
 # 2) mark the models as trained, given that we downloaded a pretrained model
 # 3) create a dummy test model that is not trained
-${srcdir}/main.js execute-sql-file /proc/self/fd/0 <<<"
+${srcdir}/dist/main.js execute-sql-file /proc/self/fd/0 <<<"
 delete from models where tag like '%developer%';
 update models set trained = true where tag = 'org.thingpedia.models.contextual';
 insert into models set tag ='org.thingpedia.test.nottrained', language = 'en', owner = 1,
@@ -84,9 +85,9 @@ insert into models set tag ='org.thingpedia.test.nottrained', language = 'en', o
 
 mkdir -p 'exact'
 wget --no-verbose -c https://almond-static.stanford.edu/test-data/exact.tsv -O exact/en.tsv
-${srcdir}/main.js compile-exact-btrie -o exact/en.btrie exact/en.tsv
+${srcdir}/dist/main.js compile-exact-btrie -o exact/en.btrie exact/en.tsv
 
-${srcdir}/main.js run-nlp --port $NLP_PORT &
+${srcdir}/dist/main.js run-nlp --port $NLP_PORT &
 inferpid=$!
 
 # in interactive mode, sleep forever
@@ -98,7 +99,7 @@ else
     # sleep until the process is settled
     sleep 30
 
-    node $srcdir/tests/nlp
+    ts-node $srcdir/tests/nlp
 fi
 
 kill $inferpid
@@ -107,3 +108,4 @@ wait
 
 cd $oldpwd
 rm -fr $workdir
+rm -f $srcdir/secret_config.js

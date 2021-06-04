@@ -34,6 +34,8 @@ views/thingpedia_doc_index.pug
 tests/embeddings
 
 node_modules/
+/dist
+/go/backend/backend
 
 yarn-error.log
 

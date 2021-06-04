@@ -17,20 +17,19 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
-const FormData = require('form-data');
-const path = require('path');
-const fs = require('fs');
-const WebSocket = require('ws');
+import assert from 'assert';
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
+import FormData from 'form-data';
+import * as path from 'path';
+import * as fs from 'fs';
+import WebSocket from 'ws';
 
-const Config = require('../../config');
+import * as Config from '../../src/config';
 assert.strictEqual(Config.WITH_THINGPEDIA, 'external');
 
-const { assertHttpError, } = require('../website/scaffold');
+import { assertHttpError, } from '../website/scaffold';
 
 function formRequest(url, fd, options = {}) {
     options.dataContentType = 'multipart/form-data; boundary=' + fd.getBoundary();
@@ -54,11 +53,11 @@ async function testSTT_WS_Promise(ver, pathname) {
             if (ver) ws.send(JSON.stringify({ ver: ver }));
 
             if (pathname)
-                fs.createReadStream(pathname).on('data', (buf) => {
+                { fs.createReadStream(pathname).on('data', (buf) => {
                     ws.send(buf);
                 }).on('end', () => {
                     ws.send();
-                });
+                }); }
         });
     });
 }
@@ -93,7 +92,7 @@ async function testSTT_WS() {
     result = await testSTT_WS_Promise(1, pathname);
     console.log(result);
     assert.strictEqual(result.result, 'ok');
-    assert(result.text === 'Hello, this is a test.' || parsed.text === 'Hello this is a test.');
+    assert(result.text === 'Hello, this is a test.' || result.text === 'Hello this is a test.');
 }
 
 async function testSTT() {
@@ -160,6 +159,6 @@ async function main() {
     await testCombinedSTTAndNLU();
     await testTTS();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

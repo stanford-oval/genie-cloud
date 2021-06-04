@@ -17,19 +17,16 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-require('../polyfill');
+import assert from 'assert';
+import * as Tp from 'thingpedia';
+import * as qs from 'qs';
+import * as Url from 'url';
+import FormData from 'form-data';
 
-const assert = require('assert');
-const Tp = require('thingpedia');
-const qs = require('qs');
-const Url = require('url');
-const FormData = require('form-data');
+import * as Config from '../../src/config';
 
-const Config = require('../../config');
-
-const db = require('../../util/db');
+import * as db from '../../src/util/db';
 
 const DEBUG = false;
 
@@ -145,7 +142,7 @@ async function assertBlocked(path, bob, nobody) {
         403, 'You do not have permission to perform this operation.');
 }
 
-module.exports = {
+export {
     dbQuery,
     request,
     sessionRequest,

@@ -17,18 +17,18 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const FormData = require('form-data');
-const { assertHttpError, assertRedirect, assertLoginRequired, assertBlocked, sessionRequest, dbQuery } = require('./scaffold');
-const { login, startSession } = require('../login');
 
-const db = require('../../util/db');
-const sleep = require('../../util/sleep');
-const EngineManagerClient = require('../../almond/enginemanagerclient');
+import assert from 'assert';
+import FormData from 'form-data';
+import { assertHttpError, assertRedirect, assertLoginRequired, assertBlocked, sessionRequest, dbQuery } from './scaffold';
+import { login, startSession } from '../login';
 
-const Config = require('../../config');
+import * as db from '../../src/util/db';
+import sleep from '../../src/util/sleep';
+import EngineManagerClient from '../../src/almond/enginemanagerclient';
+
+import * as Config from '../../src/config';
 
 async function testAdminUsers(root, bob, nobody) {
     await assertBlocked('/admin/users', bob, nobody);
@@ -57,11 +57,11 @@ async function testAdminUsers(root, bob, nobody) {
 
 async function testAdminKillRestart(root, bob, nobody) {
     const emc = EngineManagerClient.get();
-    assert (await emc.isRunning(1)); // root
-    assert (await emc.isRunning(2)); // anonymous
-    assert (await emc.isRunning(3)); // bob
-    assert (await emc.isRunning(4)); // david
-    assert (await emc.isRunning(5)); // emma -or- alexa_user
+    assert(await emc.isRunning(1)); // root
+    assert(await emc.isRunning(2)); // anonymous
+    assert(await emc.isRunning(3)); // bob
+    assert(await emc.isRunning(4)); // david
+    assert(await emc.isRunning(5)); // emma -or- alexa_user
 
     // /kill/all is very aggressive, and kills also the shared processes (it's sort of a killswitch for
     // when things go awry, short of "systemctl stop thingengine-cloud@.service"
@@ -69,11 +69,11 @@ async function testAdminKillRestart(root, bob, nobody) {
     await assertLoginRequired(sessionRequest('/admin/users/kill/all', 'POST', '', nobody));
     await assertRedirect(sessionRequest('/admin/users/kill/all', 'POST', '', root, { followRedirects: false }), '/admin/users');
 
-    assert (!await emc.isRunning(1)); // root
-    assert (!await emc.isRunning(2)); // anonymous
-    assert (!await emc.isRunning(3)); // bob
-    assert (!await emc.isRunning(4)); // david
-    assert (!await emc.isRunning(5)); // emma -or- alexa_user
+    assert(!await emc.isRunning(1)); // root
+    assert(!await emc.isRunning(2)); // anonymous
+    assert(!await emc.isRunning(3)); // bob
+    assert(!await emc.isRunning(4)); // david
+    assert(!await emc.isRunning(5)); // emma -or- alexa_user
 
     // the shared processes will be restarted in 5s
     await sleep(10000);
@@ -81,8 +81,8 @@ async function testAdminKillRestart(root, bob, nobody) {
     await assertLoginRequired(sessionRequest('/admin/users/start/1', 'POST', '', nobody));
     await assertRedirect(sessionRequest('/admin/users/start/1', 'POST', '', root, { followRedirects: false }), '/admin/users/search?q=1');
 
-    assert (await emc.isRunning(1)); // root
-    assert (!await emc.isRunning(3)); // bob
+    assert(await emc.isRunning(1)); // root
+    assert(!await emc.isRunning(3)); // bob
 
     // try connecting to /me/status from bob, this should not fail even though bob is not running
     await sessionRequest('/me/status', 'GET', '', bob);
@@ -93,28 +93,28 @@ async function testAdminKillRestart(root, bob, nobody) {
     await sessionRequest('/admin/users/start/4', 'POST', '', root);
     await sessionRequest('/admin/users/start/5', 'POST', '', root);
 
-    assert (await emc.isRunning(2)); // anonymous
-    assert (await emc.isRunning(3)); // bob
-    assert (await emc.isRunning(4)); // david
-    assert (await emc.isRunning(5)); // emma -or- alexa_user
+    assert(await emc.isRunning(2)); // anonymous
+    assert(await emc.isRunning(3)); // bob
+    assert(await emc.isRunning(4)); // david
+    assert(await emc.isRunning(5)); // emma -or- alexa_user
 
     // kill root
     await assertLoginRequired(sessionRequest('/admin/users/kill/1', 'POST', '', nobody));
     await assertRedirect(sessionRequest('/admin/users/kill/1', 'POST', '', root, { followRedirects: false }), '/admin/users/search?q=1');
 
-    assert (!await emc.isRunning(1)); // root
-    assert (await emc.isRunning(2)); // anonymous
-    assert (await emc.isRunning(3)); // bob
-    assert (await emc.isRunning(4)); // david
-    assert (await emc.isRunning(5)); // emma -or- alexa_user
+    assert(!await emc.isRunning(1)); // root
+    assert(await emc.isRunning(2)); // anonymous
+    assert(await emc.isRunning(3)); // bob
+    assert(await emc.isRunning(4)); // david
+    assert(await emc.isRunning(5)); // emma -or- alexa_user
 
 
     await sessionRequest('/admin/users/start/1', 'POST', '', root);
-    assert (await emc.isRunning(1));
+    assert(await emc.isRunning(1));
 
     // noop
     await sessionRequest('/admin/users/start/1', 'POST', '', root);
-    assert (await emc.isRunning(1));
+    assert(await emc.isRunning(1));
 }
 
 async function testAdminOrgs(root, bob, nobody) {
@@ -259,6 +259,6 @@ async function main() {
     await db.tearDown();
     await emc.stop();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

@@ -17,14 +17,14 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const qs = require('qs');
-const Url = require('url');
 
-const { assertHttpError, assertRedirect, sessionRequest } = require('./scaffold');
-const { login } = require('../login');
+import assert from 'assert';
+import * as qs from 'qs';
+import * as Url from 'url';
+
+import { assertHttpError, assertRedirect, sessionRequest } from './scaffold';
+import { login } from '../login';
 
 async function testSSO() {
     const session = await login('bob', '12345678');
@@ -52,6 +52,6 @@ async function testSSO() {
 async function main() {
     await testSSO();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

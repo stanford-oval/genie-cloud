@@ -17,9 +17,8 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const parse5 = require('parse5');
+import * as parse5 from 'parse5';
 
 function* getElementsByTagName(root, tagName) {
     if (root.namespaceURI === 'http://www.w3.org/1999/xhtml' &&
@@ -88,7 +87,7 @@ function parse(htmlString) {
     return getDocumentElement(parse5.parse(htmlString));
 }
 
-module.exports = {
+export {
     parse,
 
     getElementsByTagName,

@@ -1,31 +1,51 @@
 env:
   es6: true
   node: true
+parser: '@typescript-eslint/parser'
+plugins:
+  - '@typescript-eslint'
 parserOptions:
   ecmaVersion: 2018
-extends: 'eslint:recommended'
+extends:
+  - 'eslint:recommended'
+  - 'plugin:@typescript-eslint/recommended'
 rules:
   indent: off
   no-console: off
   no-fallthrough: off
-  linebreak-style:
+  '@typescript-eslint/no-empty-function': off
+  require-atomic-updates: off
+  no-lonely-if: off
+  arrow-body-style: off
+  require-yield: off
+  '@typescript-eslint/no-non-null-assertion': off
+  '@typescript-eslint/no-explicit-any': off
+  # namespaces are useful to add static methods to enums and to implement
+  # nested classes
+  '@typescript-eslint/no-namespace': off
+
+  # temporary until migration is complete
+  '@typescript-eslint/no-this-alias': off
+  '@typescript-eslint/explicit-module-boundary-types': off
+
+  # correctness checks
+  strict:
     - error
-    - unix
-  semi:
-    - error
-    - always
-  consistent-return: warn
-  curly:
-    - error
-    - multi-or-nest
-    - consistent
+    - global
+  consistent-return: error
+  array-callback-return: error
   eqeqeq:
     - error
     - always
-  no-unused-vars:
+  no-var: error
+  no-unused-vars: off
+  '@typescript-eslint/no-unused-vars':
     - error
     -
+      varsIgnorePattern: _
       args: none
+  no-shadow-restricted-names: error
+  no-promise-executor-return: error
   no-case-declarations: warn
   no-eval: error
   no-proto: error
@@ -35,17 +55,69 @@ rules:
   no-useless-call: warn
   no-useless-return: warn
   no-void: error
+  no-self-compare: error
   prefer-promise-reject-errors: error
-  strict:
-    - error
-    - global
   no-label-var: error
-  no-lonely-if: off
   no-new-object: error
-  arrow-body-style: off
+  no-invalid-this: error
+  prefer-arrow-callback: error
+  prefer-numeric-literals: error
+  no-constructor-return: error
+  no-new-wrappers: error
+  no-return-await: warn
+  no-unused-expressions: warn
+
+  # code style
+  linebreak-style:
+    - error
+    - unix
+  semi:
+    - error
+    - always
+  curly:
+    - error
+    - multi-or-nest
+    - consistent
+  dot-location:
+    - error
+    - property
   arrow-parens:
     - error
     - always
-  prefer-arrow-callback: warn
-  prefer-numeric-literals: error
-  require-atomic-updates: off
+  '@typescript-eslint/array-type':
+    - error
+    -
+      default: array-simple
+  block-spacing: error
+  computed-property-spacing: error
+  func-call-spacing: error
+  keyword-spacing:
+    - error
+    -
+      overrides:
+        catch:
+          before: true
+          after: false
+  space-before-function-paren:
+    - error
+    -
+      anonymous: never
+      named: never
+      asyncArrow: always
+  generator-star-spacing:
+    - error
+    -
+      anonymous:
+        before: false
+        after: false
+      named:
+        before: false
+        after: true
+      method:
+        before: true
+        after: false
+  '@typescript-eslint/type-annotation-spacing':
+    - error
+    -
+      before: true
+      after: true

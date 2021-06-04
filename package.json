@@ -16,12 +16,12 @@
     }
   ],
   "bin": {
-    "almond-cloud": "./main.js"
+    "almond-cloud": "./src/main.js"
   },
   "scripts": {
     "update-pot": "xgettext -f po/POTFILES -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}; xargs -a po/POTFILES.jade jsxgettext -k _,N_,gettext,ngettext,pgettext -L pug -o po/${npm_package_name}.pot -j",
     "update-po": "./build/update-po.sh",
-    "lint": "eslint almond/ browser/ model/ routes/ util/ stanford/ training/ nlp/ scripts/ config.js frontend.js",
+    "lint": "eslint  --ext .js,.jsx,.ts,.tsx src/ tests/ browser/ public/javascripts/",
     "test": "nyc ./tests/everything.sh",
     "prepare": "make prepare",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
@@ -110,6 +110,35 @@
     "xmlbuilder": "^15.1.0"
   },
   "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.1",
+    "@types/argparse": "^2.0.8",
+    "@types/body-parser": "^1.19.0",
+    "@types/connect-flash": "0.0.36",
+    "@types/cookie-parser": "^1.4.2",
+    "@types/csurf": "^1.11.1",
+    "@types/escape-html": "^1.0.1",
+    "@types/express": "^4.17.12",
+    "@types/express-mysql-session": "^2.1.2",
+    "@types/express-session": "^1.17.3",
+    "@types/express-ws": "^3.0.0",
+    "@types/express-xml-bodyparser": "^0.3.2",
+    "@types/gm": "^1.18.9",
+    "@types/jsonwebtoken": "^8.5.1",
+    "@types/markdown-it": "^12.0.1",
+    "@types/morgan": "^1.9.2",
+    "@types/mysql": "^2.15.18",
+    "@types/node": "^15.6.1",
+    "@types/passport": "^1.0.6",
+    "@types/passport-github": "^1.1.5",
+    "@types/passport-google-oauth20": "^2.0.7",
+    "@types/passport-http": "^0.3.8",
+    "@types/passport-http-bearer": "^1.0.36",
+    "@types/passport-local": "^1.0.33",
+    "@types/serve-favicon": "^2.5.2",
+    "@types/serve-static": "^1.13.9",
+    "@types/tmp": "^0.2.0",
+    "@typescript-eslint/eslint-plugin": "^4.26.0",
+    "@typescript-eslint/parser": "^4.26.0",
     "apidoc": "^0.28.1",
     "browserify": "^17.0.0",
     "byline": "^5.0.0",
@@ -124,12 +153,16 @@
     "inline-worker": "^1.1.0",
     "jsdoc": "^3.6.7",
     "jsxgettext": "^0.11.0",
+    "moment": "^2.29.1",
     "nyc": "^15.1.0",
     "parse5": "^6.0.0",
     "proxyquire": "^2.0.0",
     "pug-lint": "^2.4.0",
     "qs": "^6.10.1",
-    "tough-cookie": "^4.0.0"
+    "source-map-support": "^0.5.19",
+    "tough-cookie": "^4.0.0",
+    "ts-node": "^10.0.0",
+    "typescript": "~4.2.4"
   },
   "optionalDependencies": {
     "@kubernetes/client-node": "^0.14.3",
@@ -137,6 +170,7 @@
     "selenium-webdriver": "^4.0.0-beta.3"
   },
   "nyc": {
+    "extends": "@istanbuljs/nyc-config-typescript",
     "exclude": [
       "coverage/**",
       "tests/**",

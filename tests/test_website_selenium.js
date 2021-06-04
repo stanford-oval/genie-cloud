@@ -17,22 +17,20 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
 // load thingpedia to initialize the polyfill
-require('thingpedia');
-require('./polyfill');
+import 'thingpedia';
 process.on('unhandledRejection', (up) => { throw up; });
-require('../util/config_init');
+import '../src/util/config_init';
 
-const assert = require('assert');
-const Tp = require('thingpedia');
+import assert from 'assert';
+import * as Tp from 'thingpedia';
 
-const WD = require('selenium-webdriver');
-const chrome = require('selenium-webdriver/chrome');
-const firefox = require('selenium-webdriver/firefox');
+import * as WD from 'selenium-webdriver';
+import * as chrome from 'selenium-webdriver/chrome';
+import * as firefox from 'selenium-webdriver/firefox';
 
-const Config = require('../config');
+import * as Config from '../src/config';
 
 const BASE_URL = process.env.THINGENGINE_URL || Config.SERVER_ORIGIN;
 
@@ -347,6 +345,4 @@ async function main() {
     await withSelenium(testMyConversation);
     await withSelenium(testRegister);
 }
-module.exports = main;
-if (!module.parent)
-    main();
+main();
