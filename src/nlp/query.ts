@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -25,9 +25,9 @@ import * as I18n from '../util/i18n';
 
 import runNLU from './nlu';
 
-let router = express.Router();
+const router = express.Router();
 
-async function tokenize(params, data, res) {
+async function tokenize(params : Record<string, string>, data : Record<string, any>, res : express.Response) {
     const langPack = I18n.get(params.locale, false);
     if (!langPack) {
         res.status(404).json({ error: 'Unsupported language' });
@@ -46,7 +46,7 @@ async function tokenize(params, data, res) {
     res.json(tokenized);
 }
 
-async function query(params, data, res) {
+async function query(params : Record<string, string>, data : Record<string, any>, res : express.Response) {
     const query = data.q;
     if (!I18n.get(params.locale, false)) {
         res.status(404).json({ error: 'Unsupported language' });

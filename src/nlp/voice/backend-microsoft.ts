@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,11 +18,12 @@
 //
 // Author: Euirim Choi <euirim@cs.stanford.edu>
 
-
 import * as Tp from 'thingpedia';
 import * as fs from 'fs';
 import xmlbuilder from 'xmlbuilder';
+import * as http from 'http';
 import * as https from 'https';
+import WebSocket from 'ws';
 import {
   AudioInputStream,
   ResultReason,
@@ -35,7 +36,10 @@ import * as wav from 'wav';
 import * as Config from '../../config';
 
 class SpeechToTextFailureError extends Error {
-    constructor(status, code, message) {
+    status : number;
+    code : string;
+
+    constructor(status : number, code : string, message : string) {
         super(message);
         this.status = status;
         this.code = code;
@@ -43,15 +47,17 @@ class SpeechToTextFailureError extends Error {
 }
 
 class SpeechToText {
-    constructor(locale) {
+    private _locale : string;
+
+    constructor(locale : string) {
         this._locale = locale;
     }
 
-    _initRecognizer(sdkInputStream) {
+    private _initRecognizer(sdkInputStream : AudioInputStream) {
         const audioConfig = AudioConfig.fromStreamInput(sdkInputStream);
         const speechConfig = SpeechConfig.fromSubscription(
-            Config.MS_SPEECH_SUBSCRIPTION_KEY,
-            Config.MS_SPEECH_SERVICE_REGION,
+            Config.MS_SPEECH_SUBSCRIPTION_KEY!,
+            Config.MS_SPEECH_SERVICE_REGION!,
         );
         speechConfig.speechRecognitionLanguage = this._locale;
 
@@ -59,7 +65,7 @@ class SpeechToText {
         return new SpeechRecognizer(speechConfig, audioConfig);
     }
 
-    async recognizeOnce(wavFilename) {
+    async recognizeOnce(wavFilename : string) : Promise<string> {
         const sdkAudioInputStream = AudioInputStream.createPushStream();
         const recognizer = this._initRecognizer(sdkAudioInputStream);
 
@@ -93,12 +99,12 @@ class SpeechToText {
         });
     }
 
-    async recognizeStream(stream) {
+    async recognizeStream(stream : WebSocket) {
         const sdkAudioInputStream = AudioInputStream.createPushStream();
         const recognizer = this._initRecognizer(sdkAudioInputStream);
 
         return new Promise((resolve, reject) => {
-            let fullText = '', lastFC = 0, timerLastFrame, _ended = false;
+            let fullText = '', lastFC = 0, timerLastFrame : NodeJS.Timeout, _ended = false;
 
             function stopRecognizer() {
                 if (timerLastFrame) clearInterval(timerLastFrame);
@@ -107,12 +113,15 @@ class SpeechToText {
             }
 
             recognizer.recognized = (_, e) => {
+                const result = e.result;
+                const reason = result.reason;
+
                 // Indicates that recognizable speech was not detected
-                if (e.privResult.privReason === ResultReason.NoMatch)
+                if (reason === ResultReason.NoMatch)
                     recognizer.sessionStopped(_, e);
                 // Add recognized text to fullText
-                if (e.privResult.privReason === ResultReason.RecognizedSpeech)
-                    fullText += e.privResult.privText;
+                if (reason === ResultReason.RecognizedSpeech)
+                    fullText += result.text;
             };
 
             // Signals that the speech service has detected that speech has stopped.
@@ -142,7 +151,7 @@ class SpeechToText {
                 recognizer.close();
             });
 
-            stream.on('message', (data) => {
+            stream.on('message', (data : Buffer) => {
                 if (data.length) {
                     if (!_ended) sdkAudioInputStream.write(data);
                     lastFC = 0;
@@ -160,19 +169,19 @@ async function getTTSAccessToken() {
     const url = `https://${Config.MS_SPEECH_SERVICE_REGION}.api.cognitive.microsoft.com/sts/v1.0/issuetoken`;
     return Tp.Helpers.Http.post(url, '', {
         extraHeaders: {
-            'Ocp-Apim-Subscription-Key': Config.MS_SPEECH_SUBSCRIPTION_KEY,
+            'Ocp-Apim-Subscription-Key': Config.MS_SPEECH_SUBSCRIPTION_KEY!,
         },
     });
 }
 
-const VOICES = {
+const VOICES : Record<string, { male : string, female : string }> = {
     'en-us': {
         'male': 'GuyNeural',
         'female': 'AriaNeural'
     }
 };
 
-async function textToSpeech(locale, gender = 'male', text) {
+async function textToSpeech(locale : string, gender : 'male'|'female' = 'male', text : string) {
     const accessToken = await getTTSAccessToken();
     // Create the SSML request.
     const xmlBody = xmlbuilder
@@ -181,13 +190,13 @@ async function textToSpeech(locale, gender = 'male', text) {
         .att('xml:lang', locale)
         .ele('voice')
         .att('xml:lang', locale)
-        .att('name', locale + '-' + VOICES[locale.toLowerCase()][gender.toLowerCase()])
+        .att('name', locale + '-' + VOICES[locale.toLowerCase()][gender])
         .txt(text)
         .end();
     // Convert the XML into a string to send in the TTS request.
     const body = xmlBody.toString();
 
-    return new Promise((resolve, reject) => {
+    return new Promise<http.IncomingMessage>((resolve, reject) => {
         const options = {
             protocol: 'https:',
             hostname: `${Config.MS_SPEECH_SERVICE_REGION}.tts.speech.microsoft.com`,

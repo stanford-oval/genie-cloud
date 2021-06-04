@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -26,13 +26,18 @@ import * as Tp from 'thingpedia';
 import BaseThingpediaClient from '../util/thingpedia-client';
 import * as AbstractFS from '../util/abstract_fs';
 import * as localfs from '../util/local_fs';
+import * as dbmodel from '../model/nlp_models';
 
 import * as Config from '../config';
 import kfInferenceUrl from '../util/kf_inference_url';
 
+import type { NLPInferenceServer } from './main';
+
 // A ThingpediaClient that operates under the credentials of a specific organization
 class OrgThingpediaClient extends BaseThingpediaClient {
-    constructor(locale, org) {
+    private _org : { id : number, is_admin : boolean }|null;
+
+    constructor(locale : string, org : { id : number, is_admin : boolean }|null) {
         super(null, locale);
         this._org = org;
     }
@@ -43,32 +48,37 @@ class OrgThingpediaClient extends BaseThingpediaClient {
 }
 
 class DummyExactMatcher {
-    async load() {}
+    async load(filename : string) {}
 
-    get() {
+    get(utterance : string[]) : string[][]|null {
         return null;
     }
 
-    add() {}
+    add(utterance : string[], target_code : string[]) {}
 }
 
-class DummyPreferences {
+class DummyPreferences extends Tp.Preferences {
     keys() {
         return [];
     }
 
-    get(key) {
+    get(key : string) {
         return undefined;
     }
 
-    set(key, value) {}
+    set<T>(key : string, value : T) : T {
+        return value;
+    }
 }
 
 /**
  * A stubbed-out Tp.BasePlatform implementation to be able to use Tp.HttpClient.
  */
 class DummyPlatform extends Tp.BasePlatform {
-    constructor(locale) {
+    private _locale : string;
+    private _prefs : DummyPreferences;
+
+    constructor(locale : string) {
         super();
         this._locale = locale;
         this._prefs = new DummyPreferences;
@@ -115,10 +125,22 @@ class DummyPlatform extends Tp.BasePlatform {
     }
 }
 
-const nprocesses = 1;
-
 export default class NLPModel {
-    constructor(spec, service) {
+    id : string;
+    private _kfUrl : string|null;
+    private _localdir : string|null;
+    accessToken ! : string|null;
+    tag ! : string;
+    locale ! : string;
+    trained ! : boolean;
+    contextual ! : boolean;
+    exact ! : DummyExactMatcher;
+    private _modeldir ! : string;
+    private _platform ! : DummyPlatform;
+    tpClient ! : Tp.BaseClient;
+    predictor ! : Genie.ParserClient.ParserClient;
+
+    constructor(spec : dbmodel.Row, service : NLPInferenceServer) {
         this.id = `@${spec.tag}/${spec.language}`;
         this._kfUrl = null;
         if (Config.USE_KF_INFERENCE_SERVICE) {
@@ -130,7 +152,7 @@ export default class NLPModel {
         this.init(spec, service);
     }
 
-    init(spec, service) {
+    init(spec : dbmodel.Row, service : NLPInferenceServer) {
         this.accessToken = spec.access_token;
         this.tag = spec.tag;
         this.locale = spec.language;
@@ -138,7 +160,7 @@ export default class NLPModel {
         this.contextual = spec.contextual;
 
         if (spec.use_exact)
-            this.exact = service.getExact(spec.language);
+            this.exact = service.getExact(spec.language)!;
         else
             this.exact = new DummyExactMatcher(); // non default models don't get any exact match
 
@@ -161,7 +183,7 @@ export default class NLPModel {
         }
     }
 
-    async _download() {
+    private async _download() {
         this._localdir = await AbstractFS.download(this._modeldir + '/');
     }
 
@@ -183,8 +205,8 @@ export default class NLPModel {
         await this._download();
 
         const oldpredictor = this.predictor;
-        this.predictor = Genie.ParserClient.get('file://' + path.resolve(this._localdir), this.locale, this._platform,
-            this.exact, this.tpClient, { id: this.id, nprocesses });
+        this.predictor = Genie.ParserClient.get('file://' + path.resolve(this._localdir!), this.locale, this._platform,
+            this.exact, this.tpClient, { id: this.id });
         await this.predictor.start();
 
         await Promise.all([
@@ -202,10 +224,10 @@ export default class NLPModel {
             console.log('Using KF Inference service: ' + url);
         } else {
             await this._download();
-            url = 'file://' + path.resolve(this._localdir);
+            url = 'file://' + path.resolve(this._localdir!);
         }
         this.predictor = Genie.ParserClient.get(url, this.locale, this._platform,
-            this.exact, this.tpClient, { id: this.id, nprocesses });
+            this.exact, this.tpClient, { id: this.id });
         await this.predictor.start();
     }
 }

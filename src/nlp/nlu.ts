@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,14 +18,37 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
+import * as Genie from 'genie-toolkit';
+
 import * as db from '../util/db';
 import * as exampleModel from '../model/example';
 
-function isValidDeveloperKey(developerKey) {
+import type NLPModel from './nlp_model';
+import type { NLPInferenceServer } from './main';
+
+function isValidDeveloperKey(developerKey : string|null|undefined) {
     return developerKey && developerKey !== 'null' && developerKey !== 'undefined';
 }
 
-export default async function runNLU(query, params, data, service, res) {
+interface NLUResult {
+    result : 'ok';
+    candidates : Genie.ParserClient.PredictionCandidate[];
+    tokens : string[];
+    entities : Genie.EntityUtils.EntityMap;
+    intent : {
+        command : number;
+        other : number;
+        ignore : number;
+    }
+    text ?: string;
+}
+
+export default async function runNLU(query : string,
+                                     params : Record<string, string>,
+                                     data : Record<string, any>,
+                                     service : NLPInferenceServer,
+                                     res : express.Response) : Promise<NLUResult|undefined> {
     const store = data.store || 'no';
     if (store !== 'yes' && store !== 'no') {
         res.status(400).json({ error: 'Invalid store parameter' });
@@ -33,8 +56,8 @@ export default async function runNLU(query, params, data, service, res) {
     }
     const expect = data.expect || null;
 
-    let modelTag = params.model_tag;
-    let model;
+    const modelTag = params.model_tag;
+    let model : NLPModel|undefined;
     if (modelTag) {
         model = service.getModel(modelTag, params.locale);
         if (!model || !model.trained) {
@@ -99,7 +122,7 @@ export default async function runNLU(query, params, data, service, res) {
     if (store !== 'no' && expect !== 'MultipleChoice' && tokens.length > 0) {
         await db.withClient((dbClient) => {
             return exampleModel.logUtterance(dbClient, {
-                language: model.locale,
+                language: model!.locale,
                 preprocessed: tokens.join(' '),
                 context: (!data.context || data.context === 'null') ? null : data.context,
                 target_code: candidates.length > 0 ? (candidates[0]['code'].join(' ')) : ''

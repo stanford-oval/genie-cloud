@@ -40,6 +40,7 @@ import xmlBodyParser from 'express-xml-bodyparser';
 import Prometheus from 'prom-client';
 import escapeHtml from 'escape-html';
 
+import './types';
 import * as passportUtil from './util/passport';
 import * as secretKey from './util/secret_key';
 import * as db from './util/db';

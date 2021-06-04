@@ -101,6 +101,10 @@ export default class ThingpediaClientCloud extends Tp.BaseClient {
             return db.withClient(func);
     }
 
+    /**
+     * @param {db.Client} dbClient
+     * @returns {Promise<{ id : number, is_admin : boolean }|null>}
+     */
     async _getOrg(dbClient) {
         const [org] = await organization.getByDeveloperKey(dbClient, this.developerKey);
         return org || null;
@@ -420,6 +424,13 @@ export default class ThingpediaClientCloud extends Tp.BaseClient {
                 attribution: r.attribution
             }));
         });
+    }
+
+    /**
+     * @returns {never}
+     */
+    searchDevice() {
+        throw new Error('not implemented yet');
     }
 }
 ThingpediaClientCloud.prototype.$rpcMethods = [

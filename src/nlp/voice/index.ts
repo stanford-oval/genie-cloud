@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -19,6 +19,7 @@
 // Author: Euirim Choi <euirim@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import WebSocket from 'ws';
 import express from 'express';
 import multer from 'multer';
 import * as os from 'os';
@@ -32,7 +33,7 @@ const upload = multer({ dest: os.tmpdir() });
 
 const router = express.Router();
 
-async function streamSTT(ws, req) {
+async function streamSTT(ws : WebSocket, req : express.Request) {
     if (!I18n.get(req.params.locale, false)) {
         await ws.send(JSON.stringify({ error: 'Unsupported language' }));
         await ws.close();
@@ -44,7 +45,7 @@ async function streamSTT(ws, req) {
      * 1002 - indicates that an endpoint is terminating the connection due to a protocol error.
      * 1003 - indicates that an endpoint is terminating the connection because it has received a type of data it cannot accept.
      */
-    function errorClose(e, code = 1002) {
+    function errorClose(e : { error : string }, code = 1002) {
         if (ws.readyState === 1) {
           // OPEN
           ws.send(JSON.stringify(e));
@@ -60,20 +61,22 @@ async function streamSTT(ws, req) {
         if (sessionTimeout) clearTimeout(sessionTimeout);
     });
 
-    function initialPacket(msg) {
-        ws.removeEventListener('message', initialPacket);
+    function initialPacket(msg : string) {
+        ws.removeListener('message', initialPacket);
         clearTimeout(sessionTimeout);
+
+        let parsed : { ver : number };
         try {
-          msg = JSON.parse(msg);
+            parsed = JSON.parse(msg);
         } catch(e) {
           errorClose({ error: 'Malformed initial packet: ' + e.message });
           return;
         }
 
-        if (msg.ver && msg.ver === 1) {
+        if (parsed.ver && parsed.ver === 1) {
           const stt = new SpeechToText(req.params.locale);
           stt.recognizeStream(ws).then((text) => {
-              let result = { result: 'ok', text: text };
+              const result = { result: 'ok', text: text };
               ws.send(JSON.stringify(result));
               ws.close(1000);
           }).catch((e) => {
@@ -87,7 +90,7 @@ async function streamSTT(ws, req) {
     ws.on('message', initialPacket);
 }
 
-function restSTT(req, res, next) {
+function restSTT(req : express.Request, res : express.Response, next : express.NextFunction) {
     if (!req.file) {
         iv.failKey(req, res, 'audio', { json: true });
         return;
@@ -120,7 +123,7 @@ const NLU_METADATA_KEYS = {
     developer_key: '?string',
 };
 
-async function restSTTAndNLU(req, res, next) {
+async function restSTTAndNLU(req : express.Request, res : express.Response, next : express.NextFunction) {
     if (!req.file) {
         iv.failKey(req, res, 'audio', { json: true });
         return;
@@ -132,8 +135,8 @@ async function restSTTAndNLU(req, res, next) {
         iv.failKey(req, res, 'metadata', { json: true });
         return;
     }
-    for (let key in NLU_METADATA_KEYS) {
-        if (!iv.checkKey(metadata[key], NLU_METADATA_KEYS[key])) {
+    for (const key in NLU_METADATA_KEYS) {
+        if (!iv.checkKey(metadata[key], NLU_METADATA_KEYS[key as keyof typeof NLU_METADATA_KEYS])) {
             iv.failKey(req, res, key, { json: true });
             return;
         }
@@ -155,23 +158,13 @@ async function restSTTAndNLU(req, res, next) {
     res.json(result);
 }
 
-function tts(req, res, next) {
+function tts(req : express.Request, res : express.Response, next : express.NextFunction) {
     if (!I18n.get(req.params.locale, false)) {
         res.status(404).json({ error: 'Unsupported language' });
         return;
     }
 
-    let gender = 'male';  // default voice gender to male
-    if (req.body.gender) {
-        if (req.body.gender.toLowerCase() === 'male' || req.body.gender.toLowerCase() === 'female') {
-            gender = req.body.gender;
-        } else {
-            res.status(404).json({ error: 'Unsupported gender' });
-            return;
-        }
-    }
-
-    textToSpeech(req.params.locale, gender, req.body.text).then((stream) => {
+    textToSpeech(req.params.locale, req.body.gender || 'male', req.body.text).then((stream) => {
         // audio/x-wav is strictly-speaking non-standard, yet it seems to be
         // widely used for .wav files
         if (stream.statusCode === 200)
@@ -185,7 +178,10 @@ router.ws('/:locale/voice/stream', streamSTT);
 router.post('/:locale/voice/stt', upload.single('audio'), restSTT);
 router.post('/:locale/voice/query', upload.single('audio'),
     iv.validatePOST({ metadata: 'string' }), restSTTAndNLU);
-router.post('/:locale/voice/tts', iv.validatePOST({ text: 'string' }, { json: true }), tts);
+router.post('/:locale/voice/tts', iv.validatePOST({
+    gender: /^(|male|female)$/,
+    text: 'string'
+}, { json: true }), tts);
 
 // provide identical API keyed off to :model_tag, so people can change the NL_SERVER_URL
 // to include the model tag
@@ -193,6 +189,9 @@ router.post('/:locale/voice/tts', iv.validatePOST({ text: 'string' }, { json: tr
 router.post('/@:model_tag/:locale/voice/stt', upload.single('audio'), restSTT);
 router.post('/@:model_tag/:locale/voice/query', upload.single('audio'),
     iv.validatePOST({ metadata: 'string' }, { json: true }), restSTTAndNLU);
-router.post('/@:model_tag/:locale/voice/tts', iv.validatePOST({ text: 'string', gender: '?string' }, { json: true }), tts);
+router.post('/@:model_tag/:locale/voice/tts', iv.validatePOST({
+    gender: /^(|male|female)$/,
+    text: 'string'
+}, { json: true }), tts);
 
 export default router;
