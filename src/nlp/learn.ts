@@ -47,27 +47,15 @@ async function learn(req : express.Request, res : express.Response) {
         return;
     }
 
-    const langPack = I18n.get(req.params.locale, false);
+    const langPack = I18n.get(req.params.locale);
     if (!langPack) {
         res.status(404).json({ error: 'Unsupported language' });
         return;
     }
 
-    const service = req.app.service;
-    const model = service.getModel(req.params.model_tag, req.params.locale);
-    if (!model) {
-        res.status(404).json({ error: 'No such model' });
-        return;
-    }
-
-    if (model.accessToken !== null && model.accessToken !== req.body.access_token) {
-        res.status(404).json({ error: 'No such model' });
-        return;
-    }
-
     const languageTag = I18n.localeToLanguage(req.params.locale);
     const utterance = req.body.q;
-    const tokenizer = langPack.genie.getTokenizer();
+    const tokenizer = I18n.get(req.params.locale).genie.getTokenizer();
     const tokenized = await tokenizer.tokenize(utterance);
     if (tokenized.tokens.length === 0) {
         res.status(400).json({ error: 'Refusing to learn an empty sentence' });
@@ -81,6 +69,9 @@ async function learn(req : express.Request, res : express.Response) {
         res.status(200).json({ result: "ok", message: 'Ignored request from older ThingTalk' });
         return;
     }
+
+    const service = req.app.service;
+    const model = service.model;
 
     let sequence = req.body.target.split(' ');
     try {
@@ -156,10 +147,10 @@ async function learn(req : express.Request, res : express.Response) {
         model.exact.add(preprocessed.split(' '), target_code.split(' '));
         if (req.app.proxy) {
             // call other replicas to reload the new example
-            const path = `/admin/reload/exact/@${req.params.model_tag}/${req.params.locale}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`;
+            const path = `/admin/reload/exact?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`;
             const promises = [];
             for (const replica of await req.app.proxy.getEndpoints(Config.NL_SERVICE_NAME, true)) {
-                promises.push(Tp.Helpers.Http.post( `http://${replica}${path}`, `example_id=${encodeURIComponent(exampleId)}`, {
+                promises.push(Tp.Helpers.Http.post(`http://${replica}${path}`, `example_id=${encodeURIComponent(exampleId)}`, {
                     dataContentType: 'application/x-www-form-urlencoded',
                     extraHeaders: req.app.proxy.header()
                 }));
@@ -169,10 +160,6 @@ async function learn(req : express.Request, res : express.Response) {
     }
     res.status(200).json({ result: 'ok', message: 'Learnt successfully', example_id: exampleId });
 }
-
-router.post('/@:model_tag/:locale/learn',
-    iv.validatePOST({ q: 'string', store: 'string', access_token: '?string', thingtalk_version: 'string', target: 'string', owner: '?string' }, { json: true }),
-    (req, res, next) => { learn(req, res).catch(next); });
 
 router.post('/:locale/learn',
     iv.validatePOST({ q: 'string', store: 'string', access_token: '?string', thingtalk_version: 'string', target: 'string', owner: '?string' }, { json: true }),

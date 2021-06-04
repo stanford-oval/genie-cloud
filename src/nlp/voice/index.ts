@@ -183,15 +183,4 @@ router.post('/:locale/voice/tts', iv.validatePOST({
     text: 'string'
 }, { json: true }), tts);
 
-// provide identical API keyed off to :model_tag, so people can change the NL_SERVER_URL
-// to include the model tag
-
-router.post('/@:model_tag/:locale/voice/stt', upload.single('audio'), restSTT);
-router.post('/@:model_tag/:locale/voice/query', upload.single('audio'),
-    iv.validatePOST({ metadata: 'string' }, { json: true }), restSTTAndNLU);
-router.post('/@:model_tag/:locale/voice/tts', iv.validatePOST({
-    gender: /^(|male|female)$/,
-    text: 'string'
-}, { json: true }), tts);
-
 export default router;

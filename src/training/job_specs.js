@@ -48,7 +48,7 @@ export default {
             async task(job) {
                 // reload the exact matches now that the synthetic set has been updated
                 try {
-                    await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/exact/@${job.model_tag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
+                    await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/exact?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
                         dataContentType: 'application/x-www-form-urlencoded'
                     });
                 } catch(e) {

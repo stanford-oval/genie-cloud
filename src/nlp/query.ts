@@ -77,28 +77,12 @@ const QUERY_PARAMS = {
     developer_key: '?string',
 } as const;
 
-router.get('/@:model_tag/:locale/query', iv.validateGET(QUERY_PARAMS, { json: true }), (req, res, next) => {
-    query(req.params, req.query, res).catch(next);
-});
-
-router.get('/@:model_tag/:locale/tokenize', iv.validateGET({ q: 'string' }, { json: true }), (req, res, next) => {
-    tokenize(req.params, req.query, res).catch(next);
-});
-
 router.get('/:locale/query', iv.validateGET(QUERY_PARAMS, { json: true }), (req, res, next) => {
     query(req.params, req.query, res).catch(next);
 });
 
 router.get('/:locale/tokenize', iv.validateGET({ q: 'string' }, { json: true }), (req, res, next) => {
     tokenize(req.params, req.query, res).catch(next);
-});
-
-router.post('/@:model_tag/:locale/query', iv.validatePOST(QUERY_PARAMS, { json: true }), (req, res, next) => {
-    query(req.params, req.body, res).catch(next);
-});
-
-router.post('/@:model_tag/:locale/tokenize', iv.validatePOST({ q: 'string' }, { json: true }), (req, res, next) => {
-    tokenize(req.params, req.body, res).catch(next);
 });
 
 router.post('/:locale/query', iv.validatePOST(QUERY_PARAMS, { json: true }), (req, res, next) => {

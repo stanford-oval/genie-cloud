@@ -72,22 +72,15 @@ mkdir -p 'models/org.thingpedia.models.default:en'
 wget --no-verbose -c https://almond-static.stanford.edu/test-data/models/genienlp-v0.6.0a2.tar.xz -O $srcdir/tests/embeddings/genienlp-v0.6.0a2.xz
 tar xvf $srcdir/tests/embeddings/genienlp-v0.6.0a2.xz -C 'models/org.thingpedia.models.default:en'
 
-# 1) remove developer models that were autoadded by bootstrap
-# we'll test the main models only (there is no difference really)
-# 2) mark the models as trained, given that we downloaded a pretrained model
-# 3) create a dummy test model that is not trained
-${srcdir}/dist/main.js execute-sql-file /proc/self/fd/0 <<<"
-delete from models where tag like '%developer%';
-update models set trained = true where tag = 'org.thingpedia.models.default';
-insert into models set tag ='org.thingpedia.test.nottrained', language = 'en', owner = 1,
-  all_devices = 1, use_approved = 1, flags = '[]', contextual = 0, trained = 0;
-"
-
 mkdir -p 'exact'
 wget --no-verbose -c https://almond-static.stanford.edu/test-data/exact.tsv -O exact/en.tsv
 ${srcdir}/dist/main.js compile-exact-btrie -o exact/en.btrie exact/en.tsv
 
-${srcdir}/dist/main.js run-nlp --port $NLP_PORT &
+${srcdir}/dist/main.js run-nlp --port $NLP_PORT \
+    --contextual --locale en-US --owner 1 \
+    --exact-match-url file://$(realpath exact/en.btrie) \
+    --model-url file://$(realpath models/org.thingpedia.models.default:en)\
+    &
 inferpid=$!
 
 # in interactive mode, sleep forever

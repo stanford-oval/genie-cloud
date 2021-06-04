@@ -22,14 +22,10 @@ import express from 'express';
 import * as Genie from 'genie-toolkit';
 
 import * as db from '../util/db';
+import * as i18n from '../util/i18n';
 import * as exampleModel from '../model/example';
 
-import type NLPModel from './nlp_model';
 import type { NLPInferenceServer } from './main';
-
-function isValidDeveloperKey(developerKey : string|null|undefined) {
-    return developerKey && developerKey !== 'null' && developerKey !== 'undefined';
-}
 
 interface NLUResult {
     result : 'ok';
@@ -55,51 +51,24 @@ export default async function runNLU(query : string,
         return undefined;
     }
     const expect = data.expect || null;
+    const model = service.model;
 
-    const modelTag = params.model_tag;
-    let model : NLPModel|undefined;
-    if (modelTag) {
-        model = service.getModel(modelTag, params.locale);
-        if (!model || !model.trained) {
-            res.status(404).json({ error: 'No such model' });
-            return undefined;
-        }
-
-        if (model.contextual && !data.context) {
-            data.context = 'null';
-            data.entities = {};
-        } else if (!model.contextual) {
-            data.context = undefined;
-            data.entities = undefined;
-        }
-    } else {
-        let fallbacks;
-        if (isValidDeveloperKey(data.developer_key))
-            fallbacks = ['org.thingpedia.models.developer', 'org.thingpedia.models.default'];
-        else
-            fallbacks = ['org.thingpedia.models.default', 'org.thingpedia.models.developer'];
-
-        for (const candidate of fallbacks) {
-            model = service.getModel(candidate, params.locale);
-            if (model && model.trained) {
-                if (model.contextual && !data.context) {
-                    data.context = 'null';
-                    data.entities = {};
-                } else if (!model.contextual) {
-                    data.context = undefined;
-                    data.entities = undefined;
-                }
-                break;
-            }
-        }
-        if (!model) {
-            res.status(500).json({ error: 'No default model' });
-            return undefined;
-        }
+    const language = i18n.localeToLanguage(params.locale);
+    if (language !== model.languageTag) {
+        res.status(404).json({ error: 'Unsupported language' });
+        return undefined;
     }
 
-    if (model.accessToken !== null && model.accessToken !== data.access_token) {
-        res.status(404).json({ error: 'No such model' });
+    if (model.contextual && !data.context) {
+        data.context = 'null';
+        data.entities = {};
+    } else if (!model.contextual) {
+        data.context = undefined;
+        data.entities = undefined;
+    }
+
+    if (model.accessToken !== undefined && model.accessToken !== data.access_token) {
+        res.status(401).json({ error: 'Invalid access token' });
         return undefined;
     }
 
@@ -109,7 +78,7 @@ export default async function runNLU(query : string,
     if (store !== 'no' && expect !== 'MultipleChoice' && tokens.length > 0) {
         await db.withClient((dbClient) => {
             return exampleModel.logUtterance(dbClient, {
-                language: model!.locale,
+                language: model.languageTag,
                 preprocessed: tokens.join(' '),
                 context: (!data.context || data.context === 'null') ? null : data.context,
                 target_code: candidates.length > 0 ? (candidates[0]['code'].join(' ')) : ''

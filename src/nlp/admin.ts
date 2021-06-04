@@ -21,9 +21,7 @@
 import express from 'express';
 
 import * as db from '../util/db';
-import * as i18n from '../util/i18n';
 import * as Config from '../config';
-import * as modelsModel from '../model/nlp_models';
 import * as exampleModel from '../model/example';
 
 const router = express.Router();
@@ -39,52 +37,18 @@ router.use((req, res, next) => {
         req.app.proxy.fanout(req, res);
 });
 
-router.post('/reload/exact/@:model_tag/:locale', (req, res, next) => {
-    if (!i18n.get(req.params.locale, false)) {
-        res.status(404).json({ error: 'Unsupported language' });
-        return;
-    }
-
-    const matcher = req.app.service.getExact(req.params.locale);
-    if (!matcher) {
-        res.status(404).json({ error: 'No such model' });
-        return;
-    }
-
-    const language = i18n.localeToLanguage(req.params.locale);
+router.post('/reload/exact', (req, res, next) => {
     db.withClient(async (dbClient) => {
         if (req.body.example_id) {
+            const matcher = req.app.service.exact;
             const row = await exampleModel.getExactById(dbClient, req.body.example_id);
             matcher.add(row.preprocessed.split(' '), row.target_code.split(' '));
-            console.log(`Added ${req.body.example_id} for language ${language}`);
         } else {
-            await req.app.service.loadExactMatcher(matcher, language);
+            await req.app.service.loadExactMatcher();
         }
     }).then(() => {
         res.json({ result: 'ok' });
     }).catch(next);
-});
-
-
-router.post('/reload/@:model_tag/:locale', (req, res, next) => {
-    if (!i18n.get(req.params.locale, false)) {
-        res.status(404).json({ error: 'Unsupported language' });
-        return;
-    }
-
-    const language = i18n.localeToLanguage(req.params.locale);
-
-    db.withTransaction(async (dbClient) => {
-        const spec = (await modelsModel.getByTag(dbClient, language, req.params.model_tag))[0];
-        if (!spec) {
-            res.status(404).json({ error: 'No such model' });
-            return;
-        }
-        const model = req.app.service.getOrCreateModel(spec);
-
-        await model.reload();
-        res.json({ result: 'ok' });
-    }, 'repeatable read', 'read only');
 });
 
 export default router;

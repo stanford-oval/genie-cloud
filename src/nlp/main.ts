@@ -28,11 +28,8 @@ import Prometheus from 'prom-client';
 import * as Genie from 'genie-toolkit';
 import rateLimit from 'express-rate-limit';
 
-import * as db from '../util/db';
 import Metrics from '../util/metrics';
 import * as errorHandling from '../util/error_handling';
-import * as modelsModel from '../model/nlp_models';
-import * as I18n from '../util/i18n';
 import * as AbstractFS from '../util/abstract_fs';
 
 import NLPModel from './nlp_model';
@@ -50,83 +47,37 @@ declare global {
 }
 
 export class NLPInferenceServer {
-    private _models : Map<string, NLPModel>;
-    private _exactMatchers : Map<string, Genie.ExactMatcher>;
+    readonly exact : Genie.ExactMatcher;
+    readonly model : NLPModel;
+    private _exactMatchUrl : string|undefined;
 
-    constructor() {
-        this._models = new Map;
-        this._exactMatchers = new Map;
+    constructor(options : {
+        locale : string,
+        model_url : string,
+        owner : number|undefined,
+        exact_match_url : string|undefined,
+        contextual : boolean,
+        access_token : string|undefined,
+    }) {
+        this._exactMatchUrl = options.exact_match_url;
+        this.exact = new Genie.ExactMatcher;
+        this.model = new NLPModel(options, this);
     }
 
-    getExact(locale : string) {
-        const splitTag = locale.split(/[_.-]/g);
-
-        while (splitTag.length > 0) {
-            const matcher = this._exactMatchers.get(splitTag.join('-'));
-            if (matcher)
-                return matcher;
-            splitTag.pop();
-        }
-        return undefined;
-    }
-
-    getModel(modelTag = 'org.thingpedia.models.default', locale : string) {
-        const splitTag = locale.split(/[_.-]/g);
-
-        // API compat
-        if (modelTag === 'default')
-            modelTag = 'org.thingpedia.models.default';
-
-        while (splitTag.length > 0) {
-            const key = `@${modelTag}/${splitTag.join('-')}`;
-            const model = this._models.get(key);
-            if (model)
-                return model;
-            splitTag.pop();
-        }
-        return undefined;
-    }
-
-    getOrCreateModel(spec : modelsModel.Row) {
-        const key = `@${spec.tag}/${spec.language}`;
-        let model = this._models.get(key);
-        if (model) {
-            model.init(spec, this);
-            return model;
-        }
-
-        model = new NLPModel(spec, this);
-        this._models.set(key, model);
-        return model;
-    }
-
-    async loadExactMatcher(matcher : Genie.ExactMatcher, language : string) {
-        const url = AbstractFS.resolve(Config.NL_EXACT_MATCH_DIR, language + '.btrie');
+    async loadExactMatcher() {
+        if (!this._exactMatchUrl)
+            return;
+        const url = AbstractFS.resolve(Config.NL_EXACT_MATCH_DIR, this._exactMatchUrl);
         const tmpPath = await AbstractFS.download(url);
 
-        await matcher.load(tmpPath);
+        await this.exact.load(tmpPath);
 
         await AbstractFS.removeTemporary(tmpPath);
     }
 
-    async loadAllLanguages() {
-        for (const locale of Config.SUPPORTED_LANGUAGES) {
-            const language = I18n.localeToLanguage(locale);
-            const matcher = new Genie.ExactMatcher();
-            await this.loadExactMatcher(matcher, language);
-            this._exactMatchers.set(language, matcher);
-        }
-
-        await db.withTransaction(async (dbClient) => {
-            const modelspecs = await modelsModel.getAll(dbClient);
-            for (const modelspec of modelspecs) {
-                const model = new NLPModel(modelspec, this);
-                await model.load();
-                this._models.set(model.id, model);
-            }
-        }, 'repeatable read', 'read only');
-
-        console.log(`Loaded ${this._models.size} models`);
+    async load() {
+        await this.loadExactMatcher();
+        await this.model.load();
     }
 
     async initFrontend(port : number) {
@@ -184,12 +135,46 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: 'Listen on the given port',
         default: 8400
     });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        help: 'Locale of the model to serve (defaults to en-US)',
+        default: 'en-US'
+    });
+    parser.add_argument('-u', '--model-url', {
+        required: true,
+        help: 'URL of the model',
+    });
+    parser.add_argument('--access-token', {
+        required: false,
+        help: 'Require authorization to access this model',
+    });
+    parser.add_argument('--exact-match-url', {
+        required: false,
+        help: 'URL of the exact match model (a BTrie file)',
+    });
+    parser.add_argument('--contextual', {
+        required: false,
+        action: 'store_true',
+        help: 'Serve a contextual model (default)',
+        default: true
+    });
+    parser.add_argument('--no-contextual', {
+        required: false,
+        action: 'store_false',
+        dest: 'contextual',
+        help: 'Serve a single sentence model',
+    });
+    parser.add_argument('-o', '--owner', {
+        required: false,
+        type: Number,
+        help: 'ID of the organization that owns the model (to access unapproved Thingpedia devices)',
+    });
 }
 
 export async function main(argv : any) {
-    const daemon = new NLPInferenceServer();
+    const daemon = new NLPInferenceServer(argv);
 
-    daemon.loadAllLanguages();
+    daemon.load();
     await daemon.initFrontend(argv.port);
 
     if (Config.ENABLE_PROMETHEUS)
