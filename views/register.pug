@@ -18,9 +18,9 @@ block content
       else
         p= String(error)
 
-  div.alert.alert-warning.alert-reg(role='alert',style='color:black')
-    p This is the #[strong development] version of Almond. It is not suitable for everyday use. You should not use this server to store any sensitive or important data.
-      strong Your account and your data might be deleted at any time without warning!
+  if Config.REGISTRATION_WARNING
+    div.alert.alert-warning.alert-reg(role='alert',style='color:black')
+      p!= Config.REGISTRATION_WARNING
 
   form(action='/user/register', method='post', data-toggle='validator')
     input(type='hidden',name='_csrf',value=csrfToken)
