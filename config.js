@@ -272,6 +272,17 @@ module.exports.EXTRA_ABOUT_PAGES = [];
 module.exports.EXTRA_NAVBAR = [];
 
 /**
+  Registration warning
+
+  This is a bit of HTML that can be shown on the registration page.
+  It can be useful to warn about development or unstable servers.
+
+  If set, it must be valid HTML. It will be shown inside a Boostrap
+  alert component. *No sanitization is applied!*
+*/
+module.exports.REGISTRATION_WARNING = null;
+
+/**
   Additional origins that should be allowed to make Cookie-authenticated
   API requests.
 
@@ -597,7 +608,7 @@ module.exports.SUPPORTED_LANGUAGES = ['en-US'];
   fallback to the public Nominatim API, which has a low API quota.
 */
 module.exports.MAPQUEST_KEY = null;
- 
+
 /**
   Enable on demand gpu training.
 
