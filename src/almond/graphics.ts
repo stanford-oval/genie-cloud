@@ -21,9 +21,11 @@
 // Graphics API abstraction, based on nodejs-gm
 
 import gm from 'gm';
+import * as stream from 'stream';
 import * as util from 'util';
+import * as Tp from 'thingpedia';
 
-class Image {
+class Image implements Tp.Capabilities.Image {
     private _gm : gm.State;
 
     constructor(how : string|Buffer) {
@@ -31,7 +33,7 @@ class Image {
     }
 
     getSize() {
-        return util.promisify(this._gm.size).call(this._gm);
+        return util.promisify<gm.Dimensions>(this._gm.size).call(this._gm);
     }
 
     resizeFit(width : number, height : number) {
@@ -39,11 +41,11 @@ class Image {
     }
 
     stream(format : string) {
-        return util.promisify<string>(this._gm.stream).call(this._gm, format);
+        return util.promisify<string, stream.Readable>(this._gm.stream).call(this._gm, format);
     }
 
     toBuffer() {
-        return util.promisify(this._gm.toBuffer).call(this._gm);
+        return util.promisify<Buffer>(this._gm.toBuffer).call(this._gm);
     }
 }
 
