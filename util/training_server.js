@@ -68,7 +68,7 @@ class TrainingServer {
             auth,
         }).catch((err) => {
             // if the server is down eat the error
-            if (err.code !== 503 && err.code !== 'EHOSTUNREACH' && err.code !== 'ECONNREFUSED' && err.code !== 'ECONNRESET')
+            if (err.code !== 503 && err.code !== 404 && err.code !== 'EHOSTUNREACH' && err.code !== 'ECONNREFUSED' && err.code !== 'ECONNRESET')
                 throw err;
         });
     }
@@ -86,7 +86,7 @@ class TrainingServer {
         }).catch((err) => {
             console.error('Failed to start training job: ' + err.message);
             // if the server is down eat the error
-            if (err.code !== 503 && err.code !== 'EHOSTUNREACH' && err.code !== 'ECONNREFUSED' && err.code !== 'ECONNRESET')
+            if (err.code !== 503 && err.code !== 404 && err.code !== 'EHOSTUNREACH' && err.code !== 'ECONNREFUSED' && err.code !== 'ECONNRESET')
                 throw err;
         });
     }
