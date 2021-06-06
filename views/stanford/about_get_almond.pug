@@ -14,7 +14,7 @@ block content
           p
             = _("Web Almond gives you the full power of a personal virtual assistant, without leaving the browser.")
           p
-            small!= _('Web Almond is provided free of charge to the research community. Use of Web Almond constitutes acceptance of the <a href="/about/tos">Terms of Service</a> and <a href="/about/privacy">Privacy Policy</a>.')
+            small!= _('Web Almond is provided free of charge to the research community. Use of Web Almond is subject to our <a href="/about/privacy">Privacy Policy</a>.')
 
           if authenticated
             a(href='/me').btn.btn-primary.custom-btn.col-md-offset-4= _("Go To Web Almond")
@@ -36,6 +36,26 @@ block content
           p
             a(href='https://flathub.org/apps/details/edu.stanford.Almond')
               img(width='200',alt=_("Download on Flathub"),src="https://flathub.org/assets/badges/flathub-badge-en.png")
+
+    div.col-md-6.col-md-offset-3
+      div.panel.panel-default
+        div.panel-heading
+          h2.panel-title= _("Almond for Home Assistant")
+
+        div.panel-body
+          p
+            = _("Almond is also available as an officially-supported add-on for Home Assistant. You can enable it in one click from the add-on store.")
+            |
+            |
+            = _("In Home Assistant, Almond can be used with a microphone and speaker to build a fully functional smart speaker.")
+            |
+            |
+            = _("All your data and credentials are stored only on your device, ensuring the maximum level of privacy.")
+
+          p
+            a(href='https://my.home-assistant.io/redirect/supervisor_addon_store/')
+              img(alt='My Home Assistant Add-on Store',src='https://my.home-assistant.io/badges/supervisor_addon_store.svg',style='width:240px')
+
 
     //-div.col-md-6.col-md-offset-3
       div.panel.panel-default
@@ -68,10 +88,6 @@ block content
         div.panel-body
           p
             = _("Still have not found what your looking for?")
-
             |
             |
-            != _("Almond is also available as a <a href='https://github.com/stanford-oval/almond-server'>smart speaker</a> (hardware not included), and <a href='https://github.com/stanford-oval/almond-cmdline'>command line application</a>.")
-            |
-            |
-            != _("And if that is not enough, you can find Almond\'s source code in our <a href='https://github.com/stanford-oval'>Github page</a>.")
+            != _("Check out Almond\'s source code in our <a href='https://github.com/stanford-oval'>Github page</a>.")
