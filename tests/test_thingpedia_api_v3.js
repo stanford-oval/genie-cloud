@@ -1530,7 +1530,7 @@ async function testGetStringList() {
 }
 
 async function testGetStringValues() {
-    await assertHttpError(request(`/strings/list/tt:path_name`), 403);
+    await assertHttpError(request(`/strings/list/tt:path_name`), 400);
 
     assert.deepStrictEqual(await request(`/strings/list/tt:path_name?developer_key=${process.env.DEVELOPER_KEY}`), {
         "result": "ok",

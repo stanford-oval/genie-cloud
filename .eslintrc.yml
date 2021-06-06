@@ -23,6 +23,9 @@ rules:
   # namespaces are useful to add static methods to enums and to implement
   # nested classes
   '@typescript-eslint/no-namespace': off
+  # This is bad - the types exist in TypeScript for a reason, and sometimes one
+  # needs to use them
+  '@typescript-eslint/ban-types': off
 
   # temporary until migration is complete
   '@typescript-eslint/no-this-alias': off

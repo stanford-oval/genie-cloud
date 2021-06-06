@@ -57,20 +57,20 @@ export async function createClient<T extends db.Optional<Row, OptionalFields>>(d
     return db.insertOne(dbClient, 'insert into oauth2_clients set ?', [client]).then(() => client);
 }
 
-export async function getPermission(dbClient : db.Client, clientId : string, userId : number) : Promise<PermissionRow> {
+export async function getPermission(dbClient : db.Client, clientId : string, userId : string) : Promise<PermissionRow> {
     return db.selectOne(dbClient, 'select * from oauth2_permissions where client_id = ? and user_id = ?', [clientId, userId]);
 }
-export async function createPermission(dbClient : db.Client, clientId : string, userId : number, scope : string) {
+export async function createPermission(dbClient : db.Client, clientId : string, userId : string, scope : string) {
     await db.insertOne(dbClient, 'replace into oauth2_permissions(client_id, user_id, scope) values(?,?,?)', [clientId, userId, scope]);
 }
-export async function revokePermission(dbClient : db.Client, clientId : string, userId : number) {
+export async function revokePermission(dbClient : db.Client, clientId : string, userId : string) {
     await db.query(dbClient,'delete from oauth2_permissions where client_id = ? and user_id = ?', [clientId, userId]);
 }
 export async function revokeAllPermissions(dbClient : db.Client, clientId : string) {
     await db.query(dbClient,'delete from oauth2_permissions where client_id = ?', [clientId]);
 }
 
-export async function getAllPermissionsOfUser(dbClient : db.Client, userId : number) : Promise<RowWithOwnerName[]> {
+export async function getAllPermissionsOfUser(dbClient : db.Client, userId : string) : Promise<RowWithOwnerName[]> {
     return db.selectAll(dbClient, `select oc.*, org.name as owner_name from oauth2_clients oc,
         oauth2_permissions op, organizations org where oc.id = op.client_id and op.user_id = ?
         and org.id = oc.owner`, [userId]);

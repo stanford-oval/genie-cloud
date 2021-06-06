@@ -141,6 +141,7 @@ async function testSubmitToMTurk(batchIdHash, nobody) {
     const data = {
         batch: batchIdHash,
         worker: 'FOOBARBAZ',
+        hit: '1'
     };
 
     for (let i = 0; i < 4; i++) {
@@ -243,6 +244,7 @@ async function testSubmitToMTurk(batchIdHash, nobody) {
     const data2 = {
         batch: batchIdHash,
         worker: 'FOOBARBAZ-2',
+        hit: '1'
     };
 
     for (let i = 0; i < 4; i++) {
@@ -260,6 +262,7 @@ async function testSubmitToMTurk(batchIdHash, nobody) {
     const data3 = {
         batch: batchIdHash,
         worker: 'FOOBARBAZ-3',
+        hit: '1'
     };
 
     for (let i = 0; i < 4; i++) {

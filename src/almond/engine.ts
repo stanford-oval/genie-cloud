@@ -34,7 +34,7 @@ type Conversation = NonNullable<ReturnType<AssistantDispatcher['getConversation'
 type ConversationDelegate = Parameters<Conversation['addOutput']>[0];
 type NotificationDelegate = Parameters<AssistantDispatcher['addNotificationOutput']>[0];
 
-class ConversationWrapper implements rpc.Stubbable {
+export class ConversationWrapper implements rpc.Stubbable {
     $rpcMethods = ['destroy', 'handleCommand', 'handleParsedCommand', 'handleThingTalk'] as const;
     $free ?: () => void;
 
@@ -124,7 +124,7 @@ interface NotificationDelegateProxy {
     }) : Promise<void>;
 }
 
-class NotificationWrapper implements NotificationDelegate {
+export class NotificationWrapper implements NotificationDelegate {
     $rpcMethods = ['destroy'] as const;
     $free ?: () => void;
     private _dispatcher : AssistantDispatcher;

@@ -128,7 +128,7 @@ export async function get(client : db.Client, id : number) : Promise<Row & { own
         from device_class d left join organizations o on o.id = d.owner where d.id = ?`, [id]);
 }
 
-type ByPrimaryKindRow = Pick<Row, "id"|"name"|"description"|"primary_kind"|"category"
+export type ByPrimaryKindRow = Pick<Row, "id"|"name"|"description"|"primary_kind"|"category"
     |"subcategory"|"developer_version"|"approved_version"|"website"|"repository"
     |"issue_tracker"|"license"|"license_gplcompatible"|"owner">
     & { owner_name : string, owner_id_hash : string };
@@ -244,12 +244,12 @@ export async function getByFuzzySearch(client : db.Client, tag : string, org : B
     }
 }
 
-export async function getCodeByVersion(client : db.Client, id : number, version : number) : Promise<{ code : string }> {
+export async function getCodeByVersion(client : db.Client, id : number, version : number) : Promise<string> {
     return db.selectOne(client, "select code from device_code_version where device_id = ? and version = ?",
-        [id, version]).then((row) => row.code);
+        [id, version]).then((row : { code : string }) => row.code);
 }
 
-type DiscoveryRow = Pick<Row, "id"|"name"|"description"|"primary_kind"|"category"
+export type DiscoveryRow = Pick<Row, "id"|"name"|"description"|"primary_kind"|"category"
     |"subcategory"|"developer_version"|"approved_version"|"owner">;
 
 export async function getByAnyKind(client : db.Client, kind : string) : Promise<DiscoveryRow[]> {
@@ -272,7 +272,7 @@ export async function getByDiscoveryService(client : db.Client, discoveryType : 
         [discoveryType, service]);
 }
 
-type FactoryRow = Pick<Row & VersionedRow, "primary_kind"|"category"|"name"|"code"|"factory">;
+export type FactoryRow = Pick<Row & VersionedRow, "primary_kind"|"category"|"name"|"code"|"factory">;
 
 export async function getByCategoryWithCode(client : db.Client, category : string, org : BasicOrg|null) : Promise<FactoryRow[]> {
     if (org !== null && org.is_admin) {
