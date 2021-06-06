@@ -17,17 +17,10 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const Url = require('url');
-const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
-const qs = require('qs');
-const FormData = require('form-data');
-const { assertHttpError, assertRedirect, assertLoginRequired, request, sessionRequest, dbQuery } = require('./scaffold');
-const { login, startSession } = require('../login');
-const minidom = require('../util/minidom');
+import assert from 'assert';
+import { assertRedirect, sessionRequest } from './scaffold';
+import { startSession } from '../login';
 
 async function testWithoutQueryString(session) {
     const response = await sessionRequest('/proxy', 'GET', {
@@ -72,6 +65,7 @@ async function main() {
     session = await startSession();
     await testWithQueryString(session);
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();
+
