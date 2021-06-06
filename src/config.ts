@@ -273,6 +273,17 @@ export let EXTRA_ABOUT_PAGES : Array<{ url : string, title : string, view : stri
 export let EXTRA_NAVBAR : Array<{ url : string, title : string }> = [];
 
 /**
+  Registration warning
+
+  This is a bit of HTML that can be shown on the registration page.
+  It can be useful to warn about development or unstable servers.
+
+  If set, it must be valid HTML. It will be shown inside a Boostrap
+  alert component. *No sanitization is applied!*
+*/
+export let REGISTRATION_WARNING : string|null = null;
+
+/**
   Additional origins that should be allowed to make Cookie-authenticated
   API requests.
 

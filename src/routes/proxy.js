@@ -19,30 +19,30 @@
 // Author: Ryan Cheng
 
 import express from 'express';
-import { BadRequestError } from '../util/errors';
+import * as Url from 'url';
+
 import EngineManager from '../almond/enginemanagerclient';
 import * as user from '../util/user';
+import * as iv from '../util/input_validation';
 
 const router = express.Router();
 
-router.get('/', (req, res, next) => {
-
+router.get('/', iv.validateGET({ redirect: 'string', kind: 'string' }), (req, res, next) => {
     const redirect_address = req.query.redirect;
     const kind = req.query.kind;
 
-    if (!redirect_address || !kind) {
-        throw new BadRequestError(req._("Invalid Query"));
+    req.session.redirect = redirect_address;
+    req.session.kind = kind;
 
-    } else {
-        req.session.redirect = redirect_address;
-        req.session.kind = kind;
-        res.render('proxy_confirmation', {
-            page_title: req._("Oauth Confirmation"),
-            redirect_address: redirect_address,
-            kind: kind
-        });
-    }
+    // show to the user only the hostname and optionally the port
+    // because the path name and query are potentially ugly strings
+    const parsed = Url.parse(redirect_address);
 
+    res.render('proxy_confirmation', {
+        page_title: req._("OAuth Confirmation"),
+        redirect_address: parsed.host,
+        kind: kind
+    });
 });
 
 router.post('/oauth2', (req, res, next) => {

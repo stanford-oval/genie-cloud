@@ -47,6 +47,10 @@ class ChildProcessSocket extends stream.Duplex {
         super({ objectMode: true });
 
         this._child = child;
+
+        this._child.on('error', (err) => {
+            console.error(`Failed to send message to child: ${err.message}`);
+        });
     }
 
     _read() {}

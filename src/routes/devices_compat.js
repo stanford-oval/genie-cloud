@@ -19,6 +19,8 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import express from 'express';
+import * as Url from 'url';
+import * as qs from 'querystring';
 
 import * as user from '../util/user';
 import EngineManager from '../almond/enginemanagerclient';
@@ -33,9 +35,21 @@ router.get('/oauth2/callback/:kind', (req, res, next) => {
     user.requireLogIn(req, res, next);
 }, (req, res, next) => {
     if (req.session.redirect) {
-        const server_redirect = req.session.redirect + '/devices' + req.url;
+        const parsed = Url.parse(req.session.redirect);
+
+        let redirect;
+        // If we have a query string already, we append all the query parameters
+        // to it and don't modify the path name
+        // (This is the new protocol)
+        //
+        // If we don't have a query string, we assume redirect is only the
+        // origin+base of the almond-server, and append the full path name and query
+        if (parsed.query)
+            redirect = req.session.redirect + '&' + qs.stringify(req.query);
+        else
+            redirect = req.session.redirect + '/devices' + req.url;
         delete req.session.redirect;
-        res.redirect(303, server_redirect);
+        res.redirect(303, redirect);
     } else {
         const kind = req.params.kind;
 
