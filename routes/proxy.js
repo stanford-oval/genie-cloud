@@ -22,7 +22,7 @@ router.get('/', iv.validateGET({ redirect: 'string', kind: 'string' }), (req, re
 
     res.render('proxy_confirmation', {
         page_title: req._("OAuth Confirmation"),
-        redirect_address: parsed.hostname + (parsed.port !== '80' && parsed.port !== '443' && parsed.port !== '' ? (':' + parsed.port) : ''),
+        redirect_address: parsed.host,
         kind: kind
     });
 });
