@@ -145,7 +145,7 @@ async function learn(req : express.Request, res : express.Response) {
             owner: ownerId,
             like_count: 0
         });
-        if (store === 'commandpedia')
+        if (store === 'commandpedia' && ownerId !== null)
             await exampleModel.like(dbClient, exid, ownerId);
         return exid;
     });

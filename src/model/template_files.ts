@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,37 +18,48 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import * as db from '../util/db';
 
-export async function getAll(client) {
+export interface Row {
+    id : number;
+    language : string;
+    tag : string;
+    owner : number;
+    description : string;
+    flags : string;
+    public : boolean;
+    version : number;
+}
+export type OptionalFields = 'language' | 'public' | 'version';
+
+export async function getAll(client : db.Client) : Promise<Row[]> {
     return db.selectAll(client, "select * from template_files");
 }
 
-export async function getPublic(client, owner) {
+export async function getPublic(client : db.Client, owner : number|null) : Promise<Row[]> {
     return db.selectAll(client, "select * from template_files where public or owner = ?", [owner]);
 }
 
-export async function getByOwner(client, owner) {
+export async function getByOwner(client : db.Client, owner : number) : Promise<Row[]> {
     return db.selectAll(client, "select * from template_files where owner = ?", [owner]);
 }
 
-export async function getForLanguage(client, language) {
+export async function getForLanguage(client : db.Client, language : string) : Promise<Row[]> {
     return db.selectAll(client, "select * from template_files where language = ?", [language]);
 }
 
-export async function getByTag(client, language, tag) {
+export async function getByTag(client : db.Client, language : string, tag : string) : Promise<Row[]> {
     return db.selectOne(client, "select * from template_files where language = ? and tag = ?", [language, tag]);
 }
-export async function getByTagForUpdate(client, language, tag) {
+export async function getByTagForUpdate(client : db.Client, language : string, tag : string) : Promise<Row[]> {
     return db.selectOne(client, "select * from template_files where language = ? and tag = ? for update", [language, tag]);
 }
 
-export async function create(client, tmpl) {
+export async function create<T extends db.Optional<Row, OptionalFields>>(client : db.Client, tmpl : db.WithoutID<T>) : Promise<db.WithID<T>> {
     const id = await db.insertOne(client, "insert into template_files set ?", [tmpl]);
     tmpl.id = id;
-    return tmpl;
+    return tmpl as db.WithID<T>;
 }
-export async function update(client, tmplId, tmpl) {
-    return db.query(client, `update template_files set ? where id = ?`, [tmpl, tmplId]);
+export async function update(client : db.Client, tmplId : number, tmpl : Partial<Row>) {
+    await db.query(client, `update template_files set ? where id = ?`, [tmpl, tmplId]);
 }

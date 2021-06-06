@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -21,33 +21,89 @@
 
 import * as db from '../util/db';
 
-export async function create(dbClient, batch) {
+export type BatchStatus = 'created' | 'paraphrasing' | 'validating' | 'complete';
+
+export interface Row {
+    id : number;
+    id_hash : string;
+    owner : number;
+    name : string;
+    language : string;
+    submissions_per_hit : number;
+    status : BatchStatus;
+}
+export type OptionalFields = 'language' | 'submissions_per_hit' | 'status';
+
+export interface ParaphraseInputRow {
+    id : number;
+    batch : number;
+    hit_id : number;
+    thingtalk : string;
+    sentence : string;
+}
+
+export interface ParaphraseSubmissionRow {
+    example_id : number;
+    submission_id : string;
+    program_id : number;
+    target_count : number;
+    accept_count : number;
+    reject_count : number;
+}
+export type ParaphraseSubmissionOptionalFields = 'target_count' | 'accept_count' | 'reject_count';
+
+export interface ValidationInputRow {
+    id : number;
+    batch : number;
+    hit_id : number;
+    type : 'real' | 'fake-same' | 'fake-different';
+    program_id : number;
+    example_id : number|null;
+    paraphrase : string|null;
+}
+
+export interface ValidationSubmissionRow {
+    validation_sentence_id : number;
+    submission_id : string;
+    answer : 'same' | 'different';
+}
+
+export async function create<T extends db.Optional<Row, OptionalFields>>(dbClient : db.Client, batch : db.WithoutID<T>) : Promise<db.WithID<T>> {
     return db.insertOne(dbClient, 'insert into mturk_batch set ?', [batch]).then((id) => {
         batch.id = id;
-        return batch;
+        return batch as db.WithID<T>;
     });
 }
-export async function updateBatch(dbClient, batchId, batch) {
-    return db.query(dbClient, `update mturk_batch set ? where id = ?`, [batch, batchId]);
+export async function updateBatch(dbClient : db.Client, batchId : number, batch : Partial<Row>) {
+    await db.query(dbClient, `update mturk_batch set ? where id = ?`, [batch, batchId]);
 }
 
-export async function createValidationHITs(dbClient, hits) {
-    return db.query(dbClient, `insert into mturk_validation_input(batch,hit_id,type,program_id,example_id,paraphrase) values ?`, [hits]);
+type ValidationInputCreateRecord = [
+    ValidationInputRow['batch'],
+    ValidationInputRow['hit_id'],
+    ValidationInputRow['type'],
+    ValidationInputRow['program_id'],
+    ValidationInputRow['example_id'],
+    ValidationInputRow['paraphrase']
+];
+
+export async function createValidationHITs(dbClient : db.Client, hits : ValidationInputCreateRecord[]) {
+    await db.query(dbClient, `insert into mturk_validation_input(batch,hit_id,type,program_id,example_id,paraphrase) values ?`, [hits]);
 }
 
-export async function getHIT(dbClient, batch, hitId) {
+export async function getHIT(dbClient : db.Client, batch : number, hitId : number) : Promise<ParaphraseInputRow[]> {
     return db.selectAll(dbClient, 'select * from mturk_input where batch = ? and hit_id = ? order by id', [batch, hitId]);
 }
-export async function getBatch(dbClient, batchId) {
+export async function getBatch(dbClient : db.Client, batchId : number) : Promise<ParaphraseInputRow[]> {
     return db.selectAll(dbClient, `select * from mturk_input where batch = ?`, [batchId]);
 }
-export async function getBatchDetails(dbClient, batchIdHash) {
+export async function getBatchDetails(dbClient : db.Client, batchIdHash : string) : Promise<Row> {
     return db.selectOne(dbClient, `select * from mturk_batch where id_hash = ?`, [batchIdHash]);
 }
-export async function getBatchDetailsById(dbClient, batchId) {
+export async function getBatchDetailsById(dbClient : db.Client, batchId : number) : Promise<Row> {
     return db.selectOne(dbClient, `select * from mturk_batch where id = ?`, [batchId]);
 }
-export async function getValidationHIT(dbClient, batch, hitId) {
+export async function getValidationHIT(dbClient : db.Client, batch : number, hitId : number) : Promise<Array<ValidationInputRow & { synthetic : string }>> {
     return db.selectAll(dbClient, `select mvi.*, mi.sentence as synthetic
         from mturk_validation_input mvi, mturk_input mi
         where mvi.batch = ? and mvi.hit_id = ? and mi.id = mvi.program_id
@@ -55,51 +111,43 @@ export async function getValidationHIT(dbClient, batch, hitId) {
         [batch, hitId]);
 }
 
-export async function logSubmission(dbClient, token, batch, hit, worker) {
+export async function logSubmission(dbClient : db.Client, token : string, batch : number, hit : number, worker : string) {
     const log = [token, batch, hit, worker];
-    return db.insertOne(dbClient, 'insert into mturk_log(submission_id,batch,hit,worker) values (?)', [log]);
+    await db.insertOne(dbClient, 'insert into mturk_log(submission_id,batch,hit,worker) values (?)', [log]);
 }
-export async function logValidationSubmission(dbClient, token, batch, hit, worker) {
+export async function logValidationSubmission(dbClient : db.Client, token : string, batch : number, hit : number, worker : string) {
     const log = [token, batch, hit, worker];
-    return db.insertOne(dbClient, 'insert into mturk_validation_log(submission_id,batch,hit,worker) values (?)', [log]);
+    await db.insertOne(dbClient, 'insert into mturk_validation_log(submission_id,batch,hit,worker) values (?)', [log]);
 }
 
-export async function getExistingValidationSubmission(dbClient, batch, hit, worker) {
+export async function getExistingValidationSubmission(dbClient : db.Client, batch : number, hit : number, worker : string) : Promise<Array<{ submission_id : string }>> {
     return db.selectAll(dbClient, `select submission_id from mturk_validation_log
         where batch = ? and hit = ? and worker = ? for update`,
         [batch, hit, worker]);
 }
 
-export async function insertSubmission(dbClient, submissions) {
+export async function insertSubmission(dbClient : db.Client, submissions : Array<db.Optional<ParaphraseSubmissionRow, ParaphraseSubmissionOptionalFields>>) {
     if (submissions.length === 0)
-        return Promise.resolve();
+        return;
 
-    const KEYS = ['submission_id', 'example_id', 'program_id', 'target_count', 'accept_count', 'reject_count'];
-    const arrays = [];
+    const KEYS = ['submission_id', 'example_id', 'program_id', 'target_count', 'accept_count', 'reject_count'] as const;
+    const arrays : any[] = [];
     submissions.forEach((ex) => {
-        KEYS.forEach((key) => {
-            if (ex[key] === undefined)
-                ex[key] = null;
-        });
         const vals = KEYS.map((key) => ex[key]);
         arrays.push(vals);
     });
 
-    return db.insertOne(dbClient, 'insert into mturk_output(' + KEYS.join(',') + ') '
+    await db.insertOne(dbClient, 'insert into mturk_output(' + KEYS.join(',') + ') '
                         + 'values ?', [arrays]);
 }
 
-export async function insertValidationSubmission(dbClient, submissions) {
+export async function insertValidationSubmission(dbClient : db.Client, submissions : ValidationSubmissionRow[]) {
     if (submissions.length === 0)
         return Promise.resolve();
 
-    const KEYS = ['submission_id', 'validation_sentence_id', 'answer'];
-    const arrays = [];
+    const KEYS = ['submission_id', 'validation_sentence_id', 'answer'] as const;
+    const arrays : any[] = [];
     submissions.forEach((ex) => {
-        KEYS.forEach((key) => {
-            if (ex[key] === undefined)
-                ex[key] = null;
-        });
         const vals = KEYS.map((key) => ex[key]);
         arrays.push(vals);
     });
@@ -108,7 +156,7 @@ export async function insertValidationSubmission(dbClient, submissions) {
                         + 'values ?', [arrays]);
 }
 
-export async function markSentencesGood(dbClient, exampleIds) {
+export async function markSentencesGood(dbClient : db.Client, exampleIds : number[]) {
     if (exampleIds.length === 0)
         return;
 
@@ -120,7 +168,7 @@ export async function markSentencesGood(dbClient, exampleIds) {
         and mo.reject_count = 0`, [exampleIds]);
 }
 
-export async function markSentencesBad(dbClient, exampleIds) {
+export async function markSentencesBad(dbClient : db.Client, exampleIds : number[]) {
     if (exampleIds.length === 0)
         return;
     await db.query(dbClient, `update mturk_output set reject_count = reject_count + 1
@@ -130,7 +178,7 @@ export async function markSentencesBad(dbClient, exampleIds) {
         where ex.id in (?)`, [exampleIds]);
 }
 
-export function streamUnvalidated(dbClient, batch) {
+export function streamUnvalidated(dbClient : db.Client, batch : number) {
     return dbClient.query(`select
         ex.id as paraphrase_id, ex.utterance,
         m_in.id as synthetic_id, m_in.sentence as synthetic, m_in.thingtalk as target_code
@@ -142,15 +190,22 @@ export function streamUnvalidated(dbClient, batch) {
         order by m_in.id`, batch);
 }
 
-export async function autoApproveUnvalidated(dbClient, batch) {
-    return db.query(dbClient, `update example_utterances ex, mturk_output mout,
+export async function autoApproveUnvalidated(dbClient : db.Client, batch : number) {
+    await db.query(dbClient, `update example_utterances ex, mturk_output mout,
         set ex.flags = if(ex.flags = '', 'training', concat_ws(',', 'training', ex.flags))
         where mout.batch = ? and mout.example_id = ex.id and
         mout.reject_count = 0 and mout.submission_id = log.submission_id
         and not find_in_set('training', ex.flags)`, [batch]);
 }
 
-export async function getBatches(dbClient) {
+type BatchRow = Pick<Row, "id"|"id_hash"|"owner"|"name"|"submissions_per_hit"|"status"> & {
+    owner_name : string;
+    input_count : number;
+    submissions : number;
+    validated : number;
+};
+
+export async function getBatches(dbClient : db.Client) : Promise<BatchRow[]> {
     return db.selectAll(dbClient, `select mturk_batch.id, mturk_batch.id_hash, mturk_batch.owner, mturk_batch.name,
         submissions_per_hit, status, organizations.name as owner_name,
         (select count(*) from mturk_input where batch = mturk_batch.id) as input_count,
@@ -163,7 +218,7 @@ export async function getBatches(dbClient) {
             and mout.submission_id = log.submission_id) as validated
         from mturk_batch join organizations on mturk_batch.owner = organizations.id`);
 }
-export async function getBatchesForOwner(dbClient, ownerId) {
+export async function getBatchesForOwner(dbClient : db.Client, ownerId : number) : Promise<Array<Omit<BatchRow, "owner_name">>> {
     return db.selectAll(dbClient, `select mturk_batch.id, mturk_batch.id_hash, mturk_batch.owner, mturk_batch.name,
         submissions_per_hit, status,
         (select count(*) from mturk_input where batch = mturk_batch.id) as input_count,
@@ -177,9 +232,9 @@ export async function getBatchesForOwner(dbClient, ownerId) {
         from mturk_batch where owner = ?`, [ownerId]);
 }
 
-export function streamHITs(dbClient, batch) {
+export function streamHITs(dbClient : db.Client, batch : number) {
     return dbClient.query(`select hit_id from mturk_input where batch = ? group by hit_id`, batch);
 }
-export function streamValidationHITs(dbClient, batch) {
+export function streamValidationHITs(dbClient : db.Client, batch : number) {
     return dbClient.query(`select hit_id from mturk_validation_input where batch = ? group by hit_id`, batch);
 }
