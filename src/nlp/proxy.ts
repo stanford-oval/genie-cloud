@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,6 +18,7 @@
 //
 // Author: Jim Deng <jim.deng@alumni.stanford.edu>
 
+import express from 'express';
 import httpProxy from 'http-proxy';
 import queryString from 'querystring';
 import * as k8s from '@kubernetes/client-node';
@@ -26,7 +27,7 @@ import * as os from 'os';
 function getLocalIps() {
     const localIps = [];
     for (const ifaceList of Object.values(os.networkInterfaces())) {
-        for (const iface of ifaceList) {
+        for (const iface of ifaceList!) {
             if (iface.internal)
                 continue;
             localIps.push(iface.address);
@@ -38,7 +39,12 @@ function getLocalIps() {
 // ProxyServer fans out http requests to all replicas in
 // a kubernetes service.  Can only be used with kubernetes backend.
 export default class ProxyServer {
-    constructor(name) {
+    private name : string;
+    private coreApi : k8s.CoreV1Api;
+    private proxy : httpProxy;
+    private localIps : string[];
+
+    constructor(name : string) {
         // k8s service name
         this.name = name;
 
@@ -49,7 +55,7 @@ export default class ProxyServer {
 
         // setup proxy
         this.proxy = httpProxy.createProxyServer();
-        this.proxy.on('proxyReq', (proxyReq, req, res, options) => {
+        this.proxy.on('proxyReq', (proxyReq, req : any, res, options) => {
             // set header to identify the request is proxyed
             proxyReq.setHeader('X-Almond-Fanout', 'true');
 
@@ -61,7 +67,7 @@ export default class ProxyServer {
             if (!req.body || !Object.keys(req.body).length)
               return;
 
-            let contentType = proxyReq.getHeader('Content-Type');
+            const contentType = proxyReq.getHeader('Content-Type');
             let bodyData;
 
             if (contentType === 'application/json')
@@ -79,7 +85,7 @@ export default class ProxyServer {
         this.localIps = getLocalIps();
     }
 
-    async fanout(req, res) {
+    async fanout(req : express.Request, res : express.Response) {
         try {
             const replicas = await this.getEndpoints(this.name);
             if (replicas.length === 0 )
@@ -93,19 +99,19 @@ export default class ProxyServer {
         }
     }
 
-    async getEndpoints(name, skipLocal=false) {
+    async getEndpoints(name : string, skipLocal=false) {
         const ipPorts = [];
         const resp = await this.coreApi.listEndpointsForAllNamespaces(
             undefined /*allowWatchBookmarks*/,
             undefined /*_continue*/,
             `metadata.name=${name}` /*fieldSelector*/);
         for (const item of resp.body.items) {
-            for (const subset of item.subsets) {
+            for (const subset of item.subsets!) {
                 if (!subset.ports || subset.ports.length === 0)
                     throw new Error('failed to get endpoints port');
                 // use the first port since all addresses use the same port
                 const port = subset.ports[0].port;
-                for (const addr of subset.addresses) {
+                for (const addr of subset.addresses!) {
                     if (skipLocal && this.localIps.includes(addr.ip)) {
                         console.log('skipping local endpoint', addr.ip);
                         continue;
@@ -121,7 +127,7 @@ export default class ProxyServer {
         return { 'X-Almond-Fanout': 'true'};
     }
 
-    isProxy(req) {
+    isProxy(req : express.Request) {
         return req.header('X-Almond-Fanout') === 'true';
     }
 }

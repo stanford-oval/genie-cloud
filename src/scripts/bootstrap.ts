@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -19,15 +19,14 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 // Bootstrap an installation of Almond Cloud by creating the
 // database schema and adding the requisite initial data
 
+import * as argparse from 'argparse';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as util from 'util';
 import * as yaml from 'js-yaml';
-import * as child_process from 'child_process';
 
 import * as db from '../util/db';
 import * as user from '../util/user';
@@ -36,17 +35,21 @@ import * as organization from '../model/organization';
 import * as entityModel from '../model/entity';
 import * as stringModel from '../model/strings';
 import * as nlpModelsModel from '../model/nlp_models';
-import * as templatePackModel from '../model/template_files';
 import { makeRandom } from '../util/random';
 
 import * as Importer from '../util/import_device';
 import { clean } from '../util/tokenize';
-import * as codeStorage from '../util/code_storage';
 import * as execSql from '../util/exec_sql';
 
 import * as Config from '../config';
 
-const req = { _(x) { return x; } };
+const req : {
+    _(x : string) : string;
+
+    user ?: unknown /* FIXME */
+} = {
+    _(x : string) { return x; },
+};
 
 const DEFAULT_TRAINING_CONFIG = JSON.stringify({
     dataset_target_pruning_size: 1000,
@@ -65,17 +68,19 @@ const DEFAULT_TRAINING_CONFIG = JSON.stringify({
     lr_multiply: 0.01,
 });
 
-async function createRootOrg(dbClient) {
+async function createRootOrg(dbClient : db.Client) {
     return organization.create(dbClient, {
         name: 'Site Administration',
-        comment:  '',
+        comment: '',
         id_hash: makeRandom(8),
         developer_key: Config.WITH_THINGPEDIA === 'external' ? (Config.ROOT_THINGPEDIA_DEVELOPER_KEY || makeRandom()) : makeRandom(),
         is_admin: true
     });
 }
 
-async function createDefaultUsers(dbClient, rootOrg) {
+type BasicOrgRow = { id : number };
+
+async function createDefaultUsers(dbClient : db.Client, rootOrg : BasicOrgRow) {
     req.user = await user.register(dbClient, req, {
         username: 'root',
         password: 'rootroot',
@@ -101,8 +106,8 @@ async function createDefaultUsers(dbClient, rootOrg) {
     });
 }
 
-async function importStandardEntities(dbClient) {
-    const ENTITIES = {
+async function importStandardEntities(dbClient : db.Client) {
+    const ENTITIES : Record<string, string> = {
         'tt:contact': 'Contact Identity',
         'tt:contact_name': 'Contact Name',
         'tt:device': 'Device Name',
@@ -156,8 +161,8 @@ async function importStandardEntities(dbClient) {
     });
 }
 
-async function importStandardStringTypes(dbClient, rootOrg) {
-    const STRING_TYPES = {
+async function importStandardStringTypes(dbClient : db.Client, rootOrg : BasicOrgRow) {
+    const STRING_TYPES : Record<string, string> = {
         'tt:search_query': 'Web Search Query',
         'tt:short_free_text': 'General Text (short phrase)',
         'tt:long_free_text': 'General Text (paragraph)',
@@ -168,7 +173,7 @@ async function importStandardStringTypes(dbClient, rootOrg) {
     };
 
     await stringModel.createMany(dbClient, Object.keys(STRING_TYPES).map((id) => {
-        const obj = {
+        const obj : db.WithoutID<stringModel.Row> = {
             type_name: id,
             name: STRING_TYPES[id],
             language: 'en',
@@ -190,7 +195,7 @@ async function importStandardStringTypes(dbClient, rootOrg) {
     }));
 }
 
-async function importStandardSchemas(dbClient, rootOrg) {
+async function importStandardSchemas(dbClient : db.Client, rootOrg : BasicOrgRow) {
     const CATEGORIES = ['online-account', 'data-source', 'thingengine-system',
         'communication', 'data-management', 'health', 'home',
         'media', 'service', 'social-network'];
@@ -211,7 +216,7 @@ async function importStandardSchemas(dbClient, rootOrg) {
         [CATEGORIES.map((c) => [c, 'category', rootOrg.id, 0, 0, clean(c)])]);
 }
 
-function getBuiltinIcon(kind) {
+function getBuiltinIcon(kind : string) {
     switch (kind) {
     case 'org.thingpedia.builtin.bluetooth.generic':
     case 'org.thingpedia.builtin.matrix':
@@ -221,7 +226,7 @@ function getBuiltinIcon(kind) {
     }
 }
 
-async function importBuiltinDevices(dbClient, rootOrg) {
+async function importBuiltinDevices(dbClient : db.Client, rootOrg : BasicOrgRow) {
     const BUILTIN_DEVICES = [
         'org.thingpedia.builtin.thingengine',
         'org.thingpedia.builtin.thingengine.builtin',
@@ -230,9 +235,9 @@ async function importBuiltinDevices(dbClient, rootOrg) {
         'org.thingpedia.builtin.test',
         'org.thingpedia.builtin.bluetooth.generic',
         'messaging',
-    ];
+    ] as const;
 
-    for (let primaryKind of BUILTIN_DEVICES) {
+    for (const primaryKind of BUILTIN_DEVICES) {
         console.log(`Loading builtin device ${primaryKind}`);
 
         const filename = path.resolve(path.dirname(module.filename), '../../data/' + primaryKind + '.yaml');
@@ -248,89 +253,15 @@ async function importBuiltinDevices(dbClient, rootOrg) {
     }
 }
 
-async function importStandardTemplatePack(dbClient, rootOrg) {
-    const tmpl = await templatePackModel.create(dbClient, {
-        language: 'en',
-        tag: 'org.thingpedia.genie.thingtalk',
-        owner: rootOrg.id,
-        description: 'Templates for the ThingTalk language',
-        flags: JSON.stringify([
-            'always_filter',
-            'aggregation',
-            'bookkeeping',
-            'configure_actions',
-            'dialogues',
-            'extended_timers',
-            'multifilters',
-            'nofilter',
-            'nostream',
-            'notablejoin',
-            'policies',
-            'primonly',
-            'projection',
-            'projection_with_filter',
-            'range_filters',
-            'remote_commands',
-            'schema_org',
-            'screen_selection',
-            'timer',
-            'triple_commands',
-            'undefined_filter',
-        ]),
-        public: true,
-        version: 0
-    });
-
-    const geniedir = path.resolve(path.dirname(module.filename), '../../node_modules/genie-toolkit');
-    const { stdout, stderr } = await util.promisify(child_process.execFile)(
-        'make', ['-C', geniedir, 'bundle/en.zip'], { maxBuffer: 1024 * 1024 });
-    process.stdout.write(stdout);
-    process.stderr.write(stderr);
-
-    await codeStorage.storeZipFile(fs.createReadStream(path.resolve(geniedir, 'bundle/en.zip')),
-        'org.thingpedia.genie.thingtalk', 0, 'template-files/en');
-
-    return tmpl.id;
-}
-
-async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
+async function importDefaultNLPModels(dbClient : db.Client, rootOrg : BasicOrgRow) {
     await nlpModelsModel.create(dbClient, {
         language: 'en',
         tag: 'org.thingpedia.models.default',
         owner: rootOrg.id,
-        template_file: templatePack,
         flags: JSON.stringify([
             'aggregation',
             'bookkeeping',
             'configure_actions',
-            'multifilters',
-            'policies',
-            'projection',
-            'projection_with_filter',
-            'remote_commands',
-            'schema_org',
-            'screen_selection',
-            'timer',
-            'undefined_filter',
-        ]),
-        config: DEFAULT_TRAINING_CONFIG,
-        contextual: false,
-        all_devices: true,
-        use_approved: true,
-        use_exact: true
-    });
-
-    await nlpModelsModel.create(dbClient, {
-        language: 'en',
-        tag: 'org.thingpedia.models.contextual',
-        owner: rootOrg.id,
-        template_file: templatePack,
-        flags: JSON.stringify([
-            'aggregation',
-            'bookkeeping',
-            'dialogues',
-            'configure_actions',
-            'extended_timers',
             'multifilters',
             'policies',
             'projection',
@@ -352,38 +283,9 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
         language: 'en',
         tag: 'org.thingpedia.models.developer',
         owner: rootOrg.id,
-        template_file: templatePack,
         flags: JSON.stringify([
             'aggregation',
             'bookkeeping',
-            'configure_actions',
-            'extended_timers',
-            'multifilters',
-            'policies',
-            'projection',
-            'projection_with_filter',
-            'remote_commands',
-            'schema_org',
-            'screen_selection',
-            'timer',
-            'undefined_filter',
-        ]),
-        config: DEFAULT_TRAINING_CONFIG,
-        contextual: false,
-        all_devices: true,
-        use_approved: false,
-        use_exact: true
-    });
-
-    await nlpModelsModel.create(dbClient, {
-        language: 'en',
-        tag: 'org.thingpedia.models.developer.contextual',
-        owner: rootOrg.id,
-        template_file: templatePack,
-        flags: JSON.stringify([
-            'aggregation',
-            'bookkeeping',
-            'dialogues',
             'configure_actions',
             'extended_timers',
             'multifilters',
@@ -417,7 +319,7 @@ async function isAlreadyBootstrapped() {
     }
 }
 
-export function initArgparse(subparsers) {
+export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('bootstrap', {
         description: 'Bootstrap an installation of Almond Cloud'
     });
@@ -428,7 +330,7 @@ export function initArgparse(subparsers) {
     });
 }
 
-export async function main(argv) {
+export async function main(argv : any) {
     // Check if we bootstrapped already
     if (!argv.force) {
         if (await isAlreadyBootstrapped()) {
@@ -447,10 +349,8 @@ export async function main(argv) {
         const rootOrg = await createRootOrg(dbClient);
         await createDefaultUsers(dbClient, rootOrg);
 
-        if (Config.WITH_LUINET === 'embedded') {
-            const templatePack = await importStandardTemplatePack(dbClient, rootOrg);
-            await importDefaultNLPModels(dbClient, rootOrg, templatePack);
-        }
+        if (Config.WITH_LUINET === 'embedded')
+            await importDefaultNLPModels(dbClient, rootOrg);
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
             await importStandardEntities(dbClient);

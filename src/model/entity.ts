@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,53 +18,70 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import * as stream from 'stream';
 import * as db from '../util/db';
 
-export async function create(client, entity) {
+export interface Row {
+    id : string;
+    language : string;
+    name : string;
+    is_well_known : boolean;
+    has_ner_support : boolean;
+    subtype_of : string|null;
+}
+export type OptionalFields = 'is_well_known' | 'has_ner_support' | 'subtype_of';
+
+export interface ValueRow {
+    language : string;
+    entity_id : string;
+    entity_value : string;
+    entity_canonical : string;
+    entity_name : string;
+}
+
+export async function create(client : db.Client, entity : Omit<db.Optional<Row, OptionalFields>, 'language'>) {
     return db.insertOne(client, `replace into entity_names set language = 'en', ?`, [entity]);
 }
-export async function createMany(client, entities) {
+export async function createMany(client : db.Client, entities : Array<db.Optional<Row, OptionalFields>>) {
     return db.insertOne(client, `replace into entity_names(id, language, name, is_well_known, has_ner_support, subtype_of) values ?`,
         [entities.map((e) => [e.id, e.language, e.name, e.is_well_known, e.has_ner_support, e.subtype_of])]);
 }
 
-export async function update(client, id, entity) {
+export async function update(client : db.Client, id : number, entity : Partial<Row>) {
     await db.query(client, `update entity_names set ? where id = ?`, [entity, id]);
 }
-export async function updateMany(client, entities) {
-    return db.query(client, `insert into entity_names(id, language, name, is_well_known, has_ner_support, subtype_of) values ?
+export async function updateMany(client : db.Client, entities : Array<Partial<Row>>) {
+    await db.query(client, `insert into entity_names(id, language, name, is_well_known, has_ner_support, subtype_of) values ?
         on duplicate key update name=values(name), is_well_known=values(is_well_known), has_ner_support=values(has_ner_support),
         subtype_of=values(subtype_of)`,
         [entities.map((e) => [e.id, e.language, e.name, e.is_well_known, e.has_ner_support, e.subtype_of])]);
 }
 
-export async function get(client, id, language = 'en') {
+export async function get(client : db.Client, id : number, language = 'en') : Promise<Row> {
     return db.selectOne(client, "select * from entity_names where id = ? and language = ?",
                         [id, language]);
 }
 
-async function _delete(client, id) {
-    return db.query(client, `delete from entity_names where id = ?`, [id]);
+async function _delete(client : db.Client, id : number) {
+    await db.query(client, `delete from entity_names where id = ?`, [id]);
 }
 export { _delete as delete };
 
-export async function getAll(client) {
+export async function getAll(client : db.Client) : Promise<Row[]> {
     return db.selectAll(client, "select * from entity_names where language = 'en' order by is_well_known asc, id asc");
 }
 
-export async function getSnapshot(client, snapshotId) {
+export async function getSnapshot(client : db.Client, snapshotId : number) : Promise<Row[]> {
     return db.selectAll(client, "select * from entity_names_snapshot where language = 'en' and snapshot_id =? order by is_well_known asc, id asc", [snapshotId]);
 }
 
-export async function getValues(client, id) {
+export async function getValues(client : db.Client, id : string) : Promise<Array<Pick<ValueRow, "entity_value"|"entity_name"|"entity_canonical">>> {
     return db.selectAll(client, "select distinct entity_value, entity_name, entity_canonical from entity_lexicon where entity_id = ? and language = 'en'", [id]);
 }
-export async function deleteValues(client, id) {
-    return db.query(client, `delete from entity_lexicon where entity_id = ? and language = 'en'`, [id]);
+export async function deleteValues(client : db.Client, id : string) {
+    await db.query(client, `delete from entity_lexicon where entity_id = ? and language = 'en'`, [id]);
 }
-export function insertValueStream(client) {
+export function insertValueStream(client : db.Client) {
     return new stream.Writable({
         objectMode: true,
         highWaterMark: 100,
@@ -79,7 +96,7 @@ export function insertValueStream(client) {
     });
 }
 
-export async function lookup(client, language, token) {
+export async function lookup(client : db.Client, language : string, token : string) : Promise<Array<Omit<ValueRow, "language">>> {
     return db.selectAll(client, `select distinct entity_id,entity_value,entity_canonical,entity_name
                                     from entity_lexicon where language = ? and match entity_canonical
                                     against (? in natural language mode)
@@ -87,7 +104,7 @@ export async function lookup(client, language, token) {
                                     from entity_lexicon where language = ? and entity_value = ?`, [language, token, language, token]);
 }
 
-export async function lookupWithType(client, language, type, token) {
+export async function lookupWithType(client : db.Client, language : string, type : string, token : string) : Promise<Array<Omit<ValueRow, "language">>> {
     return db.selectAll(client, `select distinct entity_id,entity_value,entity_canonical,entity_name
                                     from entity_lexicon where language = ? and entity_id = ? and match entity_canonical
                                     against (? in natural language mode)
@@ -96,15 +113,15 @@ export async function lookupWithType(client, language, type, token) {
                                     entity_value = ?`, [language, type, token, language, type, token]);
 }
 
-export async function findNonExisting(client, ids) {
+export async function findNonExisting(client : db.Client, ids : string[]) {
     if (ids.length === 0)
         return Promise.resolve([]);
-    return db.selectAll(client, "select id from entity_names where language='en' and id in (?)", [ids]).then((rows) => {
+    return db.selectAll(client, "select id from entity_names where language='en' and id in (?)", [ids]).then((rows : Array<{ id : string }>) => {
         if (rows.length === ids.length)
             return [];
-        let existing = new Set(rows.map((r) => r.id));
-        let missing = [];
-        for (let id of ids) {
+        const existing = new Set(rows.map((r) => r.id));
+        const missing : string[] = [];
+        for (const id of ids) {
             if (!existing.has(id))
                 missing.push(id);
         }

@@ -216,7 +216,7 @@ async function testMyConversation(driver) {
     const response = await driver.wait(
         WD.until.elementLocated(WD.By.css('.from-almond:nth-child(3) .message')),
         60000);
-    assert.strictEqual(await response.getText(), 'Sorry, I did not understand that. Can you rephrase it?');
+    assert.strictEqual(await response.getText(), 'Sorry, I did not understand that.');
 }
 
 async function assertHasClass(element, className) {

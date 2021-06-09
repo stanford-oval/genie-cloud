@@ -100,7 +100,7 @@ EOF
 
 cat training-config.json
 
-${srcdir}/dist/main.js execute-sql-file /proc/self/fd/0 <<<"update models set config = '$(cat training-config.json)';"
+${srcdir}/dist/main.js execute-sql-file /proc/self/fd/0 <<<"update models set contextual = false, config = '$(cat training-config.json)';"
 
 ${srcdir}/dist/main.js run-frontend &
 frontendpid=$!

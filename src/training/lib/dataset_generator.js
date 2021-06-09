@@ -273,7 +273,6 @@ export default class DatasetGenerator {
             language: this._language,
             orgId: this._options.approvedOnly ? null : await this._tpClient._getOrgId(),
             forDevices: this._forAllDevices ? null : this._forDevices,
-            templatePack: this._options.templatePack,
         });
 
         // FIXME find a better place for this

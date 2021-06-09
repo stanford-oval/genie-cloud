@@ -57,7 +57,6 @@ export default async function main(task, argv) {
         // generation flags
         owner: config.owner,
         approvedOnly: config.use_approved,
-        templatePack: config.template_file_name,
         maxDepth: config.synthetic_depth,
         flags: config.synthetic_flags,
         targetPruningSize: config.target_pruning_size,

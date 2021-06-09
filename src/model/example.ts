@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -23,24 +23,57 @@ import * as stream from 'stream';
 import * as db from '../util/db';
 import { tokenize, stripUnsafeTokens } from '../util/tokenize';
 
-export async function createMany(client, examples, updateExisting) {
+export interface Row {
+    id : number;
+    schema_id : number|null;
+    is_base : boolean;
+    language : string;
+    type : string;
+    flags : string;
+    utterance : string;
+    preprocessed : string;
+    target_json : string;
+    target_code : string;
+    context : string|null;
+    click_count : number;
+    like_count : number;
+    owner : number|null;
+    name : string|null;
+}
+export type OptionalFields = 'schema_id' | 'is_base' | 'language' | 'type' | 'flags'
+    | 'context' | 'click_count' | 'like_count' | 'owner' | 'name';
+
+export interface LogRow {
+    id : number;
+    language : string;
+    context : string|null;
+    preprocessed : string;
+    target_code : string;
+    time : Date;
+}
+export type LogOptionalFields = 'language' | 'context' | 'time';
+
+export interface SuggestionRow {
+    id : string;
+    command : string;
+    suggest_time : Date;
+}
+export type SuggestionOptionalFields = 'suggest_time';
+
+export async function createMany(client : db.Client, examples : Array<db.WithoutID<db.Optional<Row, OptionalFields>>>, updateExisting : boolean) {
     if (examples.length === 0)
         return Promise.resolve();
 
     const KEYS = ['id', 'schema_id', 'is_base', 'flags', 'language', 'utterance', 'preprocessed',
                   'target_json', 'target_code', 'context',
-                  'type', 'click_count', 'like_count', 'owner', 'name'];
-    const arrays = [];
+                  'type', 'click_count', 'like_count', 'owner', 'name'] as const;
+    const arrays : any[] = [];
     examples.forEach((ex) => {
         if (!ex.type)
             ex.type = 'thingpedia';
         if (ex.click_count === undefined)
             ex.click_count = 1;
         ex.like_count = 0;
-        KEYS.forEach((key) => {
-            if (ex[key] === undefined)
-                ex[key] = null;
-        });
         const vals = KEYS.map((key) => {
             return ex[key];
         });
@@ -60,7 +93,7 @@ export async function createMany(client, examples, updateExisting) {
     }
 }
 
-export async function create(client, ex, updateExisting) {
+export async function create(client : db.Client, ex : db.WithoutID<db.Optional<Row, OptionalFields>>, updateExisting ?: boolean) {
     if (!ex.type)
         ex.type = 'thingpedia';
     if (ex.click_count === undefined)
@@ -76,16 +109,23 @@ export async function create(client, ex, updateExisting) {
     }
 }
 
-export async function getAll(client) {
+export async function getAll(client : db.Client) : Promise<Row[]> {
     console.error('example.getAll called, where is this from?');
     return db.selectAll(client, "select * from example_utterances");
 }
+
+type CommandRow = Pick<Row, "id"|"language"|"type"|"utterance"|"preprocessed"|"target_code"
+    |"click_count"|"like_count"|"is_base"> & {
+    kind : string|null;
+    owner_name : string|null;
+};
+type CommandRowForUser = CommandRow & { liked : boolean };
 
 // The ForUser variants of getCommands and getCommandsByFuzzySearch
 // return an additional column, "liked", which is a boolean indicating
 // whether the named user liked the given command or not
 // They are used to color the hearts in Commandpedia, if the user is logged in
-export async function getCommandsForUser(client, language, userId, start, end) {
+export async function getCommandsForUser(client : db.Client, language : string, userId : number, start ?: number, end ?: number) : Promise<CommandRowForUser[]> {
     const query = `
         (select eu.id,eu.language,eu.type,eu.utterance,
             eu.preprocessed,eu.target_code,eu.click_count,eu.like_count,eu.is_base,null as kind,u.username as owner_name,
@@ -108,7 +148,7 @@ export async function getCommandsForUser(client, language, userId, start, end) {
         return db.selectAll(client, query, [userId, language, userId, language]);
 }
 
-export async function getCommandsByFuzzySearchForUser(client, language, userId, query) {
+export async function getCommandsByFuzzySearchForUser(client : db.Client, language : string, userId : number, query : string) : Promise<CommandRowForUser[]> {
     const regexp = '(^| )(' + stripUnsafeTokens(tokenize(query)).join('|') + ')( |$)';
     return db.selectAll(client, `
         (select eu.id,eu.language,eu.type,eu.utterance,
@@ -136,7 +176,7 @@ export async function getCommandsByFuzzySearchForUser(client, language, userId, 
             userId, language, regexp, userId, language, query]);
 }
 
-export async function getCommands(client, language, start, end) {
+export async function getCommands(client : db.Client, language : string, start ?: number, end ?: number) : Promise<CommandRow[]> {
     const query = `
         (select eu.id,eu.language,eu.type,eu.utterance,
             eu.preprocessed,eu.target_code,eu.click_count,eu.like_count,eu.is_base,null as kind,u.username as owner_name
@@ -157,7 +197,7 @@ export async function getCommands(client, language, start, end) {
         return db.selectAll(client, query, [language, language]);
 }
 
-export async function getCommandsByFuzzySearch(client, language, query) {
+export async function getCommandsByFuzzySearch(client : db.Client, language : string, query : string) : Promise<CommandRow[]> {
     const regexp = '(^| )(' + stripUnsafeTokens(tokenize(query)).join('|') + ')( |$)';
     return db.selectAll(client, `
         (select eu.id,eu.language,eu.type,eu.utterance,
@@ -181,14 +221,17 @@ export async function getCommandsByFuzzySearch(client, language, query) {
         ) order by like_count desc,click_count desc,md5(utterance) asc`, [language, `%${query}%`, `%${query}%`, language, regexp, language, query]);
 }
 
-export async function getCheatsheet(client, language) {
+export async function getCheatsheet(client : db.Client, language : string) : Promise<Array<Pick<Row, "id"|"utterance"|"target_code"> & { kind : string }>> {
     return db.selectAll(client, `select eu.id,eu.utterance,eu.target_code,ds.kind
         from example_utterances eu, device_schema ds where eu.schema_id = ds.id and
         eu.is_base = 1 and eu.type = 'thingpedia' and language = ? and ds.approved_version is not null
         order by click_count desc, id asc`,
         [language]);
 }
-export async function getBaseByLanguage(client, org, language) {
+
+type PrimitiveTemplateRow = Pick<Row, "id"|"language"|"type"|"utterance"|"preprocessed"|"target_code"|"click_count"|"like_count"|"name">;
+
+export async function getBaseByLanguage(client : db.Client, org : number|null, language : string) : Promise<Array<Omit<PrimitiveTemplateRow, "type"|"language">>> {
     if (org === -1) { // admin
         return db.selectAll(client, `select eu.id,eu.utterance,eu.preprocessed,eu.target_code,
             eu.click_count,eu.like_count,eu.name from example_utterances eu
@@ -213,7 +256,7 @@ export async function getBaseByLanguage(client, org, language) {
     }
 }
 
-export async function getByKey(client, key, org, language) {
+export async function getByKey(client : db.Client, key : string, org : number|null, language : string) : Promise<PrimitiveTemplateRow[]> {
     const regexp = '(^| )(' + stripUnsafeTokens(tokenize(key)).join('|') + ')( |$)';
     if (org === -1) { // admin
         return db.selectAll(client,
@@ -270,7 +313,7 @@ export async function getByKey(client, key, org, language) {
     }
 }
 
-export async function getByKinds(client, kinds, org, language, includeSynthetic) {
+export async function getByKinds(client : db.Client, kinds : string[], org : number|null, language : string, includeSynthetic ?: boolean) : Promise<PrimitiveTemplateRow[]> {
     if (org === -1) { // admin
         return db.selectAll(client,
             `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
@@ -327,21 +370,21 @@ export async function getByKinds(client, kinds, org, language, includeSynthetic)
     }
 }
 
-export async function getBaseBySchema(client, schemaId, language, includeSynthetic) {
+export async function getBaseBySchema(client : db.Client, schemaId : number, language : string, includeSynthetic ?: boolean) : Promise<Row[]> {
     return db.selectAll(client, `select * from example_utterances use index(language_type)
         where schema_id = ? and is_base and type = 'thingpedia' and language = ?
         ${includeSynthetic ? '' : 'and not find_in_set(\'synthetic\', flags)'}
         order by id asc`, [schemaId, language]);
 }
 
-export async function getBaseBySchemaKind(client, schemaKind, language) {
+export async function getBaseBySchemaKind(client : db.Client, schemaKind : string, language : string) : Promise<Row[]> {
     return db.selectAll(client, `select eu.* from example_utterances eu, device_schema ds where
         eu.schema_id = ds.id and ds.kind = ? and is_base and type = 'thingpedia' and not find_in_set('synthetic', flags)
         and language = ? order by id asc`
         , [schemaKind, language]);
 }
 
-export function insertStream(client, updateExisting) {
+export function insertStream(client : db.Client, updateExisting : boolean) {
     return new stream.Writable({
         objectMode: true,
         highWaterMark: 200,
@@ -355,83 +398,83 @@ export function insertStream(client, updateExisting) {
     });
 }
 
-export async function logUtterance(client, data) {
+export async function logUtterance(client : db.Client, data : db.WithoutID<db.Optional<LogRow, LogOptionalFields>>) {
     return db.insertOne(client, `insert into utterance_log set ?`, [data]);
 }
 
-export async function deleteMany(client, ids) {
+export async function deleteMany(client : db.Client, ids : number[]) {
     if (ids.length === 0)
-        return Promise.resolve();
-    return db.query(client, "delete from example_utterances where id in (?)", [ids]);
+        return;
+    await db.query(client, "delete from example_utterances where id in (?)", [ids]);
 }
 
-export async function deleteBySchema(client, schemaId, language) {
-    return db.query(client, "delete from example_utterances where schema_id = ? and language = ?",
+export async function deleteBySchema(client : db.Client, schemaId : number, language : string) {
+    await db.query(client, "delete from example_utterances where schema_id = ? and language = ?",
         [schemaId, language]);
 }
 
-export async function update(client, id, example) {
-    return db.query(client, "update example_utterances set ? where id = ?", [example, id]);
+export async function update(client : db.Client, id : number, example : Partial<Row>) {
+    await db.query(client, "update example_utterances set ? where id = ?", [example, id]);
 }
 
-export async function click(client, exampleId) {
-    return db.query(client, "update example_utterances set click_count = click_count + 1 where id = ?", [exampleId]);
+export async function click(client : db.Client, exampleId : number) {
+    await db.query(client, "update example_utterances set click_count = click_count + 1 where id = ?", [exampleId]);
 }
 
-export async function like(client, userId, exampleId) {
+export async function like(client : db.Client, userId : number, exampleId : number) {
     const inserted = await db.insertIgnore(client, `insert ignore into example_likes(example_id, user_id) values (?, ?)`, [exampleId, userId]);
     if (inserted)
         await db.query(client, `update example_utterances set like_count = like_count + 1 where id = ?`, [exampleId]);
     return inserted;
 }
 
-export async function unlike(client, userId, exampleId) {
+export async function unlike(client : db.Client, userId : number, exampleId : number) {
     await db.query(client, `update example_utterances set like_count = like_count - 1 where id = ? and
         exists (select 1 from example_likes where user_id = ? and example_id = ?)`, [exampleId, userId, exampleId]);
     const [result,] = await db.query(client, `delete from example_likes where user_id = ? and example_id = ?`, [userId, exampleId]);
     return result.affectedRows > 0;
 }
 
-export async function hide(client, exampleId) {
-    return db.query(client, "update example_utterances set click_count = -1 where id = ?", [exampleId]);
+export async function hide(client : db.Client, exampleId : number) {
+    await db.query(client, "update example_utterances set click_count = -1 where id = ?", [exampleId]);
 }
 
-export async function deleteById(client, exampleId) {
-    return db.query(client, "delete from example_utterances where id = ?", [exampleId]);
+export async function deleteById(client : db.Client, exampleId : number) {
+    await db.query(client, "delete from example_utterances where id = ?", [exampleId]);
 }
 
-export async function deleteAllLikesFromUser(client, userId) {
+export async function deleteAllLikesFromUser(client : db.Client, userId : number) {
     await db.query(client, `update example_utterances set like_count = like_count - 1 where
         exists (select 1 from example_likes where user_id = ? and example_id = id)`, [userId]);
     await db.query(client, `delete from example_likes where user_id = ?`, [userId]);
 }
 
-export async function getTypes(client) {
+export async function getTypes(client : db.Client) : Promise<Array<{ language : string, type : string, size : number }>> {
     return db.selectAll(client, "select distinct language,type,count(*) as size from example_utterances group by language,type");
 }
-export async function getByType(client, language, type, start, end) {
+export async function getByType(client : db.Client, language : string, type : string, start : number, end : number) : Promise<Row[]> {
     return db.selectAll(client, `select * from example_utterances where not is_base and
         language = ? and type = ? and not find_in_set('replaced', flags)
             and not find_in_set('augmented', flags) order by id desc limit ?,?`,
         [language, type, start, end]);
 }
 
-export async function getByIntentName(client, language, kind, name) {
+export async function getByIntentName(client : db.Client, language : string, kind : string, name : string) : Promise<Row> {
     return db.selectOne(client, `select ex.* from example_utterances ex, device_schema ds
         where ds.id = ex.schema_id and ds.kind = ? and ex.language = ? and ex.name = ?`,
         [kind, language, name]);
 }
 
-export async function getExact(client, language) {
+export async function getExact(client : db.Client, language : string) : Promise<Array<Pick<Row, "preprocessed"|"target_code">>> {
     return db.selectAll(client, `select preprocessed,target_code from example_utterances use index (language_flags)
         where language = ? and find_in_set('exact', flags) and not is_base and preprocessed <> ''
         order by type asc, id asc`, [language]);
 }
 
-export async function getExactById(client, exampleId) {
+export async function getExactById(client : db.Client, exampleId : number) : Promise<Pick<Row, "preprocessed"|"target_code">> {
     return db.selectOne(client, `select preprocessed,target_code from example_utterances where id = ?`, [exampleId]);
 }
 
-export async function suggest(client, command) {
-    return db.query(client, "insert into command_suggestions (command) values (?)", command);
+export async function suggest(client : db.Client, command : db.WithoutID<db.Optional<SuggestionRow, SuggestionOptionalFields>>) {
+    await db.query(client, "insert into command_suggestions (command) values (?)", [command]);
 }

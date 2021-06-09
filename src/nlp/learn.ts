@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -24,8 +24,6 @@ import * as ThingTalk from 'thingtalk';
 import * as Tp from 'thingpedia';
 import * as Genie from 'genie-toolkit';
 
-const router = express.Router();
-
 import * as db from '../util/db';
 import * as iv from '../util/input_validation';
 import * as I18n from '../util/i18n';
@@ -33,9 +31,11 @@ import * as userModel from '../model/user';
 import * as exampleModel from '../model/example';
 import * as Config from '../config';
 
+const router = express.Router();
+
 const LATEST_THINGTALK_VERSION = ThingTalk.version;
 
-async function learn(req, res) {
+async function learn(req : express.Request, res : express.Response) {
     let store = req.body.store;
     if (['no', 'automatic', 'online', 'commandpedia'].indexOf(store) < 0) {
         res.status(400).json({ error: 'Invalid store parameter' });
@@ -145,7 +145,7 @@ async function learn(req, res) {
             owner: ownerId,
             like_count: 0
         });
-        if (store === 'commandpedia')
+        if (store === 'commandpedia' && ownerId !== null)
             await exampleModel.like(dbClient, exid, ownerId);
         return exid;
     });

@@ -56,7 +56,6 @@ export default async function main(task, argv) {
         maxDepth: config.synthetic_depth,
         targetPruningSize: config.dataset_target_pruning_size,
         contextualTargetPruningSize: config.dataset_contextual_target_pruning_size,
-        templatePack: modelInfo.template_file_name,
 
         // augmentation flags
         quotedProbability: config.dataset_quoted_probability,

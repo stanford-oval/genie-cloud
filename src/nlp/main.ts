@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as argparse from 'argparse';
 import express from 'express';
 import expressWS from 'express-ws';
 import logger from 'morgan';
@@ -38,13 +39,25 @@ import ProxyServer from './proxy';
 
 import * as Config from '../config';
 
-class NLPInferenceServer {
+declare global {
+    namespace Express {
+        interface Application {
+            service : NLPInferenceServer;
+            proxy ?: ProxyServer;
+        }
+    }
+}
+
+export class NLPInferenceServer {
+    private _models : Map<string, NLPModel>;
+    private _exactMatchers : Map<string, Genie.ExactMatcher>;
+
     constructor() {
         this._models = new Map;
         this._exactMatchers = new Map;
     }
 
-    getExact(locale) {
+    getExact(locale : string) {
         const splitTag = locale.split(/[_.-]/g);
 
         while (splitTag.length > 0) {
@@ -56,7 +69,7 @@ class NLPInferenceServer {
         return undefined;
     }
 
-    getModel(modelTag = 'org.thingpedia.models.default', locale) {
+    getModel(modelTag = 'org.thingpedia.models.default', locale : string) {
         const splitTag = locale.split(/[_.-]/g);
 
         // API compat
@@ -73,7 +86,7 @@ class NLPInferenceServer {
         return undefined;
     }
 
-    getOrCreateModel(spec) {
+    getOrCreateModel(spec : modelsModel.Row) {
         const key = `@${spec.tag}/${spec.language}`;
         let model = this._models.get(key);
         if (model) {
@@ -86,7 +99,7 @@ class NLPInferenceServer {
         return model;
     }
 
-    async loadExactMatcher(matcher, language) {
+    async loadExactMatcher(matcher : Genie.ExactMatcher, language : string) {
         const url = AbstractFS.resolve(Config.NL_EXACT_MATCH_DIR, language + '.btrie');
         const tmpPath = await AbstractFS.download(url);
 
@@ -96,7 +109,7 @@ class NLPInferenceServer {
     }
 
     async loadAllLanguages() {
-        for (let locale of Config.SUPPORTED_LANGUAGES) {
+        for (const locale of Config.SUPPORTED_LANGUAGES) {
             const language = I18n.localeToLanguage(locale);
             const matcher = new Genie.ExactMatcher();
             await this.loadExactMatcher(matcher, language);
@@ -105,7 +118,7 @@ class NLPInferenceServer {
 
         await db.withTransaction(async (dbClient) => {
             const modelspecs = await modelsModel.getAll(dbClient);
-            for (let modelspec of modelspecs) {
+            for (const modelspec of modelspecs) {
                 const model = new NLPModel(modelspec, this);
                 await model.load();
                 this._models.set(model.id, model);
@@ -115,7 +128,7 @@ class NLPInferenceServer {
         console.log(`Loaded ${this._models.size} models`);
     }
 
-    async initFrontend(port) {
+    async initFrontend(port : number) {
         const app = express();
         expressWS(app);
 
@@ -159,7 +172,7 @@ class NLPInferenceServer {
     }
 }
 
-export function initArgparse(subparsers) {
+export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('run-nlp', {
         description: 'Run the Voice & NLP inference process'
     });
@@ -171,7 +184,7 @@ export function initArgparse(subparsers) {
     });
 }
 
-export async function main(argv) {
+export async function main(argv : any) {
     const daemon = new NLPInferenceServer();
 
     daemon.loadAllLanguages();

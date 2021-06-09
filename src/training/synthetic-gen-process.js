@@ -52,8 +52,7 @@ async function genBasic(args) {
         thingpediaClient: tpClient,
         schemaRetriever: schemas,
 
-        // FIXME this is not quite right
-        templateFiles: [args.locale + '/thingtalk.genie'],
+        templateFiles: ['single-command.genie'],
         targetLanguage: 'thingtalk',
 
         rng: rng,
@@ -92,7 +91,7 @@ async function genContextual(args) {
         entities: './entities.json',
         dataset: './dataset.tt',
         flags: args.flags,
-        template: 'contextual.genie',
+        template: ['dialogue.genie'],
         random_seed: 'almond is awesome',
         maxDepth: args.maxdepth,
         targetPruningSize: args.target_pruning_size,

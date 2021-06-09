@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -21,19 +21,25 @@
 
 import * as db from '../util/db';
 
-export async function create(client, snapshot) {
+export interface Row {
+    snapshot_id : number;
+    description : string;
+    date : Date;
+}
+
+export async function create(client : db.Client, snapshot : db.Optional<Row, 'snapshot_id'>) : Promise<Row> {
     snapshot.date = new Date;
 
     return db.insertOne(client, 'insert into snapshot set ?', [snapshot]).then((id) => {
-        snapshot.id = id;
+        snapshot.snapshot_id = id;
         return Promise.all([
             db.query(client, 'insert into device_schema_snapshot select ?,device_schema.* from device_schema', [id]),
             db.query(client, 'insert into entity_names_snapshot select ?,entity_names.* from entity_names', [id])
         ]);
-    }).then(() => snapshot);
+    }).then(() => snapshot as Row);
 }
 
-export async function getAll(client, start, end) {
+export async function getAll(client : db.Client, start ?: number, end ?: number) : Promise<Row[]> {
     if (start !== undefined && end !== undefined) {
         return db.selectAll(client, "select * from snapshot order by snapshot_id asc limit ?,?",
                             [start, end]);
