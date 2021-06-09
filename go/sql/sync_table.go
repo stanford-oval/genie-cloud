@@ -106,6 +106,13 @@ func (t *SyncTable) handleChanges(tx *gorm.DB, changes []SyncRecord, userID int6
 	for _, sr := range changes {
 		var res bool
 		var err error
+		key := sr.JournalRow().GetKey()
+		key.UserID = userID
+		sr.JournalRow().SetKey(key)
+		if len(key.UniqueID) == 0 {
+			results = append(results, false)
+			continue
+		}
 		if sr.HasDiscriminator() {
 			if res, err = t.insertIfRecent(tx, sr); err != nil {
 				return nil, err
@@ -127,7 +134,7 @@ func (t *SyncTable) insertIfRecent(tx *gorm.DB, sr SyncRecord) (bool, error) {
 	k := sr.JournalRow().GetKey()
 	result := tx.Model(sr.JournalRow()).Where(
 		"uniqueId = ? AND userId = ?", k.UniqueID, k.UserID).First(&row)
-	if result.Error != nil {
+	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
 		return false, result.Error
 	}
 	if result.RowsAffected > 0 && row.LastModified >= sr.GetLastModified() {
@@ -156,7 +163,7 @@ func (t *SyncTable) deleteIfRecent(tx *gorm.DB, sr SyncRecord) (bool, error) {
 	k := sr.JournalRow().GetKey()
 	result := tx.Model(sr.JournalRow()).Where(
 		"uniqueId = ? AND userId = ?", k.UniqueID, k.UserID).First(&row)
-	if result.Error != nil {
+	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
 		return false, result.Error
 	}
 	if result.RowsAffected > 0 && row.LastModified >= sr.GetLastModified() {
@@ -212,7 +219,7 @@ func (t *SyncTable) getLastModified(tx *gorm.DB, sr SyncRecord) (int64, error) {
 	userID := sr.JournalRow().GetKey().UserID
 	result := tx.Raw("select max(lastModified) as max_last_modified from "+tableName+
 		" where userId = ?", userID).Find(&rows)
-	if result.Error != nil {
+	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
 		return 0, result.Error
 	}
 	if result.RowsAffected == 0 {
@@ -238,6 +245,12 @@ func (t *SyncTable) ReplaceAll(rows []SyncRecord, userID int64) error {
 		}
 		for _, row := range rows {
 			if !row.HasDiscriminator() {
+				continue
+			}
+			key := row.JournalRow().GetKey()
+			key.UserID = userID
+			row.JournalRow().SetKey((key))
+			if len(key.UniqueID) == 0 {
 				continue
 			}
 			if _, err := t.insert(tx, row); err != nil {

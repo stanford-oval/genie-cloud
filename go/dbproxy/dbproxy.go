@@ -39,11 +39,15 @@ func Run(args []string) {
 	almondConfig := config.GetAlmondConfig()
 	sql.InitMySQL(almondConfig.DatabaseURL)
 	r := gin.Default()
+	r.Use(func(c *gin.Context) {
+		debugDumpRequest(c.Request)
+		c.Next()
+	})
 
 	r.GET("/localtable/:name/:userid", localTableGetAll)
 	r.GET("/localtable/:name/:userid/:uniqueid", localTableGetOne)
 	r.DELETE("/localtable/:name/:userid/:uniqueid", localTableDeleteOne)
-	r.POST("/localtable/:name/:userid", localTableInsertOne)
+	r.POST("/localtable/:name/:userid/:uniqueid", localTableInsertOne)
 
 	r.GET("/synctable/:name/:userid", syncTableGetAll)
 	r.GET("/synctable/:name/:userid/:uniqueid", syncTableGetOne)
@@ -52,8 +56,8 @@ func Run(args []string) {
 	r.POST("/synctable/changes/:name/:userid", syncTableHandleChanges)
 	r.POST("/synctable/sync/:name/:userid/:millis", syncTableSyncAt)
 	r.POST("/synctable/replace/:name/:userid", syncTableReplaceAll)
-	r.POST("/synctable/:name/:userid/:millis", syncTableInsertIfRecent)
-	r.POST("/synctable/:name/:userid", syncTableInsertOne)
+	r.POST("/synctable/:name/:userid/:uniqueid/:millis", syncTableInsertIfRecent)
+	r.POST("/synctable/:name/:userid/:uniqueid", syncTableInsertOne)
 	r.DELETE("/synctable/:name/:userid/:uniqueid/:millis", syncTableDeleteIfRecent)
 	r.DELETE("/synctable/:name/:userid/:uniqueid", syncTableDeleteOne)
 	r.Run(fmt.Sprintf("0.0.0.0:%d", *port))

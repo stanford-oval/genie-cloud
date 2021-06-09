@@ -39,7 +39,7 @@ func syncTableGetAll(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": rows})
+	c.JSON(http.StatusOK, gin.H{"result": "ok", "data": rows})
 }
 
 func syncTableGetOne(c *gin.Context) {
@@ -63,7 +63,7 @@ func syncTableGetOne(c *gin.Context) {
 		}
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": row})
+	c.JSON(http.StatusOK, gin.H{"result": "ok", "data": row})
 }
 
 func syncTableGetRaw(c *gin.Context) {
@@ -83,7 +83,7 @@ func syncTableGetRaw(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": rows})
+	c.JSON(http.StatusOK, gin.H{"result": "ok", "data": rows})
 }
 
 func syncTableGetChangesAfter(c *gin.Context) {
@@ -108,7 +108,7 @@ func syncTableGetChangesAfter(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": rows})
+	c.JSON(http.StatusOK, gin.H{"result": "ok", "data": rows})
 }
 
 func syncTableHandleChanges(c *gin.Context) {
@@ -134,13 +134,12 @@ func syncTableHandleChanges(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 	results, err := syncTable.HandleChanges(srows, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": results})
+	c.JSON(http.StatusOK, gin.H{"result": "ok", "data": results})
 }
 
 func syncTableSyncAt(c *gin.Context) {
@@ -184,7 +183,7 @@ func syncTableSyncAt(c *gin.Context) {
 		ourChange    []sql.SyncRecord
 		done         []bool
 	}{latest, ourChange, done}
-	c.JSON(http.StatusOK, gin.H{"data": ret})
+	c.JSON(http.StatusOK, gin.H{"result": "ok", "data": ret})
 }
 
 func syncTableReplaceAll(c *gin.Context) {
@@ -215,7 +214,7 @@ func syncTableReplaceAll(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": true})
+	c.JSON(http.StatusOK, gin.H{"result": "ok", "data": true})
 }
 
 func syncTableInsertIfRecent(c *gin.Context) {
@@ -225,25 +224,18 @@ func syncTableInsertIfRecent(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
 	}
-	userID, err := parseUserID(c)
+	key, err := parseKey(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
 	if err := c.ShouldBindJSON(m); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if m.GetKey().UserID != userID {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userid does not match"})
-		return
-	}
-
-	if len(m.GetKey().UniqueID) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "uniqueId must be set"})
-		return
-	}
+	m.SetKey(*key)
 
 	lastModified, err := strconv.ParseInt(c.Param("millis"), 10, 64)
 	if err != nil {
@@ -256,7 +248,7 @@ func syncTableInsertIfRecent(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": done})
+	c.JSON(http.StatusOK, gin.H{"result": "ok", "data": done})
 }
 
 func syncTableInsertOne(c *gin.Context) {
@@ -266,7 +258,7 @@ func syncTableInsertOne(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
 		return
 	}
-	userID, err := parseUserID(c)
+	key, err := parseKey(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -275,23 +267,13 @@ func syncTableInsertOne(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	if len(m.GetKey().UniqueID) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "uniqueId must be set"})
-		return
-	}
-
-	if m.GetKey().UserID != userID {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userid does not match"})
-		return
-	}
-
-	done, err := syncTable.InsertOne(m)
+	m.SetKey(*key)
+	lastModified, err := syncTable.InsertOne(m)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": done})
+	c.JSON(http.StatusOK, gin.H{"result": "ok", "data": lastModified})
 }
 
 func syncTableDeleteIfRecent(c *gin.Context) {
@@ -323,7 +305,7 @@ func syncTableDeleteIfRecent(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": done})
+	c.JSON(http.StatusOK, gin.H{"result": "ok", "data": done})
 }
 
 func syncTableDeleteOne(c *gin.Context) {
@@ -338,16 +320,11 @@ func syncTableDeleteOne(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := c.ShouldBindJSON(m); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
 	m.SetKey(*key)
-	done, err := syncTable.DeleteOne(m)
+	lastModified, err := syncTable.DeleteOne(m)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": done})
+	c.JSON(http.StatusOK, gin.H{"result": "ok", "data": lastModified})
 }
