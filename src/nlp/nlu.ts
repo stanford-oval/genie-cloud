@@ -74,23 +74,10 @@ export default async function runNLU(query : string,
         }
     } else {
         let fallbacks;
-        if (isValidDeveloperKey(data.developer_key)) {
-            if (data.context) {
-                fallbacks = ['org.thingpedia.models.developer.contextual', 'org.thingpedia.models.contextual',
-                             'org.thingpedia.models.developer', 'org.thingpedia.models.default'];
-            } else {
-                fallbacks = ['org.thingpedia.models.developer', 'org.thingpedia.models.default',
-                             'org.thingpedia.models.developer.contextual', 'org.thingpedia.models.contextual'];
-            }
-        } else {
-            if (data.context) {
-                fallbacks = ['org.thingpedia.models.contextual', 'org.thingpedia.models.developer.contextual',
-                             'org.thingpedia.models.default', 'org.thingpedia.models.developer'];
-            } else {
-                fallbacks = ['org.thingpedia.models.default', 'org.thingpedia.models.developer',
-                             'org.thingpedia.models.contextual', 'org.thingpedia.models.developer.contextual'];
-            }
-        }
+        if (isValidDeveloperKey(data.developer_key))
+            fallbacks = ['org.thingpedia.models.developer', 'org.thingpedia.models.default'];
+        else
+            fallbacks = ['org.thingpedia.models.default', 'org.thingpedia.models.developer'];
 
         for (const candidate of fallbacks) {
             model = service.getModel(candidate, params.locale);

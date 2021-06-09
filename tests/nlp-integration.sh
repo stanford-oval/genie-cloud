@@ -67,10 +67,10 @@ echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $w
 # clean the database and bootstrap
 ${srcdir}/dist/main.js bootstrap --force
 
-mkdir -p 'models/org.thingpedia.models.contextual:en'
+mkdir -p 'models/org.thingpedia.models.default:en'
 
 wget --no-verbose -c https://almond-static.stanford.edu/test-data/models/genienlp-v0.6.0a2.tar.xz -O $srcdir/tests/embeddings/genienlp-v0.6.0a2.xz
-tar xvf $srcdir/tests/embeddings/genienlp-v0.6.0a2.xz -C 'models/org.thingpedia.models.contextual:en'
+tar xvf $srcdir/tests/embeddings/genienlp-v0.6.0a2.xz -C 'models/org.thingpedia.models.default:en'
 
 # 1) remove developer models that were autoadded by bootstrap
 # we'll test the main models only (there is no difference really)
@@ -78,7 +78,7 @@ tar xvf $srcdir/tests/embeddings/genienlp-v0.6.0a2.xz -C 'models/org.thingpedia.
 # 3) create a dummy test model that is not trained
 ${srcdir}/dist/main.js execute-sql-file /proc/self/fd/0 <<<"
 delete from models where tag like '%developer%';
-update models set trained = true where tag = 'org.thingpedia.models.contextual';
+update models set trained = true where tag = 'org.thingpedia.models.default';
 insert into models set tag ='org.thingpedia.test.nottrained', language = 'en', owner = 1,
   all_devices = 1, use_approved = 1, template_file = 1, flags = '[]', contextual = 0, trained = 0;
 "
