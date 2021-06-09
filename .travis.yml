@@ -33,7 +33,7 @@ jobs:
       install:
       - sudo apt-get update -q -y
       - sudo apt-get install -y realpath
-      - travis_retry npm install
+      - travis_retry npm ci
       script:
       - npm run lint
       - ./tests/check-migrations.sh
@@ -43,7 +43,7 @@ jobs:
       name: "Web Almond Integration Tests"
       install:
       - ./travis/install-webalmond-deps.sh
-      - travis_retry npm install
+      - travis_retry npm ci
       - export PATH="`pwd`/geckodriver:$PATH"
       script: npx nyc ./tests/webalmond-integration.sh
       after_success: npm run coverage
@@ -51,7 +51,7 @@ jobs:
       name: "Thingpedia Integration Tests"
       install:
       - ./travis/install-webalmond-deps.sh
-      - travis_retry npm install
+      - travis_retry npm ci
       - export PATH="`pwd`/geckodriver:$PATH"
       script: npx nyc ./tests/thingpedia-integration.sh
       after_success: npm run coverage
@@ -59,7 +59,7 @@ jobs:
       name: "NLP Integration Tests"
       install:
       - ./travis/install-webalmond-deps.sh
-      - travis_retry npm install
+      - travis_retry npm ci
       - pyenv global 3.7.1
       - ./tests/install-nlp-deps.sh
       - export GENIENLP_EMBEDDINGS=`pwd`/tests/embeddings
@@ -70,7 +70,7 @@ jobs:
       name: "Training Integration Tests"
       install:
       - ./travis/install-webalmond-deps.sh
-      - travis_retry npm install
+      - travis_retry npm ci
       - pyenv global 3.7.1
       - ./tests/install-nlp-deps.sh
       - export GENIENLP_EMBEDDINGS=`pwd`/tests/embeddings
