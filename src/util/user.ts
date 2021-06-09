@@ -129,7 +129,11 @@ export interface RegisterOptions {
     profile_flags ?: number;
 }
 
-export async function register(dbClient : db.Client, req : Request, options : RegisterOptions) {
+interface I18nReq {
+    _(x : string) : string;
+}
+
+export async function register(dbClient : db.Client, req : I18nReq, options : RegisterOptions) {
     const usernameRows = await model.getByName(dbClient, options.username);
     if (usernameRows.length > 0)
         throw new BadRequestError(req._("A user with this name already exists."));

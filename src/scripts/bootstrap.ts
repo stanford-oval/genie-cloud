@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -19,10 +19,10 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 // Bootstrap an installation of Almond Cloud by creating the
 // database schema and adding the requisite initial data
 
+import * as argparse from 'argparse';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as util from 'util';
@@ -46,7 +46,13 @@ import * as execSql from '../util/exec_sql';
 
 import * as Config from '../config';
 
-const req = { _(x) { return x; } };
+const req : {
+    _(x : string) : string;
+
+    user ?: unknown /* FIXME */
+} = {
+    _(x : string) { return x; },
+};
 
 const DEFAULT_TRAINING_CONFIG = JSON.stringify({
     dataset_target_pruning_size: 1000,
@@ -65,17 +71,19 @@ const DEFAULT_TRAINING_CONFIG = JSON.stringify({
     lr_multiply: 0.01,
 });
 
-async function createRootOrg(dbClient) {
+async function createRootOrg(dbClient : db.Client) {
     return organization.create(dbClient, {
         name: 'Site Administration',
-        comment:  '',
+        comment: '',
         id_hash: makeRandom(8),
         developer_key: Config.WITH_THINGPEDIA === 'external' ? (Config.ROOT_THINGPEDIA_DEVELOPER_KEY || makeRandom()) : makeRandom(),
         is_admin: true
     });
 }
 
-async function createDefaultUsers(dbClient, rootOrg) {
+type BasicOrgRow = { id : number };
+
+async function createDefaultUsers(dbClient : db.Client, rootOrg : BasicOrgRow) {
     req.user = await user.register(dbClient, req, {
         username: 'root',
         password: 'rootroot',
@@ -101,8 +109,8 @@ async function createDefaultUsers(dbClient, rootOrg) {
     });
 }
 
-async function importStandardEntities(dbClient) {
-    const ENTITIES = {
+async function importStandardEntities(dbClient : db.Client) {
+    const ENTITIES : Record<string, string> = {
         'tt:contact': 'Contact Identity',
         'tt:contact_name': 'Contact Name',
         'tt:device': 'Device Name',
@@ -156,8 +164,8 @@ async function importStandardEntities(dbClient) {
     });
 }
 
-async function importStandardStringTypes(dbClient, rootOrg) {
-    const STRING_TYPES = {
+async function importStandardStringTypes(dbClient : db.Client, rootOrg : BasicOrgRow) {
+    const STRING_TYPES : Record<string, string> = {
         'tt:search_query': 'Web Search Query',
         'tt:short_free_text': 'General Text (short phrase)',
         'tt:long_free_text': 'General Text (paragraph)',
@@ -168,7 +176,7 @@ async function importStandardStringTypes(dbClient, rootOrg) {
     };
 
     await stringModel.createMany(dbClient, Object.keys(STRING_TYPES).map((id) => {
-        const obj = {
+        const obj : db.WithoutID<stringModel.Row> = {
             type_name: id,
             name: STRING_TYPES[id],
             language: 'en',
@@ -190,7 +198,7 @@ async function importStandardStringTypes(dbClient, rootOrg) {
     }));
 }
 
-async function importStandardSchemas(dbClient, rootOrg) {
+async function importStandardSchemas(dbClient : db.Client, rootOrg : BasicOrgRow) {
     const CATEGORIES = ['online-account', 'data-source', 'thingengine-system',
         'communication', 'data-management', 'health', 'home',
         'media', 'service', 'social-network'];
@@ -211,7 +219,7 @@ async function importStandardSchemas(dbClient, rootOrg) {
         [CATEGORIES.map((c) => [c, 'category', rootOrg.id, 0, 0, clean(c)])]);
 }
 
-function getBuiltinIcon(kind) {
+function getBuiltinIcon(kind : string) {
     switch (kind) {
     case 'org.thingpedia.builtin.bluetooth.generic':
     case 'org.thingpedia.builtin.matrix':
@@ -221,7 +229,7 @@ function getBuiltinIcon(kind) {
     }
 }
 
-async function importBuiltinDevices(dbClient, rootOrg) {
+async function importBuiltinDevices(dbClient : db.Client, rootOrg : BasicOrgRow) {
     const BUILTIN_DEVICES = [
         'org.thingpedia.builtin.thingengine',
         'org.thingpedia.builtin.thingengine.builtin',
@@ -230,9 +238,9 @@ async function importBuiltinDevices(dbClient, rootOrg) {
         'org.thingpedia.builtin.test',
         'org.thingpedia.builtin.bluetooth.generic',
         'messaging',
-    ];
+    ] as const;
 
-    for (let primaryKind of BUILTIN_DEVICES) {
+    for (const primaryKind of BUILTIN_DEVICES) {
         console.log(`Loading builtin device ${primaryKind}`);
 
         const filename = path.resolve(path.dirname(module.filename), '../../data/' + primaryKind + '.yaml');
@@ -248,7 +256,7 @@ async function importBuiltinDevices(dbClient, rootOrg) {
     }
 }
 
-async function importStandardTemplatePack(dbClient, rootOrg) {
+async function importStandardTemplatePack(dbClient : db.Client, rootOrg : BasicOrgRow) {
     const tmpl = await templatePackModel.create(dbClient, {
         language: 'en',
         tag: 'org.thingpedia.genie.thingtalk',
@@ -293,7 +301,7 @@ async function importStandardTemplatePack(dbClient, rootOrg) {
     return tmpl.id;
 }
 
-async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
+async function importDefaultNLPModels(dbClient : db.Client, rootOrg : BasicOrgRow, templatePack : number) {
     await nlpModelsModel.create(dbClient, {
         language: 'en',
         tag: 'org.thingpedia.models.default',
@@ -417,7 +425,7 @@ async function isAlreadyBootstrapped() {
     }
 }
 
-export function initArgparse(subparsers) {
+export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('bootstrap', {
         description: 'Bootstrap an installation of Almond Cloud'
     });
@@ -428,7 +436,7 @@ export function initArgparse(subparsers) {
     });
 }
 
-export async function main(argv) {
+export async function main(argv : any) {
     // Check if we bootstrapped already
     if (!argv.force) {
         if (await isAlreadyBootstrapped()) {
