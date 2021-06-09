@@ -47,7 +47,6 @@ export interface StatisticsRow {
     oss_device_count : number;
     approved_device_count : number;
     oss_approved_device_count : number;
-    oss_template_file_count : number;
 }
 
 export async function get(client : db.Client, id : number) : Promise<Row> {
@@ -68,15 +67,13 @@ export interface CreditUpdateParams {
     WEEKLY_APPROVED_THINGPEDIA_UPDATE : number;
     WEEKLY_OSS_THINGPEDIA_UPDATE : number;
     WEEKLY_THINGPEDIA_UPDATE : number;
-    WEEKLY_OSS_TEMPLATE_PACK_UPDATE : number;
 }
 export async function applyWeeklyCreditUpdate(client : db.Client, params : CreditUpdateParams) : Promise<void> {
     const query = `update organizations org, org_statistics os set
         org.credits = org.credits + (
             ${params.WEEKLY_APPROVED_THINGPEDIA_UPDATE} * approved_device_count +
             ${params.WEEKLY_OSS_THINGPEDIA_UPDATE} * (oss_device_count - oss_approved_device_count) +
-            ${params.WEEKLY_THINGPEDIA_UPDATE} * (device_count - approved_device_count - (oss_device_count - oss_approved_device_count)) +
-            ${params.WEEKLY_OSS_TEMPLATE_PACK_UPDATE} * oss_template_file_count)
+            ${params.WEEKLY_THINGPEDIA_UPDATE} * (device_count - approved_device_count - (oss_device_count - oss_approved_device_count)))
             * timestampdiff(week, last_credit_update, now()),
         org.last_credit_update = org.last_credit_update + interval (timestampdiff(week, last_credit_update, now())) week
         where org.id = os.id`;

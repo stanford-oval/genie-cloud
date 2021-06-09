@@ -28,7 +28,6 @@ export interface Row {
     tag : string;
     owner : number;
     access_token : string|null;
-    template_file : number;
     flags : string;
     contextual : boolean;
     all_devices : boolean;
@@ -44,7 +43,6 @@ export type OptionalFields = 'language' | 'access_token' | 'contextual' | 'all_d
     | 'use_approved' | 'use_exact' | 'config' | 'trained' | 'metrics' | 'trained_config' | 'version';
 
 export interface RowWithDetails extends Row {
-    template_file_name : string;
     kind : string;
     for_devices : string[];
 }
@@ -80,81 +78,70 @@ export async function getTrained(client : db.Client) : Promise<Row[]> {
 
 export async function getPublic(client : db.Client, owner : number|null) : Promise<RowWithDetails[]> {
     return db.selectAll(client,
-        `(select m.*, tpl.tag as template_file_name, null as kind
-            from models m, template_files tpl where tpl.id = m.template_file
-            and all_devices and (m.access_token is null or m.owner = ?))
+        `(select m.*, null as kind
+            from models m where
+            all_devices and (m.access_token is null or m.owner = ?))
             union
-            (select m.*, tpl.tag as template_file_name, ds.kind
-            from models m, template_files tpl, model_devices md, device_schema ds
-            where tpl.id = m.template_file
-            and not m.all_devices and (m.access_token is null or m.owner = ?)
+            (select m.*, ds.kind
+            from models m, model_devices md, device_schema ds
+            where not m.all_devices and (m.access_token is null or m.owner = ?)
             and md.schema_id = ds.id and md.model_id = m.id)
             order by id`, [owner, owner]).then(loadModels);
 }
 
 export async function getByOwner(client : db.Client, owner : number) : Promise<RowWithDetails[]> {
     return db.selectAll(client,
-        `(select m.*, tpl.tag as template_file_name, null as kind
-            from models m, template_files tpl where tpl.id = m.template_file
-            and all_devices and m.owner = ?)
+        `(select m.*, null as kind
+            from models m where all_devices and m.owner = ?)
             union
-            (select m.*, tpl.tag as template_file_name, ds.kind
-            from models m, template_files tpl, model_devices md, device_schema ds
-            where tpl.id = m.template_file
-            and not m.all_devices and m.owner = ?
+            (select m.*, ds.kind
+            from models m, model_devices md, device_schema ds
+            where not m.all_devices and m.owner = ?
             and md.schema_id = ds.id and md.model_id = m.id)
             order by id`, [owner, owner]).then(loadModels);
 }
 
 export async function getForLanguage(client : db.Client, language : string) : Promise<RowWithDetails[]> {
     return db.selectAll(client,
-        `(select m.*, tpl.tag as template_file_name, null as kind
-            from models m, template_files tpl where tpl.id = m.template_file
-            and all_devices and m.language = ?)
+        `(select m.*, null as kind
+            from models m where all_devices and m.language = ?)
             union
-            (select m.*, tpl.tag as template_file_name, ds.kind
-            from models m, template_files tpl, model_devices md, device_schema ds
-            where tpl.id = m.template_file
-            and not m.all_devices and m.language = ?
+            (select m.*, ds.kind
+            from models m, model_devices md, device_schema ds
+            where not m.all_devices and m.language = ?
             and md.schema_id = ds.id and md.model_id = m.id)
             order by id`, [language, language]).then(loadModels);
 }
 
 export async function getByTag(client : db.Client, language : string, tag : string) : Promise<RowWithDetails[]> {
     return db.selectAll(client, `
-        (select m.*, tpl.tag as template_file_name, null as kind
-            from models m, template_files tpl where tpl.id = m.template_file
-            and all_devices and m.language = ? and m.tag = ?)
+        (select m.*, null as kind
+            from models m where all_devices and m.language = ? and m.tag = ?)
             union
-            (select m.*, tpl.tag as template_file_name, ds.kind
-            from models m, template_files tpl, model_devices md, device_schema ds
-            where tpl.id = m.template_file
-            and not m.all_devices and m.language = ? and m.tag = ?
+            (select m.*, ds.kind
+            from models m, model_devices md, device_schema ds
+            where not m.all_devices and m.language = ? and m.tag = ?
             and md.schema_id = ds.id and md.model_id = m.id)
             order by id`, [language, tag, language, tag]).then(loadModels);
 }
 export async function getByTagForUpdate(client : db.Client, language : string, tag : string) : Promise<Row> {
-    return db.selectOne(client, `select m.*, tpl.tag as template_file_name
-            from models m, template_files tpl where tpl.id = m.template_file
-            and m.language = ? and m.tag = ? for update`, [language, tag]);
+    return db.selectOne(client, `select m.*
+            from models m where m.language = ? and m.tag = ? for update`, [language, tag]);
 }
 
 export async function getForDevices(client : db.Client, language : string, devices : string[]) : Promise<RowWithDetails[]> {
     return db.selectAll(client,
-        `(select m.*, tpl.tag as template_file_name, null as kind
-            from models m, template_files tpl where tpl.id = m.template_file
-            and all_devices and use_approved and m.language = ? and
+        `(select m.*, null as kind
+            from models m where all_devices and use_approved and m.language = ? and
             exists (select 1 from device_schema where kind in (?) and approved_version is not null))
             union
-            (select m.*, tpl.tag as template_file_name, null as kind
-            from models m, template_files tpl where tpl.id = m.template_file
-            and all_devices and not use_approved and m.language = ? and
+            (select m.*, null as kind
+            from models m where all_devices and not use_approved and m.language = ? and
                 exists (select 1 from device_schema where kind in (?) ))
             union
-            (select m.*, tpl.tag as template_file_name, ds.kind
-            from models m, template_files tpl, model_devices md, device_schema ds
-            where tpl.id = m.template_file
-            and not m.all_devices and m.language = ?
+            (select m.*, ds.kind
+            from models m, model_devices md, device_schema ds
+            where not m.all_devices and m.language = ?
             and md.schema_id = ds.id and md.model_id = m.id and ds.kind in (?) )
             order by id`,
         [language, devices, language, devices, language, devices]).then(loadModels);

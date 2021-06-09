@@ -80,7 +80,7 @@ ${srcdir}/dist/main.js execute-sql-file /proc/self/fd/0 <<<"
 delete from models where tag like '%developer%';
 update models set trained = true where tag = 'org.thingpedia.models.default';
 insert into models set tag ='org.thingpedia.test.nottrained', language = 'en', owner = 1,
-  all_devices = 1, use_approved = 1, template_file = 1, flags = '[]', contextual = 0, trained = 0;
+  all_devices = 1, use_approved = 1, flags = '[]', contextual = 0, trained = 0;
 "
 
 mkdir -p 'exact'

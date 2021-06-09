@@ -27,7 +27,6 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as util from 'util';
 import * as yaml from 'js-yaml';
-import * as child_process from 'child_process';
 
 import * as db from '../util/db';
 import * as user from '../util/user';
@@ -36,12 +35,10 @@ import * as organization from '../model/organization';
 import * as entityModel from '../model/entity';
 import * as stringModel from '../model/strings';
 import * as nlpModelsModel from '../model/nlp_models';
-import * as templatePackModel from '../model/template_files';
 import { makeRandom } from '../util/random';
 
 import * as Importer from '../util/import_device';
 import { clean } from '../util/tokenize';
-import * as codeStorage from '../util/code_storage';
 import * as execSql from '../util/exec_sql';
 
 import * as Config from '../config';
@@ -256,52 +253,7 @@ async function importBuiltinDevices(dbClient : db.Client, rootOrg : BasicOrgRow)
     }
 }
 
-async function importStandardTemplatePack(dbClient : db.Client, rootOrg : BasicOrgRow) {
-    const tmpl = await templatePackModel.create(dbClient, {
-        language: 'en',
-        tag: 'org.thingpedia.genie.thingtalk',
-        owner: rootOrg.id,
-        description: 'Templates for the ThingTalk language',
-        flags: JSON.stringify([
-            'always_filter',
-            'aggregation',
-            'bookkeeping',
-            'configure_actions',
-            'dialogues',
-            'extended_timers',
-            'multifilters',
-            'nofilter',
-            'nostream',
-            'notablejoin',
-            'policies',
-            'primonly',
-            'projection',
-            'projection_with_filter',
-            'range_filters',
-            'remote_commands',
-            'schema_org',
-            'screen_selection',
-            'timer',
-            'triple_commands',
-            'undefined_filter',
-        ]),
-        public: true,
-        version: 0
-    });
-
-    const geniedir = path.resolve(path.dirname(module.filename), '../../node_modules/genie-toolkit');
-    const { stdout, stderr } = await util.promisify(child_process.execFile)(
-        'make', ['-C', geniedir, 'bundle/en.zip'], { maxBuffer: 1024 * 1024 });
-    process.stdout.write(stdout);
-    process.stderr.write(stderr);
-
-    await codeStorage.storeZipFile(fs.createReadStream(path.resolve(geniedir, 'bundle/en.zip')),
-        'org.thingpedia.genie.thingtalk', 0, 'template-files/en');
-
-    return tmpl.id;
-}
-
-async function importDefaultNLPModels(dbClient : db.Client, rootOrg : BasicOrgRow, templatePack : number) {
+async function importDefaultNLPModels(dbClient : db.Client, rootOrg : BasicOrgRow) {
     await nlpModelsModel.create(dbClient, {
         language: 'en',
         tag: 'org.thingpedia.models.default',
@@ -397,10 +349,8 @@ export async function main(argv : any) {
         const rootOrg = await createRootOrg(dbClient);
         await createDefaultUsers(dbClient, rootOrg);
 
-        if (Config.WITH_LUINET === 'embedded') {
-            const templatePack = await importStandardTemplatePack(dbClient, rootOrg);
-            await importDefaultNLPModels(dbClient, rootOrg, templatePack);
-        }
+        if (Config.WITH_LUINET === 'embedded')
+            await importDefaultNLPModels(dbClient, rootOrg);
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
             await importStandardEntities(dbClient);

@@ -181,13 +181,11 @@ class DatasetUpdater {
     }
 
     async _generateNewSynthetic() {
-        const templateFile = require.resolve('genie-toolkit/languages-dist/thingtalk/' + this._language + '/basic.genie.js');
         const options = {
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas,
 
-            // remove the .js at the end so we refer to the genie file
-            templateFiles: [templateFile.replace(/\.js$/, '')],
+            templateFiles: ['basic.genie'],
             targetLanguage: 'thingtalk',
 
             rng: this._rng,

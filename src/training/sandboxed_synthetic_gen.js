@@ -29,10 +29,8 @@ import * as tmp from 'tmp-promise';
 import * as schemaModel from '../model/schema';
 import * as entityModel from '../model/entity';
 import * as exampleModel from '../model/example';
-import * as templatePackModel from '../model/template_files';
 import * as SchemaUtils from '../util/manifest_to_schema';
 import * as DatasetUtils from '../util/dataset';
-import * as codeStorage from '../util/code_storage';
 import { InternalError } from '../util/errors';
 
 async function downloadThingpedia(dbClient, orgId, language, forDevices, tmpDir) {
@@ -59,44 +57,6 @@ async function downloadThingpedia(dbClient, orgId, language, forDevices, tmpDir)
 
     await util.promisify(fs.writeFile)(path.resolve(tmpDir, 'dataset.tt'),
         await DatasetUtils.examplesToDataset(`org.thingpedia.dynamic.everything`, language, examples));
-}
-
-async function symlinkModule(tmpDir, moduleName) {
-    try {
-        await util.promisify(fs.symlink)(path.dirname(require.resolve(moduleName)),
-                                         path.resolve(tmpDir, './node_modules/' + moduleName));
-    } catch(e) {
-        if (e.code !== 'EEXIST')
-            throw e;
-    }
-}
-
-async function downloadTemplatePack(dbClient, language, templatePack, tmpDir) {
-    const tmpl = await templatePackModel.getByTag(dbClient, language, templatePack);
-
-    const zipFileStream = await codeStorage.downloadZipFile(templatePack, tmpl.version, 'template-files/' + language);
-
-    const tmpZipFile = fs.createWriteStream(path.resolve(tmpDir, 'templates.zip'));
-    zipFileStream.pipe(tmpZipFile);
-
-    await new Promise((resolve, reject) => {
-        tmpZipFile.on('finish', resolve);
-        tmpZipFile.on('error', reject);
-    });
-
-    await util.promisify(child_process.execFile)('/usr/bin/unzip', ['-uo',
-        '-d', tmpDir, path.resolve(tmpDir, 'templates.zip')]);
-
-    try {
-        await util.promisify(fs.mkdir)(path.resolve(tmpDir, 'node_modules'));
-    } catch(e) {
-        if (e.code !== 'EEXIST')
-            throw e;
-    }
-
-    // symlink modules that will be useful inside the templates
-    for (let module of ['thingtalk', 'thingpedia', 'thingtalk-units'])
-        await symlinkModule(tmpDir, module);
 }
 
 function cleanEnv() {
@@ -131,7 +91,6 @@ async function prepare(options) {
     });
 
     await downloadThingpedia(options.dbClient, options.orgId, options.language, options.forDevices, tmpDir);
-    await downloadTemplatePack(options.dbClient, options.language, options.templatePack, tmpDir);
 
     return tmpDir;
 }
@@ -209,7 +168,7 @@ function generate(tmpDir, options) {
     const scriptArgs = [
         '--locale', options.language,
         '--maxdepth', options.maxDepth,
-        '--target-pruning-size', options.targetPruningSize
+        '--target-pruning-size', options.targetPruningSize,
     ];
     for (let f of options.flags)
         scriptArgs.push('--set-flag', f);
