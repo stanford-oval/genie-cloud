@@ -16,6 +16,7 @@ package dbproxy
 import (
 	"almond-cloud/config"
 	"almond-cloud/sql"
+	"log"
 
 	"flag"
 	"fmt"
@@ -28,6 +29,7 @@ import (
 var (
 	flagSet = flag.NewFlagSet("dbproxy", flag.ExitOnError)
 	port    = flagSet.Int("port", 8200, "port")
+	tlsCert = flagSet.String("aws-tls-cert", "", "path to aws rds tls cert")
 )
 
 func Usage() {
@@ -38,6 +40,12 @@ func Usage() {
 func Run(args []string) {
 	flagSet.Parse(args)
 	almondConfig := config.GetAlmondConfig()
+
+	if len(*tlsCert) > 0 {
+		if err := sql.RegisterTLSCert("aws", *tlsCert); err != nil {
+			log.Fatal(err)
+		}
+	}
 	sql.InitMySQL(almondConfig.DatabaseURL)
 	r := gin.Default()
 	r.Use(func(c *gin.Context) {

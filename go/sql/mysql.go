@@ -14,10 +14,15 @@
 package sql
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/url"
 	"strings"
+
+	mysqldriver "github.com/go-sql-driver/mysql"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -33,6 +38,24 @@ func gormConfig() *gorm.Config {
 		Logger:      logger.Default.LogMode(logger.Info),
 		QueryFields: true,
 	}
+}
+
+// RegisterTLSCert with mysql driver using given name. This name
+// can then be referenced in the DNS tls=<name>
+func RegisterTLSCert(name string, certPath string) error {
+	log.Printf("Registering %s tls cert.", name)
+	rootCertPool := x509.NewCertPool()
+	pem, err := ioutil.ReadFile(certPath)
+	if err != nil {
+		return err
+	}
+	if ok := rootCertPool.AppendCertsFromPEM(pem); !ok {
+		return fmt.Errorf("Failed to append PEM.")
+	}
+	mysqldriver.RegisterTLSConfig(name, &tls.Config{
+		RootCAs: rootCertPool,
+	})
+	return nil
 }
 
 // MYSQLDSN converts a config database url format to the mysql DSN format.
@@ -84,9 +107,7 @@ func MySQLDSN(rawUrl string) (string, error) {
 	tls := values.Get("ssl")
 	if len(tls) > 0 {
 		if strings.HasPrefix(tls, "Amazon") {
-			tls = "preferred"
-		} else {
-			tls = "true"
+			tls = "aws"
 		}
 	} else {
 		tls = "false"
