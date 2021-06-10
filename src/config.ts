@@ -41,6 +41,14 @@
 export let DATABASE_URL : string|undefined = process.env.DATABASE_URL;
 
 /**
+  Database Proxy URL.
+
+  This the URL of the dbproxy server setup in the kubernetes cluster. If set, worker engine will use the 
+  cloud database through the proxy. Otherwise, a local sqlitedb is used.
+*/
+export let DATABASE_PROXY_URL : string|null = null;
+
+/**
   Secret key for cookie signing.
 
   This can be an arbitrary secret string. It is recommended to choose 64 random HEX characters (256 bit security).
