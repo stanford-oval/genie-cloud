@@ -22,11 +22,12 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
 	flagSet = flag.NewFlagSet("dbproxy", flag.ExitOnError)
-	port    = flagSet.Int("port", 8888, "port")
+	port    = flagSet.Int("port", 8200, "port")
 )
 
 func Usage() {
@@ -43,6 +44,8 @@ func Run(args []string) {
 		debugDumpRequest(c.Request)
 		c.Next()
 	})
+
+	r.GET("/metrics", prometheusHandler())
 
 	r.GET("/localtable/:name/:userid", localTableGetAll)
 	r.GET("/localtable/:name/:userid/:uniqueid", localTableGetOne)
@@ -61,4 +64,12 @@ func Run(args []string) {
 	r.DELETE("/synctable/:name/:userid/:uniqueid/:millis", syncTableDeleteIfRecent)
 	r.DELETE("/synctable/:name/:userid/:uniqueid", syncTableDeleteOne)
 	r.Run(fmt.Sprintf("0.0.0.0:%d", *port))
+}
+
+func prometheusHandler() gin.HandlerFunc {
+	h := promhttp.Handler()
+
+	return func(c *gin.Context) {
+		h.ServeHTTP(c.Writer, c.Request)
+	}
 }
