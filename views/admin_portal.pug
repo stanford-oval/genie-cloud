@@ -53,4 +53,4 @@ block content
               div.col-md-2
                 form(action='/admin/users/kill/all', method='post')
                   input(type='hidden',name='_csrf',value=csrfToken)
-                  button(type='submit').btn.btn-danger.btn-block.custom-btn= _("Kill all users")
+                  button(type='submit').btn.btn-danger.btn-block= _("Kill all users")

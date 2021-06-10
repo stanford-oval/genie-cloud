@@ -44,7 +44,7 @@ block content
           if user.developer_status > Constants.DeveloperStatus.USER
             div.row
               div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
-                a(href='#new-oauth-dialog',data-toggle='modal').btn.btn-block.custom-btn.btn-primary= _("Register a new OAuth app")
+                a(href='#new-oauth-dialog',data-toggle='modal').btn.btn-block.btn-primary= _("Register a new OAuth app")
             div.modal.fade(role='dialog')#new-oauth-dialog
               div.modal-dialog
                 div.modal-content
@@ -99,4 +99,4 @@ block content
 
                     div.modal-footer
                       div.form-group
-                        button(type='submit').btn.new-msg-button.btn-primary= _("Create")
+                        button(type='submit').btn.btn-primary= _("Create")

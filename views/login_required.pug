@@ -4,14 +4,9 @@ block page_name
   = _("Error")
 
 block content
-  div.msg-container
-    div.msg-left-block
-      img.msg-image(src=Config.ASSET_CDN + '/images/almond_error.png')
-    div.msg-right-block
-      div.msg-title
-        h2.p=_("Login required")
-      div.msg-body
-        h3.p=_("Sorry but you must log in before opening this page.")
-          a(href='javascript:history.back()').btn.btn-default=_("Go back")
-  div.msg-button
-    a(href=Config.BASE_URL + '/user/login').btn.btn-primary=_("Log in")
+  h1= _("Login required")
+  p= _("Sorry but you must log in before opening this page")
+  p
+    a(href='javascript:history.back()').btn.btn-default= _("Go back")
+    span= " "
+    a(href='/user/login').btn.btn-primary= _("Log in")

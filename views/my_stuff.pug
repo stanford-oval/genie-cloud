@@ -46,12 +46,12 @@ mixin device_list(devices)
                       input(type='hidden',name='id',value=dev.uniqueId)
                       input(type='hidden',name='_csrf',value=csrfToken)
                       if datasource
-                        button(type='submit').btn.btn-danger.btn-sm.new-msg-button.btn-block= _("Disable")
+                        button(type='submit').btn.btn-danger.btn-sm.btn-block= _("Disable")
                       else
-                        button(type='submit').btn.btn-danger.btn-sm.new-msg-button.btn-block= _("Forget")
+                        button(type='submit').btn.btn-danger.btn-sm.btn-block= _("Forget")
     div.row
       div.col-sm-6.col-md-3
-        a(href='/me/devices/create').btn.btn-primary.new-msg-button.btn-block= _("Configure new skill")
+        a(href='/me/devices/create').btn.btn-primary.btn-block= _("Configure new skill")
 
 block content
   for message in messages
@@ -105,12 +105,12 @@ block content
           p
             = _("While recording is active, all your commands and all the replies from Genie will be stored and reviewed by the Stanford Genie Team.")
         div.modal-footer
-          button.btn.btn-primary.new-msg-button#confirm-recording= _("Confirm")
-          button.btn.btn-default.new-msg-button#cancel-recording= _("Cancel")
+          button.btn.btn-primary#confirm-recording= _("Confirm")
+          button.btn.btn-default#cancel-recording= _("Cancel")
 
   div.hidden#toolbar
     div.form-inline
-      div.rec_log.checkbox-inline
+      div.checkbox-inline
         label(for='recording-toggle').control-label
           input(type='checkbox')#recording-toggle
           = _("Record conversation")
@@ -125,7 +125,7 @@ block content
           p= _("Conversation log updated.")
           pre#recording-log
         div.modal-footer
-          button.btn.btn-primary.new-msg-button#recording-download= _("Download")
-          button.btn.btn-default.new-msg-button#recording-save-done= _("Done")
+          button.btn.btn-primary#recording-download= _("Download")
+          button.btn.btn-default#recording-save-done= _("Done")
 
   +conversation_mixin('/me/ws/conversation')(class='single')

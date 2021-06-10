@@ -19,15 +19,15 @@ block content
       label(for='password').control-label= _("Password")
       input(type='password',name='password').form-control#password
     div.form-group
-      button(type='submit').btn.btn-primary.custom-btn= _("Log in")
+      button(type='submit').btn.btn-primary= _("Log in")
 
-  p.control-label= _("Don't have a username and password yet? ")
-    a.dont(href='/user/register')= _("Sign up now!")
-  p.control-label
+  p= _("Don't have a username and password yet? ")
+    a(href='/user/register')= _("Sign up now!")
+  p
     a(href='/user/recovery/start')= _("I forgot my password")
   if Config.GOOGLE_CLIENT_ID
-    p.control-label
-      a.btn.btn-primary.custom-btn(href='/user/oauth2/google')= _("Log In with Google")
+    p
+      a.btn.btn-primary(href='/user/oauth2/google')= _("Log In with Google")
   if Config.GITHUB_CLIENT_ID
-    p.control-label
-      a.btn.btn-primary.custom-btn(href='/user/oauth2/github')= _("Log In with Github")
+    p
+      a.btn.btn-primary(href='/user/oauth2/github')= _("Log In with Github")

@@ -4,20 +4,13 @@ block page_name
   = _("Error")
 
 block content
-  div.msg-container
-    div.msg-left-block
-      img.msg-image(src=Config.ASSET_CDN + '/images/almond_error.png')
-    div.msg-right-block
-      div.msg-title
-        h2.p= _("Sorry that did not work")
-      div.msg-body
-        if typeof message === 'string'
-          h3.p= message
-        else if message.name === 'SyntaxError'
-          h3.p= _("Syntax error at %s line %d: %s").format(message.fileName, message.lineNumber, message.message)
-        else if message.message
-          h3.p= message.message
-        else
-          h3.p= String(message)
-  div.msg-button
-    a(href='javascript:history.back()').btn.btn-primary.custom-btn= _("Go back")
+  p= _("Sorry that did not work")
+  if typeof message === 'string'
+    p= message
+  else if message.name === 'SyntaxError'
+    p= _("Syntax error at %s line %d: %s").format(message.fileName, message.lineNumber, message.message)
+  else if message.message
+    p= message.message
+  else
+    p= String(message)
+  a(href='javascript:history.back()').btn.btn-primary= _("Go back")
