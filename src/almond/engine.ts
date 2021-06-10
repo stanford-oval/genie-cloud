@@ -23,7 +23,7 @@ import * as rpc from 'transparent-rpc';
 import * as Genie from 'genie-toolkit';
 
 import type { Platform } from './platform';
-import PlatformModule from './platform';
+//import PlatformModule from './platform';
 
 // API wrappers for Genie's classes that expose the $rpcMethods interface
 // used by transparent-rpc
@@ -241,7 +241,7 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
         options.dialogueFlags.faqs = true;
         if (options.anonymous)
             options.log = true;
-        options.faqModels = PlatformModule.faqModels;
+        //options.faqModels = PlatformModule.faqModels;
         const conversation = await this.assistant.getOrOpenConversation(id, options);
         if (delegate)
             return new ConversationWrapper(conversation, delegate);
