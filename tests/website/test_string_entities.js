@@ -17,19 +17,18 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-require('../../util/config_init');
-const assert = require('assert');
-const FormData = require('form-data');
-const { assertHttpError, sessionRequest } = require('./scaffold');
-const { startSession, login } = require('../login');
+import '../../src/util/config_init';
+import assert from 'assert';
+import FormData from 'form-data';
+import { assertHttpError, sessionRequest } from './scaffold';
+import { startSession, login } from '../login';
 
-const db = require('../../util/db');
-const entityModel = require('../../model/entity');
-const stringModel = require('../../model/strings');
+import * as db from '../../src/util/db';
+import * as entityModel from '../../src/model/entity';
+import * as stringModel from '../../src/model/strings';
 
-const Config = require('../../config');
+import * as Config from '../../src/config';
 
 const ENTITY_FILE = `one,The First Entity
 two,The Second Entity

@@ -17,19 +17,16 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-require('../polyfill');
+import assert from 'assert';
+import * as Tp from 'thingpedia';
+import * as qs from 'qs';
+import * as Url from 'url';
+import FormData from 'form-data';
 
-const assert = require('assert');
-const Tp = require('thingpedia');
-const qs = require('qs');
-const Url = require('url');
-const FormData = require('form-data');
+import * as Config from '../../src/config';
 
-const Config = require('../../config');
-
-const db = require('../../util/db');
+import * as db from '../../src/util/db';
 
 const DEBUG = false;
 
@@ -89,7 +86,7 @@ function assertHttpError(request, httpStatus, expectedMessage) {
         if (expectedMessage) {
             let message;
             if (err.detail.startsWith('<!DOCTYPE html>')) {
-                const match = /Sorry that did not work<\/p><p>([^<]+)<\/p>/.exec(err.detail);
+                const match = /Sorry that did not work<\/h2><\/div><div class="msg-body"><h3 class="p">([^<]+)<\/h3>/.exec(err.detail);
                 if (!match)
                     assert.fail(`cannot find error message`);
                 message = match[1];
@@ -142,10 +139,10 @@ async function assertBanner(request, expected) {
 async function assertBlocked(path, bob, nobody) {
     await assertRedirect(sessionRequest(path, 'GET', null, nobody, { followRedirects: false }), '/user/login');
     await assertHttpError(sessionRequest(path, 'GET', null, bob),
-            403, 'You do not have permission to perform this operation.');
+        403, 'You do not have permission to perform this operation.');
 }
 
-module.exports = {
+export {
     dbQuery,
     request,
     sessionRequest,

@@ -18,11 +18,11 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
 
-const { tokenize, rejoin, stripUnsafeTokens } = require('../../util/tokenize');
+import assert from 'assert';
+
+import { tokenize, rejoin, stripUnsafeTokens } from '../../src/util/tokenize';
 
 function testTokenize() {
     assert.deepStrictEqual(tokenize('a b c'), ['a', 'b', 'c']);
@@ -61,6 +61,6 @@ function main() {
     testRejoin();
     testStripUnsafeTokens();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

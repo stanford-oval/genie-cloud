@@ -17,11 +17,11 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
 
-const binarySearch = require('../../util/binary_search');
+import assert from 'assert';
+
+import binarySearch from '../../src/util/binary_search';
 
 function main() {
     assert.strictEqual(binarySearch([0.1, 0.2, 0.5, 1.0], 0.0), 0);
@@ -34,6 +34,6 @@ function main() {
 
     assert.strictEqual(binarySearch([0, 4096], 4095), 1);
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

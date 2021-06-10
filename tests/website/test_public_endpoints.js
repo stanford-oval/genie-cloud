@@ -17,15 +17,15 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const { assertHttpError, sessionRequest, dbQuery } = require('./scaffold');
-const { startSession } = require('../login');
 
-const db = require('../../util/db');
+import assert from 'assert';
+import { assertHttpError, sessionRequest, dbQuery } from './scaffold';
+import { startSession } from '../login';
 
-const Config = require('../../config');
+import * as db from '../../src/util/db';
+
+import * as Config from '../../src/config';
 
 async function testCommandpediaSuggest(nobody) {
     await assertHttpError(sessionRequest('/thingpedia/commands/suggest', 'POST', { description: '' }, nobody),
@@ -46,6 +46,6 @@ async function main() {
 
     await db.tearDown();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

@@ -33,17 +33,17 @@ jobs:
       install:
       - sudo apt-get update -q -y
       - sudo apt-get install -y realpath
-      - travis_retry npm install
+      - travis_retry npm ci
       script:
       - npm run lint
       - ./tests/check-migrations.sh
-      - npx nyc node ./tests/unit
+      - npx nyc ts-node ./tests/unit
       after_success: npm run coverage
     -
       name: "Web Almond Integration Tests"
       install:
       - ./travis/install-webalmond-deps.sh
-      - travis_retry npm install
+      - travis_retry npm ci
       - export PATH="`pwd`/geckodriver:$PATH"
       script: npx nyc ./tests/webalmond-integration.sh
       after_success: npm run coverage
@@ -51,7 +51,7 @@ jobs:
       name: "Thingpedia Integration Tests"
       install:
       - ./travis/install-webalmond-deps.sh
-      - travis_retry npm install
+      - travis_retry npm ci
       - export PATH="`pwd`/geckodriver:$PATH"
       script: npx nyc ./tests/thingpedia-integration.sh
       after_success: npm run coverage
@@ -59,7 +59,7 @@ jobs:
       name: "NLP Integration Tests"
       install:
       - ./travis/install-webalmond-deps.sh
-      - travis_retry npm install
+      - travis_retry npm ci
       - pyenv global 3.7.1
       - ./tests/install-nlp-deps.sh
       - export GENIENLP_EMBEDDINGS=`pwd`/tests/embeddings
@@ -70,13 +70,23 @@ jobs:
       name: "Training Integration Tests"
       install:
       - ./travis/install-webalmond-deps.sh
-      - travis_retry npm install
+      - travis_retry npm ci
       - pyenv global 3.7.1
       - ./tests/install-nlp-deps.sh
       - export GENIENLP_EMBEDDINGS=`pwd`/tests/embeddings
       - export PATH="`pwd`/geckodriver:$PATH"
       script: npx nyc ./tests/training-integration.sh
       after_success: npm run coverage
+    -
+      name: "GO Tests"
+      language: go
+      install:
+      - go get golang.org/x/tools/cmd/cover
+      - go get github.com/mattn/goveralls
+      go: 1.16.x
+      before_script: cd go
+      script: go test -v -covermode=count -coverprofile=coverage.out ./...
+      after_success: $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/goveralls -coverprofile=coverage.out -service=travis-ci
 
 notifications:
   webhooks: https://coveralls.io/webhook

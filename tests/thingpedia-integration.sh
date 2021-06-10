@@ -20,6 +20,7 @@ on_error() {
     wait
 
     rm -fr $workdir
+    rm -f $srcdir/secret_config.js
 }
 trap on_error ERR INT TERM
 
@@ -69,13 +70,13 @@ echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $w
 # clean the database and bootstrap
 # (this has to occur after setting up the download
 # directories because it copies the icon png files)
-${srcdir}/main.js bootstrap --force
+${srcdir}/dist/main.js bootstrap --force
 
 # load some more data into Thingpedia
-test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/download/devices/com.bing.zip -O $srcdir/tests/data/com.bing.zip
-eval $(node $srcdir/tests/load_test_thingpedia.js)
+test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/api/v3/devices/package/com.bing -O $srcdir/tests/data/com.bing.zip
+eval $(ts-node $srcdir/tests/load_test_thingpedia.js)
 
-${srcdir}/main.js run-frontend &
+${srcdir}/dist/main.js run-frontend &
 frontendpid=$!
 
 # in interactive mode, sleep forever
@@ -88,10 +89,10 @@ else
     sleep 30
 
     # login as bob
-    bob_cookie=$(node $srcdir/tests/login.js bob 12345678)
+    bob_cookie=$(ts-node $srcdir/tests/login.js bob 12345678)
 
-    COOKIE="${bob_cookie}" node $srcdir/tests/test_thingpedia_api_tt1.js
-    COOKIE="${bob_cookie}" node $srcdir/tests/test_thingpedia_api_v3.js
+    COOKIE="${bob_cookie}" ts-node $srcdir/tests/test_thingpedia_api_tt1.js
+    COOKIE="${bob_cookie}" ts-node $srcdir/tests/test_thingpedia_api_v3.js
 fi
 
 kill $frontendpid
@@ -105,10 +106,10 @@ cp $srcdir/stanford/config.js $THINGENGINE_CONFIGDIR/config.d/00-stanford.js
 # too, so make sure we don't die with 400 or 500 because Almond is off
 # we have just tested operation without web almond anyway
 export THINGENGINE_DISABLE_SYSTEMD=1
-${srcdir}/main.js run-almond &
+${srcdir}/dist/main.js run-almond &
 masterpid=$!
 
-${srcdir}/main.js run-frontend &
+${srcdir}/dist/main.js run-frontend &
 frontendpid=$!
 
 if test "$1" = "--webalmond-interactive" ; then
@@ -120,23 +121,23 @@ else
     # enabled
 
     # login as bob
-    bob_cookie=$(node $srcdir/tests/login.js bob 12345678)
+    bob_cookie=$(ts-node $srcdir/tests/login.js bob 12345678)
     # login as root
-    root_cookie=$(node $srcdir/tests/login.js root rootroot)
+    root_cookie=$(ts-node $srcdir/tests/login.js root rootroot)
 
     # run the automated link checker
     # first without login
-    node $srcdir/tests/linkcheck.js
+    ts-node $srcdir/tests/linkcheck.js
     # then as bob (developer)
-    COOKIE="${bob_cookie}" node $srcdir/tests/linkcheck.js
+    COOKIE="${bob_cookie}" ts-node $srcdir/tests/linkcheck.js
     # then as root (admin)
-    COOKIE="${root_cookie}" node $srcdir/tests/linkcheck.js
+    COOKIE="${root_cookie}" ts-node $srcdir/tests/linkcheck.js
 
     # test the website by making HTTP requests directly
-    node $srcdir/tests/website
+    ts-node $srcdir/tests/website
 
     # test the website in a browser
-    SELENIUM_BROWSER=firefox node $srcdir/tests/test_website_selenium.js
+    SELENIUM_BROWSER=firefox ts-node $srcdir/tests/test_website_selenium.js
 fi
 
 kill $frontendpid
@@ -150,17 +151,17 @@ wait
 mkdir -p $workdir/training/jobs/{1,2,3} $workdir/exact
 
 # make up a training job
-${srcdir}/main.js execute-sql-file /proc/self/fd/0 <<<"insert into training_jobs set id = 1, job_type ='update-dataset', language = 'en', all_devices = 1, status = 'started', task_index = 0, task_name = 'update-dataset', config = '{}'"
+${srcdir}/dist/main.js execute-sql-file /proc/self/fd/0 <<<"insert into training_jobs set id = 1, job_type ='update-dataset', language = 'en', all_devices = 1, status = 'started', task_index = 0, task_name = 'update-dataset', config = '{}'"
 
 # now update the exact match dataset (which will be saved to mysql and ./exact)
-node ${srcdir}/main.js run-training-task -t update-dataset --job-id 1 --job-dir $workdir/training/jobs/1 --debug
+node ${srcdir}/dist/main.js run-training-task -t update-dataset --job-id 1 --job-dir $workdir/training/jobs/1 --debug
 # download
-node ${srcdir}/main.js download-dataset -l en --output exact.tsv
+node ${srcdir}/dist/main.js download-dataset -l en --output exact.tsv
 
 # generate a training set
 
-${srcdir}/main.js execute-sql-file /proc/self/fd/0 <<<"insert into training_jobs set id = 2, job_type ='train', language = 'en', model_tag ='org.thingpedia.models.developer', all_devices = 1, status = 'started', task_index = 0, task_name = 'prepare-training-set', config = '{\"synthetic_depth\":3,\"dataset_target_pruning_size\":1000,\"dataset_eval_probability\":1.0}'"
-node ${srcdir}/main.js run-training-task -t prepare-training-set --job-id 2 --job-dir $workdir/training/jobs/2 --debug
+${srcdir}/dist/main.js execute-sql-file /proc/self/fd/0 <<<"insert into training_jobs set id = 2, job_type ='train', language = 'en', model_tag ='org.thingpedia.models.developer', all_devices = 1, status = 'started', task_index = 0, task_name = 'prepare-training-set', config = '{\"synthetic_depth\":3,\"dataset_target_pruning_size\":1000,\"dataset_eval_probability\":1.0}'"
+node ${srcdir}/dist/main.js run-training-task -t prepare-training-set --job-id 2 --job-dir $workdir/training/jobs/2 --debug
 
 sha256sum exact.tsv ./exact/en.btrie ./training/jobs/2/dataset/eval.tsv ./training/jobs/2/dataset/train.tsv
 sha256sum -c <<EOF
@@ -171,3 +172,4 @@ da196ff692022c15b11dde6d147b716be0f339237b6fcd2cf5bd7f19fbfd1ed1  ./training/job
 EOF
 
 rm -rf $workdir
+rm -f $srcdir/secret_config.js

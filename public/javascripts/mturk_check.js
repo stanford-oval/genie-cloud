@@ -1,9 +1,10 @@
-// TODO: 
+// TODO:
 //  - two synthetic sentences per program for turkers
 //  - add description to devices
 //  - color the sentences
+"use strict";
 
-$(document).ready(function() { 
+$(document).ready(() => {
     let checked = {};
     for (let i = 1; i < 5; i ++) {
         for (let j = 1; j < 3; j ++)
@@ -17,8 +18,8 @@ $(document).ready(function() {
         let paraphrase = $(this).val();
         let warningId = 'warning' + paraphraseId.substring('paraphrase'.length);
         if (paraphrase.length > 0) {
-            check(synthetic, paraphrase).then(function(res) {
-                checked[paraphraseId] = res === 'passed'; 
+            check(synthetic, paraphrase).then((res) => {
+                checked[paraphraseId] = res === 'passed';
                 console.log(checked);
                 if (res === 'passed') {
                     $('#' + warningId).prop('hidden', true);
@@ -41,8 +42,9 @@ $(document).ready(function() {
 });
 
 function check(synthetic, paraphrase) {
-    if (paraphrase.toLowerCase().replace(/\./g, '').trim() === 'no idea') 
+    if (paraphrase.toLowerCase().replace(/\./g, '').trim() === 'no idea')
         return Promise.resolve('passed');
+    let entities_synthetic, entities_paraphrase;
     return $.when(
         $.ajax({
             type: 'GET',
@@ -51,7 +53,7 @@ function check(synthetic, paraphrase) {
                 q: synthetic
             },
             dataType: 'json',
-            success: function(res) {entities_synthetic = res.entities;}
+            success: function(res) { entities_synthetic = res.entities; }
         }),
         $.ajax({
             type: 'GET',
@@ -60,41 +62,41 @@ function check(synthetic, paraphrase) {
                 q: paraphrase
             },
             dataType: 'json',
-            success: function(res) {entities_paraphrase = res.entities;}
-        }),
-    ).then(function() {
+            success: function(res) { entities_paraphrase = res.entities; }
+        })
+    ).then(() => {
         let counts = {};
         let countp = {};
         for (let es in entities_synthetic) {
             let found = false;
             let v = value(es, entities_synthetic[es]);
             for (let ep in entities_paraphrase)
-                if (ep.substring(0, ep.length - 1) === es.substring(0, es.length - 1))
-                    if (equal(entities_paraphrase[ep], entities_synthetic[es])) {
+                {if (ep.substring(0, ep.length - 1) === es.substring(0, es.length - 1))
+                    {if (equal(entities_paraphrase[ep], entities_synthetic[es])) {
                         found = true;
                         if (!(v in counts))
                             counts[v] = 0;
                         counts[v] ++;
                         break;
-                    }
+                    }}}
             if (!found)
-                return `Cannot find ${v} in your paraphrase.`
+                return `Cannot find ${v} in your paraphrase.`;
         }
         for (let ep in entities_paraphrase) {
-            console.log(entities_paraphrase[ep])
+            console.log(entities_paraphrase[ep]);
             let found = false;
             let v = value(ep, entities_paraphrase[ep]);
             for (let es in entities_synthetic)
-                if (ep.substring(0, ep.length - 1) === es.substring(0, es.length - 1))
-                    if (equal(entities_paraphrase[ep], entities_synthetic[es])){
+                {if (ep.substring(0, ep.length - 1) === es.substring(0, es.length - 1))
+                    {if (equal(entities_paraphrase[ep], entities_synthetic[es])){
                         found = true;
                         if (!(v in countp))
                             countp[v] = 0;
                         countp[v] ++;
                         break;
-                    }
+                    }}}
             if (!found)
-                return `${v} detected in your paraphrase which is not in the original sentence.`
+                return `${v} detected in your paraphrase which is not in the original sentence.`;
         }
         if (Object.keys(entities_paraphrase).length !== Object.keys(entities_synthetic).length) {
             for (let v in counts) {
@@ -112,14 +114,14 @@ function equal(entity1, entity2) {
     if (typeof entity1 !== typeof entity2)
         return false;
     let type = typeof entity1;
-    if (type === 'string' || type === 'number') 
+    if (type === 'string' || type === 'number')
         return entity1 === entity2;
     if ('year' in entity1)
-        return entity1.year === entity2.year && entity1.month === entity2.month && entity1.day === entity2.day 
-               && entity1.hour === entity2.hour && entity1.minute === entity2.minute && entity1.second === entity2.second;
+        {return entity1.year === entity2.year && entity1.month === entity2.month && entity1.day === entity2.day
+               && entity1.hour === entity2.hour && entity1.minute === entity2.minute && entity1.second === entity2.second;}
     if ('hour' in entity1)
         return entity1.hour === entity2.hour && entity1.minute === entity2.minute;
-    if ('latitude' in entity1 && 'longitude' in entity1) 
+    if ('latitude' in entity1 && 'longitude' in entity1)
         return entity1.latitude === entity2.latitude && entity1.longitude === entity2.longitude;
     if ('unit' in entity1)
         return entity1.value === entity2.value && entity1.unit === entity2.unit;

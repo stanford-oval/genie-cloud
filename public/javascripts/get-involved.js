@@ -1,5 +1,5 @@
 'use strict';
-$(function() {
+$(() => {
   var glide = new Glide('#jumbotron-carousel', {
     type: 'carousel',
     perView: 5,

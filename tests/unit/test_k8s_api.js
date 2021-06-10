@@ -17,20 +17,21 @@
 // limitations under the License.
 //
 // Author: Jim Deng <jim.deng@alumni.stanford.edu>
-'use strict';
 
-// Tests k8s api signature does not change after upgrades 
+import assert from 'assert';
+import * as k8s from '@kubernetes/client-node';
+
+// Tests k8s api signature does not change after upgrades
+
 function getArgs(func) {
-  var args = func.toString().match(/\S+\s*?\(([^)]*)\)/)[1];
-  return args.split(',').map(function(arg) {
+  let args = func.toString().match(/\S+\s*?\(([^)]*)\)/)[1];
+  return args.split(',').map((arg) => {
     return arg.replace(/\/\*.*\*\//, '').trim();
-  }).filter(function(arg) {
+  }).filter((arg) => {
     return arg;
   });
 }
 
-const assert = require('assert');
-const k8s = require('@kubernetes/client-node');
 const fakeConfig = {
     clusters: [
         {
@@ -63,7 +64,7 @@ function testDeleteNamespacedJob() {
 }
 
 function testListEndpointsForAllNamespaces() {
-    const args = getArgs(k8sCore.listEndpointsForAllNamespaces)
+    const args = getArgs(k8sCore.listEndpointsForAllNamespaces);
     assert.strictEqual(args[2], 'fieldSelector');
 }
 
@@ -71,6 +72,6 @@ function main() {
     testDeleteNamespacedJob();
     testListEndpointsForAllNamespaces();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

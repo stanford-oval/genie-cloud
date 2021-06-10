@@ -17,16 +17,16 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const { assertHttpError, assertRedirect, assertLoginRequired, sessionRequest, dbQuery } = require('./scaffold');
-const { login, startSession } = require('../login');
 
-const db = require('../../util/db');
-const EngineManagerClient = require('../../almond/enginemanagerclient');
+import assert from 'assert';
+import { assertHttpError, assertRedirect, assertLoginRequired, sessionRequest, dbQuery } from './scaffold';
+import { login, startSession } from '../login';
 
-const Config = require('../../config');
+import * as db from '../../src/util/db';
+import EngineManagerClient from '../../src/almond/enginemanagerclient';
+
+import * as Config from '../../src/config';
 
 async function testMyStuff(bob, nobody) {
     await assertRedirect(sessionRequest('/me', 'GET', null, nobody, { followRedirects: false }), '/user/login');
@@ -120,6 +120,6 @@ async function main() {
     await db.tearDown();
     await emc.stop();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

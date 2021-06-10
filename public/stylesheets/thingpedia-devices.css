@@ -9,13 +9,26 @@
 #device-list-navbar {
     margin-top: 30px;
     margin-bottom: 30px;
+    margin-bottom: 30px;
+    height: 3.9em;
+}
+
+@media screen and (max-width: 768px) {
+    #device-list-navbar {
+        height: 7em;
+    }
+}
+
+.blk-btn {
+    margin-left: 0.7em;
 }
 
 #device-description-input {
     height: 4em;
 }
 
-#device-code, .CodeMirror {
+#device-code,
+.CodeMirror {
     height: 50em;
 }
 
@@ -34,7 +47,7 @@
     margin-bottom: 0px;
 }
 
-#json-manifest-placeholder > div > .well > div > .well {
+#json-manifest-placeholder>div>.well>div>.well {
     padding-left: 0px;
     padding-right: 0px;
     border-radius: 0px;
@@ -49,7 +62,7 @@
     float: left;
 }
 
-#device-icon-large > img {
+#device-icon-large>img {
     display: block;
     width: 160px;
     /* accept non-perfectly square images */
@@ -60,13 +73,18 @@
     margin-bottom: 1em;
 }
 
-.device-icon-small > img {
+.device-icon-small>img {
     display: block;
     width: 80px;
     height: 80px;
     object-fit: contain;
     border-radius: 5px;
     margin: 0 auto;
+}
+
+p.device-icon-small {
+    float: left;
+    padding-right: 1em;
 }
 
 .canonical {
@@ -80,67 +98,78 @@
 .device-channels .indent {
     white-space: pre;
 }
+
 .device-channels {
     padding: 0;
 }
-.device-channels code, .schema-code-block {
+
+.device-channels code,
+.schema-code-block {
     display: block;
     color: inherit;
     background-color: #eeeeee;
 }
+
 .schema-code-block {
     white-space: pre;
 }
-.device-channels >li {
+
+.device-channels>li {
     display: block;
     margin-bottom: 2em;
 }
 
 .license-header {
-  font-weight: bold;
+    font-weight: bold;
 }
 
-#thingpedia-entity-list, #thingpedia-string-type-list {
-  margin-top: 1.5em;
+#thingpedia-entity-list,
+#thingpedia-string-type-list {
+    margin-top: 1.5em;
 }
 
 #thingpedia-entity-list h4 {
-  margin: 0px;
-  margin-bottom: 0.2em;
+    margin: 0px;
+    margin-bottom: 0.2em;
 }
+
 #thingpedia-entity-list p {
-  font-size: 14px;
-  margin: 0px;
+    font-size: 14px;
+    margin: 0px;
 }
+
 #thingpedia-entity-list i.fas {
-  font-size: 40px;
+    font-size: 40px;
 }
+
 #thingpedia-entity-list img {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
 }
-#thingpedia-string-type-list > li > div > a {
-  margin-top: 1.5em;
+
+#thingpedia-string-type-list>li>div>a {
+    margin-top: 1.5em;
 }
 
 .device-details-actions .btn {
-  margin-bottom: 1em;
+    margin-bottom: 1em;
 }
 
 .device-translate-actions {
     margin-top: 2em;
 }
 
-.dev-template > a {
-  color: inherit;
+.dev-template>a {
+    color: inherit;
 }
 
-.dev-template > a:hover, .dev-template > a:focus {
-  text-decoration: none;
-  box-shadow: 0 0 8px rgba(102, 175, 233, 0.6);
+.dev-template>a:hover,
+.dev-template>a:focus {
+    text-decoration: none;
+    box-shadow: 0 0 8px rgba(102, 175, 233, 0.6);
 }
 
 #device-metadata-translate .form-group {
-  margin: 0;
+    margin: 0;
 }

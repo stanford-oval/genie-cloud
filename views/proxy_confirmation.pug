@@ -1,18 +1,26 @@
 extends layout
 
 block content
-  section.divider#request-info
-    h3= _("Oauth request for %s from: %s").format(kind, redirect_address)
-    div.panel-body
-          p.text-center
-            = _('Are you sure you would like to grant %s access to the credentials of device: %s').format(redirect_address, kind)
-    div.container
+  div.container.panel.panel-body.panel-default.oauth-pan
+    section.divider#request-info
+      h2= _("OAuth request for: ")
+      span= _(" ")
+      h3=kind
+      span= _(" ")
+      h2= _("from: ")
+      h3=redirect_address
 
-      div.text-center
-        form(action='/proxy/oauth2', method='post').form-inline
-            input(type='hidden',name='_csrf',value=csrfToken)
-            input(type='hidden',name='device_type',value=kind)
-            button(type='submit').btn.btn-primary= _("Continue")
-        br
+      br
       p.text-center
-        a.btn.btn-primary(href=redirect_address)= _("Cancel")
+        = _('Are you sure you would like to grant %s access to the credentials of device: %s').format(redirect_address, kind)
+      br
+      div.text-center
+        div.oa-col-left
+          form(action='/proxy/oauth2', method='post').form-inline
+              input(type='hidden',name='_csrf',value=csrfToken)
+              input(type='hidden',name='device_type',value=kind)
+              button(type='submit').btn.btn-primary.custom-btn= _("Continue")
+
+        div.oa-col-right
+          p.text-center
+            a.btn.btn-primary.custom-btn(href=redirect_address)= _("Cancel")

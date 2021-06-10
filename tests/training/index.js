@@ -17,26 +17,20 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-require('../polyfill');
 process.on('unhandledRejection', (up) => { throw up; });
-require('../../util/config_init');
+import '../../src/util/config_init';
 process.env.TEST_MODE = '1';
 
-const assert = require('assert');
-const tar = require('tar');
-const Tp = require('thingpedia');
+import assert from 'assert';
 
-const db = require('../../util/db');
-const sleep = require('../../util/sleep');
-const trainingJobModel = require('../../model/training_job');
-const TrainingServer = require('../../util/training_server');
-const AbstractFS = require('../../util/abstract_fs');
+import * as db from '../../src/util/db';
+import sleep from '../../src/util/sleep';
+import * as trainingJobModel from '../../src/model/training_job';
+import TrainingServer from '../../src/util/training_server';
+import * as AbstractFS from '../../src/util/abstract_fs';
 
-const { assertHttpError, sessionRequest } = require('../website/scaffold');
-const { login, } = require('../login');
-const Config = require('../../config');
+import * as Config from '../../src/config';
 
 async function waitUntilAllJobsDone() {
     for (;;) {
@@ -285,6 +279,4 @@ async function main() {
 
     await db.tearDown();
 }
-module.exports = main;
-if (!module.parent)
-    main();
+main();

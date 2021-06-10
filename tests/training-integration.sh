@@ -19,6 +19,7 @@ on_error() {
     wait
 
     rm -fr $workdir
+    rm -f $srcdir/secret_config.js
 }
 trap on_error ERR INT TERM
 
@@ -69,11 +70,11 @@ echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $w
 # clean the database and bootstrap
 # (this has to occur after setting up the download
 # directories because it copies the icon png files)
-${srcdir}/main.js bootstrap --force
+${srcdir}/dist/main.js bootstrap --force
 
 # load some more data into Thingpedia
-test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/download/devices/com.bing.zip -O $srcdir/tests/data/com.bing.zip
-eval $(node $srcdir/tests/load_test_thingpedia.js)
+test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/api/v3/devices/package/com.bing -O $srcdir/tests/data/com.bing.zip
+eval $(ts-node $srcdir/tests/load_test_thingpedia.js)
 
 # set the config on all models
 tr -d '\n' > training-config.json <<EOF
@@ -99,11 +100,11 @@ EOF
 
 cat training-config.json
 
-${srcdir}/main.js execute-sql-file /proc/self/fd/0 <<<"update models set config = '$(cat training-config.json)';"
+${srcdir}/dist/main.js execute-sql-file /proc/self/fd/0 <<<"update models set contextual = false, config = '$(cat training-config.json)';"
 
-${srcdir}/main.js run-frontend &
+${srcdir}/dist/main.js run-frontend &
 frontendpid=$!
-${srcdir}/main.js run-training &
+${srcdir}/dist/main.js run-training &
 serverpid=$!
 
 # in interactive mode, sleep forever
@@ -115,7 +116,7 @@ else
     # sleep until the process is settled
     sleep 30
 
-    node $srcdir/tests/training
+    ts-node $srcdir/tests/training
 fi
 
 kill $serverpid
@@ -126,3 +127,4 @@ wait
 
 
 rm -rf $workdir
+rm -f $srcdir/secret_config.js

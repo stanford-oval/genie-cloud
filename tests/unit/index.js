@@ -16,10 +16,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-"use strict";
 
 process.on('unhandledRejection', (up) => { throw up; });
-require('../../util/config_init');
+import '../../src/util/config_init';
 process.env.TEST_MODE = '1';
 
 /*async function par(array) {
@@ -28,7 +27,7 @@ process.env.TEST_MODE = '1';
 async function seq(array) {
     for (let fn of array) {
         console.log(`Running tests for ${fn}`);
-        await require(fn)();
+        await (await import(fn)).default();
     }
 }
 

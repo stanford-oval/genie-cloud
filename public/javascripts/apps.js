@@ -1,5 +1,6 @@
-$(function() {
-    $('.form-delete').on('submit', function() {
+"use strict";
+$(() => {
+    $('.form-delete').on('submit', () => {
         return confirm("Are you sure?");
     });
 
@@ -8,11 +9,11 @@ $(function() {
         coll[i].addEventListener("click", function() {
             this.classList.toggle("active");
             let content = this.nextElementSibling;
-            if (content.style.display === "block") {
+            if (content.style.display === "block")
                 content.style.display = "none";
-            } else {
+             else
                 content.style.display = "block";
-            }
+
         });
     }
 });

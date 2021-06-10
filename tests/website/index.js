@@ -16,13 +16,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-"use strict";
 
 process.on('unhandledRejection', (up) => { throw up; });
-require('../../util/config_init');
+import '../../src/util/config_init';
 process.env.TEST_MODE = '1';
 
-const Config = require('../../config');
+import * as Config from '../../src/config';
 
 /*async function par(array) {
     await Promise.all(array.map((fn) => fn()));
@@ -32,7 +31,7 @@ async function seq(array) {
         if (fn === null)
             continue;
         console.log(`Running tests for ${fn}`);
-        await require(fn)();
+        await (await import(fn)).default();
     }
 }
 
@@ -43,6 +42,7 @@ seq([
     ('./test_me'),
     ('./test_my_api'),
     ('./test_admin'),
+    Config.WITH_THINGPEDIA === 'external' ? ('./test_oauth_proxy') : null,
     Config.WITH_THINGPEDIA === 'embedded' ? ('./test_oauth') : null,
     Config.WITH_THINGPEDIA === 'embedded' ? ('./test_string_entities') : null,
 

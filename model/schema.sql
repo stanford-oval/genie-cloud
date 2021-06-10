@@ -669,29 +669,6 @@ CREATE TABLE `subscribe` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `template_files`
---
-
-DROP TABLE IF EXISTS `template_files`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `template_files` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `language` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en',
-  `tag` varchar(64) COLLATE utf8_bin,
-  `owner` int(11) NOT NULL,
-  `description` text CHARACTER SET utf8 NOT NULL,
-  `flags` text COLLATE utf8_bin NOT NULL,
-  `public` boolean NOT NULL DEFAULT true,
-  `version` int(11) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY (`language`, `tag`),
-  KEY `owner` (`owner`),
-  CONSTRAINT `template_files_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `organizations` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `models`
 --
 
@@ -704,7 +681,6 @@ CREATE TABLE `models` (
   `tag` varchar(64) COLLATE utf8_bin,
   `owner` int(11) NOT NULL,
   `access_token` char(64) COLLATE utf8_bin NULL,
-  `template_file` int(11) NOT NULL,
   `flags` text COLLATE utf8_bin NOT NULL,
   `contextual` boolean NOT NULL DEFAULT false,
   `all_devices` boolean NOT NULL DEFAULT false,
@@ -718,8 +694,7 @@ CREATE TABLE `models` (
   PRIMARY KEY (`id`),
   UNIQUE KEY (`language`, `tag`),
   KEY `owner` (`owner`),
-  CONSTRAINT `models_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `organizations` (`id`) ON UPDATE CASCADE ON DELETE CASCADE,
-  CONSTRAINT `models_ibfk_2` FOREIGN KEY (`template_file`) REFERENCES `template_files` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT
+  CONSTRAINT `models_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `organizations` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -973,11 +948,72 @@ CREATE SQL SECURITY INVOKER VIEW `org_statistics`
    (select count(*) from device_class where owner = org.id) as device_count,
    (select count(*) from device_class where license_gplcompatible and owner = org.id) as oss_device_count,
    (select count(*) from device_class where approved_version is not null and owner = org.id) as approved_device_count,
-   (select count(*) from device_class where license_gplcompatible and approved_version is not null and owner = org.id) as oss_approved_device_count,
-   (select count(*) from template_files where public and owner = org.id) as oss_template_file_count
+   (select count(*) from device_class where license_gplcompatible and approved_version is not null and owner = org.id) as oss_approved_device_count
    from organizations org;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Table structure for table `user_app`
+--
+
+DROP TABLE IF EXISTS `user_app`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `user_app` (
+  `uniqueId` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  `userId` int(11) not NULL,
+  `code` text COLLATE utf8mb4_bin NOT NULL,
+  `state` text COLLATE utf8mb4_bin NOT NULL,
+  `name` text COLLATE utf8mb4_bin default NULL,
+  `description` text COLLATE utf8mb4_bin default NULL,
+  PRIMARY KEY (`userId`, `uniqueId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `user_device`
+--
+
+DROP TABLE IF EXISTS `user_device`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `user_device` (
+  `uniqueId` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  `userId` int(11) not NULL,
+  `state` text COLLATE utf8mb4_bin NOT NULL,
+  PRIMARY KEY (`userId`, `uniqueId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `user_device_journal`
+--
+
+DROP TABLE IF EXISTS `user_device_journal`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+create table `user_device_journal` (
+  `uniqueId` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  `userId` int(11) not NULL,
+  `lastModified` datetime NOT NULL,
+  PRIMARY KEY (`userId`, `uniqueId`)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `user_channel`
+--
+
+DROP TABLE IF EXISTS `user_channel`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `user_channel` (
+  `uniqueId` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  `userId` int(11) not NULL,
+  `value` text COLLATE utf8mb4_bin NOT NULL,
+  PRIMARY KEY (`userId`, `uniqueId`)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

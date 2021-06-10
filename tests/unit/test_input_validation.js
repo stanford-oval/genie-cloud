@@ -17,14 +17,14 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 // load thingpedia to initialize the polyfill
 require('thingpedia');
-const qs = require('qs');
-const assert = require('assert');
+import * as qs from 'qs';
+import assert from 'assert';
 
-const iv = require('../../util/input_validation');
+import * as iv from '../../src/util/input_validation';
 
 const TEST_CASES = [
     ['foo=bar', { foo: 'string' }, true],
@@ -160,6 +160,6 @@ function main() {
     for (let i = 0; i < TEST_CASES.length; i++)
         test(i);
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

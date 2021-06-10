@@ -1,5 +1,6 @@
-$(function() {
-    $('.form-delete-device').on('submit', function() {
+"use strict";
+$(() => {
+    $('.form-delete-device').on('submit', () => {
         return confirm("Are you sure?");
     });
 

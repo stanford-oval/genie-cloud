@@ -16,9 +16,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-"use strict";
 
-const kfInferenceUrl = require('../../util/kf_inference_url');
+
+import kfInferenceUrl from '../../src/util/kf_inference_url';
 
 const TEST_CASES = [
     ['@org.model/en', 'almond-staging',
@@ -62,9 +62,7 @@ async function main() {
     for (let i = 0; i < TEST_CASES.length; i++)
         await testCase(i);
 }
-
-module.exports = main;
-
+export default main;
 if (!module.parent)
     main();
 

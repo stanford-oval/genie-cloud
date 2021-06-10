@@ -10,7 +10,7 @@
     };
 
     window.ThingEngine.setCloudIdWhenReady = function() {
-        $(function() {
+        $(() => {
             var holder = $('#cloud-id-holder');
             window.ThingEngine.setCloudId(holder.attr('data-cloud-id'),
                                           holder.attr('data-auth-token'));
@@ -22,7 +22,7 @@
     };
 })();
 
-$(function() {
+$(() => {
     if (window.Android)
         $('#navbar-login-button').hide();
 });

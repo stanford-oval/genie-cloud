@@ -17,19 +17,18 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
 // load thingpedia to initialize the polyfill
-require('thingpedia');
+import 'thingpedia';
 process.on('unhandledRejection', (up) => { throw up; });
-require('../util/config_init');
+import '../src/util/config_init';
 
-const assert = require('assert');
+import assert from 'assert';
 
-const db = require('../util/db');
-const user = require('../util/user');
+import * as db from '../src/util/db';
+import * as user from '../src/util/user';
 
-const Config = require('../config');
+import * as Config from '../src/config';
 assert.strictEqual(Config.WITH_THINGPEDIA, 'external');
 
 const req = { _(x) { return x; } };

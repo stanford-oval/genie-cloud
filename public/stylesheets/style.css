@@ -98,7 +98,7 @@ body {
 
 .index_btn > .btn {
     font-size: 30px;
-    
+
     padding-top: 15px;
     padding-bottom: 15px;
     padding-left: 25px;
@@ -239,12 +239,12 @@ body {
 }
 
 @media screen and (max-width: 700px) {
-    
+
     .index_cl_sx, .index_cl_dx {
         padding: unset;
         padding-left: 1em !important;
         padding-right: 3em !important;
-        
+
     }
     .index_ul {
         font-size: 18px;
@@ -310,16 +310,16 @@ body {
         font-size: 30px;
         font-weight: 600;
         line-height: 1.4em;
-    }   
+    }
     #head_chat {
         font-size: 20px !important;
         padding-top: 8px !important;
         padding-bottom: 8px !important;
     }
-    
+
     #conversation, #conversation.single {
         max-height: 444px !important;
-    }   
+    }
     .col-lg-offset-3 {
         margin-top: 35% !important;
     }
@@ -416,7 +416,7 @@ body {
 }
 
 .col-sm-12 {
-    
+
 }
 
 /* ---- */

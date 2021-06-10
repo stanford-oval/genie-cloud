@@ -1,10 +1,23 @@
 # override this to "nvidia/cuda:10.1-runtime-ubi8" if cuda is desired
 ARG BASE_IMAGE=registry.access.redhat.com/ubi8/ubi:latest
+
+# build go binary first
+FROM golang:1.16 as builder
+WORKDIR /home/almond-cloud
+RUN mkdir gosrc
+ADD go gosrc
+WORKDIR /home/almond-cloud/gosrc/backend
+# binaries are installed to /go/bin
+RUN go install
+
 FROM ${BASE_IMAGE}
 
 MAINTAINER Thingpedia Admins <thingpedia-admins@lists.stanford.edu>
 
 USER root
+
+# Copy go binary
+COPY --from=builder /go/bin/backend /usr/local/bin/backend
 
 # add all the repos: epel (for GraphicsMagick), yarn, sqlcipher, bubblewrap,
 # then install the packages needed at runtime
@@ -29,7 +42,7 @@ RUN curl -sL https://files.pythonhosted.org/packages/1d/a9/f349273a0327fdf20a731
         && rm -fr torch-1.7.1-cp38-cp38-manylinux1_x86_64.whl \
         && rm -fr /root/.cache
 RUN dnf -y install cmake gcc gcc-c++ python38-devel && \
-   pip3 install 'git+https://github.com/stanford-oval/genienlp@3885917258678b8cd38fbd6d9b8488b6ac8caed7#egg=genienlp' awscli && \
+   pip3 install genienlp==0.6.0 awscli && \
    dnf -y remove cmake gcc gcc-c++ python38-devel && \
    rm -fr /var/cache/dnf && \
    rm -fr /root/.cache
@@ -58,6 +71,8 @@ RUN touch /var/lib/rpm/* && \
   dnf -y remove python27 gcc gcc-c++ sqlcipher-devel && \
   rm -fr /root/.cache && \
   rm -fr /var/cache/dnf
+
+
 
 USER almond-cloud
 WORKDIR /home/almond-cloud

@@ -18,33 +18,32 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
 // load thingpedia to initialize the polyfill
-require('thingpedia');
+import 'thingpedia';
 process.on('unhandledRejection', (up) => { throw up; });
-require('../util/config_init');
+import '../src/util/config_init';
 
-const assert = require('assert');
-const path = require('path');
-const util = require('util');
-const fs = require('fs');
-const yaml = require('js-yaml');
+import assert from 'assert';
+import * as path from 'path';
+import * as util from 'util';
+import * as fs from 'fs';
+import * as yaml from 'js-yaml';
 
-const db = require('../util/db');
-const userModel = require('../model/user');
-const organization = require('../model/organization');
-const entityModel = require('../model/entity');
-const exampleModel = require('../model/example');
-const snapshotModel = require('../model/snapshot');
-const alexaModelsModel = require('../model/alexa_model');
+import * as db from '../src/util/db';
+import * as userModel from '../src/model/user';
+import * as organization from '../src/model/organization';
+import * as entityModel from '../src/model/entity';
+import * as exampleModel from '../src/model/example';
+import * as snapshotModel from '../src/model/snapshot';
+import * as alexaModelsModel from '../src/model/alexa_model';
 
-const user = require('../util/user');
-const Importer = require('../util/import_device');
-const { makeRandom } = require('../util/random');
-const I18n = require('../util/i18n');
+import * as user from '../src/util/user';
+import * as Importer from '../src/util/import_device';
+import { makeRandom } from '../src/util/random';
+import * as I18n from '../src/util/i18n';
 
-const Config = require('../config');
+import * as Config from '../src/config';
 assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
 I18n.init(Config.SUPPORTED_LANGUAGES);
 
