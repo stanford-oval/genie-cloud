@@ -33,9 +33,7 @@ var almondConfig *AlmondConfig
 func initAlmonConfigWithDefaults() {
 	almondConfig = &AlmondConfig{
 		NLServerURL: "https://nlp.almond.stanford.edu",
-		// Uncomment after testing
-		// DatabaseURL: os.Getenv("DATABASE_URL"),
-		DatabaseURL: "newuser:password@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local",
+		DatabaseURL: os.Getenv("DATABASE_URL"),
 	}
 }
 
