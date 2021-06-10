@@ -641,3 +641,8 @@ export let MS_SPEECH_SUBSCRIPTION_KEY : string|null = null;
   Azure region identifier for Microsoft Speech Services SDK
 */
 export let MS_SPEECH_SERVICE_REGION : string|null = null;
+
+/**
+ * FAQ models to enable.
+ */
+export let FAQ_MODELS : Record<string, { url : string, highConfidence ?: number, lowConfidence ?: number }> = {};

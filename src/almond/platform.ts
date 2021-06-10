@@ -402,6 +402,7 @@ class PlatformModule {
     private _thingpediaUrl ! : string;
     private _nlServerUrl ! : string;
     private _oauthRedirectOrigin ! : string;
+    private _faqModels ! : Record<string, { url : string, highConfidence ?: number, lowConfidence ?: number }>;
 
     // Initialize the platform code
     // Will be called before instantiating the engine
@@ -410,11 +411,13 @@ class PlatformModule {
         thingpedia_url : string;
         nl_server_url : string;
         oauth_redirect_origin : string;
+        faq_models : string;
     }) {
         _shared = options.shared;
         this._thingpediaUrl = options.thingpedia_url;
         this._nlServerUrl = options.nl_server_url;
         this._oauthRedirectOrigin = options.oauth_redirect_origin;
+        this._faqModels = JSON.parse(options.faq_models);
     }
 
     get thingpediaUrl() {
@@ -422,6 +425,9 @@ class PlatformModule {
     }
     get nlServerUrl() {
         return this._nlServerUrl;
+    }
+    get faqModels() {
+        return this._faqModels;
     }
 
     get shared() {

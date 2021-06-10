@@ -184,6 +184,10 @@ function main() {
         required: true,
         help: 'NLP Server URL',
     });
+    parser.add_argument('--faq-models', {
+        required: true,
+        help: 'FAQ model configuration',
+    });
 
     const argv = parser.parse_args();
     i18n.init(argv.locale);
