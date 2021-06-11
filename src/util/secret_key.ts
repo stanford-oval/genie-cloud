@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -25,10 +25,10 @@ import { InternalError, BadRequestError } from './errors';
 import * as Config from '../config';
 
 const AES_BLOCK_SIZE = 16;
-const CIPHER_NAME = 'id-aes128-GCM';
+const CIPHER_NAME = 'aes-128-gcm';
 
 function getAESKey() {
-    let key = Config.AES_SECRET_KEY;
+    const key = Config.AES_SECRET_KEY;
     if (key === undefined)
         throw new InternalError('E_INVALID_CONFIG', "Configuration error: AES key missing!");
     if (key.length !== 2*AES_BLOCK_SIZE) // AES-128
@@ -37,20 +37,20 @@ function getAESKey() {
 }
 
 export function getSecretKey() {
-    let key = Config.SECRET_KEY;
+    const key = Config.SECRET_KEY;
     if (key === undefined)
         throw new InternalError('E_INVALID_CONFIG', "Configuration error: secret key missing!");
     return key;
 }
 
 export function getJWTSigningKey() {
-    let key = Config.JWT_SIGNING_KEY;
+    const key = Config.JWT_SIGNING_KEY;
     if (key === undefined)
         throw new InternalError('E_INVALID_CONFIG', "Configuration error: secret key missing!");
     return key;
 }
 
-export function encrypt(data) {
+export function encrypt(data : Buffer) {
     const iv = crypto.randomBytes(AES_BLOCK_SIZE);
     const cipher = crypto.createCipheriv(CIPHER_NAME, getAESKey(), iv);
     const buffers = [ cipher.update(data), cipher.final() ];
@@ -61,12 +61,12 @@ export function encrypt(data) {
     ].join('$');
 }
 
-export function decrypt(data) {
-    let [iv, ciphertext, authTag] = data.split('$');
+export function decrypt(data : string) {
+    const [iv, ciphertext, authTag] = data.split('$');
     if (!iv || !ciphertext || !authTag)
         throw new BadRequestError('Invalid encrypted data (wrong format)');
-    const decipher = crypto.createDecipheriv(CIPHER_NAME, getAESKey(), new Buffer(iv, 'base64'));
-    decipher.setAuthTag(new Buffer(authTag, 'base64'));
-    const buffers = [ decipher.update(new Buffer(ciphertext, 'base64')), decipher.final() ];
+    const decipher = crypto.createDecipheriv(CIPHER_NAME, getAESKey(), Buffer.from(iv, 'base64'));
+    decipher.setAuthTag(Buffer.from(authTag, 'base64'));
+    const buffers = [ decipher.update(Buffer.from(ciphertext, 'base64')), decipher.final() ];
     return Buffer.concat(buffers);
 }

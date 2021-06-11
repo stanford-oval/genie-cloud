@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,30 +18,22 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import * as fs from 'fs';
-import * as util from 'util';
 
-async function safeMkdir(dir, options) {
-    try {
-         await util.promisify(fs.mkdir)(dir, options);
-    } catch(e) {
-         if (e.code === 'EEXIST')
-             return;
-         throw e;
-    }
+// compute the shard of a user, based on a simple hashing scheme
+
+export default function shard(userId : number, nShards : number) {
+    // in theory, we could just do userId % nShards
+    // because userIds are assigned sequentially
+    // so that would be balanced
+    //
+    // in practice
+
+    // randomize the userId a bit
+
+    userId += 33;
+    userId *= 7;
+    userId += 33;
+    userId *= 7;
+
+    return userId % nShards;
 }
-
-function safeMkdirSync(dir, options) {
-    try {
-         fs.mkdirSync(dir, options);
-    } catch(e) {
-         if (e.code === 'EEXIST')
-             return;
-         throw e;
-    }
-}
-
-export {
-    safeMkdir,
-    safeMkdirSync
-};

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -22,13 +22,13 @@
 import assert from 'assert';
 import * as crypto from 'crypto';
 
-function choose(from, n, rng = Math.random) {
+function choose<T>(from : T[], n : number, rng = Math.random) : T[] {
     if (n === 0)
         return [];
     if (n >= from.length)
         return from;
 
-    let taken = [];
+    const taken : boolean[] = [];
     function next() {
         let idx = Math.floor(rng()*(from.length - taken.length));
         for (let i = 0; i < from.length; i++) {
@@ -41,10 +41,10 @@ function choose(from, n, rng = Math.random) {
             idx--;
         }
 
-        throw new assert.AssertionError(`code should not be reached`);
+        throw new assert.AssertionError({ message: `code should not be reached` });
     }
 
-    let res = [];
+    const res = [];
     while (n > 0) {
         res.push(next());
         n--;
@@ -52,13 +52,13 @@ function choose(from, n, rng = Math.random) {
     return res;
 }
 
-function coin(prob, rng = Math.random) {
+function coin(prob : number, rng = Math.random) {
     return rng() <= prob;
 }
-function uniform(array, rng = Math.random) {
+function uniform<T>(array : T[], rng = Math.random) : T {
     return array[Math.floor(rng() * array.length)];
 }
-function categorical(weights, rng = Math.random) {
+function categorical(weights : number[], rng = Math.random) {
     const cumsum = new Array(weights.length);
     cumsum[0] = weights[0];
     for (let i = 1; i < weights.length; i++)

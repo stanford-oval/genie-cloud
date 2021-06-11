@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,11 +18,20 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
 import multer from 'multer';
 import * as jwt from 'jsonwebtoken';
 import * as Tp from 'thingpedia';
 
-function html(err, req, res, next) {
+interface ExtendedError extends Error {
+    code ?: string|number;
+    errno ?: string;
+    status ?: number;
+    expose ?: boolean;
+    sqlState ?: string;
+}
+
+function html(err : ExtendedError, req : express.Request, res : express.Response, next : express.NextFunction) {
     if (err instanceof Tp.OAuthError || err instanceof Tp.ImplementationError) {
         res.status(500).render('error', {
             page_title: req._("Almond - Error"),
@@ -100,7 +109,7 @@ function html(err, req, res, next) {
     }
 }
 
-function json(err, req, res, next) {
+function json(err : ExtendedError, req : express.Request, res : express.Response, next : express.NextFunction) {
     let message = err.message;
 
     if (err instanceof multer.MulterError) {

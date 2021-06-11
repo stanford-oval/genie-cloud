@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -25,24 +25,23 @@ import * as fs from 'fs';
 
 import * as Config from '../config';
 
-export async function exec(filename) {
-    const parsed = Url.parse(Config.DATABASE_URL);
-    const [user, pass] = parsed.auth.split(':');
+export async function exec(filename : string) {
+    const parsed = Url.parse(Config.DATABASE_URL!);
+    const [user, pass] = parsed.auth!.split(':');
 
     const options = {
-        host: parsed.hostname,
-        port: parsed.port,
-        database: parsed.pathname.substring(1),
+        host: parsed.hostname!,
+        port: parseInt(parsed.port!),
+        database: parsed.pathname!.substring(1),
         user: user,
         password: pass,
+        multipleStatements: true
     };
     Object.assign(options, parsed.query);
 
-    options.multipleStatements = true;
-
     const queries = await util.promisify(fs.readFile)(filename, { encoding: 'utf8' });
 
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
         const connection = mysql.createConnection(options);
         connection.query(queries, (error) => {
             if (error) {

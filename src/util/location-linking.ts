@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+/// <reference types="./address-formatter" />
 
 import * as Tp from 'thingpedia';
 import * as qs from 'qs';
@@ -30,19 +31,40 @@ import * as Config from '../config';
 const URL = 'http://open.mapquestapi.com/nominatim/v1/search.php'; // key=%s&format=jsonv2&accept-language=%s&limit=5&q=%s";
 const FREE_URL = 'http://nominatim.openstreetmap.org/search/?'; //?format=jsonv2&accept-language=%s&limit=5&q=%s
 
-export default async function resolveLocation(locale = 'en-US', searchKey, around) {
+interface NominatimQueryArgs {
+    format : 'jsonv2';
+    'accept-language' : string;
+    limit : number;
+    q : string;
+    addressdetails : '1'|'0';
+    viewbox ?: string;
+}
+
+interface NominatimRecord {
+    address : Record<string, string>;
+    place_rank : number;
+    lat : string;
+    lon : string;
+    display_name : string;
+    importance : number;
+}
+
+export default async function resolveLocation(locale = 'en-US', searchKey : string, around ?: {
+    latitude : number,
+    longitude : number
+}) {
     let url;
     if (Config.MAPQUEST_KEY)
         url = URL + '?key=' + Config.MAPQUEST_KEY + '&';
     else
         url = FREE_URL;
 
-    const data = {
+    const data : NominatimQueryArgs = {
         format: 'jsonv2',
         'accept-language': locale,
         limit: 5,
         q: searchKey,
-        addressdetails: '1'
+        addressdetails: '1',
     };
     if (around) {
         // round to 1 decimal digit
@@ -52,7 +74,7 @@ export default async function resolveLocation(locale = 'en-US', searchKey, aroun
         data.viewbox = [lon-0.1, lat-0.1, lon+0.1, lat+0.1].join(',');
     }
 
-    const parsed = JSON.parse(await Tp.Helpers.Http.get(url + qs.stringify(data)));
+    const parsed = JSON.parse(await Tp.Helpers.Http.get(url + qs.stringify(data))) as NominatimRecord[];
 
     const tokenizer = I18n.get(locale).genie.getTokenizer();
     return parsed.map((result) => {

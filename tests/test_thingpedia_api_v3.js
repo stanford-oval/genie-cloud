@@ -1252,7 +1252,7 @@ async function testDiscovery() {
         failed = true;
     } catch(e) {
         assert.strictEqual(e.code, 404);
-        assert.deepStrictEqual(JSON.parse(e.detail), { error: 'Not Found' });
+        assert.deepStrictEqual(JSON.parse(e.detail), { error: 'Not Found', code: 'ENOENT' });
     }
     assert(!failed);
 
@@ -1271,7 +1271,7 @@ async function testDiscovery() {
         failed = true;
     } catch(e) {
         assert.strictEqual(e.code, 404);
-        assert.deepStrictEqual(JSON.parse(e.detail), { error: 'Not Found' });
+        assert.deepStrictEqual(JSON.parse(e.detail), { error: 'Not Found', code: 'ENOENT' });
     }
     assert(!failed);
 }

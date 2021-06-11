@@ -18,22 +18,30 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as fs from 'fs';
+import * as util from 'util';
 
-// compute the shard of a user, based on a simple hashing scheme
-
-export default function shard(userId, nShards) {
-    // in theory, we could just do userId % nShards
-    // because userIds are assigned sequentially
-    // so that would be balanced
-    //
-    // in practice
-
-    // randomize the userId a bit
-
-    userId += 33;
-    userId *= 7;
-    userId += 33;
-    userId *= 7;
-
-    return userId % nShards;
+async function safeMkdir(dir : string, options ?: fs.MakeDirectoryOptions) {
+    try {
+         await util.promisify(fs.mkdir)(dir, options);
+    } catch(e) {
+         if (e.code === 'EEXIST')
+             return;
+         throw e;
+    }
 }
+
+function safeMkdirSync(dir : string, options ?: fs.MakeDirectoryOptions) {
+    try {
+         fs.mkdirSync(dir, options);
+    } catch(e) {
+         if (e.code === 'EEXIST')
+             return;
+         throw e;
+    }
+}
+
+export {
+    safeMkdir,
+    safeMkdirSync
+};

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -20,11 +20,10 @@
 
 import * as child_process from 'child_process';
 
-export function exec(file, argv) {
-    return new Promise((resolve, reject) => {
-        const stdio = ['ignore', 'inherit', 'inherit'];
+export function exec(file : string, argv : string[]) {
+    return new Promise<void>((resolve, reject) => {
         console.log(`${file} ${argv.map((a) => "'" + a + "'").join(' ')}`);
-        const child = child_process.spawn(file, argv, { stdio });
+        const child = child_process.spawn(file, argv, { stdio: ['ignore', 'inherit', 'inherit'] });
         child.on('error', reject);
         child.on('exit', (code, signal) => {
             if (signal) {

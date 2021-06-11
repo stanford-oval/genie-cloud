@@ -329,7 +329,15 @@ export default class ThingpediaClientCloud extends Tp.BaseClient implements rpc.
     }
 
     async getKindByDiscovery(body : any) : Promise<string> {
-        const decoded = await _discoveryServer.decode(body);
+        let decoded;
+        try {
+            decoded = await _discoveryServer.decode(body);
+        } catch(e) {
+            if (e.message === 'Not Found')
+                throw new NotFoundError();
+            else
+                throw e;
+        }
         if (decoded === null)
             throw new NotFoundError();
         return decoded.primary_kind;

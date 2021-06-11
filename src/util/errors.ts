@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -19,27 +19,35 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 class HTTPError extends Error {
-    constructor(status, message) {
+    status : number;
+
+    constructor(status : number, message : string) {
         super(message);
         this.status = status;
     }
 }
 
 class BadRequestError extends HTTPError {
-    constructor(message) {
+    code : 'EINVAL';
+
+    constructor(message : string) {
         super(400, message);
         this.code = 'EINVAL';
     }
 }
 
 class ValidationError extends HTTPError {
-    constructor(message) {
+    code : 'EINVAL';
+
+    constructor(message : string) {
         super(400, message);
         this.code = 'EINVAL';
     }
 }
 
 class ForbiddenError extends HTTPError {
+    code : 'EPERM';
+
     constructor(message = "You do not have permission to perform the requested operation.") {
         super(403, message);
         this.code = 'EPERM';
@@ -47,6 +55,8 @@ class ForbiddenError extends HTTPError {
 }
 
 class AuthenticationError extends HTTPError {
+    code : 'EACCESS';
+
     constructor(message = "Authentication required.") {
         super(401, message);
         this.code = 'EACCESS';
@@ -54,6 +64,8 @@ class AuthenticationError extends HTTPError {
 }
 
 class NotFoundError extends Error {
+    code : 'ENOENT';
+
     constructor() {
         super("Not Found");
         this.code = 'ENOENT';
@@ -61,7 +73,9 @@ class NotFoundError extends Error {
 }
 
 class InternalError extends Error {
-    constructor(code, message) {
+    code : string;
+
+    constructor(code : string, message : string) {
         super(message);
         this.code = code;
     }

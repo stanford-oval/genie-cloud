@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,12 +18,15 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as db from './db';
 import BaseThingpediaClient from './thingpedia-client';
 
 // A ThingpediaClient that always operates as admin, reading
 // the full database
 export default class AdminThingpediaClient extends BaseThingpediaClient {
-    constructor(locale, dbClient, onlyApproved = false) {
+    private _onlyApproved : boolean;
+
+    constructor(locale : string, dbClient : db.Client, onlyApproved = false) {
         super(null, locale, undefined, dbClient);
         this._onlyApproved = onlyApproved;
     }

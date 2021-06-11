@@ -28,6 +28,7 @@ import * as tmp from 'tmp-promise';
 
 import * as cmd from './command';
 import { safeMkdir } from './fsutils';
+import * as AWS from 'aws-sdk';
 
 // An abstraction over file system operations, that supports local files and s3:// URIs
 
@@ -38,14 +39,14 @@ const _backends = {
             // metadata anyway
         },
 
-        async download(url, ...extraArgs) {
-            if (url.pathname.endsWith('/')) { // directory
+        async download(url : Url.UrlObject, ...extraArgs : string[]) {
+            if (url.pathname!.endsWith('/')) { // directory
                 // use /var/tmp as the parent directory, to ensure it's on disk and not in a tmpfs
                 const { path: dir } = await tmp.dir({
                     mode: 0o700,
                     tmpdir: '/var/tmp',
                     unsafeCleanup: true,
-                    prefix: path.basename(url.pathname) + '.'
+                    prefix: path.basename(url.pathname!) + '.'
                 });
                 const args = ['s3', 'sync', 's3://' + url.hostname + url.pathname, dir];
                 if (extraArgs.length > 0) args.push(...extraArgs);
@@ -56,14 +57,14 @@ const _backends = {
                     mode: 0o600,
                     discardDescriptor: true,
                     tmpdir: '/var/tmp',
-                    prefix: path.basename(url.pathname) + '.'
+                    prefix: path.basename(url.pathname!) + '.'
                 });
                 await cmd.exec('aws', ['s3', 'cp',  's3://' + url.hostname + url.pathname, file]);
                 return file;
             }
         },
 
-        async upload(localpath, url, ...extraArgs) {
+        async upload(localpath : string, url : Url.UrlObject, ...extraArgs : string[]) {
             const dest =  's3://' + url.hostname + url.pathname;
             if (fs.lstatSync(localpath).isFile()) {
                 await cmd.exec('aws', ['s3', 'cp', localpath, dest]);
@@ -74,11 +75,11 @@ const _backends = {
             await cmd.exec('aws', args);
         },
 
-        async removeRecursive(url) {
+        async removeRecursive(url : Url.UrlObject) {
             return cmd.exec('aws', ['s3', 'rm', '--recursive', 's3://' + url.hostname + url.pathname]);
         },
 
-        async sync(url1, url2, ...extraArgs) {
+        async sync(url1 : Url.UrlObject, url2 : Url.UrlObject, ...extraArgs : string[]) {
             const args = ['s3', 'sync',
                 's3://' + url1.hostname + url1.pathname,
                 's3://' + url2.hostname + url2.pathname,
@@ -87,7 +88,7 @@ const _backends = {
             return cmd.exec('aws', args);
         },
 
-        createLocalWriteStream(url) {
+        createLocalWriteStream(url : Url.UrlObject) {
             const { name: tmpFile, fd: tmpFD } =
                 tmpSync.fileSync({ mode: 0o600, tmpdir: '/var/tmp' });
             const stream = fs.createWriteStream(tmpFile, { fd: tmpFD });
@@ -100,22 +101,18 @@ const _backends = {
             return stream;
         },
 
-        createWriteStream(url, localSpooling) {
+        createWriteStream(url : Url.UrlObject, localSpooling : boolean) {
             if (localSpooling)
                 return this.createLocalWriteStream(url);
 
-            // lazy-load AWS, which is optional
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const AWS = require('aws-sdk');
-
             const s3 = new AWS.S3();
             const stream = new Stream.PassThrough();
-            const key = url.pathname.startsWith('/') ? url.pathname.substring(1) : url.pathname;
+            const key = url.pathname!.startsWith('/') ? url.pathname!.substring(1) : url.pathname!;
             s3.upload({
-                Bucket: url.hostname,
+                Bucket: url.hostname!,
                 Key: key,
                 Body: stream,
-            },(err, data) => {
+            }, (err, data) => {
                if (err) {
                   console.log('upload error:', err);
                   stream.emit('error', err);
@@ -126,26 +123,18 @@ const _backends = {
 
             return stream;
         },
-        createReadStream(url) {
-            // lazy-load AWS, which is optional
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const AWS = require('aws-sdk');
-
+        createReadStream(url : Url.UrlObject) {
             const s3 = new AWS.S3();
-            const key = url.pathname.startsWith('/') ? url.pathname.substring(1) : url.pathname;
+            const key = url.pathname!.startsWith('/') ? url.pathname!.substring(1) : url.pathname!;
             const download = s3.getObject({
-                Bucket: url.hostname,
+                Bucket: url.hostname!,
                 Key: key
             });
             return download.createReadStream();
         },
-        async getDownloadLinkOrStream(url) {
-            // lazy-load AWS, which is optional
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const AWS = require('aws-sdk');
-
+        async getDownloadLinkOrStream(url : Url.UrlObject) {
             const s3 = new AWS.S3();
-            const key = url.pathname.startsWith('/') ? url.pathname.substring(1) : url.pathname;
+            const key = url.pathname!.startsWith('/') ? url.pathname!.substring(1) : url.pathname;
             return s3.getSignedUrlPromise('getObject', {
                 Bucket: url.hostname,
                 Key: key,
@@ -153,15 +142,11 @@ const _backends = {
             });
         },
 
-        async writeFile(url, blob, options = {}) {
-            // lazy-load AWS, which is optional
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const AWS = require('aws-sdk');
-
+        async writeFile(url : Url.UrlObject, blob : string|Buffer|Stream.Readable, options : { contentType ?: string } = {}) {
             const s3 = new AWS.S3();
-            const key = url.pathname.startsWith('/') ? url.pathname.substring(1) : url.pathname;
+            const key = url.pathname!.startsWith('/') ? url.pathname!.substring(1) : url.pathname!;
             const upload = s3.upload({
-                Bucket: url.hostname,
+                Bucket: url.hostname!,
                 Key: key,
                 Body: blob,
                 ContentType: options.contentType
@@ -171,27 +156,27 @@ const _backends = {
     },
 
     'file:': {
-        async mkdirRecursive(url) {
-            const components = path.resolve(url.pathname).split('/').slice(1);
+        async mkdirRecursive(url : Url.UrlObject) {
+            const components = path.resolve(url.pathname!).split('/').slice(1);
 
             let subpath = '';
-            for (let component of components) {
+            for (const component of components) {
                  subpath += '/' + component;
                  await safeMkdir(subpath);
             }
         },
 
-        async download(url, ...extraArgs) {
+        async download(url : Url.UrlObject, ...extraArgs : string[]) {
             // the file is already local, so we have nothing to do
             // (note that the hostname part of the URL is ignored)
 
-            return path.resolve(url.pathname);
+            return path.resolve(url.pathname!);
         },
 
-        async upload(localdir, url, ...extraArgs) {
+        async upload(localdir : string, url : Url.UrlObject, ...extraArgs : string[]) {
             let hostname = '';
             if (!url.hostname) {
-                if (path.resolve(localdir) === path.resolve(url.pathname))
+                if (path.resolve(localdir) === path.resolve(url.pathname!))
                     return;
             } else {
                 hostname = url.hostname + ':';
@@ -201,31 +186,31 @@ const _backends = {
             await cmd.exec('rsync', args);
         },
 
-        async removeRecursive(url) {
-            return cmd.exec('rm', ['-r', url.pathname]);
+        async removeRecursive(url : Url.UrlObject) {
+            return cmd.exec('rm', ['-r', url.pathname!]);
         },
 
-        async sync(url1, url2, ...extraArgs) {
+        async sync(url1 : Url.UrlObject, url2 : Url.UrlObject, ...extraArgs : string[]) {
             const args = ['-av',
-                url1.hostname ? `${url1.hostname}:${url1.pathname}` : url1.pathname,
-                url2.hostname ? `${url2.hostname}:${url2.pathname}` : url2.pathname,
+                url1.hostname ? `${url1.hostname}:${url1.pathname}` : url1.pathname!,
+                url2.hostname ? `${url2.hostname}:${url2.pathname}` : url2.pathname!,
             ];
             if (extraArgs.length > 0) args.push(...extraArgs);
             return cmd.exec('rsync', args);
         },
 
-        createWriteStream(url) {
-            return fs.createWriteStream(url.pathname);
+        createWriteStream(url : Url.UrlObject) {
+            return fs.createWriteStream(url.pathname!);
         },
-        createReadStream(url) {
-            return fs.createReadStream(url.pathname);
+        createReadStream(url : Url.UrlObject) {
+            return fs.createReadStream(url.pathname!);
         },
-        getDownloadLinkOrStream(url) {
-            return fs.createReadStream(url.pathname);
+        getDownloadLinkOrStream(url : Url.UrlObject) {
+            return fs.createReadStream(url.pathname!);
         },
-        async writeFile(url, blob, options) {
-            let output = fs.createWriteStream(url.pathname);
-            if (typeof blob === 'string' || blob instanceof Uint8Array || blob instanceof Buffer)
+        async writeFile(url : Url.UrlObject, blob : string|Buffer|Stream.Readable, options ?: { contentType ?: string }) {
+            const output = fs.createWriteStream(url.pathname!);
+            if (typeof blob === 'string' || blob instanceof Uint8Array)
                 output.end(blob);
             else
                 blob.pipe(output);
@@ -238,14 +223,14 @@ const _backends = {
 };
 
 const cwd = 'file://' + (path.resolve(process.env.THINGENGINE_ROOTDIR || '.')) + '/';
-function getBackend(url) {
+function getBackend(url : string) {
     url = Url.resolve(cwd, url);
     const parsed = Url.parse(url);
 
-    if (!_backends[parsed.protocol])
+    if (parsed.protocol !== 's3:' && parsed.protocol !== 'file:')
         throw new Error(`Unknown URL scheme ${parsed.protocol}`);
 
-    return [parsed, _backends[parsed.protocol]];
+    return [parsed, _backends[parsed.protocol!]] as const;
 }
 
 /**
@@ -260,34 +245,34 @@ function getBackend(url) {
     AbstractFS.resolve('file://foo', 'bar') = 'file://foo/bar'
     AbstractFS.resolve('/foo', 'bar') = '/foo/bar'
 */
-export function resolve(url, ...others) {
+export function resolve(url : string, ...others : string[]) {
     url = Url.resolve(cwd, url);
-    for (let other of others)
+    for (const other of others)
         url = Url.resolve(url + '/', other);
     return url;
 }
 
-export async function mkdirRecursive(url) {
+export async function mkdirRecursive(url : string) {
     const [parsed, backend] = getBackend(url);
     return backend.mkdirRecursive(parsed);
 }
 
-export async function download(url, ...extraArgs) {
+export async function download(url : string, ...extraArgs : string[]) {
     const [parsed, backend] = getBackend(url);
     return backend.download(parsed, ...extraArgs);
 }
 
-export async function upload(localdir, url, ...extraArgs) {
+export async function upload(localdir : string, url : string, ...extraArgs : string[]) {
     const [parsed, backend] = getBackend(url);
     return backend.upload(localdir, parsed, ...extraArgs);
 }
 
-export async function removeRecursive(url) {
+export async function removeRecursive(url : string) {
     const [parsed, backend] = getBackend(url);
     return backend.removeRecursive(parsed);
 }
 
-export async function sync(url1, url2, ...extraArgs) {
+export async function sync(url1 : string, url2 : string, ...extraArgs : string[]) {
     const [parsed1, backend1] = getBackend(url1);
     const [parsed2, backend2] = getBackend(url2);
 
@@ -302,34 +287,34 @@ export async function sync(url1, url2, ...extraArgs) {
     if (parsed1.protocol !== 'file:')
         await removeTemporary(tmpdir);
 }
-export function createWriteStream(url, localSpooling) {
+export function createWriteStream(url : string, localSpooling : boolean) {
     const [parsed, backend] = getBackend(url);
     return backend.createWriteStream(parsed, localSpooling);
 }
-export function createReadStream(url) {
+export function createReadStream(url : string) {
     const [parsed, backend] = getBackend(url);
     return backend.createReadStream(parsed);
 }
-export function getDownloadLinkOrStream(url) {
+export function getDownloadLinkOrStream(url : string) {
     const [parsed, backend] = getBackend(url);
     return backend.getDownloadLinkOrStream(parsed);
 }
-export async function writeFile(url, blob, options) {
+export async function writeFile(url : string, blob : string|Buffer|Stream.Readable, options ?: { contentType ?: string }) {
     const [parsed, backend] = getBackend(url);
     return backend.writeFile(parsed, blob, options);
 }
 
-export async function removeTemporary(pathname) {
+export async function removeTemporary(pathname : string) {
     if (!pathname.startsWith('/var/tmp'))
         return;
     await _backends['file:'].removeRecursive({ pathname });
 }
 
-export function isLocal(url) {
+export function isLocal(url : string) {
     const [parsed,] = getBackend(url);
     return parsed.protocol === 'file:' && !parsed.hostname;
 }
-export function getLocalPath(url) {
+export function getLocalPath(url : string) {
     const [parsed,] = getBackend(url);
     assert(parsed.protocol === 'file:');
     return parsed.pathname;
