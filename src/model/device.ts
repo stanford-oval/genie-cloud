@@ -250,7 +250,7 @@ export async function getCodeByVersion(client : db.Client, id : number, version 
 }
 
 export type DiscoveryRow = Pick<Row, "id"|"name"|"description"|"primary_kind"|"category"
-    |"subcategory"|"developer_version"|"approved_version"|"owner">;
+    |"subcategory"|"developer_version"|"approved_version"|"owner"> & { kinds ?: string[] };
 
 export async function getByAnyKind(client : db.Client, kind : string) : Promise<DiscoveryRow[]> {
     return db.selectAll(client, `
@@ -476,8 +476,8 @@ export async function getAllKinds(client : db.Client, id : number) : Promise<Kin
     return db.selectAll(client, "select * from device_class_kind where device_id = ? "
                         + "order by kind", [id]);
 }
-export async function getAllDiscoveryServices(client : db.Client, id : number) : Promise<DiscoveryServiceRow[]> {
-    return db.selectAll(client, "select * from device_discovery_services where device_id = ?", [id]);
+export async function getAllDiscoveryServices(client : db.Client, id : number, discoveryType : 'upnp' | 'bluetooth') : Promise<DiscoveryServiceRow[]> {
+    return db.selectAll(client, "select * from device_discovery_services where device_id = ? and discovery_type = ?", [id, discoveryType]);
 }
 
 export {

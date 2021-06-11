@@ -1,8 +1,8 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
-// Copyright 2016-2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2016-2021 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-/// <reference types="./thingpedia-discovery" />
 /// <reference types="../almond/transparent-rpc" />
 
 import assert from 'assert';
@@ -26,7 +25,6 @@ import * as semver from 'semver';
 import * as rpc from 'transparent-rpc';
 
 import * as Tp from 'thingpedia';
-import * as TpDiscovery from 'thingpedia-discovery';
 import * as ThingTalk from 'thingtalk';
 
 import * as Config from '../config';
@@ -38,6 +36,7 @@ import * as schemaModel from '../model/schema';
 import * as exampleModel from '../model/example';
 import * as entityModel from '../model/entity';
 import * as stringModel from '../model/strings';
+import * as discovery from './discovery';
 
 import * as DatasetUtils from './dataset';
 import * as SchemaUtils from './manifest_to_schema';
@@ -46,35 +45,6 @@ import * as codeStorage from './code_storage';
 import { NotFoundError, ForbiddenError, BadRequestError } from './errors';
 import resolveLocation from './location-linking';
 import { parseOldOrNewSyntax } from './compat';
-
-class ThingpediaDiscoveryDatabase implements TpDiscovery.DiscoveryDatabase<device.DiscoveryRow> {
-    getByDiscoveryService(discoveryType : 'upnp'|'bluetooth', service : string) {
-        return db.withClient((dbClient) => device.getByDiscoveryService(dbClient, discoveryType, service));
-    }
-    getAllDiscoveryServices(deviceId : number) {
-        return db.withClient((dbClient) => device.getAllDiscoveryServices(dbClient, deviceId));
-    }
-
-    // for compatibility until thingpedia-discovery is updated
-    getByAnyKind(kind : string) {
-        if (kind.startsWith('bluetooth-'))
-            return this.getByDiscoveryService('bluetooth', kind.substring('bluetooth-'.length));
-        if (kind.startsWith('upnp-'))
-            return this.getByDiscoveryService('upnp', kind.substring('upnp-'.length));
-        return db.withClient((dbClient) => device.getByAnyKind(dbClient, kind));
-    }
-    getAllKinds(deviceId : number) {
-        return this.getAllDiscoveryServices(deviceId).then((services) => services.map((s) => {
-            return { kind: s.discovery_type + s.service };
-        }));
-    }
-
-    getByPrimaryKind(kind : string) {
-        return db.withClient((dbClient) => device.getByPrimaryKind(dbClient, kind));
-    }
-}
-
-const _discoveryServer = new TpDiscovery.Server(new ThingpediaDiscoveryDatabase());
 
 const CATEGORIES = new Set(['media', 'social-network', 'home', 'communication', 'health', 'service', 'data-management']);
 
@@ -328,19 +298,13 @@ export default class ThingpediaClientCloud extends Tp.BaseClient implements rpc.
         });
     }
 
-    async getKindByDiscovery(body : any) : Promise<string> {
-        let decoded;
-        try {
-            decoded = await _discoveryServer.decode(body);
-        } catch(e) {
-            if (e.message === 'Not Found')
+    getKindByDiscovery(body : any) : Promise<string> {
+        return this._withClient(async (dbClient) => {
+            const decoded = await discovery.decode(dbClient, body);
+            if (decoded === null)
                 throw new NotFoundError();
-            else
-                throw e;
-        }
-        if (decoded === null)
-            throw new NotFoundError();
-        return decoded.primary_kind;
+            return decoded.primary_kind;
+        });
     }
 
     private _makeDataset(name : string, rows : Array<Omit<exampleModel.PrimitiveTemplateRow, "language"|"type">>, dbClient : db.Client, options = {}) {

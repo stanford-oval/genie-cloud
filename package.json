@@ -100,7 +100,6 @@
     "sockaddr": "^1.0.0",
     "tar": "^6.1.0",
     "thingpedia": "github:stanford-oval/thingpedia-api",
-    "thingpedia-discovery": "^1.0.0",
     "thingtalk": "github:stanford-oval/thingtalk",
     "thirty-two": "^1.0.2",
     "tmp-promise": "^3.0.2",
