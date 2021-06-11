@@ -173,6 +173,7 @@ export interface PlatformOptions {
     timezone : string;
     storageKey : string;
     modelTag : string|null;
+    dbProxyUrl : string|null;
 }
 
 export class Platform extends Tp.BasePlatform {
@@ -183,6 +184,8 @@ export class Platform extends Tp.BasePlatform {
     private _locale : string;
     private _timezone : string;
     private _sqliteKey : string;
+    private _dbProxyUrl : string|null;
+    private _userId : number;
     // TODO
     private _gettext : ReturnType<(typeof i18n)['get']>;
     private _writabledir : string;
@@ -199,6 +202,8 @@ export class Platform extends Tp.BasePlatform {
         this._locale = options.locale;
         this._timezone = options.timezone;
         this._sqliteKey = options.storageKey;
+        this._dbProxyUrl = options.dbProxyUrl;
+        this._userId = options.userId;
 
         this._gettext = i18n.get(this._locale);
 
@@ -287,6 +292,9 @@ export class Platform extends Tp.BasePlatform {
         case 'smt-solver':
             return LocalCVC4Solver !== null;
 
+        case 'database-proxy':
+            return this._dbProxyUrl !== null;
+
         default:
             return false;
         }
@@ -319,6 +327,9 @@ export class Platform extends Tp.BasePlatform {
 
         case 'smt-solver':
             return LocalCVC4Solver;
+
+        case 'database-proxy':
+            return  { baseUrl: this._dbProxyUrl, userId: this._userId };
 
         default:
             return null;

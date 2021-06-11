@@ -153,6 +153,7 @@ class EngineProcess extends events.EventEmitter {
             timezone: user.timezone,
             storageKey: user.storage_key,
             modelTag: user.model_tag,
+            dbProxyUrl: Config.DATABASE_PROXY_URL,
         }];
         return this._rpcSocket!.call(this._rpcId!, 'runEngine', args);
     }

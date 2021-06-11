@@ -63,7 +63,7 @@ func (s *ConfigSuite) TestInitAlmondConfig() {
 	require.NoError(s.T(), err)
 	almondConfig := GetAlmondConfig()
 	require.Equal(s.T(), almondConfig.NLServerURL, "https://nlp.almond.stanford.edu")
-	require.Equal(s.T(), almondConfig.DatabaseURL, "newuser:password@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local")
+	require.Equal(s.T(), almondConfig.DatabaseURL, "")
 
 	os.Setenv("ALMOND_CONFIG_DIR", s.tmpDir)
 	err = InitAlmondConfig()

@@ -41,7 +41,7 @@ DROP TABLE IF EXISTS `user_device_journal`;
 create table `user_device_journal` (
   `uniqueId` varchar(255) COLLATE utf8mb4_bin NOT NULL,
   `userId` int(11) not NULL,
-  `lastModified` datetime NOT NULL,
+  `lastModified` BIGINT NOT NULL,
   PRIMARY KEY (`userId`, `uniqueId`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;

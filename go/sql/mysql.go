@@ -14,7 +14,15 @@
 package sql
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
+	"io/ioutil"
 	"log"
+	"net/url"
+	"strings"
+
+	mysqldriver "github.com/go-sql-driver/mysql"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -32,8 +40,95 @@ func gormConfig() *gorm.Config {
 	}
 }
 
+// RegisterTLSCert with mysql driver using given name. This name
+// can then be referenced in the DNS tls=<name>
+func RegisterTLSCert(name string, certPath string) error {
+	log.Printf("Registering %s tls cert.", name)
+	rootCertPool := x509.NewCertPool()
+	pem, err := ioutil.ReadFile(certPath)
+	if err != nil {
+		return err
+	}
+	if ok := rootCertPool.AppendCertsFromPEM(pem); !ok {
+		return fmt.Errorf("Failed to append PEM.")
+	}
+	mysqldriver.RegisterTLSConfig(name, &tls.Config{
+		RootCAs: rootCertPool,
+	})
+	return nil
+}
+
+// MYSQLDSN converts a config database url format to the mysql DSN format.
+func MySQLDSN(rawUrl string) (string, error) {
+	u, err := url.Parse(rawUrl)
+	if err != nil {
+		return "", err
+	}
+	if u.Scheme != "mysql" {
+		return "", fmt.Errorf("scheme must be mysql")
+	}
+	userName := u.User.Username()
+	if len(userName) == 0 {
+		return "", fmt.Errorf("username must be set")
+	}
+	password, hasPassword := u.User.Password()
+	if hasPassword {
+		password = ":" + password
+	}
+	if len(u.Host) == 0 {
+		return "", fmt.Errorf("host must be set")
+	}
+	database := strings.TrimLeft(u.Path, "/")
+	if len(database) == 0 {
+		return "", fmt.Errorf("database must be set")
+	}
+
+	values, err := url.ParseQuery(u.RawQuery)
+	if err != nil {
+		return "", err
+	}
+
+	charset := values.Get("charset")
+	if len(charset) == 0 || strings.HasPrefix(charset, "utf8") {
+		// gorm did not recognize utf8mb4_bin
+		charset = "utf8mb4"
+	}
+	if len(charset) == 0 || strings.HasPrefix(charset, "utf8") {
+		// gorm did not recognize utf8mb4_bin
+		charset = "utf8mb4"
+	}
+
+	// default timezone is utc
+	loc := values.Get("timezone")
+	if len(loc) == 0 || loc == "Z" {
+		loc = "UTC"
+	}
+
+	tls := values.Get("ssl")
+	if len(tls) > 0 {
+		if strings.HasPrefix(tls, "Amazon") {
+			tls = "aws"
+		}
+	} else {
+		tls = "false"
+	}
+
+	timeout := values.Get("connectTimeout")
+	if len(timeout) > 0 {
+		timeout = fmt.Sprintf("&timeout=%sms", timeout)
+	}
+
+	return fmt.Sprintf("%s%s@tcp(%s)/%s?charset=%s&loc=%s&tls=%s%s",
+		userName, password, u.Host, database, charset, loc, tls, timeout), nil
+
+}
+
 // NewMySQL returns an mysql grom DB
-func NewMySQL(dsn string) (*gorm.DB, error) {
+func NewMySQL(rawUrl string) (*gorm.DB, error) {
+	dsn, err := MySQLDSN(rawUrl)
+	if err != nil {
+		return nil, err
+	}
 	return gorm.Open(mysql.Open(dsn), gormConfig())
 }
 
