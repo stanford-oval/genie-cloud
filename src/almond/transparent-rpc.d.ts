@@ -43,7 +43,7 @@ declare module 'transparent-rpc' {
      * Stubbable objects turn into proxies. Everything else goes through JSON;
      * we note this fact by removing properties that have function type.
      */
-    type RpcMarshalOut<T> = T extends Stubbable ? Proxy<T>
+    type RpcMarshalOut<T> = T extends Stubbable<any> ? Proxy<T>
         : T extends null | undefined | string | number ? T
         : T extends Promise<infer T1> ? RpcMarshalOut<T1>
         : { [K in keyof T] : (T[K] extends ((...args : any[]) => any) ? never : T[K]) };
@@ -81,7 +81,7 @@ declare module 'transparent-rpc' {
             Promise<T[K]>;
 
     export type Proxy<T> = {
-        [K in Methods<T>] : ProxyField<T, K>;
+        [K in Exclude<Methods<T>, '$free'>] : ProxyField<T, K>;
     } & {
         $free() : void;
     }

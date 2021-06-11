@@ -66,11 +66,13 @@ export async function unpublish(dbClient : db.Client, id : number) {
     await db.query(dbClient, `update blog_posts set pub_date = null where id = ?`, [id]);
 }
 
-export async function getAll(dbClient : db.Client, start : number, end : number) : Promise<Row[]> {
+type RowWithAuthorName = Row & { author_name : string };
+
+export async function getAll(dbClient : db.Client, start : number, end : number) : Promise<RowWithAuthorName[]> {
     return db.selectAll(dbClient, `select bp.id,author,title,slug,blurb,image,pub_date,upd_date,u.human_name as author_name
         from blog_posts bp,users u where u.id = bp.author order by upd_date desc limit ?,?`, [start, end]);
 }
-export async function getAllPublished(dbClient : db.Client, start : number, end : number) : Promise<Row[]> {
+export async function getAllPublished(dbClient : db.Client, start : number, end : number) : Promise<RowWithAuthorName[]> {
     return db.selectAll(dbClient, `
         (select image,title,blurb,link,upd_date,upd_date as pub_date,null as author_name from homepage_links)
         union
@@ -89,7 +91,7 @@ export async function getHomePage(dbClient : db.Client) : Promise<HomePageLinkRo
         order by sort_key desc limit 3`);
 }
 
-export async function getForView(dbClient : db.Client, id : number) : Promise<Row & { author_name : string }> {
+export async function getForView(dbClient : db.Client, id : number) : Promise<RowWithAuthorName> {
     return db.selectOne(dbClient, `select bp.id,author,title,slug,image,pub_date,upd_date,body,u.human_name as author_name from blog_posts bp,users u where u.id = bp.author and bp.id = ?`, [id]);
 }
 

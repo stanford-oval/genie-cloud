@@ -121,7 +121,7 @@ const NLU_METADATA_KEYS = {
     tokenized: 'boolean',
     skip_typechecking: 'boolean',
     developer_key: '?string',
-};
+} as const;
 
 async function restSTTAndNLU(req : express.Request, res : express.Response, next : express.NextFunction) {
     if (!req.file) {

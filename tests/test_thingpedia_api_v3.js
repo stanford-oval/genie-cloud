@@ -1252,7 +1252,7 @@ async function testDiscovery() {
         failed = true;
     } catch(e) {
         assert.strictEqual(e.code, 404);
-        assert.deepStrictEqual(JSON.parse(e.detail), { error: 'Not Found' });
+        assert.deepStrictEqual(JSON.parse(e.detail), { error: 'Not Found', code: 'ENOENT' });
     }
     assert(!failed);
 
@@ -1271,7 +1271,7 @@ async function testDiscovery() {
         failed = true;
     } catch(e) {
         assert.strictEqual(e.code, 404);
-        assert.deepStrictEqual(JSON.parse(e.detail), { error: 'Not Found' });
+        assert.deepStrictEqual(JSON.parse(e.detail), { error: 'Not Found', code: 'ENOENT' });
     }
     assert(!failed);
 }
@@ -1530,7 +1530,7 @@ async function testGetStringList() {
 }
 
 async function testGetStringValues() {
-    await assertHttpError(request(`/strings/list/tt:path_name`), 403);
+    await assertHttpError(request(`/strings/list/tt:path_name`), 400);
 
     assert.deepStrictEqual(await request(`/strings/list/tt:path_name?developer_key=${process.env.DEVELOPER_KEY}`), {
         "result": "ok",

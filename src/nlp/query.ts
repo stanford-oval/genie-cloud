@@ -73,7 +73,7 @@ const QUERY_PARAMS = {
     tokenized: 'boolean',
     skip_typechecking: 'boolean',
     developer_key: '?string',
-};
+} as const;
 
 router.get('/@:model_tag/:locale/query', iv.validateGET(QUERY_PARAMS, { json: true }), (req, res, next) => {
     query(req.params, req.query, res).catch(next);

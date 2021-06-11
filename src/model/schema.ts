@@ -549,7 +549,7 @@ export async function getMetasByKinds(client : db.Client, kinds : string[], org 
     return processMetaRows(rows);
 }
 
-export async function getMetasByKindAtVersion(client : db.Client, kind : string[], version : number, language : string) : Promise<SchemaMetadata[]> {
+export async function getMetasByKindAtVersion(client : db.Client, kind : string, version : number, language : string) : Promise<SchemaMetadata[]> {
     const rows = await db.selectAll(client, `select dsc.name, channel_type, extends, canonical,
         confirmation, confirmation_remote, formatted, doc, types, argnames, argcanonicals,
         required, is_input, string_values, is_list, is_monitorable, questions, confirm, kind,

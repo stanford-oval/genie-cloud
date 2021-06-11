@@ -50,7 +50,7 @@ export const OAuthScopes = new Set([
 ] as const);
 export type OAuthScopes = Parameters<(typeof OAuthScopes)['has']>[0];
 
-export function isAuthenticated(req : Request) : boolean {
+export function isAuthenticated<T extends Request>(req : T) : req is T & { user : Express.User } {
     if (!req.user)
         return false;
 
@@ -146,7 +146,7 @@ export async function register(dbClient : db.Client, req : I18nReq, options : Re
     const authToken = makeRandom();
     const storageKey = makeRandom();
     const hash = await hashPassword(salt, options.password);
-    return model.create(dbClient, {
+    const created = await model.create(dbClient, {
         username: options.username,
         human_name: options.human_name || null,
         password: hash,
@@ -163,16 +163,18 @@ export async function register(dbClient : db.Client, req : I18nReq, options : Re
         roles: options.roles || 0,
         profile_flags: options.profile_flags || 0,
     });
+
+    // readback the record from the db to retrieve the full profile
+    return model.get(dbClient, created.id);
 }
 
 export function recordLogin(dbClient : db.Client, userId : number) {
     return model.recordLogin(dbClient, userId);
 }
 
-export async function update(dbClient : db.Client, user : db.WithID<Partial<model.Row>>, oldpassword : string, password : string) {
+export async function update(dbClient : db.Client, user : db.WithID<Partial<model.Row>>, oldpassword : string|undefined, password : string) {
     if (user.salt && user.password) {
-        const providedHash = await hashPassword(user.salt, oldpassword);
-        if (user.password !== providedHash)
+        if (!oldpassword || user.password !== await hashPassword(user.salt, oldpassword))
             throw new ForbiddenError('Invalid old password');
     }
     const salt = makeRandom();
@@ -194,7 +196,7 @@ export async function resetPassword(dbClient : db.Client, user : db.WithID<Parti
     user.password = newhash;
 }
 
-export async function makeDeveloper(dbClient : db.Client, userId : number, orgId : number, status = DeveloperStatus.ORG_ADMIN) {
+export async function makeDeveloper(dbClient : db.Client, userId : number, orgId : number|null, status : DeveloperStatus = DeveloperStatus.ORG_ADMIN) {
     if (orgId !== null) {
         await model.update(dbClient, userId, {
             developer_org: orgId,

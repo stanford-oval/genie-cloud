@@ -190,7 +190,7 @@ export default class NLPModel {
     async destroy() {
         return Promise.all([
             this.predictor.stop(),
-            AbstractFS.removeTemporary(this._localdir)
+            AbstractFS.removeTemporary(this._localdir!)
         ]);
     }
 

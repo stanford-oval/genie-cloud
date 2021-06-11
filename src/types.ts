@@ -46,7 +46,17 @@ declare global {
 declare module 'express-session' {
     interface SessionData {
         completed2fa : boolean;
+        // redirect after login
         redirect_to : string;
+
+        // redirect after configuring a device
+        'device-redirect-to' : string;
+
+        // redirect for OAuth proxy
+        redirect : string;
+        kind : string;
+
+        [key : string] : unknown;
     }
 }
 

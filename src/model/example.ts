@@ -229,7 +229,7 @@ export async function getCheatsheet(client : db.Client, language : string) : Pro
         [language]);
 }
 
-type PrimitiveTemplateRow = Pick<Row, "id"|"language"|"type"|"utterance"|"preprocessed"|"target_code"|"click_count"|"like_count"|"name">;
+export type PrimitiveTemplateRow = Pick<Row, "id"|"language"|"type"|"utterance"|"preprocessed"|"target_code"|"click_count"|"like_count"|"name">;
 
 export async function getBaseByLanguage(client : db.Client, org : number|null, language : string) : Promise<Array<Omit<PrimitiveTemplateRow, "type"|"language">>> {
     if (org === -1) { // admin
@@ -475,6 +475,6 @@ export async function getExactById(client : db.Client, exampleId : number) : Pro
     return db.selectOne(client, `select preprocessed,target_code from example_utterances where id = ?`, [exampleId]);
 }
 
-export async function suggest(client : db.Client, command : db.WithoutID<db.Optional<SuggestionRow, SuggestionOptionalFields>>) {
+export async function suggest(client : db.Client, command : string) {
     await db.query(client, "insert into command_suggestions (command) values (?)", [command]);
 }

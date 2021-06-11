@@ -30,6 +30,7 @@ import { LocalCVC4Solver } from 'smtlib';
 import * as Tp from 'thingpedia';
 import * as rpc from 'transparent-rpc';
 
+import type { CloudSyncWebsocketDelegate } from '../routes/cloud-sync';
 import * as graphics from './graphics';
 import * as i18n from '../util/i18n';
 
@@ -94,18 +95,12 @@ export class WebhookApi implements rpc.Stubbable {
     }
 }
 
-interface WebSocket extends events.EventEmitter {
-    ping() : void;
-    pong() : void;
-    terminate() : void;
-    send(data : string) : void;
-}
-class WebSocketWrapper extends events.EventEmitter implements rpc.Stubbable, WebSocket {
+export class WebSocketWrapper extends events.EventEmitter implements rpc.Stubbable {
     $rpcMethods = ['onPing', 'onPong', 'onMessage', 'onClose'] as const;
     $free ?: () => void;
-    private _delegate : rpc.Proxy<WebSocket>;
+    private _delegate : rpc.Proxy<CloudSyncWebsocketDelegate>;
 
-    constructor(delegate : rpc.Proxy<WebSocket>) {
+    constructor(delegate : rpc.Proxy<CloudSyncWebsocketDelegate>) {
         super();
 
         this._delegate = delegate;
@@ -139,8 +134,8 @@ class WebSocketWrapper extends events.EventEmitter implements rpc.Stubbable, Web
         this.emit('message', data);
     }
 
-    onClose() {
-        this.emit('close');
+    onClose(code ?: number) {
+        this.emit('close', code);
     }
 }
 
@@ -152,7 +147,7 @@ export class WebSocketApi extends events.EventEmitter implements Tp.Capabilities
         super();
     }
 
-    newConnection(delegate : rpc.Proxy<WebSocket>) {
+    newConnection(delegate : rpc.Proxy<CloudSyncWebsocketDelegate>) {
         const wrapper = new WebSocketWrapper(delegate);
         this.emit('connection', wrapper);
         wrapper.on('close', () => {

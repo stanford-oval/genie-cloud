@@ -47,7 +47,7 @@ export async function createMany(client : db.Client, entities : Array<db.Optiona
         [entities.map((e) => [e.id, e.language, e.name, e.is_well_known, e.has_ner_support, e.subtype_of])]);
 }
 
-export async function update(client : db.Client, id : number, entity : Partial<Row>) {
+export async function update(client : db.Client, id : string, entity : Partial<Row>) {
     await db.query(client, `update entity_names set ? where id = ?`, [entity, id]);
 }
 export async function updateMany(client : db.Client, entities : Array<Partial<Row>>) {
@@ -57,12 +57,12 @@ export async function updateMany(client : db.Client, entities : Array<Partial<Ro
         [entities.map((e) => [e.id, e.language, e.name, e.is_well_known, e.has_ner_support, e.subtype_of])]);
 }
 
-export async function get(client : db.Client, id : number, language = 'en') : Promise<Row> {
+export async function get(client : db.Client, id : string, language = 'en') : Promise<Row> {
     return db.selectOne(client, "select * from entity_names where id = ? and language = ?",
                         [id, language]);
 }
 
-async function _delete(client : db.Client, id : number) {
+async function _delete(client : db.Client, id : string) {
     await db.query(client, `delete from entity_names where id = ?`, [id]);
 }
 export { _delete as delete };

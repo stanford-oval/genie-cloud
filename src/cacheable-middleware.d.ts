@@ -13,6 +13,7 @@ declare module 'cacheable-middleware' {
 }
 declare namespace Express {
     interface Response {
-        cacheFor(ms : number) : this;
+        cacheFor(duration : moment.Duration) : this;
+        cacheFor(value : number, durationKey ?: moment.unitOfTime.DurationConstructor) : this;
     }
 }
