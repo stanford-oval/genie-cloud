@@ -438,4 +438,8 @@ export default class ThingpediaClientCloud extends Tp.BaseClient implements rpc.
             }));
         });
     }
+
+    invokeQuery() : never {
+        throw new Error(`not implemented yet`);
+    }
 }
