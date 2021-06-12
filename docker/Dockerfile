@@ -66,7 +66,7 @@ RUN echo "build_from_source = true" > .npmrc && \
 RUN touch /var/lib/rpm/* && \
   dnf -y install python27 gcc gcc-c++ sqlcipher-devel && \
   alternatives --set python /usr/bin/python2 && \
-  su almond-cloud -c 'CPLUS_INCLUDE_PATH=/usr/include/sqlcipher npm install' && \
+  su almond-cloud -c 'CPLUS_INCLUDE_PATH=/usr/include/sqlcipher npm ci' && \
   chown -R root:root /opt/almond-cloud && \
   dnf -y remove python27 gcc gcc-c++ sqlcipher-devel && \
   rm -fr /root/.cache && \
