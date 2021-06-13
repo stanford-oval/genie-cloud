@@ -198,10 +198,13 @@ async function doConversation(user : userModel.RowWithOrg, anonymous : boolean, 
                         switch (parsed.type) {
                         case 'command':
                             await wrapper.handleCommand(parsed.text, platformData);
+                            break;
                         case 'parsed':
                             await wrapper.handleParsedCommand(parsed.json, parsed.title, platformData);
+                            break;
                         case 'tt':
                             await wrapper.handleThingTalk(parsed.code, platformData);
+                            break;
                         default:
                             throw new BadRequestError('Invalid command type ' + parsed.type);
                         }
