@@ -19,7 +19,7 @@ type UserApp struct {
 	Code        string `json:"code" gorm:"column:code"`
 	State       string `json:"state" gorm:"column:state"`
 	Name        string `json:"name" gorm:"column:name"`
-	Description string `description:"value" gorm:"column:description"`
+	Description string `json:"description" gorm:"column:description"`
 }
 
 // TableName overrides table name to `user_channel`
