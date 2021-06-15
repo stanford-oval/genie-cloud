@@ -173,16 +173,16 @@ func syncTableSyncAt(c *gin.Context) {
 	}
 
 	m.SetKey(sql.Key{UserID: userID})
-	latest, ourChange, done, err := syncTable.SyncAt(m.NewSyncRecord(lastModified), srows)
+	latest, ourChanges, done, err := syncTable.SyncAt(m.NewSyncRecord(lastModified), srows)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	ret := struct {
 		lastModified int64
-		ourChange    []sql.SyncRecord
+		ourChanges   []sql.SyncRecord
 		done         []bool
-	}{latest, ourChange, done}
+	}{latest, ourChanges, done}
 	c.JSON(http.StatusOK, gin.H{"result": "ok", "data": ret})
 }
 
