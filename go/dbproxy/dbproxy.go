@@ -53,6 +53,10 @@ func Run(args []string) {
 		c.Next()
 	})
 
+	// gin automatically decodes the URI components in the path by default.
+	// We disable it by setting UseRawPath to true.
+	r.UseRawPath = true
+
 	r.GET("/metrics", prometheusHandler())
 
 	r.GET("/localtable/:name/:userid", localTableGetAll)
