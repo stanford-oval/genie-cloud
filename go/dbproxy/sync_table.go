@@ -179,9 +179,9 @@ func syncTableSyncAt(c *gin.Context) {
 		return
 	}
 	ret := struct {
-		lastModified int64
-		ourChanges   []sql.SyncRecord
-		done         []bool
+		LastModified int64            `json:"lastModified"`
+		OurChanges   []sql.SyncRecord `json:"ourChanges"`
+		Done         []bool           `json:"done"`
 	}{latest, ourChanges, done}
 	c.JSON(http.StatusOK, gin.H{"result": "ok", "data": ret})
 }
