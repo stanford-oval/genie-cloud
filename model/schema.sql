@@ -970,10 +970,13 @@ CREATE TABLE `user_app` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
-DROP TABLE IF EXISTS `user_conversation`;
 --
 -- Table structure for table `user_conversation`
 --
+
+DROP TABLE IF EXISTS `user_conversation`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `user_conversation` (
   `userId` int(11) not NULL,
   `uniqueId` varchar(255) COLLATE utf8mb4_bin NOT NULL,
@@ -994,6 +997,7 @@ CREATE TABLE `user_conversation` (
   `comment` text COLLATE utf8mb4_bin NULL,
   PRIMARY KEY (`userId`, `uniqueId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `user_device`
