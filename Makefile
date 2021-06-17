@@ -38,7 +38,10 @@ prepare-bundles: $(foreach b,$(bundles),public/javascripts/$(b)-bundle.js)
 languages := it zh_CN
 prepare-mo: $(foreach l,$(languages),po/$(l).mo)
 
-install:
+install: go/backend/backend
 	make -C sandbox all || echo WARNING: failed to compile the sandbox
+
+go/backend/backend: go/*/*.go
+	cd go/backend ; go build
 
 .PHONY: install prepare prepare-bundles prepare-mo
