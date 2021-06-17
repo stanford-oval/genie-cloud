@@ -10,7 +10,6 @@ git:
   depth: false
 addons:
   mariadb: '10.2'
-  firefox: latest-esr
 cache:
   timeout: 900
   npm: true
