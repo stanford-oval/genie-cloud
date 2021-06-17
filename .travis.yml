@@ -2,16 +2,15 @@ branches:
   except:
   - "/^wip/"
   - "/^dependabot/"
-language: node_js
-sudo: true
-dist: xenial
+language: go
+dist: bionic
+node_js: '12'
+go: 1.16.x
 git:
   depth: false
 addons:
   mariadb: '10.2'
   firefox: latest-esr
-node_js: '12'
-go: 1.16.x
 cache:
   timeout: 900
   npm: true
@@ -32,8 +31,7 @@ jobs:
     -
       name: "Unit Tests"
       install:
-      - sudo apt-get update -q -y
-      - sudo apt-get install -y realpath
+      - nvm install 12
       - travis_retry npm ci
       script:
       - npm run lint
@@ -42,17 +40,17 @@ jobs:
       after_success: npm run coverage
     -
       name: "GO Unit Tests"
-      language: go
       install:
+      - nvm install 12
       - go get golang.org/x/tools/cmd/cover
       - go get github.com/mattn/goveralls
-      go: 1.16.x
       before_script: cd go
       script: go test -v -covermode=count -coverprofile=coverage.out ./...
       after_success: $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/goveralls -coverprofile=coverage.out -service=travis-ci
     -
       name: "Web Almond Integration Tests"
       install:
+      - nvm install 12
       - ./travis/install-webalmond-deps.sh
       - travis_retry npm ci
       - export PATH="`pwd`/geckodriver:$PATH"
@@ -61,6 +59,7 @@ jobs:
     -
       name: "Thingpedia Integration Tests"
       install:
+      - nvm install 12
       - ./travis/install-webalmond-deps.sh
       - travis_retry npm ci
       - export PATH="`pwd`/geckodriver:$PATH"
@@ -69,6 +68,7 @@ jobs:
     -
       name: "NLP Integration Tests"
       install:
+      - nvm install 12
       - ./travis/install-webalmond-deps.sh
       - travis_retry npm ci
       - pyenv global 3.7.1
@@ -80,6 +80,7 @@ jobs:
     -
       name: "Training Integration Tests"
       install:
+      - nvm install 12
       - ./travis/install-webalmond-deps.sh
       - travis_retry npm ci
       - pyenv global 3.7.1
