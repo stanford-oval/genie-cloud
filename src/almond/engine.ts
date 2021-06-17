@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import * as fs from 'fs';
+import { promises as pfs } from 'fs';
 import * as rpc from 'transparent-rpc';
 import * as Genie from 'genie-toolkit';
 
@@ -84,9 +84,9 @@ class RecordingController implements rpc.Stubbable {
         this._conversation = conversation;
     }
 
-    log() {
-        const path = this._conversation.log;
-        return path ? fs.readFileSync(path, 'utf-8') : null;
+    async log() {
+        const path = this._conversation.logFileName;
+        return path ? pfs.readFile(path, 'utf-8') : null;
     }
 
     startRecording() {
