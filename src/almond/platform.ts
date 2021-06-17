@@ -33,6 +33,7 @@ import * as rpc from 'transparent-rpc';
 import type { CloudSyncWebsocketDelegate } from '../routes/cloud-sync';
 import * as graphics from './graphics';
 import * as i18n from '../util/i18n';
+import SQLPreferences from './preferences';
 
 const _unzipApi : Tp.Capabilities.UnzipApi = {
     unzip(zipPath, dir) {
@@ -184,7 +185,7 @@ export class Platform extends Tp.BasePlatform {
     // TODO
     private _gettext : ReturnType<(typeof i18n)['get']>;
     private _writabledir : string;
-    private _prefs : Tp.Helpers.FilePreferences;
+    private _prefs : Tp.Preferences;
     private _webhookApi : WebhookApi;
     private _websocketApi : WebSocketApi;
 
@@ -209,10 +210,18 @@ export class Platform extends Tp.BasePlatform {
             if (e.code !== 'EEXIST')
                 throw e;
         }
-        this._prefs = new Tp.Helpers.FilePreferences(this._writabledir + '/prefs.db');
+        if (options.dbProxyUrl)
+            this._prefs = new SQLPreferences(options.dbProxyUrl, options.userId);
+        else
+            this._prefs = new Tp.Helpers.FilePreferences(this._writabledir + '/prefs.db');
 
         this._webhookApi = new WebhookApi(this._cloudId);
         this._websocketApi = new WebSocketApi();
+    }
+
+    async init() {
+        if (this._prefs instanceof SQLPreferences)
+            await this._prefs.init();
     }
 
     get type() {
