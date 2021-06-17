@@ -11,6 +11,7 @@ addons:
   mariadb: '10.2'
   firefox: latest-esr
 node_js: '12'
+go: 1.16.x
 cache:
   timeout: 900
   npm: true
@@ -39,6 +40,16 @@ jobs:
       - ./tests/check-migrations.sh
       - npx nyc ts-node ./tests/unit
       after_success: npm run coverage
+    -
+      name: "GO Unit Tests"
+      language: go
+      install:
+      - go get golang.org/x/tools/cmd/cover
+      - go get github.com/mattn/goveralls
+      go: 1.16.x
+      before_script: cd go
+      script: go test -v -covermode=count -coverprofile=coverage.out ./...
+      after_success: $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/goveralls -coverprofile=coverage.out -service=travis-ci
     -
       name: "Web Almond Integration Tests"
       install:
@@ -77,16 +88,6 @@ jobs:
       - export PATH="`pwd`/geckodriver:$PATH"
       script: npx nyc ./tests/training-integration.sh
       after_success: npm run coverage
-    -
-      name: "GO Tests"
-      language: go
-      install:
-      - go get golang.org/x/tools/cmd/cover
-      - go get github.com/mattn/goveralls
-      go: 1.16.x
-      before_script: cd go
-      script: go test -v -covermode=count -coverprofile=coverage.out ./...
-      after_success: $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/goveralls -coverprofile=coverage.out -service=travis-ci
 
 notifications:
   webhooks: https://coveralls.io/webhook
