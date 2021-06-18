@@ -42,6 +42,6 @@ install: go/backend/backend
 	make -C sandbox all || echo WARNING: failed to compile the sandbox
 
 go/backend/backend: go/*/*.go
-	cd go/backend ; go build
+	test -f /usr/local/bin/backend || cd go/backend && go build
 
 .PHONY: install prepare prepare-bundles prepare-mo
