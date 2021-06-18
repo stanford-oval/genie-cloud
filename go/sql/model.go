@@ -59,6 +59,7 @@ func init() {
 	registerRow(&UserApp{})
 	registerRow(&UserChannel{})
 	registerRow(&UserConversation{})
+	registerRow(&UserPreference{})
 
 	syncRows = make(map[string]SyncRow)
 	registerSyncRow(&UserDevice{})

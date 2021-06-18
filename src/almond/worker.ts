@@ -52,7 +52,8 @@ interface EngineState {
     cloudId : string;
     running : boolean;
     sockets : Set<rpc.Socket>;
-    engine : Engine;
+    stopped : boolean;
+    engine ?: Engine;
 }
 
 const _engines = new Map<number, EngineState>();
@@ -61,8 +62,9 @@ let _stopped = false;
 function handleSignal() {
     for (const obj of _engines.values()) {
         console.log('Stopping engine of ' + obj.cloudId);
+        obj.stopped = true;
         if (obj.running)
-            obj.engine.stop();
+            obj.engine!.stop();
 
         for (const sock of obj.sockets)
             sock.end();
@@ -85,21 +87,26 @@ function runEngine(thingpediaClient : rpc.Proxy<Tp.BaseClient>|null, options : P
         cloudId: options.cloudId,
         running: false,
         sockets: new Set,
-        engine: new Engine(platform, {
+        stopped: false
+    };
+
+    platform.init().then(() => {
+        obj.engine = new Engine(platform, {
             thingpediaUrl: PlatformModule.thingpediaUrl,
             nluModelUrl: PlatformModule.nlServerUrl
             // nlg will be set to the same URL
-        })
-    };
-
-    obj.engine.open().then(() => {
-        obj.running = true;
-
-        if (_stopped)
+        });
+        if (_stopped || obj.stopped)
             return Promise.resolve();
-        return obj.engine.run();
+        return obj.engine.open();
     }).then(() => {
-        return obj.engine.close();
+        if (_stopped || obj.stopped)
+            return Promise.resolve();
+
+        obj.running = true;
+        return obj.engine!.run();
+    }).then(() => {
+        return obj.engine!.close();
     }).catch((e) => {
         console.error('Engine ' + options.cloudId + ' had a fatal error: ' + e.message);
         console.error(e.stack);
@@ -116,6 +123,9 @@ function killEngine(userId : number) {
     if (!obj)
         return;
     _engines.delete(userId);
+    obj.stopped = true;
+    if (!obj.engine)
+        return;
     obj.engine.stop();
     for (const sock of obj.sockets)
         sock.end();
@@ -130,7 +140,7 @@ function handleDirectSocket(userId : number, replyId : number, socket : stream.D
     });
 
     const obj = _engines.get(userId);
-    if (!obj) {
+    if (!obj || !obj.engine) {
         console.log('Could not find an engine with the required user ID');
         rpcSocket.call(replyId, 'error', ['Invalid user ID ' + userId]);
         rpcSocket.end();
