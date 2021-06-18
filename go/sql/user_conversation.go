@@ -16,7 +16,7 @@ package sql
 // UserConversation table
 type UserConversation struct {
 	Key
-	ConversationId      string  `json:"conversationId" gorm:"column:value"`
+	ConversationId      string  `json:"conversationId" gorm:"column:conversationId"`
 	PreviousId          *string `json:"previousId" gorm:"column:previousId"`
 	DialogueId          string  `json:"dialogueId" gorm:"column:dialogueId"`
 	Context             *string `json:"context" gorm:"column:context"`
