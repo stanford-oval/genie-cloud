@@ -6,6 +6,7 @@ language: go
 dist: bionic
 node_js: '12'
 go: 1.16.x
+python: '3.8'
 git:
   depth: false
 addons:
@@ -70,7 +71,7 @@ jobs:
       - nvm install 12
       - ./travis/install-webalmond-deps.sh
       - travis_retry npm ci
-      - pyenv global 3.7.1
+      - pyenv global 3.8.1
       - ./tests/install-nlp-deps.sh
       - export GENIENLP_EMBEDDINGS=`pwd`/tests/embeddings
       - export PATH="`pwd`/geckodriver:$PATH"
@@ -82,7 +83,7 @@ jobs:
       - nvm install 12
       - ./travis/install-webalmond-deps.sh
       - travis_retry npm ci
-      - pyenv global 3.7.1
+      - pyenv global 3.8.1
       - ./tests/install-nlp-deps.sh
       - export GENIENLP_EMBEDDINGS=`pwd`/tests/embeddings
       - export PATH="`pwd`/geckodriver:$PATH"
