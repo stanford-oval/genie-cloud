@@ -9,7 +9,7 @@ tar xvf geckodriver-v0.22.0-linux64.tar.gz -C geckodriver/
 
 sudo add-apt-repository -y ppa:openstack-ci-core/bubblewrap
 sudo apt-get update -q -y
-sudo apt-get install -y graphicsmagick libsystemd-dev realpath bubblewrap python3
+sudo apt-get install -y graphicsmagick libsystemd-dev bubblewrap python3
 
 mysql -u root -e "
 create database if not exists thingengine_test;

@@ -959,14 +959,44 @@ DROP TABLE IF EXISTS `user_app`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `user_app` (
-  `uniqueId` varchar(255) COLLATE utf8mb4_bin NOT NULL,
   `userId` int(11) not NULL,
+  `uniqueId` varchar(255) COLLATE utf8mb4_bin NOT NULL,
   `code` text COLLATE utf8mb4_bin NOT NULL,
   `state` text COLLATE utf8mb4_bin NOT NULL,
   `name` text COLLATE utf8mb4_bin default NULL,
   `description` text COLLATE utf8mb4_bin default NULL,
   PRIMARY KEY (`userId`, `uniqueId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+
+--
+-- Table structure for table `user_conversation`
+--
+
+DROP TABLE IF EXISTS `user_conversation`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `user_conversation` (
+  `userId` int(11) not NULL,
+  `uniqueId` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  `conversationId` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  `previousId` varchar(255) COLLATE utf8mb4_bin NULL,
+  `dialogueId` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  `context` text COLLATE utf8mb4_bin NULL,
+  `agent` varchar(255) COLLATE utf8mb4_bin NULL,
+  -- iso 8601 string (for sqlite compatibility)
+  `agentTimestamp` char(24) COLLATE utf8mb4_bin NULL,
+  `agentTarget` text COLLATE utf8mb4_bin NULL,
+  `intermediateContext` text COLLATE utf8mb4_bin NULL,
+  `user` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  -- iso 8601 string (for sqlite compatibility)
+  `userTimestamp` char(24) COLLATE utf8mb4_bin NOT NULL,
+  `userTarget` text COLLATE utf8mb4_bin NOT NULL,
+  `vote` ENUM('up', 'down') COLLATE utf8mb4_bin NULL,
+  `comment` text COLLATE utf8mb4_bin NULL,
+  PRIMARY KEY (`userId`, `uniqueId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -992,8 +1022,8 @@ DROP TABLE IF EXISTS `user_device_journal`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 create table `user_device_journal` (
-  `uniqueId` varchar(255) COLLATE utf8mb4_bin NOT NULL,
   `userId` int(11) not NULL,
+  `uniqueId` varchar(255) COLLATE utf8mb4_bin NOT NULL,
   `lastModified` BIGINT NOT NULL,
   PRIMARY KEY (`userId`, `uniqueId`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
@@ -1007,8 +1037,8 @@ DROP TABLE IF EXISTS `user_channel`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `user_channel` (
-  `uniqueId` varchar(255) COLLATE utf8mb4_bin NOT NULL,
   `userId` int(11) not NULL,
+  `uniqueId` varchar(255) COLLATE utf8mb4_bin NOT NULL,
   `value` text COLLATE utf8mb4_bin NOT NULL,
   PRIMARY KEY (`userId`, `uniqueId`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
