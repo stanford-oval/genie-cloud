@@ -132,7 +132,7 @@ async function testContextual() {
             code: [
             '$dialogue', '@org.thingpedia.dialogue.transaction', '.', 'execute', ';',
             '@com.yelp', '.', 'restaurant', '(', ')', 'filter', 'contains', '(', 'cuisines', ',', 'null', '^^com.yelp:restaurant_cuisine', '(', '"', 'chinese', '"', ')', ')', ';' ],
-            score: 1
+            score: 0
         }]
     });
 
@@ -151,7 +151,7 @@ async function testContextual() {
             code: [
             '$dialogue', '@org.thingpedia.dialogue.transaction', '.', 'execute', ';',
             '@com.yelp', '.', 'restaurant', '(', ')', 'filter', 'contains', '(', 'cuisines', ',', 'null', '^^com.yelp:restaurant_cuisine', '(', '"', 'italian', '"', ')', ')', ';' ],
-            score: 1
+            score: 0
         }]
     });
 }
