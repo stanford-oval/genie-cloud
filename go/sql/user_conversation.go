@@ -25,7 +25,7 @@ type UserConversation struct {
 	AgentTarget         *string `json:"agentTarget" gorm:"column:agentTarget"`
 	IntermediateContext *string `json:"intermediateContext" gorm:"column:intermediateContext"`
 	User                string  `json:"user" gorm:"column:user"`
-	UserTimestamp       *string `json:"userTimestamp" gorm:"column:user"`
+	UserTimestamp       *string `json:"userTimestamp" gorm:"column:userTimestamp"`
 	UserTarget          string  `json:"userTarget" gorm:"column:userTarget"`
 	Vote                *string `json:"vote" gorm:"column:vote"`
 	Comment             *string `json:"comment" gorm:"column:comment"`
