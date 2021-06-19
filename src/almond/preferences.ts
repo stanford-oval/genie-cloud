@@ -59,7 +59,7 @@ export default class SQLPreferences extends Tp.Preferences {
                 await Tp.Helpers.Http.request(this._getObjectUrl(key), 'DELETE', '');
             } else {
                 // two layers of JSON.stringify: one is for HTTP transport and one is to put in the actual database
-                await Tp.Helpers.Http.post(this._getObjectUrl(key), JSON.stringify({ value: JSON.stringify(value) }), {
+                await Tp.Helpers.Http.post(this._getObjectUrl(key), JSON.stringify({ value: JSON.stringify(this._data[key]) }), {
                     dataContentType: 'application/json'
                 });
             }
