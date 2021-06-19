@@ -46,7 +46,7 @@ export default class SQLPreferences extends Tp.Preferences {
         const data = JSON.parse(resp)['data'];
 
         for (const row of data)
-            this._data[row.uniqueId] = JSON.parse(data.value);
+            this._data[row.uniqueId] = JSON.parse(row.value);
     }
 
     private _getObjectUrl(uniqueId : string) {
