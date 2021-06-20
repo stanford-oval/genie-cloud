@@ -76,7 +76,7 @@ async function createMTurkBatch(dbClient : db.Client, req : express.Request, res
     }
 
     const parser = csvparse({ columns: true, delimiter: '\t' });
-    fs.createReadStream(req.file.path).pipe(parser);
+    fs.createReadStream(req.file!.path).pipe(parser);
 
     const promises : Array<Promise<void>> = [];
     let programs : Array<{ utterance : string, target_code : string }> = [];
@@ -105,7 +105,7 @@ router.post('/create', multer({ dest: os.tmpdir() }).single('upload'), csurf({ c
         try {
             await createMTurkBatch(dbClient, req, res);
         } finally {
-            await util.promisify(fs.unlink)(req.file.path);
+            await util.promisify(fs.unlink)(req.file!.path);
         }
     }).then(() => {
         res.redirect(303, '/developers/mturk');

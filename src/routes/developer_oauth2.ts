@@ -115,7 +115,7 @@ router.post('/create',
         });
 
         // upload the icon asynchronously to avoid blocking the request
-        uploadIcon(clientId, req.file);
+        uploadIcon(clientId, req.file!);
     }).then(() => {
         res.redirect(303, '/developers/oauth');
     }).catch(next);
