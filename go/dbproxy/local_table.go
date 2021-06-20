@@ -65,6 +65,44 @@ func localTableGetOne(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"result": "ok", "data": row})
 }
 
+func contains(array []string, el string) bool {
+	for _, x := range array {
+		if x == el {
+			return true
+		}
+	}
+	return false
+}
+
+func localTableGetByField(c *gin.Context) {
+	localTable := sql.GetLocalTable()
+	m, ok := sql.NewRow(c.Param("name"))
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
+		return
+	}
+
+	userID, err := parseUserID(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	field := c.Param("field")
+	if !contains(m.Fields(), field) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "invalid field"})
+		return
+	}
+
+	value := c.Param("value")
+	rows := m.NewRows()
+	if err := localTable.GetByField(rows, userID, field, value); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"result": "ok", "data": rows})
+}
+
 func localTableDeleteOne(c *gin.Context) {
 	localTable := sql.GetLocalTable()
 	row, ok := sql.NewRow(c.Param("name"))

@@ -35,6 +35,11 @@ func (t *LocalTable) GetAll(rows interface{}, userID int64) error {
 	return t.db.Where("userId = ?", userID).Find(rows).Error
 }
 
+// GetAll returns all rows in the table.
+func (t *LocalTable) GetByField(rows interface{}, userID int64, field string, value string) error {
+	return t.db.Where("userId = ? and "+field+" = ?", userID, value).Find(rows).Error
+}
+
 // GetOne returns one row in the table. Row key is expected to be set.
 func (t *LocalTable) GetOne(row Row) error {
 	if len(row.GetKey().UniqueID) == 0 || row.GetKey().UserID == 0 {
