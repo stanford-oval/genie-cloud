@@ -118,21 +118,6 @@ router.post('/comment', (req, res, next) => {
     }).catch(next);
 });
 
-router.post('/save', (req, res, next) => {
-    Promise.resolve().then(async () => {
-        const engine = await EngineManager.get().getEngine(req.user!.id);
-        return engine.getConversation(req.body.id);
-    }).then(async (conversation) => {
-        if (!conversation) {
-            res.status(404);
-            res.json({ error: 'No conversation found' });
-        } else {
-            await conversation.saveLog();
-            res.json({ status:'ok' });
-        }
-    }).catch(next);
-});
-
 router.get<Record<string, string>>('/log/:id.txt', (req, res, next) => {
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine(req.user!.id);
@@ -142,7 +127,7 @@ router.get<Record<string, string>>('/log/:id.txt', (req, res, next) => {
             res.status(404);
             res.json({ error: 'No conversation found' });
         } else {
-            const log = await conversation.log();
+            const log = await conversation.readLog();
             if (!log) {
                 res.status(404);
                 res.json({ error: 'No conversation log found' });
@@ -164,7 +149,7 @@ router.get('/log/:id', (req, res, next) => {
             res.status(404);
             res.json({ status : 'not found' });
         } else {
-            const log = await conversation.log();
+            const log = await conversation.readLog();
             if (!log) {
                 res.status(404);
                 res.json({ status: 'not found' });

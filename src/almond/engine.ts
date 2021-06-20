@@ -18,7 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import { promises as pfs } from 'fs';
 import * as rpc from 'transparent-rpc';
 import * as Genie from 'genie-toolkit';
 
@@ -28,20 +27,14 @@ import PlatformModule from './platform';
 // API wrappers for Genie's classes that expose the $rpcMethods interface
 // used by transparent-rpc
 
-// FIXME these need to be exported by Genie
-type AssistantDispatcher = Genie.AssistantEngine['assistant'];
-type Conversation = NonNullable<ReturnType<AssistantDispatcher['getConversation']>>;
-type ConversationDelegate = Parameters<Conversation['addOutput']>[0];
-type NotificationDelegate = Parameters<AssistantDispatcher['addNotificationOutput']>[0];
-
 export class ConversationWrapper implements rpc.Stubbable {
     $rpcMethods = ['destroy', 'handleCommand', 'handleParsedCommand', 'handleThingTalk'] as const;
     $free ?: () => void;
 
-    private _conversation : Conversation;
-    private _delegate : rpc.Proxy<ConversationDelegate>;
+    private _conversation : Genie.DialogueAgent.Conversation;
+    private _delegate : rpc.Proxy<Genie.DialogueAgent.ConversationDelegate>;
 
-    constructor(conversation : Conversation, delegate : rpc.Proxy<ConversationDelegate>) {
+    constructor(conversation : Genie.DialogueAgent.Conversation, delegate : rpc.Proxy<Genie.DialogueAgent.ConversationDelegate>) {
         this._conversation = conversation;
         this._delegate = delegate;
         this._conversation.addOutput(delegate);
@@ -54,23 +47,22 @@ export class ConversationWrapper implements rpc.Stubbable {
             this.$free();
     }
 
-    handleCommand(...args : Parameters<Conversation['handleCommand']>) {
-        return this._conversation.handleCommand(...args).then(() => this._conversation.saveLog());
+    handleCommand(...args : Parameters<Genie.DialogueAgent.Conversation['handleCommand']>) {
+        return this._conversation.handleCommand(...args);
     }
 
-    handleParsedCommand(...args : Parameters<Conversation['handleParsedCommand']>) {
-        return this._conversation.handleParsedCommand(...args).then(() => this._conversation.saveLog());
+    handleParsedCommand(...args : Parameters<Genie.DialogueAgent.Conversation['handleParsedCommand']>) {
+        return this._conversation.handleParsedCommand(...args);
     }
 
-    handleThingTalk(...args : Parameters<Conversation['handleThingTalk']>) {
-        return this._conversation.handleThingTalk(...args).then(() => this._conversation.saveLog());
+    handleThingTalk(...args : Parameters<Genie.DialogueAgent.Conversation['handleThingTalk']>) {
+        return this._conversation.handleThingTalk(...args);
     }
 }
 
 class RecordingController implements rpc.Stubbable {
     $rpcMethods = [
-        'log',
-        'saveLog',
+        'readLog',
         'startRecording',
         'endRecording',
         'inRecordingMode',
@@ -78,15 +70,21 @@ class RecordingController implements rpc.Stubbable {
         'commentLast'
     ] as const;
     $free ?: () => void;
-    private _conversation : Conversation;
+    private _conversation : Genie.DialogueAgent.Conversation;
 
-    constructor(conversation : Conversation) {
+    constructor(conversation : Genie.DialogueAgent.Conversation) {
         this._conversation = conversation;
     }
 
-    async log() {
-        const path = this._conversation.logFileName;
-        return path ? pfs.readFile(path, 'utf-8') : null;
+    async readLog() {
+        // TODO: make this streaming
+        const logstream = this._conversation.readLog();
+        let log = '';
+        logstream.on('data', (data) => {
+            log += data;
+        });
+        await Genie.StreamUtils.waitFinish(logstream);
+        return log;
     }
 
     startRecording() {
@@ -101,36 +99,30 @@ class RecordingController implements rpc.Stubbable {
         return this._conversation.inRecordingMode;
     }
 
-    saveLog() {
-        return this._conversation.saveLog();
+    voteLast(vote : 'up'|'down') {
+        return this._conversation.voteLast(vote);
     }
 
-    voteLast(...args : Parameters<Conversation['voteLast']>) {
-        this._conversation.voteLast(...args);
-        return this._conversation.saveLog();
-    }
-
-    commentLast(...args : Parameters<Conversation['commentLast']>) {
-        this._conversation.commentLast(...args);
-        return this._conversation.saveLog();
+    commentLast(comment : string) {
+        return this._conversation.commentLast(comment);
     }
 }
 
 interface NotificationDelegateProxy {
     send(data : {
-        result : Parameters<NotificationDelegate['notify']>[0]
+        result : Parameters<Genie.DialogueAgent.NotificationDelegate['notify']>[0]
     } | {
-        error : Parameters<NotificationDelegate['notifyError']>[0]
+        error : Parameters<Genie.DialogueAgent.NotificationDelegate['notifyError']>[0]
     }) : Promise<void>;
 }
 
-export class NotificationWrapper implements NotificationDelegate {
+export class NotificationWrapper implements Genie.DialogueAgent.NotificationDelegate {
     $rpcMethods = ['destroy'] as const;
     $free ?: () => void;
-    private _dispatcher : AssistantDispatcher;
+    private _dispatcher : Genie.DialogueAgent.AssistantDispatcher;
     private _delegate : rpc.Proxy<NotificationDelegateProxy>;
 
-    constructor(dispatcher : AssistantDispatcher, delegate : rpc.Proxy<NotificationDelegateProxy>) {
+    constructor(dispatcher : Genie.DialogueAgent.AssistantDispatcher, delegate : rpc.Proxy<NotificationDelegateProxy>) {
         this._dispatcher = dispatcher;
         this._delegate = delegate;
         this._dispatcher.addNotificationOutput(this);
@@ -143,11 +135,11 @@ export class NotificationWrapper implements NotificationDelegate {
             this.$free();
     }
 
-    async notify(data : Parameters<NotificationDelegate['notify']>[0]) {
+    async notify(data : Parameters<Genie.DialogueAgent.NotificationDelegate['notify']>[0]) {
         await this._delegate.send({ result: data });
     }
 
-    async notifyError(data : Parameters<NotificationDelegate['notifyError']>[0]) {
+    async notifyError(data : Parameters<Genie.DialogueAgent.NotificationDelegate['notifyError']>[0]) {
         await this._delegate.send({ error: data });
     }
 }
@@ -211,7 +203,7 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
         return prefs.get('recording-warning-shown') === 'yes';
     }
 
-    async converse(...args : Parameters<AssistantDispatcher['converse']>) {
+    async converse(...args : Parameters<Genie.DialogueAgent.AssistantDispatcher['converse']>) {
         return this.assistant.converse(...args);
     }
 
@@ -222,8 +214,8 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
         return new RecordingController(conversation);
     }
 
-    async getOrOpenConversation(id : string, delegate : rpc.Proxy<ConversationDelegate>,
-                                options : Parameters<AssistantDispatcher['getOrOpenConversation']>[1]) {
+    async getOrOpenConversation(id : string, delegate : rpc.Proxy<Genie.DialogueAgent.ConversationDelegate>,
+                                options : Genie.DialogueAgent.ConversationOptions) {
         // note: default arguments don't work because "undefined" becomes "null" through transparent-rpc
         options = options || {};
         options.faqModels = PlatformModule.faqModels;
