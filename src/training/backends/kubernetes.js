@@ -233,10 +233,13 @@ export default async function execTask(job, spec) {
                             name: 'main',
                             image: Config.TRAINING_KUBERNETES_IMAGE + (spec.requests.gpu > 0 ? '-cuda' : ''),
                             imagePullPolicy: 'Always',
-                            command: [ '/usr/bin/node',
-                                '--experimental-worker',
-                                '--max_old_space_size=' + Config.TRAINING_MEMORY_USAGE,
-                                '/opt/almond-cloud/main.js',
+                            env: [
+                                {
+                                    name: 'NODE_MAX_OLD_SPACE_SIZE',
+                                    value: String(Config.TRAINING_MEMORY_USAGE),
+                                }
+                            ],
+                            args: [
                                 'run-training-task',
                                 '--task-name', spec.name,
                                 '--job-id', String(job.id),
