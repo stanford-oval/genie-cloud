@@ -17,6 +17,8 @@ on_error() {
     frontendpid=
     test -n "$masterpid" && kill $masterpid
     masterpid=
+    test -n "$dbproxypid" && kill $dbproxypid
+    dbproxypid=
     wait
 
     rm -fr $workdir
@@ -36,6 +38,7 @@ export THINGENGINE_CONFIGDIR=$workdir/etc
 PORT=${PORT:-8080}
 cat > ${THINGENGINE_CONFIGDIR}/config.d/99-local.yaml <<EOF
 DATABASE_URL: "mysql://thingengine:thingengine@localhost/thingengine_test"
+DATABASE_PROXY_URL: "http://127.0.0.1:8200"
 SERVER_ORIGIN: "http://127.0.0.1:${PORT}"
 FILE_STORAGE_BACKEND: local
 CDN_HOST: /download
@@ -76,6 +79,9 @@ ${srcdir}/dist/main.js bootstrap --force
 test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/api/v3/devices/package/com.bing -O $srcdir/tests/data/com.bing.zip
 eval $(ts-node $srcdir/tests/load_test_thingpedia.js)
 
+${srcdir}/go/backend/backend dbproxy &
+dbproxypid=$!
+
 ${srcdir}/dist/main.js run-frontend &
 frontendpid=$!
 
@@ -97,7 +103,6 @@ fi
 
 kill $frontendpid
 frontendpid=
-wait
 
 # now enable the Stanford pages and run the website again
 cp $srcdir/stanford/config.js $THINGENGINE_CONFIGDIR/config.d/00-stanford.js
@@ -144,6 +149,8 @@ kill $frontendpid
 frontendpid=
 kill $masterpid
 masterpid=
+kill $dbproxypid
+dbproxypid=
 wait
 
 # Now tests that we can update the datasets
