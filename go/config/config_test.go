@@ -41,9 +41,11 @@ var testConfigJSON = `{
 func (s *ConfigSuite) SetupSuite() {
 	var err error
 	s.tmpDir = s.T().TempDir()
-	err = os.WriteFile(path.Join(s.tmpDir, "config.json"), []byte(testConfigJSON), 0644)
+	os.Mkdir(path.Join(s.tmpDir, "config.d"), 0o755)
+
+	err = os.WriteFile(path.Join(s.tmpDir, "config.d", "config.json"), []byte(testConfigJSON), 0644)
 	require.NoError(s.T(), err)
-	os.WriteFile(path.Join(s.tmpDir, "secret.yaml"), []byte(testSecretYAML), 0644)
+	os.WriteFile(path.Join(s.tmpDir, "config.d", "secret.yaml"), []byte(testSecretYAML), 0644)
 	require.NoError(s.T(), err)
 }
 
@@ -52,7 +54,7 @@ func TestAlmondConfig(t *testing.T) {
 }
 
 func (s *ConfigSuite) TestParseAlmondConfig() {
-	err := ParseAlmondConfig(s.tmpDir, &s.almondConfig)
+	err := ParseAlmondConfig(path.Join(s.tmpDir, "config.d"), &s.almondConfig)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), s.almondConfig.NLServerURL, "https://nlp.url")
 	require.Equal(s.T(), s.almondConfig.DatabaseURL, "mysql url")
@@ -65,7 +67,7 @@ func (s *ConfigSuite) TestInitAlmondConfig() {
 	require.Equal(s.T(), almondConfig.NLServerURL, "https://nlp.almond.stanford.edu")
 	require.Equal(s.T(), almondConfig.DatabaseURL, "")
 
-	os.Setenv("ALMOND_CONFIG_DIR", s.tmpDir)
+	os.Setenv("THINGENGINE_CONFIGDIR", s.tmpDir)
 	err = InitAlmondConfig()
 	require.NoError(s.T(), err)
 	almondConfig = GetAlmondConfig()
