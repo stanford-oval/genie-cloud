@@ -48,11 +48,11 @@ func GetAlmondConfig() *AlmondConfig {
 
 // InitAlmondConfig initializes config from files
 func InitAlmondConfig() error {
-	configDir := os.Getenv("ALMOND_CONFIG_DIR")
+	configDir := os.Getenv("THINGENGINE_CONFIGDIR")
 	if len(configDir) == 0 {
-		configDir = "/etc/almond-cloud/config.d"
+		configDir = "/etc/almond-cloud"
 	}
-	return ParseAlmondConfig(configDir, almondConfig)
+	return ParseAlmondConfig(filepath.Join(configDir, "config.d"), almondConfig)
 }
 
 // ParseAlmondConfig from a directory. Assumes directory contains onfig.yaml and secret.yaml

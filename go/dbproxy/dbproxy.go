@@ -61,6 +61,7 @@ func Run(args []string) {
 
 	r.GET("/localtable/:name/:userid", localTableGetAll)
 	r.GET("/localtable/:name/:userid/:uniqueid", localTableGetOne)
+	r.GET("/localtable/:name/by-:field/:userid/:value", localTableGetByField)
 	r.DELETE("/localtable/:name/:userid/:uniqueid", localTableDeleteOne)
 	r.POST("/localtable/:name/:userid/:uniqueid", localTableInsertOne)
 
