@@ -1,11 +1,12 @@
 extends layout
+include ./conversation_mixin
 
 block scripts
   script(src=Config.ASSET_CDN + '/javascripts/apps.js')
   script(src=Config.ASSET_CDN + '/javascripts/conversation-bundle.js')
 
 block page_name
-  = _("My Almond")
+  = _("My Genie")
 
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/my_stuff.css')
@@ -61,7 +62,7 @@ block content
 
   if !isRunning
     div.alert.alert-danger(role='alert')
-      p= _("Your Almond exited. ")
+      p= _("Your Genie exited. ")
         a.btn.btn-default.new-msg-button.btn-sm(href="/me/status")= _("More Details")
 
 
@@ -77,6 +78,14 @@ block content
                 input(type='hidden',name='_csrf',value=csrfToken)
                 button(type='submit').btn.btn-sm.new-msg-button.btn-danger= _("Stop")
               p= app.description
+              if app.notifications
+                p
+                  = _("This app delivers notifications using %s").format(app.notifications.backend)
+                  for value, key in app.notifications.config
+                    |
+                    |
+                    = _("%s %s").format(key, value)
+                  | .
               if app.error
                 p= _("This rule had an error: %s").format(app.error)
 
@@ -85,26 +94,14 @@ block content
       button.collapsible= _("Enabled Skills")
       +device_list(devices)
 
-  div.modal#comment-popup
-    div.modal-dialog
-      form(method='post')
-        div.modal-content
-          div.modal-body
-            div.form-group
-              label(for='comment-block').control-label= _("Write your comment for the last response")
-              textarea.form-control#comment-block
-          div.modal-footer
-            div.form-group
-              button(type='submit').btn.btn-primary.new-msg-button= _("Comment")
-
   div.modal#recording-warning
     div.modal-dialog
       div.modal-content
         div.modal-body
           h4= _("Warning:")
           p
-            = _("While recording is active, all your commands and all the replies from Almond will be stored ")
-            = _("and reviewed by the Stanford Almond Team.")
+            = _("While recording is active, all your commands and all the replies from Genie will be stored ")
+            = _("and reviewed by the Stanford Genie Team.")
         div.modal-footer
           button.btn.btn-primary.new-msg-button#confirm-recording= _("Confirm")
           button.btn.btn-default.new-msg-button#cancel-recording= _("Cancel")
@@ -129,21 +126,4 @@ block content
           button.btn.btn-primary.new-msg-button#recording-download= _("Download")
           button.btn.btn-default.new-msg-button#recording-save-done= _("Done")
 
-  div#conversation.single(data-target='/me/ws/conversation')
-    div#chat
-    div#input-block
-      form(action='#')#input-form
-        div.form-group.has-feedback#input-form-group
-          label(for='#chat-input').sr-only= _("Command:")
-          input(type='text', placeholder=_("Write your command or answer here"), value=command ? command : '').form-control#input
-          button(type='button', title='Click to send a voice command').btn.btn-primary#record-button
-          span#form-icon.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden
-          span(role='button').hidden#cancel
-            span(aria-hidden='true').glyphicon.glyphicon-remove-circle.form-control-feedback
-    
-  div#hidden-container 
-    div.help-block.hidden= _("Lost connection to the server.")
-    div.almond-thinking.hidden
-      span
-      span
-      span
+  +conversation_mixin('/me/ws/conversation')(class='single')

@@ -38,7 +38,7 @@ export function anonymous(ws : WebSocket, req : express.Request) {
         return;
     }
 
-    user.getAnonymousUser().then((user) => {
+    user.getAnonymousUser(req.locale).then((user) => {
         return doConversation(user, true, ws, req.query);
     });
 }
@@ -142,10 +142,11 @@ class WebsocketAssistantDelegate implements Genie.DialogueAgent.ConversationDele
     }
 }
 
-type ConversationQueryParams = {
-    hide_welcome ?: '1'|''|undefined,
-    id ?: string
-};
+interface ConversationQueryParams {
+    hide_welcome ?: '1'|''|undefined;
+    id ?: string;
+    flags ?: Record<string, unknown>;
+}
 
 async function doConversation(user : userModel.RowWithOrg, anonymous : boolean, ws : WebSocket, query : ConversationQueryParams) {
     try {
@@ -157,18 +158,28 @@ async function doConversation(user : userModel.RowWithOrg, anonymous : boolean, 
         };
         EngineManager.get().on('socket-closed', onclosed);
 
+        const flags : Record<string, boolean> = {};
+        if (query.flags) {
+            for (const key in query.flags) {
+                if (query.flags[key])
+                    flags[key] = true;
+            }
+        }
+
         const options = {
             showWelcome: !query.hide_welcome,
             anonymous,
+            dialogueFlags: flags,
 
-            // set a very large timeout so we don't get recycled until the socket is closed
-            inactivityTimeout: 3600 * 1000
+            // in anonymous mode, set a very large timeout so we don't get recycled until the socket is closed
+            // in user mode, we always share the same conversation so we set no inactivity timeout at all
+            inactivityTimeout: anonymous ? (3600 * 1000) : -1
         };
 
         const delegate = new WebsocketAssistantDelegate(ws);
 
         let wrapper : rpc.Proxy<ConversationWrapper>|undefined;
-        const id = query.id || 'web-' + makeRandom(4);
+        const id = anonymous ? (query.id || 'web-' + makeRandom(4)) : 'main';
         ws.send(JSON.stringify({ type: 'id', id : id }));
 
         ws.on('error', (err) => {

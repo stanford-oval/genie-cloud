@@ -30,6 +30,7 @@ import * as yaml from 'js-yaml';
 
 import * as db from '../util/db';
 import * as user from '../util/user';
+import * as I18n from '../util/i18n';
 import * as userModel from '../model/user';
 import * as organization from '../model/organization';
 import * as entityModel from '../model/entity';
@@ -104,6 +105,23 @@ async function createDefaultUsers(dbClient : db.Client, rootOrg : BasicOrgRow) {
         developer_org: rootOrg.id,
         profile_flags: 0
     });
+
+    for (const locale of Config.SUPPORTED_LANGUAGES) {
+        const lang = I18n.localeToLanguage(locale);
+        if (lang === 'en')
+            continue;
+
+        await user.register(dbClient, req, {
+            username: 'anonymous-' + lang,
+            password: 'rootroot',
+            email: 'anonymous-' + lang + '@localhost',
+            email_verified: true,
+            locale: locale,
+            timezone: 'America/Los_Angeles',
+            developer_org: rootOrg.id,
+            profile_flags: 0
+        });
+    }
 }
 
 async function importStandardEntities(dbClient : db.Client) {

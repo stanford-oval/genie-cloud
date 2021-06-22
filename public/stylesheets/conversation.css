@@ -105,7 +105,7 @@
     border-top: 0;
 }
 
-.glyphicon {
+#conversation .glyphicon {
     font-size: 40px;
     color: #fff;
     right: 8px;
@@ -132,33 +132,33 @@
     display: block;
 }
 
-#input-form-group {
+#conversation #input-form-group {
     margin-bottom: 0;
 }
 
-#input-form-group .spinner-container {
+#conversation #input-form-group .spinner-container {
     display: block;
     padding: 12px 12px;
     overflow: hidden;
 }
 
-#toolbar {
+#conversation #toolbar {
     margin: auto;
     max-width: 800px;
 }
 
-#toolbar i {
+#conversation #toolbar i {
     padding: 3px;
 }
 
-#save-log {
+#conversation #save-log {
     padding-left: 10px;
     cursor: pointer;
     width: 50%;
 }
 
-.comment-options>.fa,
-.comment-options>.far {
+#conversation .comment-options>.fa,
+#conversation .comment-options>.far {
     cursor: pointer;
     border-radius: 60px;
     box-shadow: 0 0 2px #888;
@@ -175,7 +175,7 @@
     margin-right: 10px;
 }
 
-.rec_log {
+#conversation .rec_log {
     margin: 5px 0px;
 }
 
@@ -212,14 +212,14 @@
     font-weight: 500;
 }
 
-#input {
+#conversation #input {
     width: 90%;
     margin: 0.6em;
     float: left;
     border-radius: 8px;
 }
 
-.input-alert {
+#conversation .input-alert {
     color: #8c1515;
     opacity: 1;
     /* Firefox */
@@ -227,23 +227,23 @@
     font-weight: bold;
 }
 
-#input-block {
+#conversation #input-block {
     background-color: #8c1515;
     min-height: 70px;
     padding: 0.6em;
 }
 
-.col-sm-12 ::-webkit-scrollbar {
+#conversation .col-sm-12 ::-webkit-scrollbar {
     width: 15px;
 }
 
-.col-sm-12 ::-webkit-scrollbar-thumb {
+#conversation .col-sm-12 ::-webkit-scrollbar-thumb {
     border-radius: 30px;
     background: #d5d5d5;
     box-shadow: inset 2px 2px 2px rgba(255, 255, 255, .25), inset -2px -2px 2px rgba(0, 0, 0, .25);
 }
 
-.col-sm-12 ::-webkit-scrollbar-track {}
+#conversation .col-sm-12 ::-webkit-scrollbar-track {}
 
 #almond-index-container ::-webkit-scrollbar {
     width: 15px;
@@ -259,7 +259,7 @@
     background-color: unset;
 }
 
-.form-inline {
+#conversation .form-inline {
     line-height: 2.2em;
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;
@@ -268,15 +268,15 @@
     border-bottom: 0;
 }
 
-.comment-options {
+#conversation .comment-options {
     overflow-anchor: auto;
 }
 
-.comment-options>i {
+#conversation .comment-options>i {
     background-color: white;
 }
 
-.help-block {
+#conversation .help-block {
     display: block;
     color: #b1040e;
     font-weight: bold;
@@ -285,16 +285,16 @@
     font-size: 1.2em;
 }
 
-.almond-thinking-container {
+#conversation .almond-thinking-container {
     display: flex;
 }
 
-.almond-thinking-txt {
+#conversation .almond-thinking-txt {
     font-size: 1.4em;
     padding: 0.7em 0.2em 0em 1.2em;
 }
 
-.almond-thinking {
+#conversation .almond-thinking {
     padding: 1.1em;
     text-align: left;
 }
@@ -309,7 +309,7 @@
     overflow: hidden;
 }
 
-.almond-thinking span {
+#conversation .almond-thinking span {
     display: inline-block;
     vertical-align: middle;
     width: .6em;
@@ -320,32 +320,32 @@
     animation: loading 1s infinite alternate;
 }
 
-.almond-thinking span:nth-of-type(2) {
+#conversation .almond-thinking span:nth-of-type(2) {
     background: #8d2727;
     animation-delay: 0.2s;
 }
 
-.almond-thinking span:nth-of-type(3) {
+#conversation .almond-thinking span:nth-of-type(3) {
     background: #a73c3c;
     animation-delay: 0.4s;
 }
 
-.almond-thinking span:nth-of-type(4) {
+#conversation .almond-thinking span:nth-of-type(4) {
     background: #c05959;
     animation-delay: 0.6s;
 }
 
-.almond-thinking span:nth-of-type(5) {
+#conversation .almond-thinking span:nth-of-type(5) {
     background: #c26e6e;
     animation-delay: 0.8s;
 }
 
-.almond-thinking span:nth-of-type(6) {
+#conversation .almond-thinking span:nth-of-type(6) {
     background: #df9595;
     animation-delay: 1.0s;
 }
 
-.almond-thinking span:nth-of-type(7) {
+#conversation .almond-thinking span:nth-of-type(7) {
     background: #e6acac;
     animation-delay: 1.2s;
 }

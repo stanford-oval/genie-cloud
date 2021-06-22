@@ -1,24 +1,63 @@
 extends layout
+include ./conversation_mixin
+include ./register_mixins
+
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/index.css')
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/app.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/spinner.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/conversation.css')
 
 block scripts
-  script(src=Config.ASSET_CDN + '/javascripts/commandpedia-bundle.js')
+  if WITH_THINGPEDIA === 'embedded'
+    script(src=Config.ASSET_CDN + '/javascripts/commandpedia-bundle.js')
   script(src=Config.ASSET_CDN + '/javascripts/index.js')
+  if authenticated || ENABLE_ANONYMOUS_USER
+    script(src=Config.ASSET_CDN + '/javascripts/conversation-bundle.js')
+  if !authenticated && ENABLE_ANONYMOUS_USER
+    script(src=Config.ASSET_CDN + '/javascripts/register.js')
 
 block page_name
   - stdlayout = false;
-  = _("Almond")
+  = _("Genie")
 
 block content
   if authenticated
     div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
+  else if ENABLE_ANONYMOUS_USER
+    div.modal.fade#try-almond-registration(role='dialog')
+      div.modal-dialog(role='document')
+        div.modal-content
+          div.modal-header
+            a.close(data-dismiss='modal', aria-label="Close")
+              span(aria-hidden='true') ×
+            h4.modal-title= _("Register for Genie")
+          div.modal-body
+            +registration_form(true)
 
   div#page-body
     section.divider#section-heading
-      h1#almond-title= _("Almond")
+      h1#almond-title= _("Genie")
       h2#almond-subtitle= _("The Open Virtual Assistant")
+
+      div.container
+        if authenticated
+          div.row
+            div.col-lg-6.col-lg-offset-3
+              +conversation_mixin('/me/ws/conversation')(class='')
+        else if ENABLE_ANONYMOUS_USER
+          div.row#try-almond-now-row
+            div.col-lg-4.col-lg-offset-4
+              button.btn.btn-primary.btn-block.call-to-action#try-almond-now= _("Try Genie Now")
+
+          div.row.hidden#try-almond-now-conversation
+            div.col-lg-6.col-lg-offset-3
+              +conversation_mixin('/me/ws/anonymous?locale=' + locale)(class='')
+
+        else
+          div.row
+            div.col-lg-4.col-lg-offset-4
+              a(href='/user/register').btn.btn-primary.btn-block.call-to-action= _("Try Genie Now")
 
     div.sections
       if WITH_THINGPEDIA === 'embedded'

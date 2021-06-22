@@ -3,12 +3,19 @@
     ThingEngine.setCloudIdWhenReady();
 })();
 $(() => {
-    $('#try-almond-now').click((event) => {
-        $('#try-almond-now-row').addClass('expanded');
+    function openConversation() {
+        $('#try-almond-now-consent-form').addClass('hidden');
 
-        const section = document.querySelector('#try-almond-now-row + .row');
-        const top = section.offsetTop + 50;
+        const section = $('#try-almond-now-conversation').removeClass('hidden')[0];
+        const top = section.offsetTop + 45;
         $(document.documentElement).animate({ scrollTop: top }, 800);
         event.preventDefault();
+    }
+
+    $('#try-almond-now').click((event) => {
+        event.preventDefault();
+        $('#try-almond-now-row').addClass('expanded');
+
+        openConversation();
     });
 });

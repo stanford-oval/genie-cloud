@@ -20,8 +20,11 @@
 
 import express from 'express';
 import passport from 'passport';
+import { twiml } from 'twilio';
 
+import * as db from '../util/db';
 import * as user from '../util/user';
+import * as userModel from '../model/user';
 import EngineManager from '../almond/enginemanagerclient';
 import * as iv from '../util/input_validation';
 import { NotFoundError, BadRequestError } from '../util/errors';
@@ -51,9 +54,75 @@ router.use((req, res, next) => {
     next();
 });
 
+router.post('/sms', (req, res, next) => {
+    Promise.resolve().then(async () => {
+        const phone = req.body.From;
+        const message = req.body.Body;
+
+        const anon = await user.getAnonymousUser(req.locale);
+        const engine = await EngineManager.get().getEngine(anon.id);
+
+        let reply;
+        if (message.toLowerCase() === 'stop' || message.toLowerCase() === 'stop.') {
+            await engine.deleteAllApps('twilio', { to: phone });
+            reply = req._("Okay, I will stop sending you notifications.");
+        } else {
+            const conversationId = 'sms' + phone;
+            const result = await engine.converse({ type: 'command', text: message, from: 'phone:'+phone }, conversationId);
+            reply = result.messages.filter((msg) => ['text', 'picture', 'rdl', 'audio', 'video'].includes(msg.type)).map((msg) => {
+                if (msg.type === 'text')
+                    return msg.text;
+                if (msg.type === 'picture')
+                    return msg.alt || req._("Picture: %s").format(msg.url);
+                if (msg.type === 'audio')
+                    return msg.alt || req._("Audio: %s").format(msg.url);
+                if (msg.type === 'video')
+                    return msg.alt || req._("Video: %s").format(msg.url);
+                if (msg.type === 'rdl')
+                    return msg.rdl.displayTitle + ' ' + msg.rdl.webCallback;
+                return '';
+            }).join('\n');
+            if (result.askSpecial === 'yesno')
+                reply += req._(" [yes/no]");
+        }
+
+        const twres = new twiml.MessagingResponse();
+        twres.message(reply);
+        res.type('text/xml');
+        res.end(twres.toString());
+    }).catch(next);
+});
+
 router.post('/oauth2/token',
     passport.authenticate(['oauth2-client-basic', 'oauth2-client-password'], { session: false }),
     oauth2server.token(), oauth2server.errorHandler());
+
+router.get('/notifications/unsubscribe/:email', (req, res, next) => {
+    Promise.resolve().then(async () => {
+        const email = new Buffer(req.params.email, 'base64').toString();
+
+        const anon = await user.getAnonymousUser(req.locale);
+        const anonEngine = await EngineManager.get().getEngine(anon.id);
+        await anonEngine.deleteAllApps('email', { to: email });
+
+        const loggedIn = await db.withClient(async (dbClient) => {
+            const users = await userModel.getByEmail(dbClient, email);
+            if (users.length > 0)
+                return users[0];
+            else
+                return undefined;
+        });
+        if (loggedIn) {
+            const engine = await EngineManager.get().getEngine(loggedIn.id);
+            await engine.deleteAllApps();
+        }
+
+        res.render('message', {
+            page_title: 'Genie',
+            message: req._("You have successfully unsubscribed %s from all notifications.").format(email)
+        });
+    }).catch(next);
+});
 
 // /me/api/oauth2/authorize is handled later because it needs session support and also
 // it is not OAuth authenticated, so exit this router

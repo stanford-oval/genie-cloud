@@ -27,7 +27,8 @@ import '../types';
 import * as db from './db';
 import * as model from '../model/user';
 import { makeRandom } from './random';
-import { ForbiddenError, BadRequestError, InternalError } from './errors';
+import { NotFoundError, ForbiddenError, BadRequestError, InternalError } from './errors';
+import * as I18n from './i18n';
 
 import * as Config from '../config';
 
@@ -292,9 +293,14 @@ export function requireScope(scope : OAuthScopes) {
     };
 }
 
-export function getAnonymousUser() {
+export function getAnonymousUser(locale : string) {
+    if (!I18n.get(locale, false))
+        throw new NotFoundError();
+
     return db.withClient((dbClient) => {
-        return model.getByName(dbClient, 'anonymous');
+        const lang = I18n.localeToLanguage(locale);
+        return model.getByName(dbClient, 'anonymous' +
+            (lang === 'en' ? '': '-' + lang));
     }).then(([user]) => user);
 }
 
@@ -310,7 +316,7 @@ export function anonymousLogin(req : Request, res : Response, next : NextFunctio
         return;
     }
 
-    getAnonymousUser().then((user) => {
+    getAnonymousUser(req.locale).then((user) => {
         if (!user)
             throw new InternalError('E_INVALID_CONFIG', 'Invalid configuration (missing anonymous user)');
         req.login(user, next);

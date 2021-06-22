@@ -44,7 +44,7 @@ class GoogleAssistantDelegate implements rpc.Stubbable {
     private _requestSignin : boolean;
     private _suggestions : string[];
 
-    constructor() {
+    constructor(locale : string) {
         this._buffer = [];
         this._requestSignin = false;
         this._suggestions = [];
@@ -158,7 +158,7 @@ router.use(gAssistantUserUtils.requireScope('user-exec-command'));
 
 const app = actionssdk();
 
-async function retrieveUser(accessToken ?: string) {
+async function retrieveUser(accessToken ?: string, locale = 'en-US') {
     let anonymous, user;
     if (accessToken) {
         const decoded = await util.promisify<string, string, jwt.VerifyOptions, any>(jwt.verify)(accessToken, secret.getJWTSigningKey(), {
@@ -170,14 +170,14 @@ async function retrieveUser(accessToken ?: string) {
             const rows = await gAssistantUserModel.getByCloudId(dbClient, decoded.sub);
             if (rows.length < 1) {
                 anonymous = true;
-                return gAssistantUserUtils.getAnonymousUser();
+                return gAssistantUserUtils.getAnonymousUser(locale);
             }
             anonymous = false;
             return rows[0];
         });
     } else {
         anonymous = true;
-        user = await gAssistantUserUtils.getAnonymousUser();
+        user = await gAssistantUserUtils.getAnonymousUser(locale);
     }
     return [anonymous, user] as const;
 }
@@ -187,8 +187,9 @@ app.intent('actions.intent.MAIN', async (conv) => {
 
     const [anonymous, user] = await retrieveUser(conv.body.user?.accessToken);
 
+    const locale = conv.body.user?.locale || 'en-US';
     const conversationId = conv.body.conversation?.conversationId;
-    const delegate = new GoogleAssistantDelegate();
+    const delegate = new GoogleAssistantDelegate(locale);
 
     const engine = await EngineManager.get().getEngine(user.id);
     await engine.getOrOpenConversation('google_assistant:' + conversationId,
@@ -224,8 +225,9 @@ app.intent('actions.intent.TEXT', async (conv, input) => {
 
     const [anonymous, user] = await retrieveUser(conv.body.user?.accessToken);
 
+    const locale = conv.body.user?.locale || 'en-US';
     const conversationId = conv.body.conversation?.conversationId;
-    const delegate = new GoogleAssistantDelegate();
+    const delegate = new GoogleAssistantDelegate(locale);
 
     const engine = await EngineManager.get().getEngine(user.id);
     const conversation = await engine.getOrOpenConversation('google_assistant:' + conversationId,

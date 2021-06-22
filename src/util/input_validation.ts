@@ -93,7 +93,7 @@ function failKey(req : express.Request<unknown>, res : express.Response, key : s
         res.json({ code: 'EINVAL', error: `missing or invalid parameter ${key}` });
     } else {
         res.render('error', {
-            page_title: req._("Almond - Error"),
+            page_title: req._("Genie - Error"),
             message: req._("Missing or invalid parameter %s").format(key)
         });
     }
@@ -105,7 +105,7 @@ function failContentType(req : express.Request<unknown>, res : express.Response,
         res.json({ code: 'EINVAL', error: `invalid content-type` });
     } else {
         res.render('error', {
-            page_title: req._("Almond - Error"),
+            page_title: req._("Genie - Error"),
             message: req._("Invalid request")
         });
     }

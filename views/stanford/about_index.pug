@@ -1,4 +1,7 @@
 extends ../layout
+include ../conversation_mixin
+include ../register_mixins
+
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/index.css')
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/app.css')
@@ -13,11 +16,21 @@ block scripts
 
 block page_name
   - stdlayout = false;
-  = _("Almond")
+  = _("Genie")
 
 block content
   if authenticated
     div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
+  else if ENABLE_ANONYMOUS_USER
+    div.modal.fade#try-almond-registration(role='dialog')
+      div.modal-dialog(role='document')
+        div.modal-content
+          div.modal-header
+            a.close(data-dismiss='modal', aria-label="Close")
+              span(aria-hidden='true') ×
+            h4.modal-title= _("Register for Genie")
+          div.modal-body
+            +registration_form(true)
 
   div#page-body.head-home
     section.divider.home-page#section-heading
@@ -26,53 +39,28 @@ block content
           div.col-lg-12
             h1#almond-title
               img(src=Config.ASSET_CDN + '/images/logo.png',style='display:inline-block;padding-right:12px;height:1em;vertical-align:bottom')
-              = _("Almond")
+              = _("Genie")
             h2#almond-subtitle= _("The Open, Privacy-Preserving Virtual Assistant")
 
             p.text-center#almond-explanation-line
-              = _("Almond translates your commands into a personalized program.")
+              = _("Genie translates your commands into a personalized program.")
 
             if authenticated
               div.row
                 div.col-lg-4.col-lg-offset-4
-                  a(href='/me').btn.btn-primary.custom-btn.btn-block.call-to-action= _("Go To My Almond")
+                  a(href='/me').btn.btn-primary.custom-btn.btn-block.call-to-action= _("Go To My Genie")
             else if !ENABLE_ANONYMOUS_USER
               div.row
                 div.col-lg-4.col-lg-offset-4
-                  a(href='/user/register').btn.btn-primary.custom-btn.btn-block.call-to-action= _("Try Almond Now")
+                  a(href='/user/register').btn.btn-primary.custom-btn.btn-block.call-to-action= _("Try Genie Now")
             else
               div.row#try-almond-now-row
                 div.col-lg-4.col-lg-offset-4
-                  a#try-almond-now(href='#conversation').btn.btn-primary.custom-btn.btn-block.call-to-action= _("Try Almond Now")
+                  button#try-almond-now.btn.btn-primary.custom-btn.btn-block.call-to-action= _("Try Genie Now")
 
-              div.row
+              div.row.hidden#try-almond-now-conversation
                 div.col-lg-12
-                  div#conversation.home(data-target='/me/ws/anonymous',aria-expanded='false')
-                    div#chat
-                    div#input-block
-                      form(action='#')#input-form
-                        div.form-group.has-feedback#input-form-group
-                          label(for='#chat-input').sr-only= _("Command:")
-                          input(type='text', placeholder=_("Write your command or answer here"), value=command ? command : '').form-control#input
-                          button(type='button', title='Click to send a voice command').btn.btn-primary#record-button
-                          span#form-icon.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden
-                          span(role='button').hidden#cancel
-                            span(aria-hidden='true').glyphicon.glyphicon-remove-circle.form-control-feedback
-                      //-form(action='#')#input-form
-                        div.form-group.has-feedback#input-form-group
-                          label(for='#chat-input').sr-only= _("Command:")
-                          input(type='text',placeholder=_("Write your command or answer here")).form-control#input
-                          button(type='button', title='Click to send a voice command').btn.btn-primary.hidden#record-button
-                          span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden
-                          span(role='button').hidden#cancel
-                          span(aria-hidden='true').glyphicon.glyphicon-remove-circle
-
-                div#hidden-container
-                  div.help-block.hidden= _("Lost connection to the server.")
-                  div.almond-thinking.hidden
-                    span
-                    span
-                    span
+                  +conversation_mixin('/me/ws/anonymous')(class='home',aria-expanded='false')
 
     div.sections#home-page-sections
       //-section.divider
@@ -83,18 +71,18 @@ block content
             div.col-lg-12.marketing-video
               iframe(style='max-width:100%;height: 653px;width: 100%;', src="https://www.youtube.com/embed/5JUtTe00yGc", frameborder="0", allow="autoplay;encrypted-media", allowfullscreen=true)
 
-              p.text-center= _("See how Almond helps Kimmy babysit.")
+              p.text-center= _("See how Genie helps Kimmy babysit.")
 
       section.divider#inside-almond
-        h3= _("Inside Almond")
+        h3= _("Inside Genie")
         div.container
           div.row
             div(style='margin-top:1em;font-size:24px').text-center
               div.row
                 div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
-                  a(href='/about/get-almond')= _("Get Almond")
+                  a(href='/about/get-almond')= _("Get Genie")
                 div.col-xs-12.col-sm-6.col-md-4
-                  a(href='/about/get-involved')= _("Contribute To Almond")
+                  a(href='/about/get-involved')= _("Contribute To Genie")
               div.row
                 div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
                   a(href='https://forms.gle/Q1m5uZDF8ZyRbdSw7', rel='noopener')= _("Sign Up for Updates")
@@ -102,9 +90,9 @@ block content
                   a(href='https://community.almond.stanford.edu')= _("Join Our Community")
 
       section.divider#section-commandpedia
-        h3= _("What can Almond do?")
+        h3= _("What can Genie do?")
         div.container
           div.row
             div.col-xs-12.col-md-10.col-md-offset-1
-              p= _("Here is a sample of what Almond can do, and a few commands that our users and developers think are interesting. It is not an exhaustive list! Commands can combined in arbitrary ways, creating endless possibilities for your assistant.")
+              p= _("Here is a sample of what Genie can do, and a few commands that our users and developers think are interesting. It is not an exhaustive list! Commands can combined in arbitrary ways, creating endless possibilities for your assistant.")
           include ../commandpedia.pug

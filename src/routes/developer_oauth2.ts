@@ -97,7 +97,7 @@ router.post('/create',
 
         redirectUrls = validateRedirectUrls(req, req.body.redirect_uri.split(/ +/));
     } catch(e) {
-        res.status(400).render('error', { page_title: req._("Almond - Error"),
+        res.status(400).render('error', { page_title: req._("Genie - Error"),
                                           message: e });
         return;
     }

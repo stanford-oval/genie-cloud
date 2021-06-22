@@ -28,7 +28,7 @@ import PlatformModule from './platform';
 // used by transparent-rpc
 
 export class ConversationWrapper implements rpc.Stubbable {
-    $rpcMethods = ['destroy', 'handleCommand', 'handleParsedCommand', 'handleThingTalk'] as const;
+    $rpcMethods = ['destroy', 'getState', 'handleCommand', 'handleParsedCommand', 'handleThingTalk'] as const;
     $free ?: () => void;
 
     private _conversation : Genie.DialogueAgent.Conversation;
@@ -45,6 +45,10 @@ export class ConversationWrapper implements rpc.Stubbable {
         this._delegate.$free();
         if (this.$free)
             this.$free();
+    }
+
+    getState() {
+        return this._conversation.getState();
     }
 
     handleCommand(...args : Parameters<Genie.DialogueAgent.Conversation['handleCommand']>) {
@@ -153,6 +157,7 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
         'recordingWarned',
 
         'getConversation',
+        'ensureConversation',
         'getOrOpenConversation',
         'addNotificationOutput',
         'converse',
@@ -173,6 +178,7 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
         'getAppInfo',
         'deleteApp',
         'createAppAndReturnResults',
+        'deleteAllApps',
 
         'setCloudId',
         'addServerAddress',
@@ -214,12 +220,19 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
         return new RecordingController(conversation);
     }
 
-    async getOrOpenConversation(id : string, delegate : rpc.Proxy<Genie.DialogueAgent.ConversationDelegate>,
-                                options : Genie.DialogueAgent.ConversationOptions) {
-        // note: default arguments don't work because "undefined" becomes "null" through transparent-rpc
-        options = options || {};
+    async ensureConversation(id : string, options : Genie.DialogueAgent.ConversationOptions,
+        initialState ?: Genie.DialogueAgent.ConversationState) : Promise<void> {
         options.faqModels = PlatformModule.faqModels;
-        const conversation = await this.assistant.getOrOpenConversation(id, options);
+        await this.assistant.getOrOpenConversation(id, options, initialState || undefined);
+    }
+
+    async getOrOpenConversation(id : string, delegate : rpc.Proxy<Genie.DialogueAgent.ConversationDelegate>,
+                                options : Genie.DialogueAgent.ConversationOptions,
+                                initialState ?: Genie.DialogueAgent.ConversationState) {
+        options.faqModels = PlatformModule.faqModels;
+        if (options.anonymous)
+            options.log = true;
+        const conversation = await this.assistant.getOrOpenConversation(id, options, initialState || undefined);
         return new ConversationWrapper(conversation, delegate);
     }
 
@@ -230,5 +243,28 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
     async createDeviceAndReturnInfo(data : { kind : string }) {
         const device = await this.createDevice(data);
         return this.getDeviceInfo(device.uniqueId!);
+    }
+
+    async deleteAllApps(forNotificationBackend ?: keyof Genie.DialogueAgent.NotificationConfig, forNotificationConfig ?: Record<string, unknown>) {
+        const apps = this.apps.getAllApps();
+        for (const app of apps) {
+            if (forNotificationBackend) {
+                if (!app.notifications)
+                    continue;
+                if (app.notifications.backend !== forNotificationBackend)
+                    continue;
+                let good = true;
+                for (const key in forNotificationConfig) {
+                    if (forNotificationConfig[key] !== app.notifications.config[key]) {
+                        good = false;
+                        break;
+                    }
+                }
+                if (!good)
+                    continue;
+            }
+
+            await this.apps.removeApp(app);
+        }
     }
 }

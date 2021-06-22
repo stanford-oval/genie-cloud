@@ -21,9 +21,43 @@
 import express from 'express';
 
 import * as user from '../util/user';
+import * as iv from '../util/input_validation';
 import EngineManager from '../almond/enginemanagerclient';
 
 const router = express.Router();
+
+router.post('/anonymous/vote/:vote', (req, res, next) => {
+    Promise.resolve().then(async () => {
+        const engine = await EngineManager.get().getEngine((await user.getAnonymousUser(req.locale)).id);
+        return engine.getConversation(req.body.id);
+    }).then(async (conversation) => {
+        if (req.params.vote !== 'up' && req.params.vote !== 'down') {
+            res.status(400);
+            return res.json({ error: 'Invalid voting option' });
+        } else if (!conversation) {
+            res.status(404);
+            return res.json({ error: 'No conversation found' });
+        } else {
+            await conversation.voteLast(req.params.vote);
+            return res.json({ status:'ok' });
+        }
+    }).catch(next);
+});
+
+router.post('/anonymous/comment', iv.validatePOST({ comment: 'string', id: 'string' }), (req, res, next) => {
+    Promise.resolve().then(async () => {
+        const engine = await EngineManager.get().getEngine((await user.getAnonymousUser(req.locale)).id);
+        return engine.getConversation(req.body.id);
+    }).then(async (conversation) => {
+        if (!conversation) {
+            res.status(404);
+            return res.json({ error: 'No conversation found' });
+        } else {
+            await conversation.commentLast(req.body.comment);
+            return res.json({ status:'ok' });
+        }
+    }).catch(next);
+});
 
 router.use(user.requireLogIn);
 
@@ -97,13 +131,7 @@ router.post('/vote/:vote', (req, res, next) => {
     }).catch(next);
 });
 
-router.post('/comment', (req, res, next) => {
-    const command = req.body.comment;
-    if (!command) {
-        res.status(400).json({ error: 'Missing comment' });
-        return;
-    }
-
+router.post('/comment', iv.validatePOST({ comment: 'string', id: 'string' }), (req, res, next) => {
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine(req.user!.id);
         return engine.getConversation(req.body.id);

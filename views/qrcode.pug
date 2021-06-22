@@ -10,13 +10,13 @@ block content
   if for_ === 'cloud' && authenticated && user.auth_token !== authToken
     p
       strong= _("You should not have this link.")
-      = _(" This is a pairing link for a different Almond account than yours.")
+      = _(" This is a pairing link for a different Genie account than yours.")
     p
       = _("If you obtained it by mistake, you should destroy it immediately by clearing the browser history and cache, and you should contact whoever gave this link that they risk having their account compromised.")
 
   else
-    p= _("You must open the QR code link with the Almond app, not with your browser.")
+    p= _("You must open the QR code link with the Genie app, not with your browser.")
 
     if for_ === 'cloud'
       if !authenticated
-        p!= _("If you were trying to link your Almond account to your phone, you should <a href='/user/login'>log in</a> first.")
+        p!= _("If you were trying to link your Genie account to your phone, you should <a href='/user/login'>log in</a> first.")

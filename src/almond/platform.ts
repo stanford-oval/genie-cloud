@@ -29,6 +29,7 @@ import * as child_process from 'child_process';
 import { LocalCVC4Solver } from 'smtlib';
 import * as Tp from 'thingpedia';
 import * as rpc from 'transparent-rpc';
+import * as Genie from 'genie-toolkit';
 
 import type { CloudSyncWebsocketDelegate } from '../routes/cloud-sync';
 import * as graphics from './graphics';
@@ -170,6 +171,10 @@ export interface PlatformOptions {
     storageKey : string;
     modelTag : string|null;
     dbProxyUrl : string|null;
+    humanName : string|null;
+    phone : string|null;
+    email : string;
+    emailVerified : boolean;
 }
 
 export class Platform extends Tp.BasePlatform {
@@ -182,6 +187,7 @@ export class Platform extends Tp.BasePlatform {
     private _sqliteKey : string;
     private _dbProxyUrl : string|null;
     private _userId : number;
+    private _profile : Tp.UserProfile;
     // TODO
     private _gettext : ReturnType<(typeof i18n)['get']>;
     private _writabledir : string;
@@ -200,6 +206,16 @@ export class Platform extends Tp.BasePlatform {
         this._sqliteKey = options.storageKey;
         this._dbProxyUrl = options.dbProxyUrl;
         this._userId = options.userId;
+        this._profile = {
+            account: options.cloudId,
+            name: options.humanName ?? undefined,
+            locale: options.locale,
+            timezone: options.timezone,
+            phone: options.phone ?? undefined,
+            phone_verified: true,
+            email: options.email,
+            email_verified: options.emailVerified
+        };
 
         this._gettext = i18n.get(this._locale);
 
@@ -234,6 +250,22 @@ export class Platform extends Tp.BasePlatform {
 
     get timezone() {
         return this._timezone;
+    }
+
+    getProfile() {
+        return this._profile;
+    }
+
+    async setProfile(changes : {
+        locale ?: string;
+        timezone ?: string;
+        name ?: string;
+        email ?: string;
+        phone ?: string;
+    }) {
+        // TODO implement actual changes
+        Object.assign(this._profile, changes);
+        return true;
     }
 
     // Return the platform device for this platform, accessing platform-specific
@@ -418,6 +450,7 @@ class PlatformModule {
     private _nlServerUrl ! : string;
     private _oauthRedirectOrigin ! : string;
     private _faqModels ! : Record<string, { url : string, highConfidence ?: number, lowConfidence ?: number }>;
+    private _notificationConfig ! : Genie.DialogueAgent.NotificationConfig;
 
     // Initialize the platform code
     // Will be called before instantiating the engine
@@ -427,12 +460,14 @@ class PlatformModule {
         nl_server_url : string;
         oauth_redirect_origin : string;
         faq_models : string;
+        notification_config : string;
     }) {
         _shared = options.shared;
         this._thingpediaUrl = options.thingpedia_url;
         this._nlServerUrl = options.nl_server_url;
         this._oauthRedirectOrigin = options.oauth_redirect_origin;
         this._faqModels = JSON.parse(options.faq_models);
+        this._notificationConfig = JSON.parse(options.notification_config);
     }
 
     get thingpediaUrl() {
@@ -443,6 +478,9 @@ class PlatformModule {
     }
     get faqModels() {
         return this._faqModels;
+    }
+    get notificationConfig() {
+        return this._notificationConfig;
     }
 
     get shared() {

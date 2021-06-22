@@ -50,27 +50,29 @@ async function getInfo(req : express.Request) {
 
 router.get('/', (req, res, next) => {
     getInfo(req).then(([isRunning, appinfo, devinfo]) => {
-        res.render('my_stuff', { page_title: req._("Thingpedia - My Almond"),
+        res.render('my_stuff', { page_title: req._("My Genie"),
                                  messages: req.flash('app-message'),
                                  csrfToken: req.csrfToken(),
                                  isRunning: isRunning,
                                  apps: appinfo,
                                  devices: devinfo,
-                                 CDN_HOST: Config.CDN_HOST
+                                 CDN_HOST: Config.CDN_HOST,
+                                 flags: req.query.flags || {}
                                 });
     }).catch(next);
 });
 
-router.post('/', iv.validatePOST({ command: 'string' }), (req, res, next) => {
+router.post('/', iv.validatePOST({ command: 'string' }), iv.validateGET({ flags: '?object' }), (req, res, next) => {
     getInfo(req).then(([isRunning, appinfo, devinfo]) => {
-        res.render('my_stuff', { page_title: req._("Thingpedia - My Almond"),
+        res.render('my_stuff', { page_title: req._("My Genie"),
             messages: req.flash('app-message'),
             csrfToken: req.csrfToken(),
             isRunning: isRunning,
             apps: appinfo,
             devices: devinfo,
             CDN_HOST: Config.CDN_HOST,
-            command: req.body.command
+            command: req.body.command,
+            flags: req.query.flags || {}
         });
     }).catch(next);
 });
@@ -83,17 +85,24 @@ router.post('/apps/delete', iv.validatePOST({ id: 'string' }), (req, res, next) 
                                               message: req._("Not found.") });
             return;
         }
-        req.flash('app-message', "Application successfully deleted");
+        req.flash('app-message', "Command stopped successfully.");
         res.redirect(303, '/me');
     }).catch(next);
 });
 
 router.get('/conversation', (req, res, next) => {
-    res.render('my_conversation', { page_title: req._("Thingpedia - Web Almond") });
+    res.render('my_conversation', {
+        page_title: req._("My Genie"),
+        flags: req.query.flags || {}
+    });
 });
 
-router.post('/conversation', iv.validatePOST({ command: 'string' }), (req, res) => {
-    res.render('my_conversation', { page_title: req._("Thingpedia - Web Almond"), command: req.body.command });
+router.post('/conversation', iv.validatePOST({ command: 'string' }), iv.validateGET({ flags: '?object' }), (req, res) => {
+    res.render('my_conversation', {
+        page_title: req._("My Genie"),
+        command: req.body.command,
+        flags: req.query.flags || {}
+    });
 });
 
 export default router;

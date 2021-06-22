@@ -154,6 +154,10 @@ class EngineProcess extends events.EventEmitter {
             storageKey: user.storage_key,
             modelTag: user.model_tag,
             dbProxyUrl: Config.DATABASE_PROXY_URL,
+            humanName: user.human_name,
+            phone: user.phone,
+            email: user.email,
+            emailVerified: !!user.email_verified,
         }];
         return this._rpcSocket!.call(this._rpcId!, 'runEngine', args);
     }
@@ -251,6 +255,7 @@ class EngineProcess extends events.EventEmitter {
             '--nl-server-url', Config.NL_SERVER_URL,
             '--oauth-redirect-origin', Config.OAUTH_REDIRECT_ORIGIN,
             '--faq-models', JSON.stringify(Config.FAQ_MODELS),
+            '--notification-config', JSON.stringify(Config.NOTIFICATION_CONFIG),
         );
         for (const lang of Config.SUPPORTED_LANGUAGES)
             args.push('--locale', lang);
@@ -273,6 +278,8 @@ class EngineProcess extends events.EventEmitter {
             if (envIsAllowed(name))
                 env[name] = process.env[name]!;
         }
+        for (const key in Config.EXTRA_ENVIRONMENT)
+            env[key] = Config.EXTRA_ENVIRONMENT[key];
         env.THINGENGINE_USER_ID = String(this._id);
 
         const managerPath = path.dirname(module.filename);

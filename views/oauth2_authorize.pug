@@ -5,10 +5,10 @@ block styles
 
 block page_name
   - var index = true;
-  = _("Web Almond")
+  = _("Web Genie")
 
 block content
-  h1= _("Authorize %s to access your Almond?").format(client.name)
+  h1= _("Authorize %s to access your Genie?").format(client.name)
 
   aside#app-icon-large
     img(src=CDN_HOST + '/icons/oauth:' + client.id + '.png', alt="Icon for " + client.name)
@@ -32,7 +32,7 @@ block content
         li= _("Modify the settings of your Thingpedia developer organization.")
 
   div.clearfix
-  p= _("%s is not affiliated or verified by Almond. We make no representation as to the quality of this application. Please only grant access to applications you trust.").format(client.name)
+  p= _("%s is not affiliated or verified by Genie. We make no representation as to the quality of this application. Please only grant access to applications you trust.").format(client.name)
 
   p= _("This app is developed by %s (%s)").format(client.owner_name, origin)
 

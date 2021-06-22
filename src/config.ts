@@ -18,6 +18,8 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import type * as Genie from 'genie-toolkit';
+
 /* eslint prefer-const: off, @typescript-eslint/no-inferrable-types: off */
 
 /**
@@ -43,7 +45,7 @@ export let DATABASE_URL : string|undefined = process.env.DATABASE_URL;
 /**
   Database Proxy URL.
 
-  This the URL of the dbproxy server setup in the kubernetes cluster. If set, worker engine will use the 
+  This the URL of the dbproxy server setup in the kubernetes cluster. If set, worker engine will use the
   cloud database through the proxy. Otherwise, a local sqlitedb is used.
 */
 export let DATABASE_PROXY_URL : string|null = null;
@@ -209,6 +211,16 @@ export let ASSET_CDN : string = '/assets';
   using "stanford" branding requires permission.
 */
 export let USE_BRAND : string = 'generic';
+
+/**
+  An optional warning message to show on the registration page.
+
+  This can be used on testing versions of Genie to inform people that they are accessing an
+  unstable system.
+
+  HTML is allowed in this configuration key.
+*/
+module.exports.REGISTRATION_WARNING = null;
 
 /**
   The origin (scheme, hostname, port) where the server is reachable.
@@ -539,15 +551,15 @@ export let MAILGUN_PASSWORD : string|null = null;
 /**
   From: field of user emails (email verification, password reset, etc.)
 */
-export let EMAIL_FROM_USER : string = 'Almond <noreply@almond.stanford.edu>';
+export let EMAIL_FROM_USER : string = 'Genie <noreply@almond.stanford.edu>';
 /**
   From: field of admin emails (review requests, developer requests, etc.)
 */
-export let EMAIL_FROM_ADMIN : string = 'Almond <root@almond.stanford.edu>';
+export let EMAIL_FROM_ADMIN : string = 'Genie <root@almond.stanford.edu>';
 /**
   From: field of admin-training notifications
 */
-export let EMAIL_FROM_TRAINING : string = 'Almond Training Service <almond-training@almond.stanford.edu>';
+export let EMAIL_FROM_TRAINING : string = 'Genie Training Service <genie-training@almond.stanford.edu>';
 
 /**
   To: field of admin emails
@@ -654,3 +666,13 @@ export let MS_SPEECH_SERVICE_REGION : string|null = null;
  * FAQ models to enable.
  */
 export let FAQ_MODELS : Record<string, { url : string, highConfidence ?: number, lowConfidence ?: number }> = {};
+
+/**
+ * Configuration parameters for builtin notification modules.
+ */
+export let NOTIFICATION_CONFIG : Genie.DialogueAgent.NotificationConfig = {};
+
+/**
+ * Additional environment variables to set for the almond workers.
+ */
+export let EXTRA_ENVIRONMENT : Record<string, string> = {};

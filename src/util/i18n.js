@@ -39,6 +39,8 @@ const ALLOWED_LANGUAGES = {
     'zh': N_("Chinese"),
     'zh-CN': N_("Chinese (Simplified)"),
     'zh-TW': N_("Chinese (Traditional)"),
+    'es': N_("Spanish"),
+    'es-ES': N_("Spanish"),
 };
 
 let _enabledLanguages;
@@ -149,6 +151,13 @@ export function handler(req, res, next) {
     let locale = typeof req.query.locale === 'string' ? req.query.locale : undefined;
     if (!locale && userUtils.isAuthenticated(req))
         locale = req.user.locale;
+    if (typeof req.session === 'object') {
+        if (locale)
+            req.session.locale = locale;
+        else
+            locale = req.session.locale;
+    }
+
     if (!locale && req.headers['accept-language'])
         locale = acceptLanguage.get(req.headers['accept-language']);
     if (!locale)

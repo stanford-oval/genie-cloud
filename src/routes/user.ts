@@ -54,6 +54,27 @@ const TOTP_PERIOD = 30; // duration in second of TOTP code
 
 const router = express.Router();
 
+function registerSuccess(req : express.Request, res : express.Response) {
+    if (req.user!.email_verified)
+        req.flash('app-message', req._("Welcome to Genie! You are now ready to start using Genie to receive notifications."));
+    else if (req.user!.email)
+        req.flash('app-message', req._("Welcome to Genie! A verification email has been sent to your address. Some functionality on your account, such as receiving notifications, will be limited until you verify your email. You must click on the verification link to enable your account in full."));
+    else
+        req.flash('app-message', req._("Welcome to Genie! You did not provide an email address. Some functionality on your account, such as receiving notifications, will be limited until you provide and verify your email. You can do so from your user settings."));
+
+    res.redirect(303, '/me');
+
+    /**
+    res.locals.authenticated = true;
+    res.locals.user = user;
+    res.render('register_success', {
+        page_title: req._("Genie - Registration Successful"),
+        username: options.username,
+        cloudId: user.cloud_id,
+        authToken: user.auth_token });
+    */
+}
+
 router.get('/oauth2/google', passport.authenticate('google', {
     scope: userUtils.GOOGLE_SCOPES,
 }));
@@ -63,13 +84,7 @@ router.get('/oauth2/google/callback', passport.authenticate('google'), (req, res
 
     if (req.user!.newly_created) {
         req.user!.newly_created = false;
-        res.locals.authenticated = true;
-        res.locals.user = req.user;
-        res.render('register_success', {
-            page_title: req._("Almond - Registration Successful"),
-            username: req.user!.username,
-            cloudId: req.user!.cloud_id,
-            authToken: req.user!.auth_token });
+        registerSuccess(req, res);
     } else {
         // Redirection back to the original page
         const redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
@@ -89,13 +104,7 @@ router.get('/oauth2/github/callback', passport.authenticate('github'), (req, res
 
     if (req.user!.newly_created) {
         req.user!.newly_created = false;
-        res.locals.authenticated = true;
-        res.locals.user = req.user;
-        res.render('register_success', {
-            page_title: req._("Almond - Registration Successful"),
-            username: req.user!.username,
-            cloudId: req.user!.cloud_id,
-            authToken: req.user!.auth_token });
+        registerSuccess(req, res);
     } else {
         // Redirection back to the original page
         const redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
@@ -116,7 +125,7 @@ router.get('/login', (req, res, next) => {
     res.render('login', {
         csrfToken: req.csrfToken(),
         errors: req.flash('error'),
-        page_title: req._("Almond - Login")
+        page_title: req._("Genie - Login")
     });
 });
 
@@ -152,7 +161,7 @@ router.get('/2fa/login', (req, res, next) => {
     }
 
     res.render('2fa_login', {
-        page_title: req._("Almond - Login"),
+        page_title: req._("Genie - Login"),
         errors: req.flash('error'),
     });
 });
@@ -179,7 +188,7 @@ router.post('/2fa/login', passport.authenticate('totp', { failureRedirect: '/use
 router.get('/2fa/setup', userUtils.requireLogIn, iv.validateGET({ force: 'boolean' }), (req, res, next) => {
     if (req.user!.totp_key !== null && req.query.force !== '1') {
         res.status(400).render('error', {
-            page_title: req._("Almond - Error"),
+            page_title: req._("Genie - Error"),
             message: req._("You already configured two-factor authentication.")
         });
         return;
@@ -199,7 +208,7 @@ router.get('/2fa/setup', userUtils.requireLogIn, iv.validateGET({ force: 'boolea
     const qrUrl = `otpauth://totp/${label}?secret=${encodedKey}`;
 
     res.render('2fa_setup', {
-        page_title: req._("Almond - Two-Factor Authentication"),
+        page_title: req._("Genie - Two-Factor Authentication"),
         encryptedKey,
         qrUrl
     });
@@ -216,7 +225,7 @@ router.post('/2fa/setup', userUtils.requireLogIn, iv.validatePOST({ encrypted_ke
         const rv = totp.verify(req.body.code, totpKey, { window: 6, time: TOTP_PERIOD });
         if (!rv) {
             res.render('error', {
-                page_title: req._("Almond - Two-Factor Authentication"),
+                page_title: req._("Genie - Two-Factor Authentication"),
                 message: req._("Invalid OTP Code. Please check that your Authenticator app is properly configured.")
             });
             return;
@@ -229,7 +238,7 @@ router.post('/2fa/setup', userUtils.requireLogIn, iv.validatePOST({ encrypted_ke
         req.session.completed2fa = true;
 
         res.render('message', {
-            page_title: req._("Almond - Two-Factor Authentication"),
+            page_title: req._("Genie - Two-Factor Authentication"),
             message: req._("Two-factor authentication was set up successfully. You will need to use your Authenticator app at the next login.")
         });
     }).catch(next);
@@ -238,7 +247,7 @@ router.post('/2fa/setup', userUtils.requireLogIn, iv.validatePOST({ encrypted_ke
 router.get('/register', (req, res, next) => {
     res.render('register', {
         csrfToken: req.csrfToken(),
-        page_title: req._("Almond - Register")
+        page_title: req._("Genie - Register"),
     });
 });
 
@@ -253,16 +262,16 @@ async function sendValidationEmail(cloudId : string, username : string, email : 
     const mailOptions = {
         from: Config.EMAIL_FROM_USER,
         to: email,
-        subject: 'Welcome To Almond!',
+        subject: 'Welcome To Genie!',
         text:
-`Welcome to Almond!
+`Welcome to Genie!
 
 To verify your email address, please click the following link:
 <${Config.SERVER_ORIGIN}/user/verify-email/${token}>
 
 ----
 You are receiving this email because someone used your address to
-register an account on the Almond service at <${Config.SERVER_ORIGIN}>.
+register an account on the Genie service at <${Config.SERVER_ORIGIN}>.
 `
     };
 
@@ -280,19 +289,31 @@ function login(req : express.Request<any, any, any, any>, user : Express.User) {
     });
 }
 
+function normalizePhoneNumber(text : string) {
+    if (text.startsWith('1'))
+        text = '+' + text;
+    else if (!text.startsWith('+'))
+        text = '+1' + text;
+
+    return text.replace(/[() -]/g, '');
+}
+
 router.post('/register', iv.validatePOST({
     username: 'string',
     email: 'string',
+    phone: '?string',
     password: 'string',
     'confirm-password': 'string',
     timezone: '?string',
     locale: 'string',
     agree_terms: 'boolean',
     agree_consent: 'boolean',
+    conversation_state: '?string',
 }), (req, res, next) => {
     let options : {
         username : string;
         email : string;
+        phone ?: string;
         password : string;
         timezone : string;
         locale : string;
@@ -318,6 +339,9 @@ router.post('/register', iv.validatePOST({
             !i18n.get(req.body.locale, false))
             throw new BadRequestError("Invalid localization data.");
 
+        if (!req.body.agree_terms)
+            throw new BadRequestError(req._("You must agree to the terms of service to sign-up."));
+
         options = {
             username: req.body['username'],
             email: req.body['email'],
@@ -325,10 +349,13 @@ router.post('/register', iv.validatePOST({
             timezone: req.body['timezone'],
             locale: req.body['locale']
         };
+
+        if (req.body['phone'])
+            options.phone = normalizePhoneNumber(req.body['phone']);
     } catch(e) {
         res.render('register', {
             csrfToken: req.csrfToken(),
-            page_title: req._("Almond - Register"),
+            page_title: req._("Genie - Register"),
             error: e
         });
         return;
@@ -342,7 +369,7 @@ router.post('/register', iv.validatePOST({
             } catch(e) {
                 res.render('register', {
                     csrfToken: req.csrfToken(),
-                    page_title: req._("Almond - Register"),
+                    page_title: req._("Genie - Register"),
                     error: e
                 });
                 return null;
@@ -356,6 +383,14 @@ router.post('/register', iv.validatePOST({
             EngineManager.get().startUser(user.id).then(async () => {
                 const engine = await EngineManager.get().getEngine(req.user!.id);
                 await engine.setConsent(!!req.body.agree_consent);
+
+                if (req.body.conversation_state) {
+                    await engine.ensureConversation('main', {
+                        showWelcome: true,
+                        anonymous: false,
+                        inactivityTimeout: -1
+                    }, JSON.parse(req.body.conversation_state));
+                }
             }).catch((e) => {
                 console.error(`Failed to start engine of newly registered user: ${e.message}`);
             }),
@@ -364,13 +399,9 @@ router.post('/register', iv.validatePOST({
 
         // skip login & 2fa for newly created users
         req.session.completed2fa = true;
-        res.locals.authenticated = true;
-        res.locals.user = user;
-        res.render('register_success', {
-            page_title: req._("Almond - Registration Successful"),
-            username: options.username,
-            cloudId: user.cloud_id,
-            authToken: user.auth_token });
+
+        // go straight to My Genie
+        registerSuccess(req, res);
     }).catch(next);
 });
 
@@ -406,7 +437,7 @@ router.get('/verify-email/:token', userUtils.requireLogIn, (req, res, next) => {
             });
         } catch(e) {
             res.status(400).render('error', {
-                page_title: req._("Almond - Error"),
+                page_title: req._("Genie - Error"),
                 message: req._("The verification link you have clicked is not valid. You might be logged-in as the wrong user, or the link might have expired.")
             });
             return;
@@ -414,7 +445,7 @@ router.get('/verify-email/:token', userUtils.requireLogIn, (req, res, next) => {
 
         await model.verifyEmail(dbClient, decoded.sub, decoded.email);
         res.render('email_verified', {
-            page_title: req._("Almond - Verification Successful")
+            page_title: req._("Genie - Verification Successful")
         });
     }).catch(next);
 });
@@ -422,14 +453,14 @@ router.get('/verify-email/:token', userUtils.requireLogIn, (req, res, next) => {
 router.post('/resend-verification', userUtils.requireLogIn, (req, res, next) => {
     if (req.user!.email_verified) {
         res.status(400).render('error', {
-            page_title: req._("Almond - Error"),
+            page_title: req._("Genie - Error"),
             message: req._("Your email address was already verified.")
         });
         return;
     }
     if (!req.user!.email) {
         res.status(400).render('error', {
-            page_title: req._("Almond - Error"),
+            page_title: req._("Genie - Error"),
             message: req._("You must set an email address before sending a verification email.")
         });
         return;
@@ -437,7 +468,7 @@ router.post('/resend-verification', userUtils.requireLogIn, (req, res, next) => 
 
     sendValidationEmail(req.user!.cloud_id, req.user!.username, req.user!.email).then(() => {
         res.render('message', {
-            page_title: req._("Almond - Verification Sent"),
+            page_title: req._("Genie - Verification Sent"),
             message: req._("A verification email was sent to %s. If you did not receive it, please check your Spam folder.").format(req.user!.email)
         });
     }).catch(next);
@@ -445,7 +476,7 @@ router.post('/resend-verification', userUtils.requireLogIn, (req, res, next) => 
 
 router.get('/recovery/start', (req, res, next) => {
     res.render('password_recovery_start', {
-        page_title: req._("Almond - Password Reset")
+        page_title: req._("Genie - Password Reset")
     });
 });
 
@@ -458,17 +489,17 @@ async function sendRecoveryEmail(cloudId : string, username : string, email : st
     const mailOptions = {
         from: Config.EMAIL_FROM_USER,
         to: email,
-        subject: 'Almond Password Reset',
+        subject: 'Genie Password Reset',
         text:
 `Hi ${username},
 
-We have been asked to reset your Almond password.
+We have been asked to reset your Genie password.
 To continue, please click the following link:
 <${Config.SERVER_ORIGIN}/user/recovery/continue/${token}>
 
 ----
 You are receiving this email because someone tried to recover
-your Almond password. Not you? You can safely ignore this email.
+your Genie password. Not you? You can safely ignore this email.
 `
     };
 
@@ -485,7 +516,7 @@ router.post('/recovery/start', iv.validatePOST({ username: 'string' }), (req, re
             // this eliminates the ability to check for the existance of
             // a username by initiating password recovery
             res.render('message', {
-                page_title: req._("Almond - Password Reset Sent"),
+                page_title: req._("Genie - Password Reset Sent"),
                 message: req._("A recovery email was sent to the address on file for %s. If you did not receive it, please check the spelling of your username, and check your Spam folder.").format(req.body.username)
             });
             return;
@@ -493,7 +524,7 @@ router.post('/recovery/start', iv.validatePOST({ username: 'string' }), (req, re
 
         if (!users[0].email_verified) {
             res.render('error', {
-                page_title: req._("Almond - Error"),
+                page_title: req._("Genie - Error"),
                 message: req._("You did not verify your email address, hence you cannot recover your password automatically. Please contact the website adminstrators to recover your password.")
             });
             return;
@@ -502,7 +533,7 @@ router.post('/recovery/start', iv.validatePOST({ username: 'string' }), (req, re
         // note: we must not reveal the email address in this message
         await sendRecoveryEmail(users[0].cloud_id, users[0].username, users[0].email);
         res.render('message', {
-            page_title: req._("Almond - Password Reset Sent"),
+            page_title: req._("Genie - Password Reset Sent"),
             message: req._("A recovery email was sent to the address on file for %s. If you did not receive it, please check the spelling of your username, and check your Spam folder.").format(req.body.username)
         });
     }).catch(next);
@@ -517,21 +548,21 @@ router.get('/recovery/continue/:token', (req, res, next) => {
         const users = await model.getByCloudId(dbClient, decoded.sub);
         if (users.length === 0) {
             res.status(404).render('error', {
-                page_title: req._("Almond - Error"),
+                page_title: req._("Genie - Error"),
                 message: req._("The user for which you're resetting the password no longer exists.")
             });
             return;
         }
 
         res.render('password_recovery_continue', {
-            page_title: req._("Almond - Password Reset"),
+            page_title: req._("Genie - Password Reset"),
             token: req.params.token,
             recoveryUser: users[0],
             error: undefined
         });
     }).catch((err) => {
         res.status(400).render('error', {
-            page_title: req._("Almond - Password Reset"),
+            page_title: req._("Genie - Password Reset"),
             message: req._("The verification link you have clicked is not valid.")
         });
     }).catch(next);
@@ -547,7 +578,7 @@ router.post('/recovery/continue', iv.validatePOST({ token: 'string', password: '
             });
         } catch(e) {
             res.status(400).render('error', {
-                page_title: req._("Almond - Error"),
+                page_title: req._("Genie - Error"),
                 message: e
             });
             return;
@@ -561,7 +592,7 @@ router.post('/recovery/continue', iv.validatePOST({ token: 'string', password: '
                 throw new BadRequestError(req._("The password and the confirmation do not match"));
         } catch(e) {
             res.render('password_recovery_continue', {
-                page_title: req._("Almond - Password Reset"),
+                page_title: req._("Genie - Password Reset"),
                 token: req.body.token,
                 error: e
             });
@@ -570,7 +601,7 @@ router.post('/recovery/continue', iv.validatePOST({ token: 'string', password: '
         const users = await model.getByCloudId(dbClient, decoded.sub);
         if (users.length === 0) {
             res.status(404).render('error', {
-                page_title: req._("Almond - Error"),
+                page_title: req._("Genie - Error"),
                 message: req._("The user for which you're resetting the password no longer exists.")
             });
             return;
@@ -588,7 +619,7 @@ router.post('/recovery/continue', iv.validatePOST({ token: 'string', password: '
             const rv = totp.verify(req.body.code, secret.decrypt(user.totp_key), { window: 6, time: TOTP_PERIOD });
             if (!rv) {
                 res.render('password_recovery_continue', {
-                    page_title: req._("Almond - Password Reset"),
+                    page_title: req._("Genie - Password Reset"),
                     token: req.body.token,
                     error: req._("Invalid OTP code")
                 });
@@ -605,7 +636,7 @@ router.post('/recovery/continue', iv.validatePOST({ token: 'string', password: '
         res.locals.authenticated = true;
         res.locals.user = user;
         res.render('message', {
-            page_title: req._("Almond - Password Reset"),
+            page_title: req._("Genie - Password Reset"),
             message: req._("Your password was reset successfully.")
         });
     }).catch(next);
@@ -663,6 +694,7 @@ router.get('/profile', userUtils.requireLogIn, (req, res, next) => {
 router.post('/profile', userUtils.requireLogIn, iv.validatePOST({
     username: 'string',
     email: 'string',
+    phone: '?string',
     human_name: '?string',
     locale: 'string',
     visible_organization_profile: 'boolean',
@@ -677,6 +709,8 @@ router.post('/profile', userUtils.requireLogIn, iv.validatePOST({
         if (req.body['email'].indexOf('@') < 0 ||
             req.body['email'].length > 255)
             req.body.email = req.user!.email;
+        if (req.body.phone)
+            req.body.phone = normalizePhoneNumber(req.body.phone);
 
         let profile_flags = 0;
         if (req.body.visible_organization_profile)
@@ -696,6 +730,7 @@ router.post('/profile', userUtils.requireLogIn, iv.validatePOST({
                             { username: req.body.username,
                               email: req.body.email,
                               email_verified: !mustSendEmail,
+                              phone: req.body.phone,
                               locale: req.body.locale,
                               human_name: req.body.human_name || '',
                               profile_flags });
@@ -892,7 +927,7 @@ if (Config.DISCOURSE_SSO_SECRET && Config.DISCOURSE_SSO_REDIRECT) {
         const sigbuffer = Buffer.from(req.query.sig, 'hex');
         if (expectedsig.length !== sigbuffer.length || !crypto.timingSafeEqual(expectedsig, sigbuffer)) {
             res.status(403).render('error', {
-                page_title: req._("Almond - Error"),
+                page_title: req._("Genie - Error"),
                 message: "Invalid signature"
             });
             return;
@@ -900,8 +935,8 @@ if (Config.DISCOURSE_SSO_SECRET && Config.DISCOURSE_SSO_REDIRECT) {
 
         if (!req.user!.email_verified) {
             res.status(400).render('error', {
-                page_title: req._("Almond - Error"),
-                message: req._("You must verify your email before accessing Almond's Discourse.")
+                page_title: req._("Genie - Error"),
+                message: req._("You must verify your email before accessing Genie's Discourse.")
             });
             return;
         }
