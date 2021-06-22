@@ -39,6 +39,7 @@ import cacheable from 'cacheable-middleware';
 import xmlBodyParser from 'express-xml-bodyparser';
 import Prometheus from 'prom-client';
 import escapeHtml from 'escape-html';
+import rateLimit from 'express-rate-limit';
 
 import './types';
 import * as passportUtil from './util/passport';
@@ -191,6 +192,11 @@ class Frontend {
         this._app.post('/sinkhole', (req, res, next) => {
             res.send('');
         });
+
+        this._app.use(rateLimit({
+            max: 1000,
+        }));
+
         this._app.use('/api/webhook', (await import('./routes/webhook')).default);
         this._app.use('/me/api/gassistant', (await import('./routes/bridges/gassistant')).default);
         this._app.use('/me/api', (await import('./routes/my_api')).default);
