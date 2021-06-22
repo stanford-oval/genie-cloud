@@ -216,8 +216,6 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
 
     async getOrOpenConversation(id : string, delegate : rpc.Proxy<Genie.DialogueAgent.ConversationDelegate>,
                                 options : Genie.DialogueAgent.ConversationOptions) {
-        // note: default arguments don't work because "undefined" becomes "null" through transparent-rpc
-        options = options || {};
         options.faqModels = PlatformModule.faqModels;
         const conversation = await this.assistant.getOrOpenConversation(id, options);
         return new ConversationWrapper(conversation, delegate);
