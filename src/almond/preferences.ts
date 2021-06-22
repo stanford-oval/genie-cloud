@@ -26,14 +26,14 @@ import * as Tp from 'thingpedia';
  */
 export default class SQLPreferences extends Tp.Preferences {
     private _baseUrl : string;
-    private _userId : number;
+    private _auth : string;
     private _data : Record<string, unknown>;
 
-    constructor(baseUrl : string, userId : number) {
+    constructor(baseUrl : string, accessToken : string) {
         super();
 
         this._baseUrl = baseUrl;
-        this._userId = userId;
+        this._auth = `Bearer ${accessToken}`;
         this._data = {};
     }
 
@@ -42,7 +42,7 @@ export default class SQLPreferences extends Tp.Preferences {
         // this allows clients to read the data synchronously,
         // which the interface requires
 
-        const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/localtable/user_preference/${this._userId}`);
+        const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/localtable/user_preference`, { auth: this._auth });
         const data = JSON.parse(resp)['data'];
 
         for (const row of data)
@@ -50,17 +50,18 @@ export default class SQLPreferences extends Tp.Preferences {
     }
 
     private _getObjectUrl(uniqueId : string) {
-        return `${this._baseUrl}/localtable/user_preference/${this._userId}/${encodeURIComponent(uniqueId)}`;
+        return `${this._baseUrl}/localtable/user_preference/${encodeURIComponent(uniqueId)}`;
     }
 
     private async _flush(key : string) {
         try {
             if (this._data[key] === undefined) {
-                await Tp.Helpers.Http.request(this._getObjectUrl(key), 'DELETE', '');
+                await Tp.Helpers.Http.request(this._getObjectUrl(key), 'DELETE', '', { auth: this._auth });
             } else {
                 // two layers of JSON.stringify: one is for HTTP transport and one is to put in the actual database
                 await Tp.Helpers.Http.post(this._getObjectUrl(key), JSON.stringify({ value: JSON.stringify(this._data[key]) }), {
-                    dataContentType: 'application/json'
+                    dataContentType: 'application/json',
+                    auth: this._auth,
                 });
             }
         } catch(e) {

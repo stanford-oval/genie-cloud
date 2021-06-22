@@ -27,6 +27,7 @@ import * as stream from 'stream';
 import * as rpc from 'transparent-rpc';
 import * as util from 'util';
 import * as net from 'net';
+import * as jwt from 'jsonwebtoken';
 
 import * as user from '../model/user';
 import * as db from '../util/db';
@@ -34,6 +35,7 @@ import ThingpediaClient from '../util/thingpedia-client';
 import Lock from '../util/lock';
 import * as Config from '../config';
 import { InternalError } from '../util/errors';
+import * as secret from '../util/secret_key';
 
 import type { EngineFactory } from './worker';
 import type Engine from './engine';
@@ -138,11 +140,19 @@ class EngineProcess extends events.EventEmitter {
         return this._id;
     }
 
-    runEngine(user : user.RowWithOrg, thingpediaClient : ThingpediaClient|null) {
+    async runEngine(user : user.RowWithOrg, thingpediaClient : ThingpediaClient|null) {
         this.useCount++;
 
         if (this.shared)
             safeMkdirSync(this._cwd + '/' + user.cloud_id);
+
+        let dbProxyAccessToken : string|null = null;
+        if (Config.DATABASE_PROXY_URL) {
+            dbProxyAccessToken = await util.promisify<object, string, jwt.SignOptions, string>(jwt.sign)({
+                sub: String(user.id),
+                aud: 'dbproxy',
+            }, secret.getJWTSigningKey(), { /* token does not expire */ });
+        }
 
         const args : rpc.RpcMarshalArgs<Parameters<EngineFactory['runEngine']>> = [thingpediaClient, {
             userId: user.id,
@@ -154,6 +164,7 @@ class EngineProcess extends events.EventEmitter {
             storageKey: user.storage_key,
             modelTag: user.model_tag,
             dbProxyUrl: Config.DATABASE_PROXY_URL,
+            dbProxyAccessToken: dbProxyAccessToken,
             humanName: user.human_name,
             phone: user.phone,
             email: user.email,

@@ -8,6 +8,7 @@ require (
 	github.com/go-playground/validator/v10 v10.6.1 // indirect
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/go-test/deep v1.0.7
+	github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/kr/text v0.2.0 // indirect

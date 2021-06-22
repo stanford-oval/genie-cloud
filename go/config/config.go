@@ -24,8 +24,9 @@ import (
 
 // AlmondConfig with almond-cloud configs and secrets
 type AlmondConfig struct {
-	NLServerURL string `yaml:"NL_SERVER_URL" json:"NL_SERVER_URL"`
-	DatabaseURL string `yaml:"DATABASE_URL" json:"DATABASE_URL"`
+	NLServerURL   string `yaml:"NL_SERVER_URL" json:"NL_SERVER_URL"`
+	DatabaseURL   string `yaml:"DATABASE_URL" json:"DATABASE_URL"`
+	JWTSigningKey string `yaml:"JWT_SIGNING_KEY" json:"JWT_SIGNING_KEY"`
 }
 
 var almondConfig *AlmondConfig
