@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
+import express from 'express';
 import * as Config from '../config';
 
 const ALLOWED_ORIGINS = [Config.SERVER_ORIGIN, ...Config.EXTRA_ORIGINS];
@@ -36,7 +36,7 @@ const ALLOWED_ORIGINS = [Config.SERVER_ORIGIN, ...Config.EXTRA_ORIGINS];
 // Origin checks are necessary to prevent a form of Cross-Site Request Forgery,
 // where a malicious third-party website issues cookie-authenticated cross-origin
 // requests
-export function isOriginOk(req) {
+export function isOriginOk(req : express.Request) {
     // a request without Origin header is considered OK
     //
     // browsers omit the Origin header for same-origin GET requests

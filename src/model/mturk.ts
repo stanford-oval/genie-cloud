@@ -78,7 +78,7 @@ export async function updateBatch(dbClient : db.Client, batchId : number, batch 
     await db.query(dbClient, `update mturk_batch set ? where id = ?`, [batch, batchId]);
 }
 
-type ValidationInputCreateRecord = [
+export type ValidationInputCreateRecord = [
     ValidationInputRow['batch'],
     ValidationInputRow['hit_id'],
     ValidationInputRow['type'],
@@ -176,6 +176,14 @@ export async function markSentencesBad(dbClient : db.Client, exampleIds : number
     await db.query(dbClient, `update example_utterances ex
         set ex.flags = trim(both ',' from replace(concat(',', ex.flags, ','), ',training,', ','))
         where ex.id in (?)`, [exampleIds]);
+}
+
+export interface UnvalidatedRow {
+    paraphrase_id : number;
+    utterance : string;
+    synthetic_id : number;
+    synthetic : string;
+    target_code : string;
 }
 
 export function streamUnvalidated(dbClient : db.Client, batch : number) {

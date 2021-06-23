@@ -26,7 +26,7 @@ import BaseThingpediaClient from './thingpedia-client';
 export default class AdminThingpediaClient extends BaseThingpediaClient {
     private _onlyApproved : boolean;
 
-    constructor(locale : string, dbClient : db.Client, onlyApproved = false) {
+    constructor(locale : string, dbClient : db.Client|null, onlyApproved = false) {
         super(null, locale, undefined, dbClient);
         this._onlyApproved = onlyApproved;
     }

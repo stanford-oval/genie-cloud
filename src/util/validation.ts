@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,12 +18,13 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import assert from 'assert';
 import * as ThingTalk from 'thingtalk';
 
+import * as db from './db';
 import * as entityModel from '../model/entity';
 import * as stringModel from '../model/strings';
+import * as userModel from '../model/user';
 
 import { clean, splitParams } from './tokenize';
 import ThingpediaClient from './thingpedia-client';
@@ -33,6 +34,12 @@ import * as userUtils from './user';
 import * as I18n from './i18n';
 
 assert(typeof ThingpediaClient === 'function');
+
+export interface RequestLike {
+    _ : (x : string) => string;
+
+    user ?: Express.User;
+}
 
 const JAVASCRIPT_MODULE_TYPES = new Set([
     'org.thingpedia.v1', 'org.thingpedia.v2',
@@ -49,21 +56,22 @@ const ALLOWED_ARG_METADATA = new Set(['canonical', 'prompt', 'question', 'counte
 const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'canonical_short', 'confirmation', 'confirmation_remote', 'result', 'formatted', 'on_error']);
 const ALLOWED_CLASS_METADATA = new Set(['name', 'description', 'thingpedia_name', 'thingpedia_description', 'canonical', 'help']);
 
-function validateAnnotations(annotations) {
-    for (let name of Object.getOwnPropertyNames(annotations)) {
+function validateAnnotations(annotations : ThingTalk.Ast.AnnotationMap) {
+    for (const name of Object.getOwnPropertyNames(annotations)) {
         if (FORBIDDEN_NAMES.has(name))
             throw new ValidationError(`Invalid implementation annotation ${name}`);
     }
 }
-function validateMetadata(metadata, allowed) {
-    for (let name of Object.getOwnPropertyNames(metadata)) {
+function validateMetadata(metadata : ThingTalk.Ast.NLAnnotationMap, allowed : Set<string>) {
+    for (const name of Object.getOwnPropertyNames(metadata)) {
         if (!allowed.has(name))
             throw new ValidationError(`Invalid natural language annotation ${name}`);
     }
 }
 
-async function loadClassDef(dbClient, req, kind, classCode, datasetCode) {
-    const tpClient = new ThingpediaClient(req.user.developer_key, req.user.locale, undefined, dbClient);
+async function loadClassDef(dbClient : db.Client, req : RequestLike, kind : string, classCode : string, datasetCode : string)
+    : Promise<[ThingTalk.Ast.ClassDef, ThingTalk.Ast.Dataset]> {
+    const tpClient = new ThingpediaClient(req.user!.developer_key, req.user!.locale, undefined, dbClient);
     const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
     let parsed;
@@ -94,12 +102,24 @@ async function loadClassDef(dbClient, req, kind, classCode, datasetCode) {
     if (parsed.datasets.length > 0 && parsed.datasets[0].language && parsed.datasets[0].language !== 'en')
         throw new ValidationError("The dataset must be for English: use `en` as the language tag.");
     const dataset = parsed.datasets.length > 0 ? parsed.datasets[0] :
-        new ThingTalk.Ast.Dataset(null, kind, 'en', [], {});
+        new ThingTalk.Ast.Dataset(null, kind, [], {});
 
     return [classDef, dataset];
 }
 
-async function validateDevice(dbClient, req, options, classCode, datasetCode) {
+interface DeviceMetadata {
+    name : string;
+    description : string;
+    primary_kind : string;
+    license : string;
+    license_gplcompatible : unknown;
+    subcategory : string;
+    website ?: string;
+    repository ?: string;
+    issue_tracker ?: string;
+}
+
+async function validateDevice(dbClient : db.Client, req : RequestLike, options : DeviceMetadata, classCode : string, datasetCode : string) : Promise<[ThingTalk.Ast.ClassDef, ThingTalk.Ast.Dataset]> {
     const name = options.name;
     const description = options.description;
     const kind = options.primary_kind;
@@ -107,7 +127,7 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
 
     if (!name || !description || !kind || !license)
         throw new ValidationError("Not all required fields were present");
-    validateTag(kind, req.user, userUtils.Role.THINGPEDIA_ADMIN);
+    validateTag(kind, req.user!, userUtils.Role.THINGPEDIA_ADMIN);
 
     if (!SUBCATEGORIES.has(options.subcategory))
         throw new ValidationError(req._("Invalid device category %s").format(options.subcategory));
@@ -122,29 +142,36 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
             classDef.imports.push(new ThingTalk.Ast.MixinImportStmt(null, ['config'], 'org.thingpedia.config.none', []));
     }
 
-    const moduleType = classDef.is_abstract ? null : classDef.loader.module;
-    const fullcode = !classDef.is_abstract && !JAVASCRIPT_MODULE_TYPES.has(moduleType);
+    let moduleType : string|null;
+    let fullcode : boolean;
+    if (classDef.is_abstract) {
+        moduleType = null;
+        fullcode = false;
+     } else {
+        moduleType = classDef.loader!.module;
+        fullcode = !JAVASCRIPT_MODULE_TYPES.has(moduleType);
+     }
 
-    for (let stmt of classDef.entities) {
+    for (const stmt of classDef.entities) {
         if (typeof stmt.nl_annotations.description !== 'string' ||
             !stmt.nl_annotations.description)
             throw new ValidationError(req._("A description is required for entity %s").format(stmt.name));
     }
 
-    let [entities, stringTypes] = await validateAllInvocations(classDef, {
+    const [entities, stringTypes] = await validateAllInvocations(classDef, {
         checkPollInterval: !classDef.is_abstract,
         checkUrl: fullcode,
         deviceName: name
     });
     // add all the parents of declared entities to the list of entities that must exist
-    for (let stmt of classDef.entities) {
+    for (const stmt of classDef.entities) {
         if (stmt.extends)
             entities.push(stmt.extends.includes(':') ? stmt.extends : classDef.kind + ':' + stmt.extends);
     }
 
     // remove from entities those that are declared in this class
-    entities = entities.filter((e) => !classDef.entities.find((stmt) => classDef.kind + ':' + stmt.name === e));
-    const missingEntities = await entityModel.findNonExisting(dbClient, entities);
+    const filteredEntities = entities.filter((e) => !classDef.entities.find((stmt) => classDef.kind + ':' + stmt.name === e));
+    const missingEntities = await entityModel.findNonExisting(dbClient, filteredEntities);
     if (missingEntities.length > 0)
         throw new ValidationError('Invalid entity types: ' + missingEntities.join(', '));
 
@@ -175,8 +202,8 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     return [classDef, dataset];
 }
 
-function autogenExampleName(ex, names) {
-    let baseName = getExampleName(ex);
+function autogenExampleName(ex : ThingTalk.Ast.Example, names : Set<string>) {
+    const baseName = getExampleName(ex);
 
     if (!names.has(baseName)) {
         names.add(baseName);
@@ -193,17 +220,17 @@ function autogenExampleName(ex, names) {
     return name;
 }
 
-function validateDataset(dataset) {
-    const names = new Set;
+function validateDataset(dataset : ThingTalk.Ast.Dataset) {
+    const names = new Set<string>();
     dataset.examples.forEach((ex, i) => {
         try {
             // FIXME: we clone the example here to workaround a bug in ThingTalk
             // we should not need it
-            let ruleprog = ex.clone().toProgram();
+            const ruleprog = ex.clone().toProgram();
 
             // try and convert to NN
             const allocator = new ThingTalk.Syntax.EntityRetriever('', {});
-            ThingTalk.Syntax.serialize(ruleprog, ThingTalk.Syntax.Tokenized, allocator);
+            ThingTalk.Syntax.serialize(ruleprog, ThingTalk.Syntax.SyntaxType.Tokenized, allocator);
 
             // validate placeholders in all utterances
             validateAnnotations(ex.annotations);
@@ -227,7 +254,7 @@ function validateDataset(dataset) {
                 ex.annotations.name = new ThingTalk.Ast.Value.String(autogenExampleName(ex, names));
             }
 
-            for (let utterance of ex.utterances)
+            for (const utterance of ex.utterances)
                 validateUtterance(ex.args, utterance);
         } catch(e) {
             throw new ValidationError(`Error in example ${i+1}: ${e.message}`);
@@ -235,21 +262,21 @@ function validateDataset(dataset) {
     });
 }
 
-function validateUtterance(args, utterance) {
+function validateUtterance(args : Record<string, ThingTalk.Type>, utterance : string) {
     if (/_{4}/.test(utterance))
         throw new ValidationError('Do not use blanks (4 underscores or more) in utterance, use placeholders');
 
-    let placeholders = new Set;
-    for (let chunk of splitParams(utterance.trim())) {
+    const placeholders = new Set<string>();
+    for (const chunk of splitParams(utterance.trim())) {
         if (chunk === '')
             continue;
         if (typeof chunk === 'string')
             continue;
 
-        let [match, param1, param2, opt] = chunk;
+        const [match, param1, param2, opt] = chunk;
         if (match === '$$')
             continue;
-        let param = param1 || param2;
+        const param = param1 || param2;
         if (!(param in args))
             throw new ValidationError(`Invalid placeholder ${param}`);
         if (opt && opt !== 'const' && opt !== 'no-undefined')
@@ -257,22 +284,26 @@ function validateUtterance(args, utterance) {
         placeholders.add(param);
     }
 
-    for (let arg in args) {
+    for (const arg in args) {
         if (!placeholders.has(arg))
             throw new ValidationError(`Missing placeholder for argument ${arg}`);
     }
 }
 
-function validateAllInvocations(classDef, options = {}) {
-
-    let entities = new Set;
-    let stringTypes = new Set;
+function validateAllInvocations(classDef : ThingTalk.Ast.ClassDef, options = {}) : [string[], string[]] {
+    const entities = new Set<string>();
+    const stringTypes = new Set<string>();
     validateInvocation(classDef.kind, classDef.actions, 'action', entities, stringTypes, options);
     validateInvocation(classDef.kind, classDef.queries, 'query', entities, stringTypes, options);
     return [Array.from(entities), Array.from(stringTypes)];
 }
 
-function validateInvocation(kind, where, what, entities, stringTypes, options = {}) {
+function validateInvocation(kind : string,
+                            where : Record<string, ThingTalk.Ast.FunctionDef>,
+                            what : string,
+                            entities : Set<string>,
+                            stringTypes : Set<string>,
+                            options : { checkPollInterval ?: boolean, checkUrl ?: boolean } = {}) {
     for (const name in where) {
         if (FORBIDDEN_NAMES.has(name))
             throw new ValidationError(`${name} is not allowed as a function name`);
@@ -287,7 +318,7 @@ function validateInvocation(kind, where, what, entities, stringTypes, options = 
             fndef.metadata.canonical = [fndef.metadata.canonical];
         if (fndef.annotations.confirm) {
             if (fndef.annotations.confirm.isEnum) {
-                if (!['confirm', 'auto', 'display_result'].includes(fndef.annotations.confirm.toJS()))
+                if (!['confirm', 'auto', 'display_result'].includes(fndef.annotations.confirm.toJS() as string))
                     throw new ValidationError(`Invalid #[confirm] annotation for ${name}, must be a an enum "confirm", "auto", "display_result"`);
             } else if (!fndef.annotations.confirm.isBoolean) {
                 throw new ValidationError(`Invalid #[confirm] annotation for ${name}, must be a Boolean`);
@@ -301,7 +332,7 @@ function validateInvocation(kind, where, what, entities, stringTypes, options = 
         if (options.checkPollInterval && what === 'query' && fndef.is_monitorable) {
             if (!fndef.annotations.poll_interval)
                 throw new ValidationError(`Missing poll interval for monitorable query ${name}`);
-            if (fndef.annotations.poll_interval.toJS() < 0)
+            if (fndef.annotations.poll_interval.toJS() as number < 0)
                 throw new ValidationError(`Invalid negative poll interval for monitorable query ${name}`);
         }
         if (options.checkUrl) {
@@ -312,20 +343,20 @@ function validateInvocation(kind, where, what, entities, stringTypes, options = 
         for (const argname of fndef.args) {
             if (FORBIDDEN_NAMES.has(argname))
                 throw new ValidationError(`${argname} is not allowed as argument name in ${name}`);
-            let type = fndef.getArgType(argname);
-            while (type.isArray)
-                type = type.elem;
-            const arg = fndef.getArgument(argname);
+            const arg = fndef.getArgument(argname)!;
+            let type = arg.type;
+            while (type instanceof ThingTalk.Type.Array)
+                type = type.elem as ThingTalk.Type;
             validateMetadata(arg.metadata, ALLOWED_ARG_METADATA);
             validateAnnotations(arg.annotations);
 
-            if (type.isEntity) {
+            if (type instanceof ThingTalk.Type.Entity) {
                 entities.add(type.type);
                 if (arg.annotations['string_values'])
-                    stringTypes.add(arg.annotations['string_values'].toJS());
+                    stringTypes.add(arg.annotations['string_values'].toJS() as string);
             } else if (type.isString) {
                 if (arg.annotations['string_values'])
-                    stringTypes.add(arg.annotations['string_values'].toJS());
+                    stringTypes.add(arg.annotations['string_values'].toJS() as string);
             } else {
                 if (arg.annotations['string_values'])
                     throw new ValidationError('The string_values annotation is valid only for String-typed parameters');
@@ -336,7 +367,7 @@ function validateInvocation(kind, where, what, entities, stringTypes, options = 
     }
 }
 
-function cleanKind(kind) {
+function cleanKind(kind : string) {
     // convert security-camera to 'security camera' and googleDrive to 'google drive'
 
     // thingengine.phone -> phone
@@ -361,11 +392,11 @@ function cleanKind(kind) {
     return kind.replace(/[_\-.]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
 }
 
-function tokenizeOneExample(id, utterance, language) {
+function tokenizeOneExample(id : number, utterance : string, language : string) {
     let replaced = '';
-    let params = [];
+    const params : Array<[string, string]> = [];
 
-    for (let chunk of splitParams(utterance.trim())) {
+    for (const chunk of splitParams(utterance.trim())) {
         if (chunk === '')
             continue;
         if (typeof chunk === 'string') {
@@ -373,12 +404,12 @@ function tokenizeOneExample(id, utterance, language) {
             continue;
         }
 
-        let [match, param1, param2, opt] = chunk;
+        const [match, param1, param2, opt] = chunk;
         if (match === '$$') {
             replaced += '$';
             continue;
         }
-        let param = param1 || param2;
+        const param = param1 || param2;
         replaced += '____ ';
         params.push([param, opt]);
     }
@@ -392,7 +423,7 @@ function tokenizeOneExample(id, utterance, language) {
     let first = true;
     for (let token of tokens) {
         if (token === '____') {
-            let [param, opt] = params.shift();
+            const [param, opt] = params.shift()!;
             if (opt)
                 token = '${' + param + ':' + opt + '}';
             else
@@ -409,7 +440,7 @@ function tokenizeOneExample(id, utterance, language) {
     return preprocessed;
 }
 
-async function tokenizeDataset(dataset) {
+async function tokenizeDataset(dataset : ThingTalk.Ast.Dataset) {
     return Promise.all(dataset.examples.map(async (ex, i) => {
         await Promise.all(ex.utterances.map(async (_, j) => {
             ex.preprocessed[j] = await tokenizeOneExample(i+1, ex.utterances[j], dataset.language || 'en');
@@ -418,7 +449,7 @@ async function tokenizeDataset(dataset) {
 }
 
 
-function validateTag(tag, user, adminRole) {
+function validateTag(tag : string, user : userModel.RowWithOrg, adminRole : number|undefined) {
     // first the security/well-formedness checks
     // the name must be a valid DNS name: multiple parts separated
     // by '.'; each part must be alphanumeric, -, or _,
@@ -431,7 +462,7 @@ function validateTag(tag, user, adminRole) {
         throw new ValidationError(`Invalid ID ${tag}`);
 
     const parts = tag.split('.');
-    for (let part of parts) {
+    for (const part of parts) {
         if (part.length === 0 || /^[-0-9]/.test(part) || part.endsWith('-'))
             throw new ValidationError(`Invalid ID ${tag}`);
 

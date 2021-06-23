@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 import { stringEscape } from './escaping';
@@ -29,7 +30,7 @@ import * as deviceModel from '../model/device';
 import { InternalError } from './errors';
 import { uniform } from './random';
 
-export function exampleToCode(example) {
+export function exampleToCode(example : ThingTalk.Ast.Example) {
     const clone = example.clone();
     clone.id = -1;
     clone.utterances = [];
@@ -42,60 +43,76 @@ export function exampleToCode(example) {
     return code;
 }
 
-const platformDevices = {
+const platformDevices : Record<string, string> = {
     'org.thingpedia.builtin.thingengine.gnome': 'gnome',
     'org.thingpedia.builtin.thingengine.phone': 'android',
 };
 
-export function getCheatsheet(language, options) {
+interface LoadThingpediaOptions {
+    forPlatform ?: string;
+    thingpedia ?: string;
+    dataset ?: string;
+    rng ?: () => number;
+}
+
+interface BasicDevice {
+    primary_kind : string;
+    name : string;
+    examples ?: SortedExampleRow[];
+}
+interface BasicExample {
+    kind : string;
+    utterance : string;
+    target_code : string;
+}
+
+export function getCheatsheet(language : string, options : LoadThingpediaOptions) {
     return loadThingpedia(language, options).then(([devices, examples]) => {
-        const deviceMap = new Map;
+        const deviceMap = new Map<string, number>();
         devices.forEach((d, i) => {
             d.examples = [];
 
-            if (options.forPlatform === 'server') {
-                if (d.factory && d.factory !== 'null' && JSON.parse(d.factory).type === 'oauth2')
-                    return;
-            }
             if (options.forPlatform && platformDevices[d.primary_kind]
                 && options.forPlatform !== platformDevices[d.primary_kind])
                 return;
             deviceMap.set(d.primary_kind, i);
         });
 
-
-        const dupes = new Set;
+        const dupes = new Set<string>();
         examples.forEach((ex) => {
             if (dupes.has(ex.target_code) || !ex.target_code)
                 return;
             dupes.add(ex.target_code);
-            let kind = ex.kind;
+            const kind = ex.kind;
             if (!deviceMap.has(kind)) {
                 // ignore what we don't recognize
                 console.log('Unrecognized kind ' + kind);
             } else {
-                devices[deviceMap.get(kind)].examples.push(ex);
+                devices[deviceMap.get(kind)!].examples!.push(ex);
             }
         });
 
-
-        for (let device of devices)
-            device.examples = sortAndChunkExamples(device.examples);
+        for (const device of devices)
+            device.examples = sortAndChunkExamples(device.examples!);
 
         return devices;
     });
 }
 
-
-async function loadCheatsheetFromFile(language, thingpedia, dataset, random = true, options = {}) {
+async function loadCheatsheetFromFile(language : string,
+                                      thingpedia : string,
+                                      dataset : string,
+                                      random = true,
+                                      options : LoadThingpediaOptions = {})
+    : Promise<[BasicDevice[], BasicExample[]]> {
     const tpClient = new Tp.FileClient({
         locale: language,
         thingpedia, dataset
     });
-    const deviceNames = await tpClient.getAllDeviceNames(null);
-    const devices = [];
-    const devices_rev = {};
-    for (let dev of deviceNames) {
+    const deviceNames = await tpClient.getAllDeviceNames();
+    const devices : BasicDevice[] = [];
+    const devices_rev : Record<string, boolean> = {};
+    for (const dev of deviceNames) {
         devices.push({
             primary_kind: dev.kind,
             name: dev.kind_canonical
@@ -103,13 +120,15 @@ async function loadCheatsheetFromFile(language, thingpedia, dataset, random = tr
         devices_rev[dev.kind] = true;
     }
 
-    let parsedExamples = ThingTalk.Syntax.parse(await tpClient.getAllExamples()).datasets[0].examples;
-    const examples = parsedExamples.map((e) => {
+    const parsed = ThingTalk.Syntax.parse(await tpClient.getAllExamples());
+    assert(parsed instanceof ThingTalk.Ast.Library);
+    const parsedExamples = parsed.datasets[0].examples;
+    const examples = parsedExamples.map((e) : BasicExample|null => {
         let kind;
-        for (let [, invocation] of e.iteratePrimitives())
+        for (const [, invocation] of e.iteratePrimitives(false))
             kind = invocation.selector.kind;
-        if (kind in devices_rev) {
-            let utterance = random ? uniform(e.utterances, options.rng) : e.utterances[0];
+        if (kind !== undefined && kind in devices_rev) {
+            const utterance = random ? uniform(e.utterances, options.rng) : e.utterances[0];
             return {
                 kind: kind,
                 utterance: utterance,
@@ -118,32 +137,49 @@ async function loadCheatsheetFromFile(language, thingpedia, dataset, random = tr
         } else {
             return null;
         }
-    }).filter((e) => !!e);
+    }).filter((e) : e is BasicExample => !!e);
     return [devices, examples];
 }
 
-function loadThingpedia(language, { forPlatform, thingpedia, dataset, rng = Math.random }) {
+function loadThingpedia(language : string, { forPlatform, thingpedia, dataset, rng = Math.random } : LoadThingpediaOptions) {
     if (thingpedia && dataset) {
         return loadCheatsheetFromFile(language, thingpedia, dataset, true, { rng });
     } else {
-        return db.withClient((dbClient) => {
-            return Promise.all([
-                forPlatform !== undefined ? deviceModel.getAllApprovedWithCode(dbClient, null) : deviceModel.getAllApproved(dbClient, null),
-                exampleModel.getCheatsheet(dbClient, language)
-            ]);
+        return db.withClient((dbClient) : Promise<[BasicDevice[], BasicExample[]]> => {
+            const devices : Promise<BasicDevice[]> = forPlatform !== undefined ? deviceModel.getAllApprovedWithCode(dbClient, null) : deviceModel.getAllApproved(dbClient, null);
+            const examples : Promise<BasicExample[]> = exampleModel.getCheatsheet(dbClient, language);
+            return Promise.all([devices, examples]);
         });
     }
 }
 
-function rowsToExamples(rows, { editMode = false, skipId = false }) {
+interface CoalescedExample {
+    id : number;
+    utterances : string[];
+    preprocessed : string[];
+    click_count : number;
+    like_count : number;
+    name : string|null;
+    //kind : string|null;
+}
+
+interface ExampleToDatasetOptions {
+    needs_compatibility ?: boolean;
+    thingtalk_version ?: string;
+    dbClient ?: db.Client;
+    editMode ?: boolean;
+    skipId ?: boolean;
+}
+
+function rowsToExamples(rows : Array<Omit<exampleModel.PrimitiveTemplateRow, "language"|"type">>, { editMode = false, skipId = false }) {
     // coalesce by target code
 
     // note: this code is designed to be fast, and avoid parsing the examples in the common
     // case of up-to-date thingpedia
 
-    let uniqueCode = new Map;
-    for (let row of rows) {
-        let targetCode = row.target_code || row.program;
+    const uniqueCode = new Map<string, CoalescedExample>();
+    for (const row of rows) {
+        let targetCode = row.target_code;
         if (!targetCode)
             throw new InternalError('E_DATASET_CORRUPT', `Invalid example ${row.id}, missing program`);
 
@@ -151,6 +187,7 @@ function rowsToExamples(rows, { editMode = false, skipId = false }) {
         // quick and dirty check to identify the syntax version
         if (targetCode.indexOf(':=') >= 0) {
             const parsed = ThingTalk.Syntax.parse(`dataset @foo { ${targetCode} }`, ThingTalk.Syntax.SyntaxType.Legacy);
+            assert(parsed instanceof ThingTalk.Ast.Library);
             targetCode = parsed.datasets[0].examples[0].prettyprint();
 
             // porkaround a bug in ThingTalk
@@ -161,7 +198,7 @@ function rowsToExamples(rows, { editMode = false, skipId = false }) {
         targetCode = targetCode.replace(/[ \r\n\t\v]*;[ \r\n\t\v]*$/, '');
 
         if (uniqueCode.has(targetCode)) {
-            const ex = uniqueCode.get(targetCode);
+            const ex = uniqueCode.get(targetCode)!;
             ex.utterances.push(row.utterance);
             ex.preprocessed.push(row.preprocessed);
             if (row.name && !ex.name)
@@ -174,14 +211,12 @@ function rowsToExamples(rows, { editMode = false, skipId = false }) {
                 click_count: row.click_count,
                 like_count: row.like_count,
                 name: row.name,
-                kind: row.kind
             });
         }
     }
 
-
-    let buffer = [];
-    for (let [targetCode, ex] of uniqueCode.entries()) {
+    const buffer = [];
+    for (const [targetCode, ex] of uniqueCode.entries()) {
         if (editMode) {
             if (!skipId && ex.id !== undefined) {
                 buffer.push(`  ${targetCode}
@@ -202,7 +237,7 @@ function rowsToExamples(rows, { editMode = false, skipId = false }) {
   #_[utterances=[${ex.utterances.map(stringEscape)}]]
   #_[preprocessed=[${ex.preprocessed.map(stringEscape)}]]
   #[id=${ex.id}] #[click_count=${ex.click_count}] #[like_count=${ex.like_count}]
-  #[name=${stringEscape((ex.kind ? ex.kind + '.' : '') + (ex.name || ''))}];
+  #[name=${stringEscape((ex.name || ''))}];
 `);
         }
     }
@@ -210,11 +245,39 @@ function rowsToExamples(rows, { editMode = false, skipId = false }) {
     return buffer.join('');
 }
 
-export function sortAndChunkExamples(rows) {
-    let functionTypes = new Map;
+export async function examplesToDataset(name : string, language : string, rows : Array<Omit<exampleModel.PrimitiveTemplateRow, "language"|"type">>, options : ExampleToDatasetOptions = {}) {
+    const code = `dataset @${name}
+#[language="${language}"] {
+${rowsToExamples(rows, options)}}`;
 
-    let trigger_ex = [], query_ex = [], action_ex = [], other_ex = [];
-    for (let ex of rows) {
+    // convert code to thingtalk 1 if necessary
+    if (options.needs_compatibility) {
+        const AdminThingpediaClient = (await import('./admin-thingpedia-client')).default;
+        const tpClient = new AdminThingpediaClient(language, options.dbClient || null);
+        const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
+
+        const parsed = ThingTalk.Syntax.parse(code);
+        await parsed.typecheck(schemas, false);
+        return ThingTalk.Syntax.serialize(parsed, ThingTalk.Syntax.SyntaxType.Normal, undefined, {
+            compatibility: options.thingtalk_version
+        });
+    } else {
+        return code;
+    }
+}
+
+interface SortedExampleRow {
+    utterance : string;
+    target_code : string;
+    type ?: string;
+    utterance_chunks ?: Array<string|string[]>;
+}
+
+export function sortAndChunkExamples(rows : SortedExampleRow[]) {
+    const functionTypes = new Map<string, 'query'|'action'>();
+
+    const trigger_ex : SortedExampleRow[] = [], query_ex : SortedExampleRow[] = [], action_ex : SortedExampleRow[] = [], other_ex : SortedExampleRow[] = [];
+    for (const ex of rows) {
         ex.target_code = ex.target_code.replace(/^\s*let\s+table/, 'query')
             .replace(/^\s*let\s+(stream|query|action)/, '$1');
 
@@ -222,7 +285,7 @@ export function sortAndChunkExamples(rows) {
         if (match === null)
             ex.type = 'program';
         else
-            ex.type = match[1];
+            ex.type = match[1] as 'stream'|'query'|'action';
 
         if (ex.utterance.startsWith(','))
             ex.utterance = ex.utterance.substring(1);
@@ -243,7 +306,7 @@ export function sortAndChunkExamples(rows) {
                 functionTypes.set(functions[i], 'query');
         }
 
-        switch (match[1]) {
+        switch (ex.type) {
         case 'stream':
             trigger_ex.push(ex);
             break;
@@ -279,26 +342,5 @@ export function sortAndChunkExamples(rows) {
         continue;
     }
 
-    return [].concat(trigger_ex, query_ex, action_ex);
-}
-
-export async function examplesToDataset(name, language, rows, options = {}) {
-    const code = `dataset @${name}
-#[language="${language}"] {
-${rowsToExamples(rows, options)}}`;
-
-    // convert code to thingtalk 1 if necessary
-    if (options.needs_compatibility) {
-        const AdminThingpediaClient = (await import('./admin-thingpedia-client')).default;
-        const tpClient = new AdminThingpediaClient(language, options.dbClient || null);
-        const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
-
-        const parsed = ThingTalk.Syntax.parse(code);
-        await parsed.typecheck(schemas, false);
-        return ThingTalk.Syntax.serialize(parsed, ThingTalk.Syntax.SyntaxType.Normal, undefined, {
-            compatibility: options.thingtalk_version
-        });
-    } else {
-        return code;
-    }
+    return ([] as SortedExampleRow[]).concat(trigger_ex, query_ex, action_ex);
 }

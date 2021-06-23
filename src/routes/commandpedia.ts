@@ -38,7 +38,7 @@ router.post('/suggest', iv.validatePOST({ description: 'string' }), (req, res, n
     }).catch(next);
 });
 
-router.get('/all', iv.validateGET({ page: '?number', locale: '?string' }, { json: true }), (req, res, next) => {
+router.get('/all', iv.validateGET({ page: '?integer', page_size: '?integer', locale: '?string' }, { json: true }), (req, res, next) => {
     const [page, page_size] = validatePageAndSize(req, 9, 50);
     const language = I18n.localeToLanguage(req.locale);
 
@@ -55,7 +55,7 @@ router.get('/all', iv.validateGET({ page: '?number', locale: '?string' }, { json
     }).catch(next);
 });
 
-router.get('/search', iv.validateGET({ q: 'string', page: '?number', locale: '?string' }, { json: true }), (req, res, next) => {
+router.get('/search', iv.validateGET({ q: 'string', locale: '?string' }, { json: true }), (req, res, next) => {
     const q = req.query.q;
     const language = I18n.localeToLanguage(req.locale);
 

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -38,22 +38,20 @@
 // chain (async-await pseudo-thread); concurrent calls to acquire()
 // will block in `await oldQueue` until `unlockCallback` is called
 export default class Lock {
+    private _queue : Promise<void>;
+
     constructor() {
         this._queue = Promise.resolve();
     }
 
-    /**
-     *
-     * @returns {() => void}
-     */
-    async acquire() {
-        let unlockCallback;
-        const ourTurn = new Promise((resolve) => {
+    async acquire() : Promise<() => void> {
+        let unlockCallback : () => void;
+        const ourTurn = new Promise<void>((resolve) => {
             unlockCallback = resolve;
         });
         const oldQueue = this._queue;
         this._queue = this._queue.then(() => ourTurn);
         await oldQueue;
-        return unlockCallback;
+        return unlockCallback!;
     }
 }

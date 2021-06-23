@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -23,7 +23,7 @@ import * as nodemailer from 'nodemailer';
 
 import { MAILGUN_USER, MAILGUN_PASSWORD } from '../config';
 
-let transporter = null;
+let transporter : nodemailer.Transporter|null = null;
 function ensureTransporter() {
     // create reusable transporter object using SMTP transport
     if (transporter)
@@ -34,11 +34,11 @@ function ensureTransporter() {
             user: MAILGUN_USER,
             pass: MAILGUN_PASSWORD
         }
-    });
+    } as any /* FIXME */);
     return transporter;
 }
 
-export function send(mailOptions) {
+export function send(mailOptions : nodemailer.SendMailOptions) {
     if (MAILGUN_USER === null || MAILGUN_PASSWORD === null) {
         console.error(`Ignored email to ${mailOptions.to} with subject "${mailOptions.subject}"`);
         return Promise.resolve();

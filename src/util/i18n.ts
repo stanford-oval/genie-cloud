@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
 import * as path from 'path';
 import Gettext from 'node-gettext';
 import * as gettextParser from 'gettext-parser';
@@ -29,8 +30,8 @@ import * as Genie from 'genie-toolkit';
 import { InternalError } from './errors';
 import * as userUtils from './user';
 
-function N_(x) { return x; }
-const ALLOWED_LANGUAGES = {
+function N_(x : string) { return x; }
+const ALLOWED_LANGUAGES : Record<string, string> = {
     'en': N_("English"),
     'en-US': N_("English (United States)"),
     'en-GB': N_("English (United Kingdom)"),
@@ -43,13 +44,27 @@ const ALLOWED_LANGUAGES = {
     'es-ES': N_("Spanish"),
 };
 
-let _enabledLanguages;
-const languages = {};
+let _enabledLanguages : string[];
 
-function loadTextdomainDirectory(gt, locale, domain, modir) {
+interface LanguagePack {
+    locale : string;
+    genie : Genie.I18n.LanguagePack;
+
+    gettext : (x : string) => string;
+    ngettext : (x : string, x1 : string, n : number) => string;
+    pgettext : (c : string, x : string) => string;
+
+    dgettext : (d : string, x : string) => string;
+    dngettext : (d : string, x : string, x1 : string, n : number) => string;
+    dpgettext : (d : string, c : string, x : string) => string;
+}
+
+const languages : Record<string, LanguagePack> = {};
+
+function loadTextdomainDirectory(gt : Gettext, locale : string, domain : string, modir : string) {
     assert(fs.existsSync(modir));
 
-    let split = locale.split(/[-_.@]/);
+    const split = locale.split(/[-_.@]/);
     let mo = modir + '/' + split.join('_') + '.mo';
 
     while (!fs.existsSync(mo) && split.length) {
@@ -61,23 +76,23 @@ function loadTextdomainDirectory(gt, locale, domain, modir) {
         return;
     }
     try {
-        let loaded = gettextParser.mo.parse(fs.readFileSync(mo), 'utf-8');
+        const loaded = gettextParser.mo.parse(fs.readFileSync(mo), 'utf-8');
         gt.addTranslations(locale, domain, loaded);
     } catch(e) {
         console.log(`Failed to load translations for ${locale}/${domain}: ${e.message}`);
     }
 }
 
-export function init(langs) {
-        _enabledLanguages = langs;
+export function init(langs : string[]) {
+    _enabledLanguages = langs;
     if (langs.length === 0)
         throw new InternalError('E_INVALID_CONFIG', `Configuration error: must enable at least one language`);
 
-    for (let locale of langs) {
+    for (const locale of langs) {
         if (!(locale in ALLOWED_LANGUAGES))
             throw new InternalError('E_INVALID_CONFIG', `Configuration error: locale ${locale} is enabled but is not supported`);
 
-        let gt = new Gettext();
+        const gt = new Gettext();
         if (locale !== 'en-US') {
             let modir = path.resolve(path.dirname(module.filename), '../../po');//'
             loadTextdomainDirectory(gt, locale, 'almond-cloud', modir);
@@ -101,7 +116,7 @@ export function init(langs) {
             dpgettext: gt.dpgettext.bind(gt),
         };
 
-        let split = locale.split('-');
+        const split = locale.split('-');
         while (split.length > 0) {
             languages[split.join('-')] = prebound;
             split.pop();
@@ -111,7 +126,7 @@ export function init(langs) {
     acceptLanguage.languages(langs);
 }
 
-export function getLangName(_, lang) {
+export function getLangName(_ : (x : string) => string, lang : string) {
     return _(ALLOWED_LANGUAGES[lang]);
 }
 
@@ -129,22 +144,22 @@ export function localeToLanguage(locale = 'en') {
     return locale.split(/[-_@.]/)[0];
 }
 
-export function get(locale, fallback = true) {
+export function get(locale : string, fallback = true) {
     if (!_enabledLanguages)
         throw new InternalError('E_I18N_NOT_INIT', `Internationalization support was not initialized`);
 
-    locale = locale.split(/[-_@.,]/);
-    let lang = languages[locale.join('-')];
+    const parts = locale.split(/[-_@.,]/);
+    let lang = languages[parts.join('-')];
     while (!lang && locale.length > 0) {
-        locale.pop();
-        lang = languages[locale.join('-')];
+        parts.pop();
+        lang = languages[parts.join('-')];
     }
     if (!lang && fallback)
         lang = languages['en-US'];
     return lang;
 }
 
-export function handler(req, res, next) {
+export function handler(req : express.Request, res : express.Response, next : express.NextFunction) {
     if (!_enabledLanguages)
         throw new InternalError('E_I18N_NOT_INIT', `Internationalization support was not initialized`);
 
@@ -159,10 +174,10 @@ export function handler(req, res, next) {
     }
 
     if (!locale && req.headers['accept-language'])
-        locale = acceptLanguage.get(req.headers['accept-language']);
+        locale = acceptLanguage.get(req.headers['accept-language'])!;
     if (!locale)
         locale = _enabledLanguages[0];
-    let lang = get(locale);
+    const lang = get(locale);
 
     req.locale = locale;
     req.gettext = lang.gettext;

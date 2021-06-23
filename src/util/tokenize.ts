@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -20,10 +20,10 @@
 
 export const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})/;
 
-export function* split(pattern, regexp) {
+export function* split(pattern : string, regexp : RegExp) {
     // a split that preserves capturing parenthesis
 
-    let clone = new RegExp(regexp, 'g');
+    const clone = new RegExp(regexp, 'g');
     let match = clone.exec(pattern);
 
     let i = 0;
@@ -38,12 +38,12 @@ export function* split(pattern, regexp) {
         yield pattern.substring(i, pattern.length);
 }
 
-export function stripUnsafeTokens(tokens) {
+export function stripUnsafeTokens(tokens : string[]) {
     const cleaned = [];
 
-    for (let tok of tokens) {
+    for (const tok of tokens) {
         let safe = true;
-        for (let char of ['?', '*', '.', '(', ')', '+', '\\']) {
+        for (const char of ['?', '*', '.', '(', ')', '+', '\\']) {
             if (tok.indexOf(char) >= 0) {
                 safe = false;
                 break;
@@ -57,22 +57,22 @@ export function stripUnsafeTokens(tokens) {
     return cleaned;
 }
 
-export function splitParams(utterance) {
+export function splitParams(utterance : string) {
     return Array.from(split(utterance, PARAM_REGEX));
 }
 
-export function clean(name) {
+export function clean(name : string) {
     if (/^[vwgpd]_/.test(name))
         name = name.substr(2);
     return name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
 }
 
-export function tokenize(string) {
-    let tokens = string.split(/(\s+|[,."'!?])/g);
+export function tokenize(string : string) {
+    const tokens = string.split(/(\s+|[,."'!?])/g);
     return tokens.filter((t) => !(/^\s*$/).test(t)).map((t) => t.toLowerCase());
 }
 
-export function rejoin(tokens) {
+export function rejoin(tokens : string[]) {
     // FIXME: do something sensible wrt , and .
     return tokens.join(' ');
 }

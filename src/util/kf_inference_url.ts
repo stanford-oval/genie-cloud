@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -20,7 +20,7 @@
 
 import * as crypto from 'crypto';
 
-function getKfInferenceUrl(id, namespace) {
+function getKfInferenceUrl(id : string, namespace : string) {
     // kfserving inference name has following limitations:
     //   * cannot be longer than 45 characters
     //   * can only contain alphanumeric (lower cased) and '-'
@@ -40,6 +40,6 @@ function getKfInferenceUrl(id, namespace) {
     return `http://${escapedId}.${namespace}.svc.cluster.local/v1/models/${escapedId}:predict`;
 }
 
-export default function kfInferenceUrl(id, namespace) {
+export default function kfInferenceUrl(id : string, namespace : string) {
     return getKfInferenceUrl(id, namespace);
 }

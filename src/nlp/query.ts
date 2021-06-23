@@ -38,12 +38,14 @@ async function tokenize(params : Record<string, string>, data : Record<string, a
     const tokenized = await tokenizer.tokenize(data.q);
 
     // adjust the API to be what it used to be before we got rid of almond-tokenizer
-    tokenized.raw_tokens = tokenized.rawTokens;
-    delete tokenized.rawTokens;
-
-    tokenized.result = 'ok';
+    const apiResult = {
+        result: 'ok',
+        tokens: tokenized.tokens,
+        raw_tokens: tokenized.rawTokens,
+        entities: tokenized.entities
+    };
     res.cacheFor(3600);
-    res.json(tokenized);
+    res.json(apiResult);
 }
 
 async function query(params : Record<string, string>, data : Record<string, any>, res : express.Response) {

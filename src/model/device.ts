@@ -28,7 +28,7 @@ export interface Row {
     name : string;
     description : string;
     license : string;
-    license_gplcompatible : string;
+    license_gplcompatible : boolean;
     website : string;
     repository : string;
     issue_tracker : string;
@@ -37,7 +37,7 @@ export interface Row {
     colors_palette_default : string;
     colors_palette_light : string;
     category : 'physical' | 'online' | 'data' | 'system';
-    subcategory : 'service' | 'media' | 'social-network' | 'communication' | 'home' | 'health' | 'data-management';
+    subcategory : string;
     approved_version : number|null;
     developer_version : number;
 }
@@ -88,7 +88,7 @@ async function insertDiscoveryServices(client : db.Client, deviceId : number, di
 }
 
 async function create<T extends db.Optional<Row, OptionalFields>>(client : db.Client,
-                                                                  device : T,
+                                                                  device : db.WithoutID<T>,
                                                                   extraKinds : string[],
                                                                   extraChildKinds : string[],
                                                                   discoveryServices : Array<Omit<DiscoveryServiceRow, "device_id">>,
@@ -97,8 +97,8 @@ async function create<T extends db.Optional<Row, OptionalFields>>(client : db.Cl
     versionedInfo.device_id = device.id;
     versionedInfo.version = device.developer_version;
     await Promise.all([
-        insertKinds(client, device.id, extraKinds, extraChildKinds),
-        insertDiscoveryServices(client, device.id, discoveryServices),
+        insertKinds(client, device.id!, extraKinds, extraChildKinds),
+        insertDiscoveryServices(client, device.id!, discoveryServices),
         db.insertOne(client, `insert into device_code_version set ?`, [versionedInfo])
     ]);
     return device;

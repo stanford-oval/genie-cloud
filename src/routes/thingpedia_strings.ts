@@ -34,9 +34,7 @@ import { uploadStringDataset } from '../util/upload_dataset';
 
 const router = express.Router();
 
-router.post('/create', multer({ dest: os.tmpdir() }).fields([
-    { name: 'upload', maxCount: 1 }
-]), csurf({ cookie: false }), user.requireLogIn, user.requireDeveloper(),
+router.post('/create', multer({ dest: os.tmpdir() }).single('upload'), csurf({ cookie: false }), user.requireLogIn, user.requireDeveloper(),
     iv.validatePOST({ type_name: 'string', name: 'string', license: 'string', attribution: '?string', preprocessed: 'boolean' }), (req, res, next) => {
     uploadStringDataset(req).then(() => {
         res.redirect(303, './');

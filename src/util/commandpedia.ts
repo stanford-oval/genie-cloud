@@ -19,9 +19,10 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import { PARAM_REGEX } from './tokenize';
+import * as exampleModel from '../model/example';
 
-export function getCommandDetails(_, commands) {
-    for (let command of commands) {
+export function getCommandDetails(_ : (x : string) => string, commands : exampleModel.CommandRow[]) {
+    for (const command of commands) {
         if (command.liked !== undefined)
             command.liked = !!command.liked;
         if (command.is_base) {
@@ -33,14 +34,14 @@ export function getCommandDetails(_, commands) {
             else if (command.target_code.startsWith('let table') || command.target_code.startsWith('query'))
                 command.utterance = _("show me %s").format(command.utterance);
 
-            command.devices = [command.kind];
+            command.devices = [command.kind!];
         } else {
             // get device kinds from target_code
-            let functions = command.target_code.split(' ').filter((code) => code.startsWith('@'));
-            let devices = new Set(functions.map((f) => {
-                let kind = f.split('.');
-                kind.splice(-1, 1);
-                kind = kind.join('.').substr(1);
+            const functions = command.target_code.split(' ').filter((code) => code.startsWith('@'));
+            const devices = new Set(functions.map((f) => {
+                const parts = f.split('.');
+                parts.splice(-1, 1);
+                const kind = parts.join('.').substr(1);
                 return kind;
             }));
             command.devices = Array.from(devices);

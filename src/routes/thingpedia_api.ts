@@ -421,7 +421,9 @@ v3.get('/devices/setup', iv.validateGET({
  */
 v3.get('/devices/all', iv.validateGET({
     ...commonQueryArgs,
-    class: '?string'
+    class: '?string',
+    page: '?integer',
+    page_size: '?integer',
 }), (req, res, next) => {
     const [page, page_size] = validatePageAndSize(req, 10, 50);
     if (!isValidDeviceClass(req, res))
@@ -527,7 +529,11 @@ v3.get('/devices/search', iv.validateGET({
  *    ]
  *  }
  */
-v3.get('/commands/all', iv.validateGET(commonQueryArgs), (req, res, next) => {
+v3.get('/commands/all', iv.validateGET({
+    ...commonQueryArgs,
+    page: '?integer',
+    page_size: '?integer',
+}), (req, res, next) => {
     const locale = req.query.locale || 'en-US';
     const language = I18n.localeToLanguage(locale);
     const gettext = I18n.get(locale).gettext;
@@ -1385,9 +1391,7 @@ v3.use((req, res, next) => {
  */
 v3.post('/entities/create',
     userUtils.requireScope('developer-upload'),
-    multer({ dest: os.tmpdir() }).fields([
-        { name: 'upload', maxCount: 1 }
-    ]),
+    multer({ dest: os.tmpdir() }).single('upload'),
     iv.validatePOST({ entity_id: 'string', entity_name: 'string', no_ner_support: 'boolean' }, { json: true }),
     (req, res, next) => {
     uploadEntities(req).then(() => {
@@ -1473,9 +1477,7 @@ v3.post('/devices/create',
  */
 v3.post('/strings/upload',
     userUtils.requireScope('developer-upload'),
-    multer({ dest: os.tmpdir() }).fields([
-        { name: 'upload', maxCount: 1 }
-    ]),
+    multer({ dest: os.tmpdir() }).single('upload'),
     iv.validatePOST({ type_name: 'string', name: 'string', license: 'string', attribution: '?string', preprocessed: 'boolean' }, { json: true }),
     (req, res, next) => {
     uploadStringDataset(req).then(() => {
