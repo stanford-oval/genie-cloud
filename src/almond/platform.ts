@@ -171,6 +171,7 @@ export interface PlatformOptions {
     storageKey : string;
     modelTag : string|null;
     dbProxyUrl : string|null;
+    dbProxyAccessToken : string|null;
     humanName : string|null;
     phone : string|null;
     email : string;
@@ -186,7 +187,7 @@ export class Platform extends Tp.BasePlatform {
     private _timezone : string;
     private _sqliteKey : string;
     private _dbProxyUrl : string|null;
-    private _userId : number;
+    private _dbProxyAccessToken : string|null;
     private _profile : Tp.UserProfile;
     // TODO
     private _gettext : ReturnType<(typeof i18n)['get']>;
@@ -205,7 +206,7 @@ export class Platform extends Tp.BasePlatform {
         this._timezone = options.timezone;
         this._sqliteKey = options.storageKey;
         this._dbProxyUrl = options.dbProxyUrl;
-        this._userId = options.userId;
+        this._dbProxyAccessToken = options.dbProxyAccessToken;
         this._profile = {
             account: options.cloudId,
             name: options.humanName ?? undefined,
@@ -227,7 +228,7 @@ export class Platform extends Tp.BasePlatform {
                 throw e;
         }
         if (options.dbProxyUrl)
-            this._prefs = new SQLPreferences(options.dbProxyUrl, options.userId);
+            this._prefs = new SQLPreferences(options.dbProxyUrl, options.dbProxyAccessToken!);
         else
             this._prefs = new Tp.Helpers.FilePreferences(this._writabledir + '/prefs.db');
 
@@ -365,7 +366,7 @@ export class Platform extends Tp.BasePlatform {
             return LocalCVC4Solver;
 
         case 'database-proxy':
-            return  { baseUrl: this._dbProxyUrl, userId: this._userId };
+            return  { baseUrl: this._dbProxyUrl, accessToken: this._dbProxyAccessToken };
 
         default:
             return null;

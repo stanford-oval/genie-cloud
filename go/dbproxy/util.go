@@ -38,7 +38,12 @@ func debugDumpRequest(req *http.Request) {
 }
 
 func parseUserID(c *gin.Context) (int64, error) {
-	userID, err := strconv.ParseInt(c.Param("userid"), 10, 64)
+	token, err := parseAccessToken(c)
+	if err != nil {
+		return 0, err
+	}
+
+	userID, err := strconv.ParseInt(token.Claims.(*accessTokenClaims).Subject, 10, 64)
 	if err != nil {
 		return 0, err
 	}
