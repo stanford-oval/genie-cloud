@@ -20,7 +20,7 @@
 
 import express from 'express';
 import * as Url from 'url';
-import * as qs from 'querystring';
+import * as qs from 'qs';
 
 import * as user from '../util/user';
 import EngineManager from '../almond/enginemanagerclient';
@@ -36,6 +36,7 @@ router.get('/oauth2/callback/:kind', (req, res, next) => {
 }, (req, res, next) => {
     if (req.session.redirect) {
         const parsed = Url.parse(req.session.redirect);
+        const session = req.session.proxyOAuth2 || {};
 
         let redirect;
         // If we have a query string already, we append all the query parameters
@@ -44,17 +45,20 @@ router.get('/oauth2/callback/:kind', (req, res, next) => {
         //
         // If we don't have a query string, we assume redirect is only the
         // origin+base of the almond-server, and append the full path name and query
-        if (parsed.query)
-            redirect = req.session.redirect + '&' + qs.stringify(req.query as Record<string, string>);
-        else
-            redirect = req.session.redirect + '/devices' + req.url;
+        if (parsed.query) {
+            redirect = req.session.redirect + '&' + qs.stringify(req.query as Record<string, string>)
+                + '&' + qs.stringify({ proxy_session: session });
+        } else {
+            redirect = req.session.redirect + '/devices' + req.url + '&' + qs.stringify({ proxy_session: session });
+        }
         delete req.session.redirect;
+        delete req.session.proxyOAuth2;
         res.redirect(303, redirect);
     } else {
         const kind = req.params.kind;
 
         EngineManager.get().getEngine(req.user!.id).then(async (engine) => {
-            await engine.completeOAuth(kind, req.url, req.session as Record<string, string>);
+            await engine.completeOAuth(kind, req.url, req.session.oauth2 || {});
             if (req.session['device-redirect-to']) {
                 res.redirect(303, req.session['device-redirect-to']);
                 delete req.session['device-redirect-to'];

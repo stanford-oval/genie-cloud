@@ -52,11 +52,15 @@ declare module 'express-session' {
         // redirect after configuring a device
         'device-redirect-to' : string;
 
+        // OAuth session data
+        oauth2 : Record<string, string>;
+        proxyOAuth2 : Record<string, string>;
+
         // redirect for OAuth proxy
         redirect : string;
         kind : string;
 
-        [key : string] : unknown;
+        //[key : string] : unknown;
     }
 }
 

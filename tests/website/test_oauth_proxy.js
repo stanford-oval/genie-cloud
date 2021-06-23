@@ -30,14 +30,16 @@ async function testWithoutQueryString(session) {
 
     assert(response.includes(`<h2>OAuth request for: </h2><span> </span><h3>com.spotify</h3><span> </span><h2>from: </h2><h3>localhost:1234</h3>`));
 
-    assertRedirect(sessionRequest('/proxy/oauth2', 'POST', { device_type: 'com.spotify' }, session, { followRedirects: false }), (redirect) => {
+    await assertRedirect(sessionRequest('/proxy/oauth2', 'POST', { device_type: 'com.spotify' }, session, { followRedirects: false }), (redirect) => {
         assert(redirect.startsWith('https://accounts.spotify.com/authorize'));
     });
 
-    assertRedirect(sessionRequest('/devices/oauth2/callback/com.spotify', 'GET', {
+    await assertRedirect(sessionRequest('/devices/oauth2/callback/com.spotify', 'GET', {
         authorization_code: 'code-123456',
         state: 'abcdef'
-    }, session, { followRedirects: false }), 'http://localhost:1234/subpath/devices/oauth2/callback/com.spotify?authorization_code=code-123456&state=abcdef');
+    }, session, { followRedirects: false }), (redirect) => {
+        assert(redirect.startsWith('http://localhost:1234/subpath/devices/oauth2/callback/com.spotify?authorization_code=code-123456&state=abcdef&proxy_session%5Boauth2-pkce-com.spotify%5D='), `Invalid redirect ${redirect}`);
+    });
 }
 
 async function testWithQueryString(session) {
@@ -48,14 +50,16 @@ async function testWithQueryString(session) {
 
     assert(response.includes(`<h2>OAuth request for: </h2><span> </span><h3>com.spotify</h3><span> </span><h2>from: </h2><h3>localhost:1235</h3>`));
 
-    assertRedirect(sessionRequest('/proxy/oauth2', 'POST', { device_type: 'com.spotify' }, session, { followRedirects: false }), (redirect) => {
+    await assertRedirect(sessionRequest('/proxy/oauth2', 'POST', { device_type: 'com.spotify' }, session, { followRedirects: false }), (redirect) => {
         assert(redirect.startsWith('https://accounts.spotify.com/authorize'));
     });
 
-    assertRedirect(sessionRequest('/devices/oauth2/callback/com.spotify', 'GET', {
+    await assertRedirect(sessionRequest('/devices/oauth2/callback/com.spotify', 'GET', {
         authorization_code: 'code-123457',
         state: 'abcdef'
-    }, session, { followRedirects: false }), 'http://localhost:1235/subpath?foo=1&bar=2&authorization_code=code-123457&state=abcdef');
+    }, session, { followRedirects: false }), (redirect) => {
+        assert(redirect.startsWith('http://localhost:1235/subpath?foo=1&bar=2&authorization_code=code-123457&state=abcdef&proxy_session%5Boauth2-pkce-com.spotify%5D='), `Invalid redirect ${redirect}`);
+    });
 }
 
 async function main() {

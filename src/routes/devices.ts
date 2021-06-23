@@ -94,8 +94,7 @@ router.get('/oauth2/:kind', (req, res, next) => {
         if (result !== null) {
             const redirect = result[0];
             const session = result[1];
-            for (const key in session)
-                req.session[key] = session[key];
+            req.session.oauth2 = session;
             res.redirect(303, redirect);
         } else {
             res.redirect(303, '/me');
