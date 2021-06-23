@@ -66,6 +66,8 @@ func getRowFromFilename(filename string) sql.Row {
 		return &sql.UserDevice{}
 	case "user_device_journal.json":
 		return &sql.UserDeviceJournal{}
+	case "user_preference.json":
+		return &sql.UserPreference{}
 	default:
 		log.Fatal("Unknown table name: " + filename)
 	}
