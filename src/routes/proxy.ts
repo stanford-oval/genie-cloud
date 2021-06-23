@@ -50,17 +50,15 @@ router.post('/oauth2', (req, res, next) => {
     user.getAnonymousUser(req.locale).then((new_user) => {
         EngineManager.get().getEngine(new_user.id).then(async (engine) => {
             const [redirect, session] = await engine.startOAuth(kind);
-            for (const key in session)
-                 req.session[key] = session[key];
+            req.session.proxyOAuth2 = session;
             res.redirect(303, redirect);
         }).catch((e) => {
             res.status(400).render('error', {
                 page_title: req._("Thingpedia - Error"),
                 message: e
             });
-        }).catch(next);
-    });
-
+        });
+    }).catch(next);
 });
 
 export default router;
