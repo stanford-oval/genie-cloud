@@ -26,6 +26,7 @@ import bodyParser from 'body-parser';
 import cacheable from 'cacheable-middleware';
 import Prometheus from 'prom-client';
 import * as Genie from 'genie-toolkit';
+import rateLimit from 'express-rate-limit';
 
 import * as db from '../util/db';
 import Metrics from '../util/metrics';
@@ -142,6 +143,7 @@ export class NLPInferenceServer {
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({ extended: true }));
         app.use(cacheable());
+        app.use(rateLimit({ max: 100 }));
 
         // no logger in production!
         // otherwise all the mess with IRB to log what
