@@ -11,40 +11,20 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package main
+package v1
 
 import (
-	"almond-cloud/config"
-	"almond-cloud/dbproxy"
-	"almond-cloud/k8s/manager"
-
-	"log"
-	"os"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/controller-runtime/pkg/scheme"
 )
 
-func main() {
+var (
+	// GroupVersion is group version used to register these objects
+	GroupVersion = schema.GroupVersion{Group: "backend.almond.stanford.edu", Version: "v1"}
 
-	err := config.InitAlmondConfig()
-	if err != nil {
-		log.Printf("Warning: failed to initialize almond config: %v", err)
-	}
+	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
+	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}
 
-	if len(os.Args) < 2 {
-		usage()
-		os.Exit(1)
-	}
-
-	switch os.Args[1] {
-	case "dbproxy":
-		dbproxy.Run(os.Args[2:])
-	case "manager":
-		manager.Run(os.Args[2:])
-	default:
-		usage()
-		os.Exit(1)
-	}
-}
-
-func usage() {
-	dbproxy.Usage()
-}
+	// AddToScheme adds the types in this group-version to the given scheme.
+	AddToScheme = SchemeBuilder.AddToScheme
+)

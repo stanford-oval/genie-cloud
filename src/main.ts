@@ -49,6 +49,7 @@ async function main() {
 
         // daemons
         'run-almond': await import('./almond/master'),
+        'run-worker': await import('./almond/worker_k8s'),
         'run-frontend': await import('./frontend'),
         'run-nlp': await import('./nlp/main'),
         'run-training': await import('./training/daemon'),

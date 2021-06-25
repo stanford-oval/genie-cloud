@@ -78,3 +78,14 @@ func parseAccessToken(c *gin.Context) (*jwt.Token, error) {
 
 	return parsedJWT, nil
 }
+
+// SignToken signs the complete token with given user id
+func SignToken(uid int64) (string, error) {
+	signingKey := []byte(config.GetAlmondConfig().JWTSigningKey)
+	claims := &jwt.StandardClaims{
+		Audience: "dbproxy",
+		Subject:  fmt.Sprintf("%v", uid),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(signingKey)
+}
