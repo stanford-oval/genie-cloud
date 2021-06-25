@@ -28,12 +28,11 @@ import WebSocket from "ws";
 const wsjs = require('ws');
 
 import * as http from 'http';
-import * as stream from 'stream';
 import * as rpc from 'transparent-rpc';
 import * as argparse from 'argparse';
 
 import PlatformModule, { PlatformOptions } from './platform';
-import JsonDatagramSocket from '../util/json_datagram_socket';
+import JsonWebSocketAdapter from '../util/json_websocket';
 import * as i18n from '../util/i18n';
 import Engine from './engine';
 
@@ -62,7 +61,7 @@ class Worker {
 
         this.server = http.createServer(this.app);
         this.server.on('upgrade', (request, socket, head) => {
-          const pathname = new URL(request.url).pathname;          
+          const pathname = request.url;
           if (pathname === '/engine') {
               this.wss.handleUpgrade(request, socket, head, (ws) => {
                   this.wss.emit('connection', ws, request);
@@ -195,10 +194,10 @@ class Worker {
         return "running";
     }
 
-    handleDirectSocket(userId : number, replyId : number, socket : stream.Duplex) {
+    handleDirectSocket(userId : number, replyId : number, jsonSocket : JsonWebSocketAdapter) {
         console.log('Handling direct connection for ' + userId);
 
-        const rpcSocket = new rpc.Socket(new JsonDatagramSocket(socket, socket, 'utf8'));
+        const rpcSocket = new rpc.Socket(jsonSocket);
         rpcSocket.on('error', (e) => {
             console.log('Error on direct RPC socket: ' + e.message);
         });
@@ -227,7 +226,7 @@ class Worker {
     async connectWSEngine(ws : WebSocket) {
         console.log('connecting engine ...');
         const socket = wsjs.createWebSocketStream(ws);
-        const jsonSocket = new JsonDatagramSocket(socket, socket, 'utf-8');
+        const jsonSocket = new JsonWebSocketAdapter(socket);
         const initListener = (msg : any) => {
             console.log(`=== received msg: ${msg}`);
             if (msg.control === 'new-object')
@@ -236,7 +235,7 @@ class Worker {
             if (msg.control === 'direct') {
                 console.log(`=== connecting rpc socket to engine`);
                 try {
-                    this.handleDirectSocket(msg.target, msg.replyId, socket);
+                    this.handleDirectSocket(msg.target, msg.replyId, jsonSocket);
                 } catch(e) {
                     console.log(`=== sending socket to child err ${e.message}`);
                     jsonSocket.write({ error: e.message, code: e.code });
