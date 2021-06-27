@@ -18,9 +18,6 @@
 // limitations under the License.
 //
 
-// load thingpedia to initialize the polyfill
-import 'thingpedia';
-
 import express from 'express';
 import WebSocket from "ws";
 
@@ -74,7 +71,6 @@ class Worker {
 
         this.wss = new WebSocket.Server({ noServer: true });
         this.wss.on('connection', async (ws : WebSocket, request : http.IncomingMessage) => {
-            console.log('connect engine request:' + request);
             this.connectWSEngine(ws);
         });
 
@@ -195,7 +191,7 @@ class Worker {
     }
 
     handleDirectSocket(userId : number, replyId : number, jsonSocket : JsonWebSocketAdapter) {
-        console.log('Handling direct connection for ' + userId);
+        console.log(`Handling direct connection for ${userId} replyId:${replyId}`);
 
         const rpcSocket = new rpc.Socket(jsonSocket);
         rpcSocket.on('error', (e) => {
@@ -224,25 +220,20 @@ class Worker {
     }
 
     async connectWSEngine(ws : WebSocket) {
-        console.log('connecting engine ...');
         const socket = wsjs.createWebSocketStream(ws);
         const jsonSocket = new JsonWebSocketAdapter(socket);
         const initListener = (msg : any) => {
-            console.log(`=== received msg: ${msg}`);
             if (msg.control === 'new-object')
                 return;
             jsonSocket.removeListener('data', initListener);
             if (msg.control === 'direct') {
-                console.log(`=== connecting rpc socket to engine`);
                 try {
                     this.handleDirectSocket(msg.target, msg.replyId, jsonSocket);
                 } catch(e) {
-                    console.log(`=== sending socket to child err ${e.message}`);
                     jsonSocket.write({ error: e.message, code: e.code });
                     jsonSocket.end();
                 }
             } else {
-                console.log(`=== invalid message`);
                 jsonSocket.write({ error: 'invalid initialization message' });
                 jsonSocket.end();
             }
