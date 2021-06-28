@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import type WebSocket from 'ws';
-import type rpc from 'transparent-rpc';
+import * as rpc from 'transparent-rpc';
 
 import EngineManager from '../almond/enginemanagerclient';
 import type { WebSocketWrapper } from '../almond/platform';

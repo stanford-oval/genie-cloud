@@ -63,8 +63,6 @@ export default class EngineManagerClientK8s extends events.EventEmitter {
     private _cachedEngines : Map<number, CachedEngine>;
     private _expectClose : boolean;
     private userApi : UserK8sApi;
-    private _uid : number;
-    private _socketId : number;
 
 
     constructor(namespace : string) {
@@ -76,8 +74,6 @@ export default class EngineManagerClientK8s extends events.EventEmitter {
         this.setMaxListeners(Infinity);
         this._cachedEngines = new Map;
         this._expectClose = false;
-        this._uid = Date.now();
-        this._socketId = 0;
     }
 
     async getEngine(userId : number) : Promise<EngineProxy> {
@@ -103,8 +99,6 @@ export default class EngineManagerClientK8s extends events.EventEmitter {
         let deleted = false;
 
         const rpcSocket = new rpc.Socket(jsonSocket);
-        // temporary workaround until transparent-rpc lib is updated.
-        ((rpcSocket as unknown) as {_socketId : string})._socketId = `${this._uid}:${this._socketId++}:`;
 
         rpcSocket.on('close', () => {
             if (this._expectClose)

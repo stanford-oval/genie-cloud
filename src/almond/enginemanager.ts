@@ -101,7 +101,7 @@ class EngineProcess extends events.EventEmitter {
     private _cwd : string;
     private _child : child_process.ChildProcess|null;
     private _rpcSocket : rpc.Socket|null;
-    private _rpcId : rpc.RpcId|null;
+    private _rpcId : string|null;
 
     private _sandboxed : boolean;
     private _sandboxedPid : number|null;
@@ -510,7 +510,7 @@ export default class EngineManager extends events.EventEmitter implements rpc.St
         return (this._engines[userId] !== undefined && this._engines[userId].process !== null) ? this._engines[userId].process!.id : -1;
     }
 
-    async sendSocket(userId : number, replyId : number, socket : net.Socket) {
+    async sendSocket(userId : number, replyId : string, socket : net.Socket) {
         if (this._engines[userId] === undefined)
             throw new InternalError('E_INVALID_USER', 'Invalid user ID');
         if (this._engines[userId].process === null)

@@ -190,7 +190,7 @@ class Worker {
         return "running";
     }
 
-    handleDirectSocket(userId : number, replyId : number, jsonSocket : JsonWebSocketAdapter) {
+    handleDirectSocket(userId : number, replyId : string, jsonSocket : JsonWebSocketAdapter) {
         console.log(`Handling direct connection for ${userId} replyId:${replyId}`);
 
         const rpcSocket = new rpc.Socket(jsonSocket);

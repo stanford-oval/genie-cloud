@@ -18,7 +18,7 @@
 
 
 const wsjs = require('ws');
-const rpc = require('transparent-rpc');
+import * as rpc from 'transparent-rpc';
 
 import assert from 'assert';
 import http from 'http';
@@ -41,8 +41,8 @@ export default function testSocketJsonAdapterForRpcOverWebSocket() {
            const socket = new JsonWebSocketAdapter(wsjs.createWebSocketStream(ws));
            const rpcSocket = new rpc.Socket(socket);
            const stub = {
-               $rpcMethods: ['frobnicate'],
-               frobnicate(x : any) {
+               $rpcMethods: ['frobnicate'] as const,
+               frobnicate(x : rpc.Proxy<number>) {
                    assert.strictEqual(x, 'x');
                    return 42;
                }
