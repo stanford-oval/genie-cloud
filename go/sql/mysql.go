@@ -118,9 +118,8 @@ func MySQLDSN(rawUrl string) (string, error) {
 		timeout = fmt.Sprintf("&timeout=%sms", timeout)
 	}
 
-	return fmt.Sprintf("%s%s@tcp(%s)/%s?charset=%s&loc=%s&tls=%s%s",
+	return fmt.Sprintf("%s%s@tcp(%s)/%s?charset=%s&loc=%s&parseTime=true&tls=%s%s",
 		userName, password, u.Host, database, charset, loc, tls, timeout), nil
-
 }
 
 // NewMySQL returns an mysql grom DB
@@ -150,4 +149,9 @@ func GetLocalTable() *LocalTable {
 // GetLocalTable returns a localTable singleton
 func GetSyncTable() *SyncTable {
 	return syncTable
+}
+
+// GetDB returns a singleton database
+func GetDB() *gorm.DB {
+	return db
 }

@@ -21,8 +21,8 @@ import (
 
 func TestMySQLDSN(t *testing.T) {
 	input := "mysql://user:pwd@host.name/database?charset=utf8mb4_bin&ssl=Amazon%20RDS&acquireTimeout=120000&connectTimeout=120000&timezone=Z"
-	want := "user:pwd@tcp(host.name)/database?charset=utf8mb4&loc=UTC&tls=aws&timeout=120000ms"
+	want := "user:pwd@tcp(host.name)/database?charset=utf8mb4&loc=UTC&parseTime=true&tls=aws&timeout=120000ms"
 	got, err := MySQLDSN(input)
 	require.Nil(t, err)
-	require.Equal(t, got, want)
+	require.Equal(t, want, got)
 }

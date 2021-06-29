@@ -30,10 +30,11 @@ import * as proto from './protocol';
 import type Engine from './engine';
 import type { WebSocketApi, WebhookApi } from './platform';
 import type EngineManager from './enginemanager';
+import EngineManagerClientK8s from './enginemanagerclient_k8s';
 
 import * as Config from '../config';
 
-let _instance : EngineManagerClient;
+let _instance : EngineManagerInterface;
 
 function connectToMaster(shardId : number) {
     const shard = Config.THINGENGINE_MANAGER_ADDRESS[shardId];
@@ -58,7 +59,23 @@ interface CachedEngine {
     socket : rpc.Socket;
 }
 
-export default class EngineManagerClient extends events.EventEmitter {
+interface EngineManagerInterface extends events.EventEmitter {
+    getEngine(userId : number) : Promise<EngineProxy>;
+    dispatchWebhook(userId : number, req : express.Request, res : express.Response) : void;
+    start() : void;
+    stop() : void;
+    killAllUsers() : Promise<boolean>;
+    isRunning(userId : number) : Promise<boolean>;
+    getProcessId(userId : number) : Promise<number|string>;
+    startUser(userId : number) : Promise<void>;
+    killUser(userId : number) : Promise<void>;
+    deleteUser(userId : number) : Promise<void>;
+    clearCache(userId : number) : Promise<void>;
+    restartUser(userId : number) : Promise<void>;
+    restartUserWithoutCache(userId : number) : Promise<void>;
+}
+
+class EngineManagerClientImpl extends events.EventEmitter {
     private _cachedEngines : Map<number, CachedEngine>;
     private _expectClose : boolean;
 
@@ -79,10 +96,6 @@ export default class EngineManagerClient extends events.EventEmitter {
         this._nShards = Config.THINGENGINE_MANAGER_ADDRESS.length;
         this._rpcControls = new Array(this._nShards);
         this._rpcSockets = new Array(this._nShards);
-    }
-
-    static get() {
-        return _instance;
     }
 
     getEngine(userId : number) : Promise<EngineProxy> {
@@ -217,7 +230,7 @@ export default class EngineManagerClient extends events.EventEmitter {
         }
     }
 
-    async killAllUsers() {
+    async killAllUsers() : Promise<boolean> {
         let ok = true;
         for (let i = 0; i < this._nShards; i++) {
             const ctrl = this._rpcControls[i];
@@ -231,7 +244,7 @@ export default class EngineManagerClient extends events.EventEmitter {
         return ok;
     }
 
-    async isRunning(userId : number) {
+    async isRunning(userId : number) : Promise<boolean> {
         const shardId = userToShardId(userId);
         const ctrl = this._rpcControls[shardId];
         if (!ctrl)
@@ -298,5 +311,18 @@ export default class EngineManagerClient extends events.EventEmitter {
         if (!ctrl)
             throw new Error('EngineManager died');
         return ctrl.restartUserWithoutCache(userId);
+    }
+}
+
+export default class EngineManagerClient {
+    constructor(useK8s : boolean, namespace : string) {
+        if (useK8s)
+            _instance = new EngineManagerClientK8s(namespace);
+        else
+            _instance = new EngineManagerClientImpl();
+    }
+
+    static get() : EngineManagerInterface {
+        return _instance;
     }
 }

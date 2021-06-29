@@ -19,7 +19,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-/// <reference types="./transparent-rpc" />
 /// <reference types="./sockaddr" />
 
 // load thingpedia to initialize the polyfill
@@ -132,7 +131,7 @@ function killEngine(userId : number) {
         sock.end();
 }
 
-function handleDirectSocket(userId : number, replyId : number, socket : stream.Duplex) {
+function handleDirectSocket(userId : number, replyId : string, socket : stream.Duplex) {
     console.log('Handling direct connection for ' + userId);
 
     const rpcSocket = new rpc.Socket(new JsonDatagramSocket(socket, socket, 'utf8'));

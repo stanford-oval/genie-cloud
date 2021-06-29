@@ -40,6 +40,7 @@ import xmlBodyParser from 'express-xml-bodyparser';
 import Prometheus from 'prom-client';
 import escapeHtml from 'escape-html';
 import rateLimit from 'express-rate-limit';
+import * as fs from "fs";
 
 import './types';
 import * as passportUtil from './util/passport';
@@ -349,12 +350,21 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: 'Listen on the given port',
         default: 8080
     });
+    parser.add_argument('--k8s', {
+        action: 'store_true',
+        help: 'Use k8s backends',
+        default: false,
+    });
 }
 
 export async function main(argv : any) {
     const frontend = new Frontend();
     await frontend.init(argv.port);
-    const enginemanager = new EngineManager();
+    let namespace = ""; 
+    if (argv.k8s)
+        namespace = fs.readFileSync('/var/run/secrets/kubernetes.io/serviceaccount/namespace', 'utf-8');
+    new EngineManager(argv.k8s, namespace);
+    const enginemanager = EngineManager.get();
     enginemanager.start();
 
     if (Config.ENABLE_PROMETHEUS)

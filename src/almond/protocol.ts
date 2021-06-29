@@ -25,7 +25,7 @@ export type MasterToWorker = {
 } | {
     type : 'direct';
     target : number;
-    replyId : number;
+    replyId : string;
 } | {
     type : 'rpc';
     data : unknown;
@@ -33,7 +33,7 @@ export type MasterToWorker = {
 
 export type WorkerToMaster = {
     type : 'ready';
-    id : number;
+    id : string;
 } | {
     type : 'rpc';
     data : unknown;
@@ -45,7 +45,7 @@ export type FrontendToMaster = {
 } | {
     control : 'direct';
     target : number;
-    replyId : number;
+    replyId : string;
 } | {
     control : 'master'
 } | {
@@ -57,5 +57,5 @@ export type MasterToFrontend = {
     code ?: string;
 } | {
     control : 'ready';
-    rpcId : number;
+    rpcId : string;
 }

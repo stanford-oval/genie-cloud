@@ -30,6 +30,7 @@ type ConfigSuite struct {
 
 var testSecretYAML = `
 DATABASE_URL: "mysql url"
+DATABASE_PROXY_URL: http://testhost:8080
 OTHER_SECRET: "other secret"
 `
 var testConfigJSON = `{
@@ -56,21 +57,22 @@ func TestAlmondConfig(t *testing.T) {
 func (s *ConfigSuite) TestParseAlmondConfig() {
 	err := ParseAlmondConfig(path.Join(s.tmpDir, "config.d"), &s.almondConfig)
 	require.NoError(s.T(), err)
-	require.Equal(s.T(), s.almondConfig.NLServerURL, "https://nlp.url")
-	require.Equal(s.T(), s.almondConfig.DatabaseURL, "mysql url")
+	require.Equal(s.T(), "https://nlp.url", s.almondConfig.NLServerURL)
+	require.Equal(s.T(), "mysql url", s.almondConfig.DatabaseURL)
+	require.Equal(s.T(), "http://testhost:8080", s.almondConfig.DatabaseProxyURL)
 }
 
 func (s *ConfigSuite) TestInitAlmondConfig() {
 	err := InitAlmondConfig()
 	require.NoError(s.T(), err)
 	almondConfig := GetAlmondConfig()
-	require.Equal(s.T(), almondConfig.NLServerURL, "https://nlp.almond.stanford.edu")
-	require.Equal(s.T(), almondConfig.DatabaseURL, "")
+	require.Equal(s.T(), "https://nlp.almond.stanford.edu", almondConfig.NLServerURL)
+	require.Equal(s.T(), "", almondConfig.DatabaseURL)
 
 	os.Setenv("THINGENGINE_CONFIGDIR", s.tmpDir)
 	err = InitAlmondConfig()
 	require.NoError(s.T(), err)
 	almondConfig = GetAlmondConfig()
-	require.Equal(s.T(), almondConfig.NLServerURL, "https://nlp.url")
-	require.Equal(s.T(), almondConfig.DatabaseURL, "mysql url")
+	require.Equal(s.T(), "https://nlp.url", almondConfig.NLServerURL)
+	require.Equal(s.T(), "mysql url", almondConfig.DatabaseURL)
 }

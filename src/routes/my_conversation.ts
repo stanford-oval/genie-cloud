@@ -20,7 +20,7 @@
 
 import type WebSocket from 'ws';
 import type express from 'express';
-import type rpc from 'transparent-rpc';
+import * as rpc from 'transparent-rpc';
 import type * as Genie from 'genie-toolkit';
 
 import type { ConversationWrapper, NotificationWrapper } from '../almond/engine';

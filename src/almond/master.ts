@@ -18,7 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-/// <reference types="./transparent-rpc" />
 /// <reference types="./sockaddr" />
 
 import * as argparse from 'argparse';

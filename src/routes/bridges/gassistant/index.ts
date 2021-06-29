@@ -23,7 +23,7 @@ import passport from 'passport';
 import * as util from 'util';
 import * as jwt from 'jsonwebtoken';
 import type * as Genie from 'genie-toolkit';
-import type rpc from 'transparent-rpc';
+import type * as rpc from 'transparent-rpc';
 
 import EngineManager from '../../../almond/enginemanagerclient';
 import { actionssdk, Image, Suggestions, BasicCard, Button, SignIn, BasicCardOptions, SignInArgument, ActionsSdkConversation } from 'actions-on-google';

@@ -18,8 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-/// <reference types="../almond/transparent-rpc" />
-
 import assert from 'assert';
 import * as semver from 'semver';
 import * as rpc from 'transparent-rpc';
