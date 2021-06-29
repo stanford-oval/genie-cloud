@@ -29,8 +29,18 @@ import * as iv from '../util/input_validation';
 const router = express.Router();
 router.use(user.requireLogIn);
 
+async function isEngineRunning(userId : number) : Promise<boolean> {
+    try {
+        await EngineManager.get().getEngine(userId);
+        return true;
+    } catch(e) {
+        console.log(`Failed to ensure engine is running: ${e.message}`);
+        return false;
+    }
+}
+
 async function getInfo(req : express.Request) {
-    const isRunning = await EngineManager.get().isRunning(req.user!.id);
+    const isRunning = await isEngineRunning(req.user!.id);
     if (!isRunning)
         return [false, [],[]];
 

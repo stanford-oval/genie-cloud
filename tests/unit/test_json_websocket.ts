@@ -17,7 +17,6 @@
 //
 
 
-const wsjs = require('ws');
 import * as rpc from 'transparent-rpc';
 
 import assert from 'assert';
@@ -38,7 +37,7 @@ export default function testSocketJsonAdapterForRpcOverWebSocket() {
    server.listen(sockPath, () => {
        const wss = new Server({ server });
        wss.on('connection', async (ws, req) => {
-           const socket = new JsonWebSocketAdapter(wsjs.createWebSocketStream(ws));
+           const socket = new JsonWebSocketAdapter(WebSocket.createWebSocketStream(ws));
            const rpcSocket = new rpc.Socket(socket);
            const stub = {
                $rpcMethods: ['frobnicate'] as const,
@@ -52,7 +51,7 @@ export default function testSocketJsonAdapterForRpcOverWebSocket() {
        });
 
        const ws = new WebSocket(`ws+unix://${sockPath}:/foo?bar=bar`);
-       const s1 = new JsonWebSocketAdapter(wsjs.createWebSocketStream(ws));
+       const s1 = new JsonWebSocketAdapter(WebSocket.createWebSocketStream(ws));
        const rpcSocket = new rpc.Socket(s1);
 
        s1.on('data', async (msg) => {

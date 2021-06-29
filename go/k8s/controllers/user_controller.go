@@ -205,7 +205,7 @@ func (r *UserReconciler) httpWithContext(ctx context.Context, method, url string
 }
 
 func (r *UserReconciler) engineStatus(ctx context.Context, userID int64, userURL string) (UserState, error) {
-	resp, err := r.httpWithContext(ctx, "GET", fmt.Sprintf("%s/engineStatus?userid=%d", userURL, userID), nil)
+	resp, err := r.httpWithContext(ctx, "GET", fmt.Sprintf("%s/engine-status?userid=%d", userURL, userID), nil)
 	if err != nil {
 		return "", err
 	}
@@ -222,7 +222,7 @@ func (r *UserReconciler) engineStatus(ctx context.Context, userID int64, userURL
 }
 
 func (r *UserReconciler) killEngine(ctx context.Context, userID int64, backendURL string) error {
-	resp, err := r.httpWithContext(ctx, "GET", fmt.Sprintf("%s/killEngine?userid=%d", backendURL, userID), nil)
+	resp, err := r.httpWithContext(ctx, "GET", fmt.Sprintf("%s/kill-engine?userid=%d", backendURL, userID), nil)
 	if err != nil {
 		return err
 	}
@@ -254,7 +254,7 @@ func (r *UserReconciler) runEngine(ctx context.Context, userID int64, userURL st
 	if err != nil {
 		return err
 	}
-	resp, err := r.httpWithContext(ctx, "POST", fmt.Sprintf("%s/runEngine", userURL), bytes.NewReader(b))
+	resp, err := r.httpWithContext(ctx, "POST", fmt.Sprintf("%s/run-engine", userURL), bytes.NewReader(b))
 	if err != nil {
 		return err
 	}

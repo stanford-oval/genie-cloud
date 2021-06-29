@@ -19,10 +19,8 @@
 //
 
 import express from 'express';
+import expressWS from 'express-ws';
 import WebSocket from "ws";
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const wsjs = require('ws');
 
 import * as http from 'http';
 import * as rpc from 'transparent-rpc';
@@ -44,7 +42,6 @@ interface EngineState {
 class Worker {
     private app : express.Application;
     private server : http.Server;
-    private wss : WebSocket.Server;
     private engines : Map<number, EngineState>; 
     private stopped : boolean;
 
@@ -52,45 +49,34 @@ class Worker {
         this.engines = new Map<number, EngineState>();
         this.stopped = false;
         this.app = express();
+        this.server = http.createServer(this.app);
+        expressWS(this.app, this.server);
         this.app.use(express.json());
         this.app.use(express.urlencoded({ extended: true }));
         this.app.set('port', port);
 
-        this.server = http.createServer(this.app);
-        this.server.on('upgrade', (request, socket, head) => {
-          const pathname = request.url;
-          if (pathname === '/engine') {
-              this.wss.handleUpgrade(request, socket, head, (ws) => {
-                  this.wss.emit('connection', ws, request);
-              });
-          } else {
-            console.log('Error http upgrade path: ' + pathname);
-            socket.destroy();
-          }
-        });
-
-        this.wss = new WebSocket.Server({ noServer: true });
-        this.wss.on('connection', async (ws : WebSocket, request : http.IncomingMessage) => {
-            this.connectWSEngine(ws);
-        });
-
-        this.app.post('/runEngine', (req, res, next) => {
+        this.app.post('/run-engine', (req, res, next) => {
             Promise.resolve().then(async () => {
                 res.json({"result": "ok", "data": this.runEngine(req.body)});
             }).catch(next);
         });
 
-        this.app.get('/killEngine', (req, res, next) => {
+        this.app.get('/kill-engine', (req, res, next) => {
             Promise.resolve().then(async () => {
                 res.json({"result": "ok", "data": this.killEngine(Number(req.query.userid))});
             }).catch(next);
         });
 
-        this.app.get('/engineStatus', (req, res, next) => {
+        this.app.get('/engine-status', (req, res, next) => {
             Promise.resolve().then(async () => {
                 res.json({"result": "ok", "data": this.engineStatus(Number(req.query.userid))});
             }).catch(next);
         });
+
+        this.app.use('/engine', express.Router().ws('', async (ws : WebSocket, req : express.Request) => {
+            this.connectWSEngine(ws);
+        }));
+
     } 
 
      async start() {
@@ -126,7 +112,7 @@ class Worker {
     }
 
     runEngine(options : PlatformOptions) : boolean {
-        console.log(`runEngine ${JSON.stringify(options)}`);
+        console.log(`Run engine ${options.userId}`);
         if (this.engines.get(options.userId))
             return true;
 
@@ -220,7 +206,7 @@ class Worker {
     }
 
     async connectWSEngine(ws : WebSocket) {
-        const socket = wsjs.createWebSocketStream(ws);
+        const socket = WebSocket.createWebSocketStream(ws);
         const jsonSocket = new JsonWebSocketAdapter(socket);
         const initListener = (msg : any) => {
             if (msg.control === 'new-object')

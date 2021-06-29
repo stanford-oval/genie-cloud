@@ -21,9 +21,6 @@ import * as events from 'events';
 import * as rpc from 'transparent-rpc';
 import express from 'express';
 import * as k8s from '@kubernetes/client-node';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const wsjs = require('ws');
 import WebSocket from 'ws';
 
 import JsonWebSocketAdapter from '../util/json_websocket';
@@ -45,7 +42,7 @@ interface CachedEngine {
 }
 // poll every half second until engine is running or timedout. Error is thrown if timedout.
 async function waitForEngine(userId : number, backendUrl : string, millis : number) {
-    const url = `${backendUrl}/engineStatus?userid=${userId}`;
+    const url = `${backendUrl}/engine-status?userid=${userId}`;
     const waitms = 500;
     const deadline = Date.now() + millis;
     while (Date.now() <  deadline) {
@@ -94,7 +91,7 @@ export default class EngineManagerClientK8s extends events.EventEmitter {
         const parsedUrl = new URL(user.status.backend);
         const u = `ws://${parsedUrl.host}/engine`;
         const ws = new WebSocket(u);
-        const socket = wsjs.createWebSocketStream(ws);
+        const socket = WebSocket.createWebSocketStream(ws);
         const jsonSocket = new JsonWebSocketAdapter(socket);
         let deleted = false;
 
