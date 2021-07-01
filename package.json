@@ -151,7 +151,7 @@
     "@types/tmp": "^0.2.0",
     "@types/wav": "^1.0.0",
     "@typescript-eslint/eslint-plugin": "^4.28.0",
-    "@typescript-eslint/parser": "^4.28.0",
+    "@typescript-eslint/parser": "^4.28.1",
     "apidoc": "^0.28.1",
     "browserify": "^17.0.0",
     "byline": "^5.0.0",
