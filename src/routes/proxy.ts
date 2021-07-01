@@ -21,7 +21,7 @@
 import express from 'express';
 import * as Url from 'url';
 
-import EngineManager from '../almond/enginemanagerclient';
+import * as EngineManager from '../almond/enginemanagerclient';
 import * as user from '../util/user';
 import * as iv from '../util/input_validation';
 

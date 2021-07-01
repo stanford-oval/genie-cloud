@@ -39,7 +39,7 @@ import * as iv from '../util/input_validation';
 import { makeRandom } from '../util/random';
 import { BadRequestError } from '../util/errors';
 
-import EngineManager from '../almond/enginemanagerclient';
+import * as EngineManager from '../almond/enginemanagerclient';
 
 import * as Config from '../config';
 

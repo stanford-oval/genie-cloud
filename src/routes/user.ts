@@ -46,7 +46,7 @@ import * as i18n from '../util/i18n';
 import { tokenize } from '../util/tokenize';
 import { BadRequestError } from '../util/errors';
 
-import EngineManager from '../almond/enginemanagerclient';
+import * as EngineManager from '../almond/enginemanagerclient';
 
 import * as Config from '../config';
 

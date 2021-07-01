@@ -41,7 +41,7 @@ import { Strategy as BearerStrategy } from 'passport-http-bearer';
 import { BasicStrategy } from 'passport-http';
 import { Strategy as TotpStrategy } from 'passport-totp';
 
-import EngineManager from '../almond/enginemanagerclient';
+import * as EngineManager from '../almond/enginemanagerclient';
 
 import { OAUTH_REDIRECT_ORIGIN, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GITHUB_CLIENT_SECRET, GITHUB_CLIENT_ID } from '../config';
 

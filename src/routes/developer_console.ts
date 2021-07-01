@@ -33,7 +33,7 @@ import { BadRequestError } from '../util/errors';
 
 import * as Config from '../config';
 
-import EngineManager from '../almond/enginemanagerclient';
+import * as EngineManager from '../almond/enginemanagerclient';
 
 const router = express.Router();
 

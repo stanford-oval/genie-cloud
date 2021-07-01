@@ -25,7 +25,7 @@ import { twiml } from 'twilio';
 import * as db from '../util/db';
 import * as user from '../util/user';
 import * as userModel from '../model/user';
-import EngineManager from '../almond/enginemanagerclient';
+import * as EngineManager from '../almond/enginemanagerclient';
 import * as iv from '../util/input_validation';
 import { NotFoundError, BadRequestError } from '../util/errors';
 import * as errorHandling from '../util/error_handling';

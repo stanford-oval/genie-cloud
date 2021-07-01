@@ -23,7 +23,7 @@ import * as Url from 'url';
 import * as qs from 'qs';
 
 import * as user from '../util/user';
-import EngineManager from '../almond/enginemanagerclient';
+import * as EngineManager from '../almond/enginemanagerclient';
 
 const router = express.Router();
 

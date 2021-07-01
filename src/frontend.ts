@@ -40,7 +40,6 @@ import xmlBodyParser from 'express-xml-bodyparser';
 import Prometheus from 'prom-client';
 import escapeHtml from 'escape-html';
 import rateLimit from 'express-rate-limit';
-import * as fs from "fs";
 
 import './types';
 import * as passportUtil from './util/passport';
@@ -51,7 +50,7 @@ import * as userUtils from './util/user';
 import Metrics from './util/metrics';
 import * as errorHandling from './util/error_handling';
 import * as codeStorage from './util/code_storage';
-import EngineManager from './almond/enginemanagerclient';
+import * as EngineManager from './almond/enginemanagerclient';
 
 import * as Config from './config';
 
@@ -360,10 +359,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
 export async function main(argv : any) {
     const frontend = new Frontend();
     await frontend.init(argv.port);
-    let namespace = ""; 
-    if (argv.k8s)
-        namespace = fs.readFileSync('/var/run/secrets/kubernetes.io/serviceaccount/namespace', 'utf-8');
-    new EngineManager(argv.k8s, namespace);
+    EngineManager.init(argv.k8s);
     const enginemanager = EngineManager.get();
     enginemanager.start();
 

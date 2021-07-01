@@ -21,7 +21,7 @@
 import type WebSocket from 'ws';
 import * as rpc from 'transparent-rpc';
 
-import EngineManager from '../almond/enginemanagerclient';
+import * as EngineManager from '../almond/enginemanagerclient';
 import type { WebSocketWrapper } from '../almond/platform';
 
 export class CloudSyncWebsocketDelegate implements rpc.Stubbable {

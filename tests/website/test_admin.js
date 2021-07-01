@@ -26,7 +26,7 @@ import { login, startSession } from '../login';
 
 import * as db from '../../src/util/db';
 import sleep from '../../src/util/sleep';
-import EngineManagerClient from '../../src/almond/enginemanagerclient';
+import * as EngineManager from '../../src/almond/enginemanagerclient';
 
 import * as Config from '../../src/config';
 
@@ -56,7 +56,7 @@ async function testAdminUsers(root, bob, nobody) {
 }
 
 async function testAdminKillRestart(root, bob, nobody) {
-    const emc = EngineManagerClient.get();
+    const emc = EngineManager.get();
     assert(await emc.isRunning(1)); // root
     assert(await emc.isRunning(2)); // anonymous
     assert(await emc.isRunning(3)); // bob
@@ -238,7 +238,7 @@ async function testAdminFileUpload(root, bob) {
 }
 
 async function main() {
-    const emc = new EngineManagerClient();
+    const emc = EngineManager.get();
     await emc.start();
 
     const nobody = await startSession();

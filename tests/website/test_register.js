@@ -26,7 +26,7 @@ import { startSession } from '../login';
 import * as minidom from '../util/minidom';
 
 import * as db from '../../src/util/db';
-import EngineManagerClient from '../../src/almond/enginemanagerclient';
+import * as EngineManager from '../../src/almond/enginemanagerclient';
 
 async function testRegister(charlie) {
     await assertHttpError(sessionRequest('/user/register', 'POST', {}, charlie),
@@ -133,8 +133,8 @@ async function testDeleteUser(charlie, nobody) {
     const [charlieInfo] = await dbQuery(`select * from users where username = ?`, ['charlie']);
     assert(charlieInfo);
     assert(fs.existsSync('./' + charlieInfo.cloud_id));
-    assert(await EngineManagerClient.get().isRunning(charlieInfo.id));
-    assert(await EngineManagerClient.get().getEngine(charlieInfo.id));
+    assert(await EngineManager.get().isRunning(charlieInfo.id));
+    assert(await EngineManager.get().getEngine(charlieInfo.id));
 
     await assertLoginRequired(sessionRequest('/user/delete', 'POST', {}, nobody));
 
@@ -145,14 +145,14 @@ async function testDeleteUser(charlie, nobody) {
     assert.strictEqual(users.length, 0);
 
     // check that the user is not running any more
-    assert(!await EngineManagerClient.get().isRunning(charlieInfo.id));
-    await assert.rejects(() => EngineManagerClient.get().getEngine(charlieInfo.id));
+    assert(!await EngineManager.get().isRunning(charlieInfo.id));
+    await assert.rejects(() => EngineManager.get().getEngine(charlieInfo.id));
     assert(!fs.existsSync('./' + charlieInfo.cloud_id));
 }
 
 
 async function main() {
-    const emc = new EngineManagerClient();
+    const emc = EngineManager.get();
     await emc.start();
 
     const nobody = await startSession();

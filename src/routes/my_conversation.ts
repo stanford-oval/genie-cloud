@@ -26,7 +26,7 @@ import type * as Genie from 'genie-toolkit';
 import type { ConversationWrapper, NotificationWrapper } from '../almond/engine';
 import * as userModel from '../model/user';
 import * as user from '../util/user';
-import EngineManager from '../almond/enginemanagerclient';
+import * as EngineManager from '../almond/enginemanagerclient';
 import { BadRequestError } from '../util/errors';
 import { makeRandom } from '../util/random';
 

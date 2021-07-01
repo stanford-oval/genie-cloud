@@ -24,7 +24,7 @@ import { assertHttpError, assertRedirect, assertLoginRequired, sessionRequest, d
 import { login, startSession } from '../login';
 
 import * as db from '../../src/util/db';
-import EngineManagerClient from '../../src/almond/enginemanagerclient';
+import * as EngineManager from '../../src/almond/enginemanagerclient';
 
 import * as Config from '../../src/config';
 
@@ -80,7 +80,7 @@ async function testMyDevices(bob, nobody) {
         // FIXME there should be a /me/api to list devices
         const [bobInfo] = await dbQuery(`select * from users where username = ?`, ['bob']);
         assert(bobInfo);
-        const engine = await EngineManagerClient.get().getEngine(bobInfo.id);
+        const engine = await EngineManager.get().getEngine(bobInfo.id);
         const device = await engine.getDeviceInfo('org.thingpedia.rss-name:almond blog-url:https://almond.stanford.edu/blog/feed.rss');
         assert(device);
 
@@ -107,7 +107,7 @@ async function testMyDevices(bob, nobody) {
 }
 
 async function main() {
-    const emc = new EngineManagerClient();
+    const emc = EngineManager.get();
     await emc.start();
 
     const nobody = await startSession();
