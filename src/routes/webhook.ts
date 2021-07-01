@@ -22,7 +22,7 @@ import express from 'express';
 
 import * as user from '../model/user';
 import * as db from '../util/db';
-import EngineManager from '../almond/enginemanagerclient';
+import * as EngineManager from '../almond/enginemanagerclient';
 
 const router = express.Router();
 

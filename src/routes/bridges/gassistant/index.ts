@@ -25,7 +25,7 @@ import * as jwt from 'jsonwebtoken';
 import type * as Genie from 'genie-toolkit';
 import type * as rpc from 'transparent-rpc';
 
-import EngineManager from '../../../almond/enginemanagerclient';
+import * as EngineManager from '../../../almond/enginemanagerclient';
 import { actionssdk, Image, Suggestions, BasicCard, Button, SignIn, BasicCardOptions, SignInArgument, ActionsSdkConversation } from 'actions-on-google';
 // Refer to https://developers.google.com/assistant/conversational/responses for full list of response types
 

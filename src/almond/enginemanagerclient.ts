@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as fs from 'fs';
 import * as net from 'net';
 import * as events from 'events';
 import * as rpc from 'transparent-rpc';
@@ -314,15 +315,17 @@ class EngineManagerClientImpl extends events.EventEmitter {
     }
 }
 
-export default class EngineManagerClient {
-    constructor(useK8s : boolean, namespace : string) {
-        if (useK8s)
-            _instance = new EngineManagerClientK8s(namespace);
-        else
-            _instance = new EngineManagerClientImpl();
+export function init(useK8s : boolean) {
+    if (useK8s) {
+        const namespace = fs.readFileSync('/var/run/secrets/kubernetes.io/serviceaccount/namespace', 'utf-8');
+        _instance = new EngineManagerClientK8s(namespace);
+    } else {
+        _instance = new EngineManagerClientImpl();
     }
+}
 
-    static get() : EngineManagerInterface {
-        return _instance;
-    }
+export function get() : EngineManagerInterface {
+    if (!_instance)
+        init(false);
+    return _instance;
 }

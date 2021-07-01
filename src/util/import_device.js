@@ -43,7 +43,7 @@ import TrainingServer from './training_server';
 import { NotFoundError, ForbiddenError, BadRequestError } from './errors';
 import * as db from './db';
 
-import EngineManager from '../almond/enginemanagerclient';
+import * as EngineManager from '../almond/enginemanagerclient';
 
 function areMetaIdentical(one, two) {
     for (let what of ['queries', 'actions']) {

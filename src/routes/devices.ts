@@ -21,7 +21,7 @@
 import express from 'express';
 
 import * as user from '../util/user';
-import EngineManager from '../almond/enginemanagerclient';
+import * as EngineManager from '../almond/enginemanagerclient';
 import * as iv from '../util/input_validation';
 
 const router = express.Router();

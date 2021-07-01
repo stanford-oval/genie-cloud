@@ -24,7 +24,7 @@ import * as child_process from 'child_process';
 import * as user from '../util/user';
 import * as iv from '../util/input_validation';
 
-import EngineManager from '../almond/enginemanagerclient';
+import * as EngineManager from '../almond/enginemanagerclient';
 import userToShardId from '../almond/shard';
 
 const router = express.Router();
