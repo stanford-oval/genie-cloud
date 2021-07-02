@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -28,12 +28,12 @@
 
 import * as Tp from 'thingpedia';
 
+import * as db from './db';
 import * as trainingJobModel from '../model/training_job';
 import { InternalError } from './errors';
 
 import * as Config from '../config';
 
-let _instance;
 export default class TrainingServer {
     constructor() {
     }
@@ -42,15 +42,15 @@ export default class TrainingServer {
         return _instance;
     }
 
-    async getJobQueue(dbClient) {
-        const out = {};
+    async getJobQueue(dbClient : db.Client) {
+        const out : Record<string, Array<trainingJobModel.Row & { for_devices ?: string[] }>> = {};
         const jobs = await trainingJobModel.getQueue(dbClient);
 
-        await Promise.all(jobs.map(async (job) => {
+        await Promise.all(jobs.map(async (job : trainingJobModel.Row & { for_devices ?: string[] }) => {
             job.for_devices = await trainingJobModel.readForDevices(dbClient, job.id);
         }));
 
-        for (let job of jobs) {
+        for (const job of jobs) {
             if (out[job.job_type])
                 out[job.job_type].push(job);
             else
@@ -59,10 +59,10 @@ export default class TrainingServer {
         return out;
     }
 
-    kill(jobId) {
+    kill(jobId : number) {
         if (!Config.TRAINING_URL)
             return Promise.resolve({});
-        let auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : null;
+        const auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : undefined;
         return Tp.Helpers.Http.post(Config.TRAINING_URL + '/jobs/kill', JSON.stringify({ id: jobId }), {
             dataContentType: 'application/json',
             auth,
@@ -73,15 +73,15 @@ export default class TrainingServer {
         });
     }
 
-    queue(language, forDevices, jobType, owner = null, config = null) {
+    queue(language : string, forDevices : string[]|null, jobType : string, owner = null, config = null) {
         if (!Config.TRAINING_URL)
             return Promise.resolve();
 
-        let auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : null;
+        const auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : undefined;
         return Tp.Helpers.Http.post(Config.TRAINING_URL + '/jobs/create', JSON.stringify({
             language, forDevices, jobType, owner, config
         }), { auth: auth, dataContentType: 'application/json' }).then((response) => {
-            let parsed = JSON.parse(response);
+            const parsed = JSON.parse(response);
             console.log('Successfully started training job ' + parsed.id);
         }).catch((err) => {
             console.error('Failed to start training job: ' + err.message);
@@ -91,17 +91,17 @@ export default class TrainingServer {
         });
     }
 
-    queueModel(language, modelTag, jobType, owner = null, config = null) {
+    queueModel(language : string, modelTag : string, jobType : string, owner = null, config = null) {
         if (!Config.TRAINING_URL)
             throw new InternalError('E_INVALID_CONFIG', "Configuration error: Training server is not configured");
 
-        let auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : null;
+        const auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : undefined;
         return Tp.Helpers.Http.post(Config.TRAINING_URL + '/jobs/create', JSON.stringify({
             language, forDevices: null, modelTag, jobType, owner, config
         }), { auth: auth, dataContentType: 'application/json' }).then((response) => {
-            let parsed = JSON.parse(response);
+            const parsed = JSON.parse(response);
             console.log('Successfully started training job ' + parsed.id);
         });
     }
 }
-_instance = new TrainingServer();
+const _instance = new TrainingServer();

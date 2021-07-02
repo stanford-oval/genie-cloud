@@ -47,7 +47,7 @@ import * as Config from '../config';
 const req : {
     _(x : string) : string;
 
-    user ?: unknown /* FIXME */
+    user ?: Express.User
 } = {
     _(x : string) { return x; },
 };

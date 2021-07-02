@@ -45,6 +45,8 @@ declare global {
 
 declare module 'express-session' {
     interface SessionData {
+        locale : string;
+
         completed2fa : boolean;
         // redirect after login
         redirect_to : string;

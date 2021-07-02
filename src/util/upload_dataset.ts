@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -17,11 +17,12 @@
 // limitations under the License.
 //
 
-
+import express from 'express';
 import * as fs from 'fs';
 import csvparse from 'csv-parse';
 import * as util from 'util';
 import * as Stream from 'stream';
+import * as Genie from 'genie-toolkit';
 
 import * as db from './db';
 import * as user from './user';
@@ -34,17 +35,31 @@ import * as stringModel from '../model/strings';
 
 const NAME_REGEX = /^([A-Za-z_][A-Za-z0-9_.-]*):([A-Za-z_][A-Za-z0-9_]*)$/;
 
+interface TokenizedRow {
+    type_id : number;
+    value : string;
+    preprocessed : string;
+    weight : number;
+}
+
 class StreamTokenizer extends Stream.Transform {
-    constructor(options) {
+    private _preprocessed : boolean;
+    private _typeId : number;
+    private _tokenizer : Genie.I18n.BaseTokenizer;
+
+    constructor(options : {
+        language : string;
+        preprocessed : boolean;
+        typeId : number;
+    }) {
         super({ objectMode: true });
 
-        this._language = options.language;
         this._preprocessed = options.preprocessed;
         this._typeId = options.typeId;
         this._tokenizer = I18n.get(options.language).genie.getTokenizer();
     }
 
-    _transform(row, encoding, callback) {
+    _transform(row : string[], encoding : BufferEncoding, callback : (err ?: Error|null, out ?: TokenizedRow) => void) {
         if (row.length < 1 || !row[0]) {
             callback();
             return;
@@ -57,7 +72,7 @@ class StreamTokenizer extends Stream.Transform {
         } else if (row.length === 2) {
             if (isFinite(+row[1])) {
                 value = row[0];
-                weight = row[1];
+                weight = parseFloat(row[1]);
             } else {
                 value = row[0];
                 preprocessed = row[1];
@@ -95,24 +110,24 @@ class StreamTokenizer extends Stream.Transform {
         }
     }
 
-    _flush(callback) {
+    _flush(callback : () => void) {
         process.nextTick(callback);
     }
 }
 
-export async function uploadEntities(req) {
+export async function uploadEntities(req : express.Request) {
     const language = I18n.localeToLanguage(req.locale);
     const tokenizer = I18n.get(req.locale).genie.getTokenizer();
 
     try {
         await db.withTransaction(async (dbClient) => {
-            let match = NAME_REGEX.exec(req.body.entity_id);
+            const match = NAME_REGEX.exec(req.body.entity_id);
             if (match === null)
                 throw new BadRequestError(req._("Invalid entity type ID."));
 
-            let [, prefix, /*suffix*/] = match;
+            const [, prefix, /*suffix*/] = match;
 
-            if ((req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0) {
+            if ((req.user!.roles & user.Role.THINGPEDIA_ADMIN) === 0) {
                 let row;
                 try {
                     row = await schemaModel.getByKind(dbClient, prefix);
@@ -120,7 +135,7 @@ export async function uploadEntities(req) {
                     if (e.code !== 'ENOENT')
                         throw e;
                 }
-                if (!row || row.owner !== req.user.developer_org)
+                if (!row || row.owner !== req.user!.developer_org)
                     throw new ForbiddenError(req._("The prefix of the entity ID must correspond to the ID of a Thingpedia device owned by your organization."));
             }
 
@@ -146,13 +161,13 @@ export async function uploadEntities(req) {
             if (req.body.no_ner_support)
                 return;
 
-            if (!req.files.upload || !req.files.upload.length)
+            if (!req.file)
                 throw new BadRequestError(req._("You must upload a CSV file with the entity values."));
 
             const parser = csvparse({delimiter: ','});
-            fs.createReadStream(req.files.upload[0].path).pipe(parser);
+            fs.createReadStream(req.file.path).pipe(parser);
 
-            const transformer = Stream.Transform({
+            const transformer = new Stream.Transform({
                 objectMode: true,
 
                 transform(row, encoding, callback) {
@@ -187,8 +202,8 @@ export async function uploadEntities(req) {
             // that we don't have any inflight requests by the time we terminate
             // the transaction, otherwise we might run SQL queries on the wrong
             // connection/transaction and that would be bad
-            await new Promise((resolve, reject) => {
-                let error;
+            await new Promise<void>((resolve, reject) => {
+                let error : Error|undefined;
                 parser.on('error', (e) => {
                     error = new BadRequestError(e.message);
                     transformer.end();
@@ -207,12 +222,12 @@ export async function uploadEntities(req) {
             });
         });
     } finally {
-        if (req.files.upload && req.files.upload.length)
-            await util.promisify(fs.unlink)(req.files.upload[0].path);
+        if (req.file)
+            await util.promisify(fs.unlink)(req.file.path);
     }
 }
 
-export async function uploadStringDataset(req) {
+export async function uploadStringDataset(req : express.Request) {
     const language = I18n.localeToLanguage(req.locale);
 
     try {
@@ -223,9 +238,9 @@ export async function uploadStringDataset(req) {
             if (['public-domain', 'free-permissive', 'free-copyleft', 'non-commercial', 'proprietary'].indexOf(req.body.license) < 0)
                 throw new BadRequestError(req._("Invalid license."));
 
-            let [, prefix, /*suffix*/] = match;
+            const [, prefix, /*suffix*/] = match;
 
-            if ((req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0) {
+            if ((req.user!.roles & user.Role.THINGPEDIA_ADMIN) === 0) {
                 let row;
                 try {
                     row = await schemaModel.getByKind(dbClient, prefix);
@@ -233,15 +248,15 @@ export async function uploadStringDataset(req) {
                     if (e.code !== 'ENOENT')
                         throw e;
                 }
-                if (!row || row.owner !== req.user.developer_org)
+                if (!row || row.owner !== req.user!.developer_org)
                     throw new ForbiddenError(req._("The prefix of the dataset ID must correspond to the ID of a Thingpedia device owned by your organization."));
             }
 
-            if (!req.files.upload || !req.files.upload.length)
+            if (!req.file)
                 throw new BadRequestError(req._("You must upload a TSV file with the string values."));
 
             let stringType;
-            let string = {
+            const string = {
                 language: language,
                 type_name: req.body.type_name,
                 name: req.body.name,
@@ -263,7 +278,7 @@ export async function uploadStringDataset(req) {
                 stringType = await stringModel.create(dbClient, string);
             }
 
-            const file = fs.createReadStream(req.files.upload[0].path);
+            const file = fs.createReadStream(req.file.path);
             file.setEncoding('utf8');
             const parser = file.pipe(csvparse({ delimiter: '\t', relax: true, relax_column_count: true }));
             const transformer = new StreamTokenizer({
@@ -278,8 +293,8 @@ export async function uploadStringDataset(req) {
             // that we don't have any inflight requests by the time we terminate
             // the transaction, otherwise we might run SQL queries on the wrong
             // connection/transaction and that would be bad
-            await new Promise((resolve, reject) => {
-                let error;
+            await new Promise<void>((resolve, reject) => {
+                let error : Error|undefined;
                 parser.on('error', (e) => {
                     error = new BadRequestError(e.message);
                     transformer.end();
@@ -298,7 +313,7 @@ export async function uploadStringDataset(req) {
             });
         });
     } finally {
-        if (req.files.upload && req.files.upload.length)
-            await util.promisify(fs.unlink)(req.files.upload[0].path);
+        if (req.file)
+            await util.promisify(fs.unlink)(req.file.path);
     }
 }

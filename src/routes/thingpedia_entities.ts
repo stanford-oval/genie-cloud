@@ -31,9 +31,7 @@ import { uploadEntities } from '../util/upload_dataset';
 
 const router = express.Router();
 
-router.post('/create', multer({ dest: os.tmpdir() }).fields([
-    { name: 'upload', maxCount: 1 }
-]), csurf({ cookie: false }),
+router.post('/create', multer({ dest: os.tmpdir() }).single('upload'), csurf({ cookie: false }),
     user.requireLogIn, user.requireDeveloper(),
     iv.validatePOST({ entity_id: 'string', entity_name: 'string', no_ner_support: 'boolean' }), (req, res, next) => {
     uploadEntities(req).then(() => {

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -25,6 +25,11 @@ import binarySearch from './binary_search';
  * A Buffer-like class that automatically grows in size.
  */
 export default class GrowableBuffer {
+    private _size : number;
+    private _capacity : number;
+    private _buffers : Buffer[];
+    private _offsets : number[];
+
     constructor() {
         this._size = 0;
         this._capacity = 0;
@@ -40,7 +45,7 @@ export default class GrowableBuffer {
         return Buffer.concat(this._buffers, this._size);
     }
 
-    _ensureSize(requested) {
+    private _ensureSize(requested : number) {
         if (this._size >= requested)
             return;
         if (this._capacity >= requested) {
@@ -59,7 +64,7 @@ export default class GrowableBuffer {
         assert(this._buffers.length === this._offsets.length);
     }
 
-    _findBuffer(offset) {
+    private _findBuffer(offset : number) {
         assert(this._offsets.length > 0);
 
         // common case: offset is inside the last buffer
@@ -67,7 +72,7 @@ export default class GrowableBuffer {
             return this._offsets.length-1;
 
         // binary search to find the position of the first offset not smaller than the one searched
-        let index = binarySearch(this._offsets, offset);
+        let index = binarySearch(this._offsets, offset)!;
 
         // if the offset is strictly larger, we need to write to the previous buffer
         if (this._offsets[index] > offset)
@@ -76,7 +81,7 @@ export default class GrowableBuffer {
         return index;
     }
 
-    writeUInt8(value, offset = 0) {
+    writeUInt8(value : number, offset = 0) {
         this._ensureSize(offset+1);
 
         const bufferIndex = this._findBuffer(offset);
@@ -86,7 +91,7 @@ export default class GrowableBuffer {
         buffer.writeUInt8(value, offset - bufferOffset);
     }
 
-    writeUInt16LE(value, offset = 0) {
+    writeUInt16LE(value : number, offset = 0) {
         assert(value >= 0 && value <= 65536, `Value is negative or too large: ${value}`);
         this._ensureSize(offset+2);
 
@@ -105,7 +110,7 @@ export default class GrowableBuffer {
         }
     }
 
-    writeUInt32LE(value, offset = 0) {
+    writeUInt32LE(value : number, offset = 0) {
         assert(value >= 0 && value <= Math.pow(2, 32), `Value is negative or too large: ${value}`);
         this._ensureSize(offset+4);
 
@@ -143,7 +148,7 @@ export default class GrowableBuffer {
         }
     }
 
-    writeBuffer(fromBuffer, offset = 0) {
+    writeBuffer(fromBuffer : Buffer, offset = 0) {
         this._ensureSize(offset+fromBuffer.length);
 
         const bufferIndex = this._findBuffer(offset);

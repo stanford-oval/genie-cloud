@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -22,8 +22,8 @@ import * as os from 'os';
 
 import { safeMkdirSync } from './fsutils';
 
-let _writabledir = null;
-let _cachedir = null;
+let _writabledir : string;
+let _cachedir  : string;
 
 export function init() {
     const rootdir = process.env.THINGENGINE_ROOTDIR || process.cwd();

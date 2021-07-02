@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
 import * as fs from 'fs';
 import JSZip from 'jszip';
 import * as ThingTalk from 'thingtalk';
@@ -45,8 +46,10 @@ import * as db from './db';
 
 import * as EngineManager from '../almond/enginemanagerclient';
 
-function areMetaIdentical(one, two) {
-    for (let what of ['queries', 'actions']) {
+type RequestLike = Validation.RequestLike;
+
+function areMetaIdentical(one : schemaModel.SchemaMetadata, two : schemaModel.SchemaMetadata) {
+    for (const what of ['queries', 'actions'] as const) {
         const oneKeys = Object.keys(one[what]).sort();
         const twoKeys = Object.keys(two[what]).sort();
         if (oneKeys.length !== twoKeys.length)
@@ -65,12 +68,12 @@ function areMetaIdentical(one, two) {
     return true;
 }
 
-async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
+async function ensurePrimarySchema(dbClient : db.Client, name : string, classDef : ThingTalk.Ast.ClassDef, req : RequestLike, approve : boolean) : Promise<[number, boolean]> {
     const metas = SchemaUtils.classDefToSchema(classDef);
 
     return schemaModel.getByKind(dbClient, classDef.kind).then(async (existing) => {
-        if (existing.owner !== req.user.developer_org &&
-            (req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0)
+        if (existing.owner !== req.user!.developer_org &&
+            (req.user!.roles & user.Role.THINGPEDIA_ADMIN) === 0)
             throw new ForbiddenError();
 
         const existingMeta = (await schemaModel.getMetasByKindAtVersion(dbClient, classDef.kind, existing.developer_version, 'en'))[0];
@@ -82,7 +85,11 @@ async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
             return [existing.id, false];
         }
 
-        let obj = {
+        const obj : {
+            kind_canonical : string,
+            developer_version : number,
+            approved_version ?: number
+        } = {
             kind_canonical: classDef.metadata.canonical,
             developer_version: existing.developer_version + 1
         };
@@ -92,26 +99,21 @@ async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
         await schemaModel.update(dbClient, existing.id, existing.kind, obj, metas);
         return [existing.id, true];
     }, async (e) => {
-        let obj = {
+        const obj = {
             kind: classDef.kind,
             kind_canonical: classDef.metadata.canonical,
             kind_type: 'primary',
-            owner: req.user.developer_org
-        };
-        if (approve) {
-            obj.approved_version = 0;
-            obj.developer_version = 0;
-        } else {
-            obj.approved_version = null;
-            obj.developer_version = 0;
-        }
+            owner: req.user!.developer_org!,
+            approved_version: approve ? 0 : null,
+            developer_version: 0
+        } as const;
 
         const schema = await schemaModel.create(dbClient, obj, metas);
         return [schema.id, true];
     });
 }
 
-async function ensureDataset(dbClient, schemaId, classDef, dataset) {
+async function ensureDataset(dbClient : db.Client, schemaId : number, classDef : ThingTalk.Ast.ClassDef|null, dataset : ThingTalk.Ast.Dataset) {
     /* This functions does three things:
 
        - it fetches the list of existing examples in the database
@@ -123,12 +125,12 @@ async function ensureDataset(dbClient, schemaId, classDef, dataset) {
     const tokenizer = I18n.get(dataset.language || 'en').genie.getTokenizer();
 
     const existingMap = new Map;
-    const toDelete = new Set;
+    const toDelete = new Set<number>();
 
     const old = await exampleModel.getBaseBySchema(dbClient, schemaId, dataset.language || 'en',
         !!classDef /* includeSynthetic */);
 
-    for (let row of old) {
+    for (const row of old) {
         if (row.name)
             existingMap.set(row.name, row);
         toDelete.add(row.id);
@@ -168,10 +170,10 @@ async function ensureDataset(dbClient, schemaId, classDef, dataset) {
         }
     }
 
-    for (let example of dataset.examples) {
+    for (const example of dataset.examples) {
         const code = DatasetUtils.exampleToCode(example);
 
-        const name = example.annotations.name.toJS();
+        const name = example.annotations.name.toJS() as string;
         let mustCreate = true;
         if (name && existingMap.has(name)) {
             const existing = existingMap.get(name);
@@ -206,7 +208,7 @@ async function ensureDataset(dbClient, schemaId, classDef, dataset) {
         }
     }
 
-    if (toDelete.length === 0 && toCreate.length === 0 && toUpdate.length === 0)
+    if (toDelete.size === 0 && toCreate.length === 0 && toUpdate.length === 0)
         return false;
 
     // delete first so we don't race with insertions and get duplicate keys
@@ -224,17 +226,22 @@ async function ensureDataset(dbClient, schemaId, classDef, dataset) {
                 target_json: '', // FIXME
                 type: 'thingpedia',
                 language: dataset.language || 'en',
-                is_base: 1,
+                is_base: true,
                 flags: ex.flags,
                 name: ex.name
             });
-        }))
+        }), false)
     ]);
     return true;
 }
 
-function uploadZipFile(req, obj, stream) {
-    let zipFile = new JSZip();
+interface SimpleDevice {
+    primary_kind : string;
+    developer_version : number;
+}
+
+function uploadZipFile(req : RequestLike, obj : SimpleDevice, fromStream : stream.Readable) {
+    const zipFile = new JSZip();
 
     return Promise.resolve().then(() => {
         // unfortunately JSZip only loads from memory, so we need to load the entire file
@@ -242,22 +249,22 @@ function uploadZipFile(req, obj, stream) {
         // this is somewhat a problem, because the file can be up to 30-50MB in size
         // we just hope the GC will get rid of the buffer quickly
 
-        let buffers = [];
+        const buffers : Buffer[] = [];
         let length = 0;
-        return new Promise((callback, errback) => {
-            stream.on('data', (buffer) => {
+        return new Promise<Buffer>((callback, errback) => {
+            fromStream.on('data', (buffer) => {
                 buffers.push(buffer);
                 length += buffer.length;
             });
-            stream.on('end', () => {
+            fromStream.on('end', () => {
                 callback(Buffer.concat(buffers, length));
             });
-            stream.on('error', errback);
+            fromStream.on('error', errback);
         });
     }).then((buffer) => {
         return zipFile.loadAsync(buffer, { checkCRC32: false });
     }).then(() => {
-        let packageJson = zipFile.file('package.json');
+        const packageJson = zipFile.file('package.json');
         if (!packageJson)
             throw new BadRequestError(req._("package.json missing from device zip file"));
 
@@ -287,13 +294,13 @@ function uploadZipFile(req, obj, stream) {
     });
 }
 
-function uploadJavaScript(req, obj, stream) {
-    let zipFile = new JSZip();
+function uploadJavaScript(req : RequestLike, obj : SimpleDevice, stream : stream.Readable) {
+    const zipFile = new JSZip();
 
     return Promise.resolve().then(() => {
         zipFile.file('package.json', JSON.stringify({
             name: obj.primary_kind,
-            author: req.user.username + '@thingpedia.stanford.edu',
+            author: req.user!.username + '@thingpedia.stanford.edu',
             main: 'index.js',
             'thingpedia-version': obj.developer_version
         }));
@@ -309,21 +316,21 @@ function uploadJavaScript(req, obj, stream) {
     });
 }
 
-function isDownloadable(classDef) {
+function isDownloadable(classDef : ThingTalk.Ast.ClassDef) {
     const loader = classDef.loader;
     return !classDef.is_abstract &&
-        Validation.JAVASCRIPT_MODULE_TYPES.has(loader.module) &&
-        loader.module !== 'org.thingpedia.builtin' &&
-        loader.module !== 'org.thingpedia.embedded';
+        Validation.JAVASCRIPT_MODULE_TYPES.has(loader!.module) &&
+        loader!.module !== 'org.thingpedia.builtin' &&
+        loader!.module !== 'org.thingpedia.embedded';
 }
 
-function getCategory(classDef) {
+function getCategory(classDef : ThingTalk.Ast.ClassDef) {
     if (classDef.annotations.system && classDef.annotations.system.toJS())
         return 'system';
     if (classDef.is_abstract)
         return 'system';
 
-    if (classDef.loader.module === 'org.thingpedia.builtin') {
+    if (classDef.loader!.module === 'org.thingpedia.builtin') {
         switch (classDef.kind) {
         case 'org.thingpedia.builtin.thingengine.gnome':
         case 'org.thingpedia.builtin.thingengine.phone':
@@ -332,7 +339,7 @@ function getCategory(classDef) {
         }
     }
 
-    switch (classDef.config.module) {
+    switch (classDef.config!.module) {
     case 'org.thingpedia.config.builtin':
     case 'org.thingpedia.config.none':
         return 'data';
@@ -344,9 +351,9 @@ function getCategory(classDef) {
     }
 }
 
-async function uploadIcon(primary_kind, iconPath, deleteAfterwards = true) {
+async function uploadIcon(primary_kind : string, iconPath : string, deleteAfterwards = true) {
     try {
-        let image = graphics.createImageFromPath(iconPath);
+        const image = graphics.createImageFromPath(iconPath);
         image.resizeFit(512, 512);
         const stdout = await image.stream('png');
 
@@ -373,7 +380,7 @@ async function uploadIcon(primary_kind, iconPath, deleteAfterwards = true) {
         // and we'll be sad
         const [,result] = await Promise.all([
             code_storage.storeIcon(pt1, primary_kind),
-            colorScheme(pt2, primary_kind)
+            colorScheme(pt2)
         ]);
         return result;
     } finally {
@@ -382,7 +389,30 @@ async function uploadIcon(primary_kind, iconPath, deleteAfterwards = true) {
     }
 }
 
-async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipFilePath = null, iconPath = null, approve = true }) {
+interface ImportDeviceMetadata {
+    thingpedia_name : string;
+    thingpedia_description : string;
+    subcategory : string;
+    license ?: string;
+    license_gplcompatible ?: boolean;
+    website ?: string;
+    repository ?: string;
+    issue_tracker ?: string;
+
+    class : string;
+    dataset : string;
+}
+interface ImportDeviceOptions {
+    owner ?: number;
+    zipFilePath ?: string|null;
+    iconPath ?: string|null;
+    approve ?: boolean;
+}
+
+async function importDevice(dbClient : db.Client,
+                            req : RequestLike,
+                            primary_kind : string,
+                            json : ImportDeviceMetadata, { owner = 0, zipFilePath = null, iconPath = null, approve = true } : ImportDeviceOptions) {
     const device = {
         primary_kind: primary_kind,
         owner: owner,
@@ -390,16 +420,21 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
         description: json.thingpedia_description,
 
         license: json.license || 'GPL-3.0',
-        license_gplcompatible: json.license_gplcompatible || true,
+        license_gplcompatible: json.license_gplcompatible ?? true,
         website: json.website || '',
         repository: json.repository || '',
         issue_tracker: json.issue_tracker || (json.repository ? json.repository + '/issues' : ''),
+        category: 'system' as 'system'|'online'|'data'|'physical',
         subcategory: json.subcategory,
 
         approved_version: (approve ? 0 : null),
         developer_version: 0,
 
-        source_code: json.class
+        source_code: json.class,
+
+        colors_dominant: '',
+        colors_palette_default: '',
+        colors_palette_light: '',
     };
 
     const [classDef, dataset] = await Validation.validateDevice(dbClient, req, device, json.class, json.dataset);
@@ -422,7 +457,7 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
                 language: 'en',
                 id: classDef.kind + ':' + stmt.name,
                 is_well_known: false,
-                has_ner_support: stmt.impl_annotations.has_ner ? stmt.impl_annotations.has_ner.toJS() : true,
+                has_ner_support: stmt.impl_annotations.has_ner ? stmt.impl_annotations.has_ner.toJS() as boolean : true,
                 subtype_of
             };
         }));
@@ -435,7 +470,7 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
         code: classDef.prettyprint(),
         factory: JSON.stringify(factory),
         downloadable: isDownloadable(classDef),
-        module_type: classDef.is_abstract ? 'org.thingpedia.abstract' : classDef.loader.module
+        module_type: classDef.is_abstract ? 'org.thingpedia.abstract' : classDef.loader!.module
     };
 
     if (iconPath)
@@ -443,7 +478,7 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
 
     await model.create(dbClient, device, classDef.extends || [],
                        classDef.annotations.child_types ?
-                       classDef.annotations.child_types.toJS() : [],
+                       classDef.annotations.child_types.toJS() as string[] : [],
                        FactoryUtils.getDiscoveryServices(classDef),
                        versionedInfo);
 
@@ -457,7 +492,7 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
     return device;
 }
 
-function tryUpdateDevice(primaryKind, userId) {
+function tryUpdateDevice(primaryKind : string, userId : number) {
     // do the update asynchronously - if the update fails, the user will
     // have another chance from the status page
     EngineManager.get().getEngine(userId).then((engine) => {
@@ -469,15 +504,16 @@ function tryUpdateDevice(primaryKind, userId) {
     return Promise.resolve();
 }
 
-function isJavaScript(file) {
+function isJavaScript(file : Express.Multer.File) {
     return file.mimetype === 'application/javascript' ||
         file.mimetype === 'text/javascript' ||
         (file.originalname && file.originalname.endsWith('.js'));
 }
 
-async function uploadDevice(req) {
-    const approve = (req.user.roles & (user.Role.TRUSTED_DEVELOPER | user.Role.THINGPEDIA_ADMIN)) !== 0
+async function uploadDevice(req : express.Request) {
+    const approve = (req.user!.roles & (user.Role.TRUSTED_DEVELOPER | user.Role.THINGPEDIA_ADMIN)) !== 0
         && !!req.body.approve;
+    const files = req.files as Record<string, Express.Multer.File[]>|undefined;
 
     try {
         const retrain = await db.withTransaction(async (dbClient) => {
@@ -486,14 +522,14 @@ async function uploadDevice(req) {
             try {
                 old = await model.getByPrimaryKind(dbClient, req.body.primary_kind);
 
-                if (old.owner !== req.user.developer_org &&
-                    (req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0)
+                if (old.owner !== req.user!.developer_org &&
+                    (req.user!.roles & user.Role.THINGPEDIA_ADMIN) === 0)
                     throw new ForbiddenError();
             } catch(e) {
                 if (!(e instanceof NotFoundError))
                     throw e;
                 create = true;
-                if (!req.files.icon || !req.files.icon.length)
+                if (!files || !files.icon || !files.icon.length)
                     throw new BadRequestError(req._("An icon must be specified for new devices"));
             }
 
@@ -517,7 +553,7 @@ async function uploadDevice(req) {
                         language: 'en',
                         id: classDef.kind + ':' + stmt.name,
                         is_well_known: false,
-                        has_ner_support: stmt.impl_annotations.has_ner ? stmt.impl_annotations.has_ner.toJS() : true,
+                        has_ner_support: stmt.impl_annotations.has_ner ? stmt.impl_annotations.has_ner.toJS() as boolean : true,
                         subtype_of
                     };
                 }));
@@ -525,11 +561,11 @@ async function uploadDevice(req) {
 
             const extraKinds = classDef.extends || [];
             const extraChildKinds = classDef.annotations.child_types ?
-                classDef.annotations.child_types.toJS() : [];
+                classDef.annotations.child_types.toJS() as string[] : [];
 
             const downloadable = isDownloadable(classDef);
 
-            const developer_version = create ? 0 : old.developer_version + 1;
+            const developer_version = create ? 0 : old!.developer_version + 1;
             classDef.annotations.version = new ThingTalk.Ast.Value.Number(developer_version);
             classDef.annotations.package_version = new ThingTalk.Ast.Value.Number(developer_version);
 
@@ -542,36 +578,40 @@ async function uploadDevice(req) {
                 website: req.body.website || '',
                 repository: req.body.repository || '',
                 issue_tracker: req.body.issue_tracker || '',
-                category: getCategory(classDef),
+                category: getCategory(classDef) as 'system'|'physical'|'data'|'online',
                 subcategory: req.body.subcategory,
                 source_code: req.body.code,
                 developer_version: developer_version,
                 approved_version: approve ? developer_version :
                     (old !== null ? old.approved_version : null),
+                owner: 0,
+                colors_dominant: '',
+                colors_palette_default: '',
+                colors_palette_light: '',
             };
-            if (req.files.icon && req.files.icon.length)
-                Object.assign(generalInfo, await uploadIcon(req.body.primary_kind, req.files.icon[0].path));
+            if (files && files.icon && files.icon.length)
+                Object.assign(generalInfo, await uploadIcon(req.body.primary_kind, files.icon[0].path));
 
             const discoveryServices = FactoryUtils.getDiscoveryServices(classDef);
             const factory = FactoryUtils.makeDeviceFactory(classDef, generalInfo);
             const versionedInfo = {
                 code: classDef.prettyprint(),
                 factory: JSON.stringify(factory),
-                module_type: classDef.is_abstract ? 'org.thingpedia.abstract' : classDef.loader.module,
+                module_type: classDef.is_abstract ? 'org.thingpedia.abstract' : classDef.loader!.module,
                 downloadable: downloadable
             };
 
             if (create) {
-                generalInfo.owner = req.user.developer_org;
+                generalInfo.owner = req.user!.developer_org!;
                 await model.create(dbClient, generalInfo, extraKinds, extraChildKinds, discoveryServices, versionedInfo);
             } else {
-                generalInfo.owner = old.owner;
-                await model.update(dbClient, old.id, generalInfo, extraKinds, extraChildKinds, discoveryServices, versionedInfo);
+                generalInfo.owner = old!.owner;
+                await model.update(dbClient, old!.id, generalInfo, extraKinds, extraChildKinds, discoveryServices, versionedInfo);
             }
 
             if (downloadable) {
-                const zipFile = req.files && req.files.zipfile && req.files.zipfile.length ?
-                    req.files.zipfile[0] : null;
+                const zipFile = files && files.zipfile && files.zipfile.length ?
+                    files.zipfile[0] : null;
 
                 let stream;
                 if (zipFile !== null)
@@ -599,12 +639,12 @@ async function uploadDevice(req) {
         }
 
         // trigger updating the device on the user
-        await tryUpdateDevice(req.body.primary_kind, req.user.id);
+        await tryUpdateDevice(req.body.primary_kind, req.user!.id);
     } finally {
-        let toDelete = [];
-        if (req.files) {
-            if (req.files.zipfile && req.files.zipfile.length)
-                toDelete.push(util.promisify(fs.unlink)(req.files.zipfile[0].path));
+        const toDelete = [];
+        if (files) {
+            if (files.zipfile && files.zipfile.length)
+                toDelete.push(util.promisify(fs.unlink)(files.zipfile[0].path));
         }
         await Promise.all(toDelete);
     }

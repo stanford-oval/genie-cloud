@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,9 +18,8 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-export default async function sleep(ms) {
-    return new Promise((resolve, reject) => {
+export default async function sleep(ms : number) {
+    return new Promise<void>((resolve, reject) => {
         setTimeout(resolve, ms);
     });
 }

@@ -114,12 +114,14 @@ export async function getAll(client : db.Client) : Promise<Row[]> {
     return db.selectAll(client, "select * from example_utterances");
 }
 
-type CommandRow = Pick<Row, "id"|"language"|"type"|"utterance"|"preprocessed"|"target_code"
+export type CommandRow = Pick<Row, "id"|"language"|"type"|"utterance"|"preprocessed"|"target_code"
     |"click_count"|"like_count"|"is_base"> & {
-    kind : string|null;
+    kind ?: string|null;
     owner_name : string|null;
+    liked ?: boolean;
+    devices ?: string[];
 };
-type CommandRowForUser = CommandRow & { liked : boolean };
+export type CommandRowForUser = CommandRow & { liked : boolean };
 
 // The ForUser variants of getCommands and getCommandsByFuzzySearch
 // return an additional column, "liked", which is a boolean indicating
@@ -221,7 +223,9 @@ export async function getCommandsByFuzzySearch(client : db.Client, language : st
         ) order by like_count desc,click_count desc,md5(utterance) asc`, [language, `%${query}%`, `%${query}%`, language, regexp, language, query]);
 }
 
-export async function getCheatsheet(client : db.Client, language : string) : Promise<Array<Pick<Row, "id"|"utterance"|"target_code"> & { kind : string }>> {
+export type CheatsheetRow = Pick<Row, "id"|"utterance"|"target_code"> & { kind : string };
+
+export async function getCheatsheet(client : db.Client, language : string) : Promise<CheatsheetRow[]> {
     return db.selectAll(client, `select eu.id,eu.utterance,eu.target_code,ds.kind
         from example_utterances eu, device_schema ds where eu.schema_id = ds.id and
         eu.is_base = 1 and eu.type = 'thingpedia' and language = ? and ds.approved_version is not null

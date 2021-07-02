@@ -142,7 +142,7 @@ const _backends = {
             });
         },
 
-        async writeFile(url : Url.UrlObject, blob : string|Buffer|Stream.Readable, options : { contentType ?: string } = {}) {
+        async writeFile(url : Url.UrlObject, blob : string|Buffer|NodeJS.ReadableStream, options : { contentType ?: string } = {}) {
             const s3 = new AWS.S3();
             const key = url.pathname!.startsWith('/') ? url.pathname!.substring(1) : url.pathname!;
             const upload = s3.upload({
@@ -208,7 +208,7 @@ const _backends = {
         getDownloadLinkOrStream(url : Url.UrlObject) {
             return fs.createReadStream(url.pathname!);
         },
-        async writeFile(url : Url.UrlObject, blob : string|Buffer|Stream.Readable, options ?: { contentType ?: string }) {
+        async writeFile(url : Url.UrlObject, blob : string|Buffer|NodeJS.ReadableStream, options ?: { contentType ?: string }) {
             const output = fs.createWriteStream(url.pathname!);
             if (typeof blob === 'string' || blob instanceof Uint8Array)
                 output.end(blob);
@@ -299,7 +299,7 @@ export function getDownloadLinkOrStream(url : string) {
     const [parsed, backend] = getBackend(url);
     return backend.getDownloadLinkOrStream(parsed);
 }
-export async function writeFile(url : string, blob : string|Buffer|Stream.Readable, options ?: { contentType ?: string }) {
+export async function writeFile(url : string, blob : string|Buffer|NodeJS.ReadableStream, options ?: { contentType ?: string }) {
     const [parsed, backend] = getBackend(url);
     return backend.writeFile(parsed, blob, options);
 }

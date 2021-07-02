@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,12 +18,17 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import assert from 'assert';
 import * as Stream from 'stream';
 
+type ChainStreamOptions = { separator ?: string|Buffer } & Stream.ReadableOptions;
+
 class ChainStream extends Stream.Readable {
-    constructor(chain, options = {}) {
+    private _chain : Stream.Readable[];
+    private _separator : string|Buffer|undefined;
+    private _i : number;
+
+    constructor(chain : Stream.Readable[], options : ChainStreamOptions = {}) {
         super(options);
 
         this._chain = chain;
@@ -31,13 +36,13 @@ class ChainStream extends Stream.Readable {
         this._i = 0;
     }
 
-    _read(n) {
+    _read(n : number) {
         if (this._i >= this._chain.length) {
             this.push(null);
             return;
         }
 
-        let next = this._chain[this._i];
+        const next = this._chain[this._i];
         let chunk = next.read(n);
         if (chunk !== null) {
             this.push(chunk);
@@ -59,13 +64,13 @@ class ChainStream extends Stream.Readable {
         // in the third case, we want to switch to the next stream right away
         // and try to read more
 
-        if (!next._readableState.ended) {
+        if (!(next as any)._readableState.ended) {
             // first case
             next.once('readable', () => this._read(n));
-        } else if (next._readableState.length > 0) {
+        } else if ((next as any)._readableState.length > 0) {
             // second case
 
-            chunk = next.read(next._readableState.length);
+            chunk = next.read((next as any)._readableState.length);
             assert(chunk !== null);
             this.push(chunk);
 
@@ -86,11 +91,11 @@ class ChainStream extends Stream.Readable {
     }
 }
 
-export function chain(streams, options) {
+export function chain(streams : Stream.Readable[], options ?: ChainStreamOptions) {
     return new ChainStream(streams, options);
 }
 
-export function waitFinish(stream) {
+export function waitFinish(stream : Stream.Writable) {
     return new Promise((resolve, reject) => {
         stream.once('finish', resolve);
         stream.on('error', reject);

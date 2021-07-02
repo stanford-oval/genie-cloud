@@ -1130,8 +1130,6 @@ async function testGetDeviceList(_class) {
     // weird values for page are the same as ignored
     const { data: pageMinusOne } = await request('/devices/all?page=-1&' + (_class !== null ? `class=${_class}` : ''));
     assert.deepStrictEqual(pageMinusOne, page0);
-    const { data: pageInvalid } = await request('/devices/all?page=invalid&' + (_class !== null ? `class=${_class}` : ''));
-    assert.deepStrictEqual(pageInvalid, page0);
 
     const kinds = new Set;
     for (let i = 0; ; i++) {

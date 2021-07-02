@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,8 +18,15 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+interface CacheNode<V> {
+    value : V;
+    timeout : NodeJS.Timeout|null;
+    finalizer : ((v : V) => void)|undefined;
+}
 
-export default class TimedCache {
+export default class TimedCache<K, V> {
+    private _store : Map<K, CacheNode<V>>;
+
     constructor() {
         this._store = new Map;
     }
@@ -30,30 +37,30 @@ export default class TimedCache {
     keys() {
         return this._store.keys();
     }
-    *values() {
-        for (let obj of this._store.values())
+    *values() : IterableIterator<V> {
+        for (const obj of this._store.values())
             yield obj.value;
     }
-    *[Symbol.iterator]() {
-        for (let [key, obj] of this._store)
+    *[Symbol.iterator]() : IterableIterator<[K, V]> {
+        for (const [key, obj] of this._store)
             yield [key, obj.value];
     }
     entries() {
         return this[Symbol.iterator]();
     }
 
-    get(key) {
+    get(key : K) {
         const obj = this._store.get(key);
         if (obj === undefined)
             return undefined;
         return obj.value;
     }
-    has(key) {
+    has(key : K) {
         return this._store.has(key);
     }
 
     clear() {
-        for (let obj of this._store.values()) {
+        for (const obj of this._store.values()) {
             if (obj.timeout)
                 clearTimeout(obj.timeout);
             if (obj.finalizer)
@@ -62,7 +69,7 @@ export default class TimedCache {
         this._store.clear();
     }
 
-    delete(key) {
+    delete(key : K) {
         const obj = this._store.get(key);
         if (obj === undefined)
             return false;
@@ -73,7 +80,7 @@ export default class TimedCache {
         this._store.delete(key);
         return true;
     }
-    set(key, value, timeout, finalizer) {
+    set(key : K, value : V, timeout : number|null, finalizer ?: (v : V) => void) {
         const existing = this._store.get(key);
         if (existing) {
             if (existing.value !== value) {

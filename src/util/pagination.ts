@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,20 +18,22 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
 
-function validatePageAndSize(req, defaultValue, maxValue) {
-    let page = req.query.page;
-    if (page === undefined)
+function validatePageAndSize(req : express.Request<any, any, any, { page : string|undefined, page_size : string|undefined }>,
+    defaultValue : number, maxValue : number) : [number, number] {
+    let page : number;
+    if (req.query.page === undefined)
         page = 0;
     else
-        page = parseInt(page);
+        page = parseInt(req.query.page);
     if (!isFinite(page) || page < 0)
         page = 0;
-    let page_size = req.query.page_size;
-    if (page_size === undefined)
+    let page_size : number;
+    if (req.query.page_size === undefined)
         page_size = defaultValue;
     else
-        page_size = parseInt(page_size);
+        page_size = parseInt(req.query.page_size);
     if (!isFinite(page_size) || page_size < 0)
         page_size = defaultValue;
     if (page_size > maxValue)

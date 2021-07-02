@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,18 +18,19 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
 import { Ast } from 'thingtalk';
 
-function camelCase(string) {
+function camelCase(string : string) {
     return string.split(/[\s,."'!?_()]+/g).map((t) => t ? (t[0].toUpperCase() + t.substring(1)) : '').join('');
 }
 
-function getExampleNameInvocation(invocation) {
+function getExampleNameInvocation(invocation : Ast.Invocation|Ast.ExternalBooleanExpression) {
     let name = camelCase(invocation.channel);
-    for (let in_param of invocation.in_params) {
-        if (in_param.value.isUndefined && in_param.name in invocation.schema.inReq)
+    for (const in_param of invocation.in_params) {
+        if (in_param.value.isUndefined && in_param.name in invocation.schema!.inReq)
             continue;
-        if (in_param.value.isEnum)
+        if (in_param.value instanceof Ast.EnumValue)
             name += 'With' + camelCase(in_param.name) + camelCase(in_param.value.value);
         else
             name += 'With' + camelCase(in_param.name);
@@ -37,22 +38,23 @@ function getExampleNameInvocation(invocation) {
     return name;
 }
 
-function getExampleNameFilter(filter) {
+function getExampleNameFilter(filter : Ast.BooleanExpression) : string {
     if (filter.isTrue)
         return `True`;
     if (filter.isFalse)
         return `False`;
-    if (filter.isNot)
+    if (filter instanceof Ast.NotBooleanExpression)
         return `Not` + getExampleNameFilter(filter.expr);
-    if (filter.isAnd)
+    if (filter instanceof Ast.AndBooleanExpression)
         return filter.operands.map(getExampleNameFilter).join(`And`);
-    if (filter.isOr)
+    if (filter instanceof Ast.OrBooleanExpression)
         return filter.operands.map(getExampleNameFilter).join(`Or`);
-    if (filter.isExternal)
+    if (filter instanceof Ast.ExternalBooleanExpression)
         return `With` + getExampleNameInvocation(filter);
 
-    let lhs = filter.isAtom ? filter.name : getScalarExpressionName(filter.lhs);
-    let rhs = filter.rhs || filter.value;
+    assert(filter instanceof Ast.AtomBooleanExpression || filter instanceof Ast.ComputeBooleanExpression);
+    const lhs = filter instanceof Ast.AtomBooleanExpression ? filter.name : getScalarExpressionName(filter.lhs);
+    const rhs = filter instanceof Ast.AtomBooleanExpression ? filter.value : filter.rhs;
 
     let name = `By` + camelCase(lhs);
     switch (filter.operator) {
@@ -67,12 +69,12 @@ function getExampleNameFilter(filter) {
         name += camelCase(filter.operator);
     }
 
-    if (rhs.isEnum)
+    if (rhs instanceof Ast.EnumValue)
         return name + camelCase(rhs.value);
     return name;
 }
 
-function getScalarExpressionName(ast) {
+function getScalarExpressionName(ast : Ast.Value) : string {
     if (ast instanceof Ast.VarRefValue)
         return ast.name;
     if (ast instanceof Ast.ComputationValue && /^[a-zA-Z0-9]+$/.test(ast.op))
@@ -83,7 +85,7 @@ function getScalarExpressionName(ast) {
         return 'result';
 }
 
-function getExampleNameExpression(expression) {
+function getExampleNameExpression(expression : Ast.Expression) : string {
     if (expression instanceof Ast.FunctionCallExpression) {
         return camelCase(expression.name);
     } else if (expression instanceof Ast.InvocationExpression) {
@@ -92,12 +94,12 @@ function getExampleNameExpression(expression) {
         return getExampleNameExpression(expression.expression) + getExampleNameFilter(expression.filter);
     } else if (expression instanceof Ast.ProjectionExpression) {
         return expression.args.map(camelCase).join('') +
-            expression.computations.map((c) => camelCase(getScalarExpressionName)).join('')
+            expression.computations.map((c) => camelCase(getScalarExpressionName(c))).join('')
              + `Of` + getExampleNameExpression(expression.expression);
     } else if (expression instanceof Ast.AggregationExpression) {
         return camelCase(expression.operator) + (expression.field === '*' ? '' : camelCase(expression.field)) + `Of` + getExampleNameExpression(expression.expression);
     } else if (expression instanceof Ast.SortExpression) {
-        return `Sort` + camelCase(getScalarExpressionName(expression.field)) +
+        return `Sort` + camelCase(getScalarExpressionName(expression.value)) +
             camelCase(expression.direction) + getExampleNameExpression(expression.expression);
     } else if (expression instanceof Ast.MonitorExpression) {
         return `Monitor` + getExampleNameExpression(expression.expression);
@@ -112,6 +114,6 @@ function getExampleNameExpression(expression) {
     }
 }
 
-export default function getExampleName(ex) {
+export default function getExampleName(ex : Ast.Example) {
     return getExampleNameExpression(ex.value);
 }

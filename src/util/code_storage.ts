@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -21,11 +21,12 @@
 import * as Url from 'url';
 import express from 'express';
 import sanitize from 'sanitize-filename';
+import * as stream from 'stream';
 
 import * as Config from '../config';
 import * as AbstractFS from './abstract_fs';
 
-function getDownloadLocation(kind, version, developer) {
+function getDownloadLocation(kind : string, version : number, developer : boolean) {
     // FIXME: when using the S3 backend, we should generate a signed request
     // if the user is a developer (as the device should not be downloadable
     // freely)
@@ -36,14 +37,14 @@ function getDownloadLocation(kind, version, developer) {
 
 const writableDirectory = AbstractFS.resolve(Config.FILE_STORAGE_DIR);
 
-export function initFrontend(app) {
+export function initFrontend(app : express.Application) {
         // if the user has configured a CDN for downloads, we have nothing to do
         if (Config.CDN_HOST !== '/download')
             return;
 
         // special case file: URLs to use express.static, which will also do proper caching
         if (writableDirectory.startsWith('file:')) {
-            const pathname = Url.parse(writableDirectory).pathname;
+            const pathname = Url.parse(writableDirectory).pathname!;
             app.use('/download', express.static(pathname));
         } else {
             app.use('/download', (req, res, next) => {
@@ -58,17 +59,17 @@ export function initFrontend(app) {
         }
 }
 
-export function storeIcon(blob, name) {
+export function storeIcon(blob : string|stream.Readable|Buffer, name : string) {
     return AbstractFS.writeFile(AbstractFS.resolve(writableDirectory, 'icons/' + name + '.png'), blob, {
         contentType: 'image/png'
     });
 }
-export function storeBlogAsset(blob, name, contentType = 'application/octet-stream') {
+export function storeBlogAsset(blob : string|stream.Readable|Buffer, name : string, contentType = 'application/octet-stream') {
     return AbstractFS.writeFile(AbstractFS.resolve(writableDirectory, 'blog-assets/' + name), blob, {
         contentType
     });
 }
-export async function storeZipFile(blob, name, version, directory = 'devices') {
+export async function storeZipFile(blob : string|NodeJS.ReadableStream|Buffer, name : string, version : number, directory = 'devices') {
     name = sanitize(name);
     const filename = directory + '/' + name + '-v' + version + '.zip';
     await AbstractFS.writeFile(AbstractFS.resolve(writableDirectory, filename), blob, {
@@ -76,7 +77,7 @@ export async function storeZipFile(blob, name, version, directory = 'devices') {
     });
 }
 
-export function downloadZipFile(name, version, directory = 'devices') {
+export function downloadZipFile(name : string, version : number, directory = 'devices') {
     name = sanitize(name);
     const filename = directory + '/' + name + '-v' + version + '.zip';
     return AbstractFS.createReadStream(AbstractFS.resolve(writableDirectory, filename));

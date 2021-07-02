@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,10 +18,11 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import { Ast, Type } from 'thingtalk';
 import * as tokenizer from './tokenize';
 import { InternalError } from './errors';
 
-function entityTypeToHTMLType(type) {
+function entityTypeToHTMLType(type : string) {
     switch (type) {
     case 'tt:password':
         return 'password';
@@ -36,27 +37,27 @@ function entityTypeToHTMLType(type) {
     }
 }
 
-function getInputParam(config, name) {
-    for (let inParam of config.in_params) {
+function getInputParam(config : Ast.MixinImportStmt, name : string) {
+    for (const inParam of config.in_params) {
         if (inParam.name === name)
             return inParam.value.toJS();
     }
     return undefined;
 }
 
-function makeDeviceFactory(classDef, device) {
+function makeDeviceFactory(classDef : Ast.ClassDef, device : { category : string, primary_kind : string, name : string }) {
     if (classDef.is_abstract)
         return null;
 
-    const config = classDef.config;
+    const config = classDef.config!;
 
-    function toFields(argMap) {
+    function toFields(argMap : Record<string, Type>) {
         if (!argMap)
             return [];
         return Object.keys(argMap).map((k) => {
             const type = argMap[k];
             let htmlType;
-            if (type.isEntity)
+            if (type instanceof Type.Entity)
                 htmlType = entityTypeToHTMLType(type.type);
             else if (type.isNumber || type.isMeasure)
                 htmlType = 'number';
@@ -120,7 +121,7 @@ function makeDeviceFactory(classDef, device) {
             category: device.category,
             kind: device.primary_kind,
             text: device.name,
-            fields: toFields(getInputParam(config, 'params'))
+            fields: toFields(getInputParam(config, 'params') as Record<string, Type>)
         };
 
     case 'org.thingpedia.config.basic_auth':
@@ -132,7 +133,7 @@ function makeDeviceFactory(classDef, device) {
             fields: [
                 { name: 'username', label: 'Username', type: 'text' },
                 { name: 'password', label: 'Password', type: 'password' }
-            ].concat(toFields(getInputParam(config, 'extra_params')))
+            ].concat(toFields(getInputParam(config, 'extra_params') as Record<string, Type>))
         };
 
     default:
@@ -140,36 +141,36 @@ function makeDeviceFactory(classDef, device) {
     }
 }
 
-function getDiscoveryServices(classDef) {
+function getDiscoveryServices(classDef : Ast.ClassDef) {
     if (classDef.is_abstract)
         return [];
 
-    const config = classDef.config;
+    const config = classDef.config!;
     switch (config.module) {
     case 'org.thingpedia.config.discovery.bluetooth': {
-        const uuids = getInputParam(config, 'uuids');
-        const deviceClass = getInputParam(config, 'device_class');
+        const uuids = getInputParam(config, 'uuids') as string[];
+        const deviceClass = getInputParam(config, 'device_class') as number;
 
         const services = uuids.map((u) => {
             return {
                 discovery_type: 'bluetooth',
                 service: 'uuid-' + u.toLowerCase()
-            };
+            } as const;
         });
         if (deviceClass) {
             services.push({
                 discovery_type: 'bluetooth',
                 service: 'class-' + deviceClass
-            });
+            } as const);
         }
         return services;
     }
     case 'org.thingpedia.config.discovery.upnp':
-        return getInputParam(config, 'search_target').map((st) => {
+        return (getInputParam(config, 'search_target') as string[]).map((st) => {
             return {
                 discovery_type: 'upnp',
                 service: st.toLowerCase().replace(/^urn:/, '').replace(/:/g, '-')
-            };
+            } as const;
         });
     default:
         return [];

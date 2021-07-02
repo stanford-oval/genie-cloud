@@ -183,7 +183,7 @@ export default class ThingpediaClientCloud extends Tp.BaseClient implements rpc.
                 return (await this._internalGetDeviceCode(schemas, orgId, dbClient)).join('\n');
             } else {
                 const rows = await schemaModel.getTypesAndNamesByKinds(dbClient, schemas, await this._getOrgId(dbClient));
-                const classDefs = SchemaUtils.schemaListToClassDefs(rows, withMetadata);
+                const classDefs = SchemaUtils.schemaListToClassDefs(rows, false);
                 return ThingTalk.Syntax.serialize(classDefs, ThingTalk.Syntax.SyntaxType.Normal, undefined, {
                     compatibility: this._thingtalkVersion
                 });

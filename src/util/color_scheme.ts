@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,6 +18,10 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
+/// <reference types="./color-scheme" />
+/// <reference types="./img-color-extractor" />
+
+import * as stream from 'stream';
 import colorExtractor from 'img-color-extractor';
 import ColorScheme from 'color-scheme';
 
@@ -28,31 +32,30 @@ const defaultsOptions = {
     greyVa: -1,
 };
 
-export default async function makeColorScheme(stream) {
-    let colors_dominant = await colorExtractor.extract(stream, defaultsOptions);
+export default async function makeColorScheme(from : stream.Readable) {
+    const dominantColors = await colorExtractor.extract(from, defaultsOptions);
     const scheme = new ColorScheme;
 
-    if (colors_dominant[0].color === "#ffffff")
-        colors_dominant.shift();
+    if (dominantColors[0].color === "#ffffff")
+    dominantColors.shift();
 
-    colors_dominant = colors_dominant.map((color) => color.color);
-    const color_dominant = colors_dominant[0].replace(/^#/, '');
+    const dominantColor = dominantColors[0].color.replace(/^#/, '');
 
-    const colors_palette_default = scheme.from_hex(color_dominant)
+    const defaultPalette = scheme.from_hex(dominantColor)
         .scheme('contrast')
         .variation('default')
         .colors()
         .map((color) => "#" + color);
 
-    const colors_palette_light = scheme.from_hex(color_dominant)
+    const lightPalette = scheme.from_hex(dominantColor)
         .scheme('contrast')
         .variation('light')
         .colors()
         .map((color) => "#" + color);
 
     return {
-        colors_dominant: JSON.stringify(colors_dominant),
-        colors_palette_default: JSON.stringify(colors_palette_default),
-        colors_palette_light: JSON.stringify(colors_palette_light)
+        colors_dominant: JSON.stringify(dominantColors.map((color) => color.color)),
+        colors_palette_default: JSON.stringify(defaultPalette),
+        colors_palette_light: JSON.stringify(lightPalette)
     };
 }

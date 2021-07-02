@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -20,15 +20,19 @@
 
 import { Ast, Type } from 'thingtalk';
 
+import type * as schemaModel from '../model/schema';
 import { clean } from './tokenize';
 
-function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
-    const args = [];
+function makeSchemaFunctionDef(functionType : 'query'|'action', functionName : string, schema : schemaModel.SchemaChannelTypes, isMeta : false) : Ast.FunctionDef;
+function makeSchemaFunctionDef(functionType : 'query'|'action', functionName : string, schema : schemaModel.SchemaChannelMetadata, isMeta : true) : Ast.FunctionDef;
+function makeSchemaFunctionDef(functionType : 'query'|'action', functionName : string, schema : schemaModel.SchemaChannelTypes|schemaModel.SchemaChannelMetadata, isMeta : boolean) : Ast.FunctionDef;
+function makeSchemaFunctionDef(functionType : 'query'|'action', functionName : string, schema : any, isMeta : boolean) {
+    const args : Ast.ArgumentDef[] = [];
     // compat with Thingpedia API quirks
     const types = schema.types || schema.schema;
 
-    types.forEach((type, i) => {
-        type = Type.fromString(type);
+    types.forEach((typestr : string, i : number) => {
+        const type = Type.fromString(typestr);
         const argname = schema.args[i];
         const argrequired = !!schema.required[i];
         const arginput = !!schema.is_input[i];
@@ -40,13 +44,18 @@ function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
             direction = Ast.ArgDirection.IN_OPT;
         else
             direction = Ast.ArgDirection.OUT;
-        const metadata = {};
+        const metadata : {
+            canonical ?: string;
+            prompt ?: string;
+        } = {};
         if (isMeta) {
             metadata.canonical = schema.argcanonicals[i];
             if (schema.questions[i])
                 metadata.prompt = schema.questions[i];
         }
-        const annotations = {};
+        const annotations : {
+            string_values ?: Ast.Value
+        } = {};
         if (isMeta && schema.string_values[i])
             annotations.string_values = new Ast.Value.String(schema.string_values[i]);
 
@@ -54,7 +63,11 @@ function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
             type, { nl: metadata, impl: annotations }));
     });
 
-    const metadata = {};
+    const metadata : {
+        canonical ?: string;
+        confirmation ?: string;
+        formatted ?: unknown;
+    } = {};
     if (isMeta) {
         metadata.canonical = schema.canonical || '';
         metadata.confirmation = schema.confirmation || '';
@@ -62,7 +75,9 @@ function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
         if (schema.formatted && schema.formatted.length > 0)
             metadata.formatted = schema.formatted;
     }
-    const annotations = {};
+    const annotations : {
+        confirm ?: Ast.Value
+    } = {};
     if (isMeta)
         annotations.confirm = new Ast.Value.Boolean(schema.confirm);
 
@@ -78,16 +93,21 @@ function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
                                { nl: metadata, impl: annotations });
 }
 
-function makeSchemaClassDef(kind, schema, isMeta) {
-    const queries = {};
-    for (let name in schema.queries)
+function makeSchemaClassDef(kind : string, schema : schemaModel.SchemaTypes, isMeta : false) : Ast.ClassDef;
+function makeSchemaClassDef(kind : string, schema : schemaModel.SchemaMetadata, isMeta : true) : Ast.ClassDef;
+function makeSchemaClassDef(kind : string, schema : schemaModel.SchemaTypes|schemaModel.SchemaMetadata, isMeta : boolean) : Ast.ClassDef;
+function makeSchemaClassDef(kind : string, schema : any, isMeta : boolean) {
+    const queries : Record<string, Ast.FunctionDef> = {};
+    for (const name in schema.queries)
         queries[name] = makeSchemaFunctionDef('query', name, schema.queries[name], isMeta);
-    const actions = {};
-    for (let name in schema.actions)
+    const actions : Record<string, Ast.FunctionDef> = {};
+    for (const name in schema.actions)
         actions[name] = makeSchemaFunctionDef('action', name, schema.actions[name], isMeta);
 
-    const imports = [];
-    const metadata = {};
+    const imports : Ast.MixinImportStmt[] = [];
+    const metadata : {
+        canonical ?: string;
+    } = {};
     const annotations = {};
 
     if (isMeta && schema.kind_canonical)
@@ -95,9 +115,9 @@ function makeSchemaClassDef(kind, schema, isMeta) {
     return new Ast.ClassDef(null, kind, null, { queries, actions, imports }, { nl: metadata, impl: annotations });
 }
 
-function mergeFunctionDefAndSchema(fnDef, schema) {
+function mergeFunctionDefAndSchema(fnDef : Ast.FunctionDef, schema : schemaModel.SchemaChannelMetadata) {
     let complete = true;
-    for (let key of ['canonical']) {
+    for (const key of ['canonical'] as const) {
         if (schema[key])
             fnDef.metadata[key] = schema[key];
         else
@@ -110,7 +130,7 @@ function mergeFunctionDefAndSchema(fnDef, schema) {
         fnDef.metadata.formatted = schema.formatted;
 
     for (let i = 0; i < fnDef.args.length; i++) {
-        const arg = fnDef.getArgument(fnDef.args[i]);
+        const arg = fnDef.getArgument(fnDef.args[i])!;
         if (schema.argcanonicals[i])
             arg.metadata.canonical = schema.argcanonicals[i];
         else
@@ -121,42 +141,50 @@ function mergeFunctionDefAndSchema(fnDef, schema) {
     return complete;
 }
 
-export function mergeClassDefAndSchema(classDef, schema) {
+export function mergeClassDefAndSchema(classDef : Ast.ClassDef, schema : schemaModel.SchemaMetadata) {
     let complete = true;
-    for (let name in classDef.queries)
+    for (const name in classDef.queries)
         complete = mergeFunctionDefAndSchema(classDef.queries[name], schema.queries[name]) && complete;
-    for (let name in classDef.actions)
+    for (const name in classDef.actions)
         complete = mergeFunctionDefAndSchema(classDef.actions[name], schema.actions[name]) && complete;
     return complete;
 }
 
-export function schemaListToClassDefs(rows, isMeta) {
+export function schemaListToClassDefs(rows : schemaModel.SchemaMetadata[], isMeta : true) : Ast.Library;
+export function schemaListToClassDefs(rows : schemaModel.SchemaTypes[], isMeta : false) : Ast.Library;
+export function schemaListToClassDefs(rows : schemaModel.SchemaMetadata[] | schemaModel.SchemaTypes[], isMeta : boolean) : Ast.Library;
+export function schemaListToClassDefs(rows : any[], isMeta : boolean) {
     const classes = [];
-    for (let row of rows)
+    for (const row of rows)
         classes.push(makeSchemaClassDef(row.kind, row, isMeta));
     return new Ast.Input.Library(null, classes, []);
 }
 
-export function classDefToSchema(classDef) {
-    const result = {
+export function classDefToSchema(classDef : Ast.ClassDef) {
+    const result : schemaModel.SchemaMetadata = {
+        kind: classDef.kind,
+        kind_canonical: classDef.metadata.canonical || '',
+        kind_type: 'primary',
+
+        triggers: {},
         actions: {},
         queries: {}
     };
 
-    for (let what of ['actions', 'queries']) {
+    for (const what of ['actions', 'queries'] as const) {
         const into = result[what];
-        for (let name in classDef[what]) {
+        for (const name in classDef[what]) {
             const fnDef = classDef[what][name];
 
-            const out = into[name] = {
-                doc: fnDef.annotations.doc ? fnDef.annotations.doc.toJS() : '',
+            const out : schemaModel.SchemaChannelMetadata = into[name] = {
+                doc: fnDef.annotations.doc ? fnDef.annotations.doc.toJS() as string : '',
                 confirmation: fnDef.metadata.confirmation,
                 confirmation_remote: fnDef.metadata.confirmation_remote || '',
                 canonical: Array.isArray(fnDef.metadata.canonical) ? fnDef.metadata.canonical[0] : fnDef.metadata.canonical,
                 formatted: fnDef.metadata.formatted || [],
                 is_list: fnDef.is_list,
                 is_monitorable: fnDef.is_monitorable,
-                confirm: fnDef.annotations.confirm.toJS(),
+                confirm: fnDef.annotations.confirm.toJS() as boolean,
                 extends: fnDef.extends,
                 types: [],
                 args: [],
@@ -166,8 +194,8 @@ export function classDefToSchema(classDef) {
                 is_input: [],
                 string_values: []
             };
-            for (let argname of fnDef.args) {
-                const arg = fnDef.getArgument(argname);
+            for (const argname of fnDef.args) {
+                const arg = fnDef.getArgument(argname)!;
                 out.types.push(arg.type.prettyprint());
                 out.args.push(argname);
                 // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
@@ -179,7 +207,7 @@ export function classDefToSchema(classDef) {
                 out.is_input.push(!!arg.is_input);
 
                 if (arg.annotations.string_values)
-                    out.string_values.push(arg.annotations.string_values.toJS());
+                    out.string_values.push(arg.annotations.string_values.toJS() as string);
                 else
                     out.string_values.push(null);
             }

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -20,7 +20,7 @@
 
 import * as ThingTalk from 'thingtalk';
 
-export function parseOldOrNewSyntax(code) {
+export function parseOldOrNewSyntax(code : string) {
     try {
         return ThingTalk.Syntax.parse(code);
     } catch(e1) {

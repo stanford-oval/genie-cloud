@@ -110,7 +110,7 @@ export interface SchemaChannelMetadata {
     args : string[];
     required : boolean[];
     is_input : boolean[];
-    string_values : string[];
+    string_values : Array<string|null>;
     formatted : unknown[];
     argcanonicals : unknown[];
     questions : string[];

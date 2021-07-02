@@ -254,8 +254,7 @@ function getDetails<T, ReqQuery extends { version ?: string }>(fn : (dbClient : 
         else
             title = req._("Thingpedia - Device details");
 
-        const downloadable = version !== null ? Importer.isDownloadable(classDef) : false;
-        if (downloadable) {
+        if (version !== null && Importer.isDownloadable(classDef)) {
             device.download_url = await codeStorage.getDownloadLocation(device.primary_kind, version,
                 device.approved_version === null || (version !== null && version > device.approved_version));
         }

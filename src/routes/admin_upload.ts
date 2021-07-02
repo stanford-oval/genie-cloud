@@ -44,7 +44,7 @@ function hashfile(filename : string) {
     const stream = fs.createReadStream(filename);
     const digest = crypto.createHash('sha1');
 
-    return new Promise((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
         stream.on('data', (data) => {
             digest.update(data);
         });

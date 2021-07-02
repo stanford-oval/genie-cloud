@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,13 +18,14 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import express from 'express';
 import * as Url from 'url';
 import Prometheus from 'prom-client';
 import onFinished from 'on-finished';
 
 import * as Config from '../config';
 
-export default function(app) {
+export default function(app : express.Application) {
     const httpRequestsTotal = new Prometheus.Counter({
         name: 'http_requests_total',
         help: 'Count the number of HTTP requests (grouped by method, route)',
@@ -49,10 +50,10 @@ export default function(app) {
     });
 
     app.use((req, res, next) => {
-        let path;
+        let path : string;
         if (req.route === undefined) {
             // handled by serve-static or one of the middlewares killed it prematurely
-            path = Url.parse(req.originalUrl).path;
+            path = Url.parse(req.originalUrl).path!;
         } else {
             path = req.route.path;
         }

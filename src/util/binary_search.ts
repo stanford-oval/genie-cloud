@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-export default function binarySearch(cumsum, value) {
+export default function binarySearch(cumsum : number[], value : number) {
     if (cumsum.length === 0)
         return undefined;
     let a = 0, b = cumsum.length;
@@ -31,7 +31,7 @@ export default function binarySearch(cumsum, value) {
             else
                 return a+1;
         }
-        let m = Math.floor((a+b)/2);
+        const m = Math.floor((a+b)/2);
         if (value <= cumsum[m])
             b = m+1;
         else

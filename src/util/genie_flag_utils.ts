@@ -1,8 +1,8 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
-// Copyright 2018 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,10 +18,18 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-export function stringEscape(str) {
-    if (str === null || str === undefined)
-        return 'null';
-    return '"' + str.replace(/(["\\])/g, '\\$1').replace(/\n/g, '\\n') + '"';
-    // the following comment fixes broken syntax highlighting in GtkSourceView
-    //]/
+function parseFlags(flags : string) {
+    const parsed : Record<string, boolean> = {};
+    for (const flag of flags.split(','))
+        parsed[flag] = true;
+    return parsed;
 }
+
+function makeFlags(flags : Record<string, boolean>) : string {
+    return Object.keys(flags).filter((k) => !!flags[k]).join(',');
+}
+
+export {
+    parseFlags,
+    makeFlags,
+};
