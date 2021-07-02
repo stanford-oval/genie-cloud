@@ -187,8 +187,8 @@ async function testAdminBlog(root, bob, nobody) {
     const blogPostPage = await sessionRequest('/blog/1-some-blog-post', 'GET', '', root);
 
     assert(blogPostPage.indexOf('Some blog post') >= 0);
-    assert(blogPostPage.indexOf('<h1 id="heading">Heading</h1>') >= 0);
-    assert(blogPostPage.indexOf('<h2 id="subheading">Subheading</h2>') >= 0);
+    assert(blogPostPage.indexOf('<h1 id="heading" tabindex="-1">Heading</h1>') >= 0);
+    assert(blogPostPage.indexOf('<h2 id="subheading" tabindex="-1">Subheading</h2>') >= 0);
     // FIXME
     //assert(blogPostPage.indexOf('<script type="dangerous">much script very bad</script>') < 0);
 
