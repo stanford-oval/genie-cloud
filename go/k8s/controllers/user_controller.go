@@ -56,19 +56,19 @@ const (
 
 // PlatformOptions is part of runEngine request
 type PlatformOptions struct {
-	UserID             int64  `json:"userId"`
-	CloudID            string `json:"cloudId"`
-	AuthToken          string `json:"authToken"`
-	DeveloperKey       string `json:"developerKey"`
-	Locale             string `json:"locale"`
-	Timezone           string `json:"timezone"`
-	DBProxyURL         string `json:"dbProxyUrl"`
-	DBProxyAccessToken string `json:"dbProxyAccessToken"`
-	HumanName          string `json:"humanName"`
-	Email              string `json:"email"`
+	UserID             int64   `json:"userId"`
+	CloudID            string  `json:"cloudId"`
+	AuthToken          string  `json:"authToken"`
+	DeveloperKey       *string `json:"developerKey"`
+	Locale             string  `json:"locale"`
+	Timezone           string  `json:"timezone"`
+	DBProxyURL         string  `json:"dbProxyUrl"`
+	DBProxyAccessToken string  `json:"dbProxyAccessToken"`
+	HumanName          *string `json:"humanName"`
+	Email              *string `json:"email"`
 }
 
-func platformOptions(user *sql.User, developerKey string, dbProxyURL string, dbProxyToken string) *PlatformOptions {
+func platformOptions(user *sql.User, developerKey *string, dbProxyURL string, dbProxyToken string) *PlatformOptions {
 	return &PlatformOptions{
 		UserID:             user.ID,
 		CloudID:            user.CloudID,
