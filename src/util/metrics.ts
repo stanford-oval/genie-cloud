@@ -101,13 +101,15 @@ export default function(app : express.Application) {
     // to a specific almond instance, and bypasses the load balancer in front,
     // so the host part of the request will be wrong)
     app.get('/metrics', (req, res, next) => {
-        if (Config.PROMETHEUS_ACCESS_TOKEN !== null &&
-            req.headers['authorization'] !== `Bearer ${Config.PROMETHEUS_ACCESS_TOKEN}`) {
-            res.status(403).end();
-            return;
-        }
+        Promise.resolve().then(async () => {
+            if (Config.PROMETHEUS_ACCESS_TOKEN !== null &&
+                req.headers['authorization'] !== `Bearer ${Config.PROMETHEUS_ACCESS_TOKEN}`) {
+                res.status(403).end();
+                return;
+            }
 
-        res.set('Content-Type', Prometheus.register.contentType);
-        res.end(Prometheus.register.metrics());
+            res.set('Content-Type', Prometheus.register.contentType);
+            res.end(await Prometheus.register.metrics());
+        }).catch(next);
     });
 }
