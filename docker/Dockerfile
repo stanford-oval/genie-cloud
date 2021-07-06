@@ -35,17 +35,7 @@ RUN touch /var/lib/rpm/* && \
     python38 python38-pip git make gettext && \
   rm -rf /var/cache/dnf
 
-# HACK: we need to download the wheel manually or docker will die
-RUN curl -sL https://files.pythonhosted.org/packages/1d/a9/f349273a0327fdf20a73188c9c3aa7dbce68f86fad422eadd366fd2ed7a0/torch-1.7.1-cp38-cp38-manylinux1_x86_64.whl \
-           -o torch-1.7.1-cp38-cp38-manylinux1_x86_64.whl \
-        && pip3 install torch-1.7.1-cp38-cp38-manylinux1_x86_64.whl \
-        && rm -fr torch-1.7.1-cp38-cp38-manylinux1_x86_64.whl \
-        && rm -fr /root/.cache
-RUN dnf -y install cmake gcc gcc-c++ python38-devel && \
-   pip3 install genienlp==0.6.0 awscli && \
-   dnf -y remove cmake gcc gcc-c++ python38-devel && \
-   rm -fr /var/cache/dnf && \
-   rm -fr /root/.cache
+RUN pip3 install awscli && rm -fr /root/.cache
 
 # ensures python sys.std* encoding is always utf-8
 ENV PYTHONIOENCODING=UTF-8
