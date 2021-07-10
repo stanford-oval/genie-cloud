@@ -150,7 +150,7 @@ export function get(locale : string, fallback = true) {
 
     const parts = locale.split(/[-_@.,]/);
     let lang = languages[parts.join('-')];
-    while (!lang && locale.length > 0) {
+    while (!lang && parts.length > 0) {
         parts.pop();
         lang = languages[parts.join('-')];
     }
