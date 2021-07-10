@@ -1,6 +1,3 @@
-# override this to "nvidia/cuda:10.1-runtime-ubi8" if cuda is desired
-ARG BASE_IMAGE=registry.access.redhat.com/ubi8/ubi:latest
-
 # build go binary first
 FROM golang:1.16 as builder
 WORKDIR /home/almond-cloud
@@ -10,7 +7,7 @@ WORKDIR /home/almond-cloud/gosrc/backend
 # binaries are installed to /go/bin
 RUN go install
 
-FROM ${BASE_IMAGE}
+FROM registry.access.redhat.com/ubi8/ubi:latest
 
 MAINTAINER Thingpedia Admins <thingpedia-admins@lists.stanford.edu>
 
