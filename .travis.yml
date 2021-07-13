@@ -70,7 +70,7 @@ jobs:
       - export PATH="`pwd`/geckodriver:$PATH"
       - ./tests/thingpedia-integration/setup-integration.sh
       script: ./tests/thingpedia-integration/run-integration.sh
-      after_success: npm run coverage
+      after_success: cat nyc_output | npx coveralls
     -
       name: "NLP Integration Tests"
       install:
