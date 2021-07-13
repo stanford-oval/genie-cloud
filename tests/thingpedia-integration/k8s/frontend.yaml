@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: main
+        image: localhost/almond-test:latest
+        imagePullPolicy: IfNotPresent
+        args: [ "run-frontend",  "--k8s"]
+        env:
+        - name: NODE_MAX_OLD_SPACE_SIZE
+          value: "2000"
+        volumeMounts:
+        - mountPath: /etc/almond-cloud/config.d/config.yaml
+          name: config
+          readOnly: true
+          subPath: config.yaml
+        - mountPath: /etc/almond-cloud/config.d/stanford.js
+          name: stanford
+          readOnly: true
+          subPath: stanford.js
+        ports:
+        - containerPort: 8080
+          name: web
+        resources:
+          requests:
+            memory: 150M
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 20
+        securityContext:
+          capabilities:
+            add:
+            - SYS_ADMIN
+            - NET_ADMIN
+      securityContext:
+        fsGroup: 65534
+      serviceAccountName: default-editor
+      volumes:
+      - configMap:
+          name: almond-config
+        name: config
+      - configMap:
+          name: stanford-config
+        name: stanford
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    nodePort: 30950
+  selector:
+    app: frontend

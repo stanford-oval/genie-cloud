@@ -101,7 +101,7 @@ export default class EngineManagerClientK8s extends events.EventEmitter {
         let deleted = false;
 
         const rpcSocket = new rpc.Socket(jsonSocket);
-        
+
         const onError = () => {
             if (this._expectClose)
                 return;
