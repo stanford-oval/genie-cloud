@@ -16,7 +16,7 @@ package sql
 // UserDevice table
 type UserDevice struct {
 	Key
-	State string `json:"state" gorm:"column:state"`
+	State *string `json:"state" gorm:"column:state"`
 }
 
 // TableName overrides table name to `user_device`
@@ -104,7 +104,7 @@ func (e *UserDeviceJournal) Fields() []string {
 // UserDeviceSyncRecord is the joined row of UserDevice and UserDeviceJournal
 type UserDeviceSyncRecord struct {
 	UserDeviceJournal
-	State string `json:"state" gorm:"column:state"`
+	State *string `json:"state" gorm:"column:state"`
 }
 
 // Row
@@ -132,5 +132,5 @@ func (r *UserDeviceSyncRecord) SetLastModified(t int64) {
 
 // HasDiscriminator
 func (r *UserDeviceSyncRecord) HasDiscriminator() bool {
-	return len(r.State) > 0
+	return r.State != nil && len(*r.State) > 0
 }

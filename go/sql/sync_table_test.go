@@ -62,13 +62,16 @@ func (s *SyncTableSuite) SetupSuite() {
 
 	require.NoError(s.T(), err)
 	s.syncTable = NewSyncTable(s.DB)
+
+	s1 := "state1"
+	s2 := "state2"
 	s.row1 = &UserDevice{
 		Key:   Key{UniqueID: "u1", UserID: 1},
-		State: "state1",
+		State: &s1,
 	}
 	s.row2 = &UserDevice{
 		Key:   Key{UniqueID: "u2", UserID: 1},
-		State: "state2",
+		State: &s2,
 	}
 	s.record1 = &UserDeviceSyncRecord{
 		State: s.row1.State,
