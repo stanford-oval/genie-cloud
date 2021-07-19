@@ -44,12 +44,12 @@ export async function main(argv) {
 
     const [dbClient, dbDone] = await db.connect();
 
-    let query = `select id,preprocessed,target_code,time from utterance_log
+    let query = `select id,context,preprocessed,target_code,time from utterance_log
             where language = ? order by id asc`;
     query = dbClient.query(query, [language]);
 
     query.on('result', (row) => {
-        argv.output.write(row.id + '\t' + row.preprocessed + '\t' + row.target_code + '\t' + row.time.toISOString() + '\n');
+        argv.output.write(row.id + '\t' + row.context + '\t' + row.preprocessed + '\t' + row.target_code + '\t' + row.time.toISOString() + '\n');
     });
     query.on('end', () => {
         argv.output.end();
