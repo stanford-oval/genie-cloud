@@ -27,6 +27,7 @@ import { NotFoundError, InternalError } from './errors';
 import * as Config from '../config';
 
 export type Client = mysql.Connection;
+export type Query = mysql.Query;
 
 /**
  * Utility type to construct a row interface where optional values can be omitted.

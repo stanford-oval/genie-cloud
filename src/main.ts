@@ -64,6 +64,7 @@ async function main() {
         'sync-discourse-sso': await import('./scripts/sync-discourse-sso'),
         'download-dataset': await import('./scripts/download-dataset'),
         'download-log': await import('./scripts/download-log'),
+        'download-recordings': await import('./scripts/download-recordings'),
         'upload-dataset': await import('./scripts/upload-dataset'),
         'compile-exact-btrie': await import('./scripts/compile-exact-btrie'),
     };
