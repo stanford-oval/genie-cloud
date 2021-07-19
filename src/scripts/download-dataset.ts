@@ -19,6 +19,7 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as argparse from 'argparse';
 import * as fs from 'fs';
 
 import * as Genie from 'genie-toolkit';
@@ -27,7 +28,7 @@ import * as db from '../util/db';
 import { parseFlags } from '../util/genie_flag_utils';
 import * as StreamUtils from '../util/stream-utils';
 
-export function initArgparse(subparsers) {
+export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('download-dataset', {
         add_help: true,
         description: 'Download Thingpedia Dataset'
@@ -58,17 +59,17 @@ export function initArgparse(subparsers) {
     });
 }
 
-export async function main(argv) {
-    const language = argv.language;
-    const forDevices = argv.forDevices || [];
-    const types = argv.types || [];
+export async function main(argv : any) {
+    const language : string = argv.language;
+    const forDevices : string[] = argv.forDevices || [];
+    const types : string[] = argv.types || [];
 
     const [dbClient, dbDone] = await db.connect();
 
     let query;
-    let args = [language];
+    const args : unknown[] = [language];
     let includeSyntheticClause = `and not find_in_set('synthetic',flags)`;
-    let includeObsoleteClause = argv.include_obsolete ? '' : `and not find_in_set('obsolete',flags)`;
+    const includeObsoleteClause = argv.include_obsolete ? '' : `and not find_in_set('obsolete',flags)`;
     let filterClause = '';
     if (forDevices.length > 0) {
         const regexp = ' @(' + forDevices.map((d) => d.replace(/[.\\]/g, '\\$&')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';

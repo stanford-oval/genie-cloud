@@ -19,12 +19,13 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as argparse from 'argparse';
 import * as fs from 'fs';
 
 import * as db from '../util/db';
 import * as StreamUtils from '../util/stream-utils';
 
-export function initArgparse(subparsers) {
+export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('download-log', {
         add_help: true,
         description: 'Download utterance log'
@@ -39,14 +40,14 @@ export function initArgparse(subparsers) {
     });
 }
 
-export async function main(argv) {
+export async function main(argv : any) {
     const language = argv.language;
 
     const [dbClient, dbDone] = await db.connect();
 
-    let query = `select id,context,preprocessed,target_code,time from utterance_log
+    const querystr = `select id,context,preprocessed,target_code,time from utterance_log
             where language = ? order by id asc`;
-    query = dbClient.query(query, [language]);
+    const query = dbClient.query(querystr, [language]);
 
     query.on('result', (row) => {
         argv.output.write(row.id + '\t' + row.context + '\t' + row.preprocessed + '\t' + row.target_code + '\t' + row.time.toISOString() + '\n');
