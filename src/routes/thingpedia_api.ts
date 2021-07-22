@@ -24,6 +24,7 @@ import passport from 'passport';
 import multer from 'multer';
 import * as os from 'os';
 import * as ThingTalk from 'thingtalk';
+import * as semver from 'semver';
 
 import * as db from '../util/db';
 import * as entityModel from '../model/entity';
@@ -881,6 +882,16 @@ function getAllEntities(req : express.Request<any, any, any, { snapshot ?: strin
     const client = new ThingpediaClient(req.query.developer_key, req.query.locale, req.query.thingtalk_version);
 
     client.getAllEntityTypes(snapshotId).then((data) => {
+        // apply API compatibility with older clients that only expect a single subtype_of
+        if (semver.lt(req.query.thingtalk_version || ThingTalk.version, '2.1.0-alpha.2')) {
+            for (const type of data) {
+                if (type.subtype_of?.length === 0)
+                    type.subtype_of = null;
+                else
+                    (type as any).subtype_of = type.subtype_of?.[0] ?? null;
+            }
+        }
+
         if (data.length > 0 && snapshotId >= 0) {
             res.cacheFor(6, 'months');
             res.set('ETag', etag);

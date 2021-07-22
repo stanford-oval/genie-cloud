@@ -1274,132 +1274,139 @@ async function testDiscovery() {
     assert(!failed);
 }
 
+const ENTITIES = {"result":"ok",
+    "data":[
+    {
+        "type":"com.spotify:playable",
+        "name":"Playable item in Spotify",
+        "is_well_known":0,
+        "has_ner_support":1,
+        "subtype_of": []
+    },{
+        "type":"com.spotify:song",
+        "name":"Song in Spotify",
+        "is_well_known":0,
+        "has_ner_support":1,
+        "subtype_of": ["com.spotify:playable"],
+    },{
+        "type":"org.freedesktop:app_id",
+        "name":"Freedesktop App Identifier",
+        "is_well_known":0,
+        "has_ner_support":1,
+        "subtype_of": []
+    },{
+        "type":"tt:command_id",
+        "name":"Thingpedia Command ID",
+        "is_well_known":0,
+        "has_ner_support":0,
+        "subtype_of": []
+    },{
+        "type":"tt:iso_lang_code",
+        "name":"Language Identifier",
+        "is_well_known":0,
+        "has_ner_support":1,
+        "subtype_of": []
+    },{
+        "type":"tt:stock_id",
+        "name":"Company Stock ID",
+        "is_well_known":0,
+        "has_ner_support":1,
+        "subtype_of": []
+    },{
+        "type":"tt:timezone",
+        "name":"Timezone Identifier",
+        "is_well_known":0,
+        "has_ner_support":1,
+        "subtype_of": []
+    },{
+        "type":"tt:contact",
+        "name":"Contact Identity",
+        "is_well_known":1,
+        "has_ner_support":0,
+        "subtype_of": []
+    },{
+        "type":"tt:contact_name",
+        "name":"Contact Name",
+        "is_well_known":1,
+        "has_ner_support":0,
+        "subtype_of": []
+    },{
+        "type":"tt:device",
+        "name":"Device Name",
+        "is_well_known":1,
+        "has_ner_support":0,
+        "subtype_of": []
+    },{
+        "type":"tt:email_address",
+        "name":"Email Address",
+        "is_well_known":1,
+        "has_ner_support":0,
+        "subtype_of": []
+    },{
+        "type":"tt:flow_token",
+        "name":"Flow Identifier",
+        "is_well_known":1,
+        "has_ner_support":0,
+        "subtype_of": []
+    },{
+        "type":"tt:function",
+        "name":"Function Name",
+        "is_well_known":1,
+        "has_ner_support":0,
+        "subtype_of": []
+    },{
+        "type":"tt:hashtag",
+        "name":"Hashtag",
+        "is_well_known":1,
+        "has_ner_support":0,
+        "subtype_of": []
+    },{
+        "type":"tt:path_name",
+        "name":"Unix Path",
+        "is_well_known":1,
+        "has_ner_support":0,
+        "subtype_of": []
+    },{
+        "type":"tt:phone_number",
+        "name":"Phone Number",
+        "is_well_known":1,
+        "has_ner_support":0,
+        "subtype_of": []
+    },{
+        "type":"tt:picture",
+        "name":"Picture",
+        "is_well_known":1,
+        "has_ner_support":0,
+        "subtype_of": []
+    },{
+        "type":"tt:program",
+        "name":"Program",
+        "is_well_known":1,
+        "has_ner_support":0,
+        "subtype_of": []
+    },{
+        "type":"tt:url",
+        "name":"URL",
+        "is_well_known":1,
+        "has_ner_support":0,
+        "subtype_of": []
+    },{
+        "type":"tt:username",
+        "name":"Username",
+        "is_well_known":1,
+        "has_ner_support":0,
+        "subtype_of": []
+    }]
+};
+
 async function testGetEntityList() {
-    assert.deepStrictEqual(await request('/entities/all'),
-        {"result":"ok",
-        "data":[
-        {
-            "type":"com.spotify:playable",
-            "name":"Playable item in Spotify",
-            "is_well_known":0,
-            "has_ner_support":1,
-            "subtype_of": null
-        },{
-            "type":"com.spotify:song",
-            "name":"Song in Spotify",
-            "is_well_known":0,
-            "has_ner_support":1,
-            "subtype_of": "com.spotify:playable",
-        },{
-            "type":"org.freedesktop:app_id",
-            "name":"Freedesktop App Identifier",
-            "is_well_known":0,
-            "has_ner_support":1,
-            "subtype_of": null
-        },{
-            "type":"tt:command_id",
-            "name":"Thingpedia Command ID",
-            "is_well_known":0,
-            "has_ner_support":0,
-            "subtype_of": null
-        },{
-            "type":"tt:iso_lang_code",
-            "name":"Language Identifier",
-            "is_well_known":0,
-            "has_ner_support":1,
-            "subtype_of": null
-        },{
-            "type":"tt:stock_id",
-            "name":"Company Stock ID",
-            "is_well_known":0,
-            "has_ner_support":1,
-            "subtype_of": null
-        },{
-            "type":"tt:timezone",
-            "name":"Timezone Identifier",
-            "is_well_known":0,
-            "has_ner_support":1,
-            "subtype_of": null
-        },{
-            "type":"tt:contact",
-            "name":"Contact Identity",
-            "is_well_known":1,
-            "has_ner_support":0,
-            "subtype_of": null
-        },{
-            "type":"tt:contact_name",
-            "name":"Contact Name",
-            "is_well_known":1,
-            "has_ner_support":0,
-            "subtype_of": null
-        },{
-            "type":"tt:device",
-            "name":"Device Name",
-            "is_well_known":1,
-            "has_ner_support":0,
-            "subtype_of": null
-        },{
-            "type":"tt:email_address",
-            "name":"Email Address",
-            "is_well_known":1,
-            "has_ner_support":0,
-            "subtype_of": null
-        },{
-            "type":"tt:flow_token",
-            "name":"Flow Identifier",
-            "is_well_known":1,
-            "has_ner_support":0,
-            "subtype_of": null
-        },{
-            "type":"tt:function",
-            "name":"Function Name",
-            "is_well_known":1,
-            "has_ner_support":0,
-            "subtype_of": null
-        },{
-            "type":"tt:hashtag",
-            "name":"Hashtag",
-            "is_well_known":1,
-            "has_ner_support":0,
-            "subtype_of": null
-        },{
-            "type":"tt:path_name",
-            "name":"Unix Path",
-            "is_well_known":1,
-            "has_ner_support":0,
-            "subtype_of": null
-        },{
-            "type":"tt:phone_number",
-            "name":"Phone Number",
-            "is_well_known":1,
-            "has_ner_support":0,
-            "subtype_of": null
-        },{
-            "type":"tt:picture",
-            "name":"Picture",
-            "is_well_known":1,
-            "has_ner_support":0,
-            "subtype_of": null
-        },{
-            "type":"tt:program",
-            "name":"Program",
-            "is_well_known":1,
-            "has_ner_support":0,
-            "subtype_of": null
-        },{
-            "type":"tt:url",
-            "name":"URL",
-            "is_well_known":1,
-            "has_ner_support":0,
-            "subtype_of": null
-        },{
-            "type":"tt:username",
-            "name":"Username",
-            "is_well_known":1,
-            "has_ner_support":0,
-            "subtype_of": null
-        }]}
-    );
+    assert.deepStrictEqual(await request('/entities/all'), ENTITIES);
+
+    const compatEntities = JSON.parse(JSON.stringify(ENTITIES));
+    for (const entity of compatEntities.data)
+        entity.subtype_of = entity.subtype_of.length > 0 ? entity.subtype_of[0] : null;
+
+    assert.deepStrictEqual(await request('/entities/all?thingtalk_version=2.0.0'), compatEntities);
 }
 
 async function testGetEntityValues() {
@@ -2109,21 +2116,21 @@ async function testCreateDevice() {
             "name":"Some bar",
             "is_well_known":0,
             "has_ner_support":1,
-            "subtype_of": "org.thingpedia.test.newdevice_withentity:foo"
+            "subtype_of": ["org.thingpedia.test.newdevice_withentity:foo"]
         },
         {
             "type":"org.thingpedia.test.newdevice_withentity:baz",
             "name":"Some baz",
             "is_well_known":0,
             "has_ner_support":1,
-            "subtype_of": "tt:stock_id"
+            "subtype_of": ["tt:stock_id"]
         },
         {
             "type":"org.thingpedia.test.newdevice_withentity:foo",
             "name":"Some foo",
             "is_well_known":0,
             "has_ner_support":1,
-            "subtype_of": null
+            "subtype_of": []
         }
     ]);
 }
