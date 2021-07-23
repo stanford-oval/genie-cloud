@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
+import * as util from 'util';
 import assert from 'assert';
 import { assertHttpError, assertBanner, assertLoginRequired, sessionRequest, dbQuery } from './scaffold';
 import { startSession } from '../login';
@@ -116,6 +116,7 @@ async function testRegister(charlie) {
     }, charlie);
 
     // check that now we're registered
+    await util.promisify(setTimeout)(2000);
     const result = minidom.parse(await sessionRequest('/user/profile', 'GET', null, charlie));
 
     let found = false;
