@@ -409,6 +409,27 @@ interface ImportDeviceOptions {
     approve ?: boolean;
 }
 
+function entityStatementToEntityTypeRow(classDef : ThingTalk.Ast.ClassDef, stmt : ThingTalk.Ast.EntityDef) {
+    let subtype_of = null;
+    if (stmt.extends && stmt.extends.length) {
+        if (stmt.extends.length === 1) {
+            const parent = stmt.extends[0];
+            subtype_of = parent.includes(':') ? parent : classDef.kind + ':' + parent;
+        } else {
+            subtype_of = JSON.stringify(stmt.extends.map((parent) => parent.includes(':') ? parent : classDef.kind + ':' + parent));
+        }
+    }
+
+    return {
+        name: stmt.nl_annotations.description as string,
+        language: 'en',
+        id: classDef.kind + ':' + stmt.name,
+        is_well_known: false,
+        has_ner_support: stmt.impl_annotations.has_ner ? stmt.impl_annotations.has_ner.toJS() as boolean : true,
+        subtype_of
+    };
+}
+
 async function importDevice(dbClient : db.Client,
                             req : RequestLike,
                             primary_kind : string,
@@ -445,22 +466,8 @@ async function importDevice(dbClient : db.Client,
                                                   classDef, req, approve);
     await ensureDataset(dbClient, schemaId, classDef, dataset);
     if (classDef.entities.length > 0) {
-        await entityModel.updateMany(dbClient, classDef.entities.map((stmt) => {
-            let subtype_of = null;
-            if (stmt.extends) {
-                subtype_of = stmt.extends.includes(':') ? stmt.extends
-                    : classDef.kind + ':' + stmt.extends;
-            }
-
-            return {
-                name: stmt.nl_annotations.description,
-                language: 'en',
-                id: classDef.kind + ':' + stmt.name,
-                is_well_known: false,
-                has_ner_support: stmt.impl_annotations.has_ner ? stmt.impl_annotations.has_ner.toJS() as boolean : true,
-                subtype_of
-            };
-        }));
+        await entityModel.updateMany(dbClient, classDef.entities.map((stmt) =>
+            entityStatementToEntityTypeRow(classDef, stmt)));
     }
     const factory = FactoryUtils.makeDeviceFactory(classDef, device);
 
@@ -541,22 +548,8 @@ async function uploadDevice(req : express.Request) {
                                                                         classDef, req, approve);
             const datasetChanged = await ensureDataset(dbClient, schemaId, classDef, dataset);
             if (classDef.entities.length > 0) {
-                await entityModel.updateMany(dbClient, classDef.entities.map((stmt) => {
-                    let subtype_of = null;
-                    if (stmt.extends) {
-                        subtype_of = stmt.extends.includes(':') ? stmt.extends
-                            : classDef.kind + ':' + stmt.extends;
-                    }
-
-                    return {
-                        name: stmt.nl_annotations.description,
-                        language: 'en',
-                        id: classDef.kind + ':' + stmt.name,
-                        is_well_known: false,
-                        has_ner_support: stmt.impl_annotations.has_ner ? stmt.impl_annotations.has_ner.toJS() as boolean : true,
-                        subtype_of
-                    };
-                }));
+                await entityModel.updateMany(dbClient, classDef.entities.map((stmt) =>
+                    entityStatementToEntityTypeRow(classDef, stmt)));
             }
 
             const extraKinds = classDef.extends || [];

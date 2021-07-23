@@ -46,6 +46,11 @@ import { parseOldOrNewSyntax } from './compat';
 
 const CATEGORIES = new Set(['media', 'social-network', 'home', 'communication', 'health', 'service', 'data-management']);
 
+// FIXME this info needs to be in Thingpedia
+interface ExtendedEntityRecord extends Tp.BaseClient.EntityTypeRecord {
+    subtype_of ?: string[]|null;
+}
+
 export default class ThingpediaClientCloud extends Tp.BaseClient implements rpc.Stubbable<keyof Tp.BaseClient> {
     $rpcMethods = [
         'getModuleLocation',
@@ -407,7 +412,7 @@ export default class ThingpediaClientCloud extends Tp.BaseClient implements rpc.
         });
     }
 
-    getAllEntityTypes(snapshotId = -1) {
+    getAllEntityTypes(snapshotId = -1) : Promise<ExtendedEntityRecord[]> {
         return this._withClient((dbClient) => {
             if (snapshotId >= 0)
                 return entityModel.getSnapshot(dbClient, snapshotId);
@@ -419,7 +424,7 @@ export default class ThingpediaClientCloud extends Tp.BaseClient implements rpc.
                 name: r.name,
                 is_well_known: r.is_well_known,
                 has_ner_support: r.has_ner_support,
-                subtype_of: r.subtype_of
+                subtype_of: r.subtype_of ? (r.subtype_of.startsWith('[') ? JSON.parse(r.subtype_of) : [r.subtype_of]) : []
             }));
         });
     }

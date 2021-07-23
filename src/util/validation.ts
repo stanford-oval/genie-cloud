@@ -165,8 +165,8 @@ async function validateDevice(dbClient : db.Client, req : RequestLike, options :
     });
     // add all the parents of declared entities to the list of entities that must exist
     for (const stmt of classDef.entities) {
-        if (stmt.extends)
-            entities.push(stmt.extends.includes(':') ? stmt.extends : classDef.kind + ':' + stmt.extends);
+        for (const parent of stmt.extends)
+            entities.push(parent.includes(':') ? parent : classDef.kind + ':' + parent);
     }
 
     // remove from entities those that are declared in this class
