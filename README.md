@@ -16,4 +16,4 @@ information at <https://almond.stanford.edu>.
 
 ## Installation
 
-For detailed installation instructions, see [doc/installing-almond-cloud.md](doc/installing-almond-cloud.md)
+For detailed installation instructions, see [our wiki](https://wiki.almond.stanford.edu/user-guide/almond-cloud/install).
