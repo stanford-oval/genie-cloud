@@ -21,7 +21,6 @@ public/javascripts/%-bundle.js : browser/%.js browser/deps/* package-lock.json
 	browserify -o $@ $<
 
 bundles := \
-	admin-nl-training \
 	commandpedia \
 	thingpedia-device-create \
 	thingpedia-device-translate \
