@@ -99,7 +99,7 @@ jobs:
       stage: deploy
       name: "Docker Build"
       install:
-      - docker login -u $DOCKER_USERNAME -u $DOCKER_PASSWORD
+      - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
       script: ./travis/docker-build.sh
 
 notifications:
