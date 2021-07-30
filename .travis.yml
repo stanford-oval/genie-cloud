@@ -95,6 +95,12 @@ jobs:
       - export PATH="`pwd`/geckodriver:$PATH"
       script: npx nyc ./tests/training-integration.sh
       after_success: npm run coverage
+    -
+      stage: deploy
+      name: "Docker Build"
+      install:
+      - docker login -u $DOCKER_USERNAME -u $DOCKER_PASSWORD
+      script: ./travis/docker-build.sh
 
 notifications:
   webhooks: https://coveralls.io/webhook
