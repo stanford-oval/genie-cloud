@@ -452,6 +452,10 @@ class PlatformModule {
     private _oauthRedirectOrigin ! : string;
     private _faqModels ! : Record<string, { url : string, highConfidence ?: number, lowConfidence ?: number }>;
     private _notificationConfig ! : Genie.DialogueAgent.NotificationConfig;
+    private _activityMonitorOptions ! : { 
+        idleTimeoutMillis ?: number;
+        quiesceTimeoutMillis ?: number;
+    }
 
     // Initialize the platform code
     // Will be called before instantiating the engine
@@ -462,6 +466,8 @@ class PlatformModule {
         oauth_redirect_origin : string;
         faq_models : string;
         notification_config : string;
+        activity_monitor_idle_timeout_millis : number;
+        activity_monitor_quiesce_timeout_millis : number;
     }) {
         _shared = options.shared;
         this._thingpediaUrl = options.thingpedia_url;
@@ -469,6 +475,10 @@ class PlatformModule {
         this._oauthRedirectOrigin = options.oauth_redirect_origin;
         this._faqModels = JSON.parse(options.faq_models);
         this._notificationConfig = JSON.parse(options.notification_config);
+        this._activityMonitorOptions = { 
+            idleTimeoutMillis: options.activity_monitor_idle_timeout_millis,
+            quiesceTimeoutMillis: options.activity_monitor_quiesce_timeout_millis,
+        };
     }
 
     get thingpediaUrl() {
@@ -482,6 +492,10 @@ class PlatformModule {
     }
     get notificationConfig() {
         return this._notificationConfig;
+    }
+
+    get activityMonitorOptions() {
+        return this._activityMonitorOptions;
     }
 
     get shared() {

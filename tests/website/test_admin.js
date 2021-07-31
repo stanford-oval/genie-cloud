@@ -122,6 +122,16 @@ async function testAdminKillRestart(root, bob, nobody) {
     // noop
     await sessionRequest('/admin/users/start/1', 'POST', '', root);
     assert(await emc.isRunning(1));
+
+
+    if (emc.isK8s()) {
+        await sleep(5000);
+        // other users have been idle and should be removed by user controller by now
+        assert(!await emc.isRunning(2)); // anonymous
+        assert(!await emc.isRunning(3)); // bob
+        assert(!await emc.isRunning(4)); // david
+        assert(!await emc.isRunning(5)); // emma -or- alexa_user
+    }
 }
 
 async function testAdminOrgs(root, bob, nobody) {

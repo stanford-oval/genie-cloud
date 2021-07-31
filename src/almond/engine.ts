@@ -28,7 +28,7 @@ import PlatformModule from './platform';
 // used by transparent-rpc
 
 export class ConversationWrapper implements rpc.Stubbable {
-    $rpcMethods = ['destroy', 'getState', 'handleCommand', 'handleParsedCommand', 'handleThingTalk'] as const;
+    $rpcMethods = ['destroy', 'getState', 'handleCommand', 'handleParsedCommand', 'handleThingTalk', 'handlePing'] as const;
     $free ?: () => void;
 
     private _conversation : Genie.DialogueAgent.Conversation;
@@ -61,6 +61,10 @@ export class ConversationWrapper implements rpc.Stubbable {
 
     handleThingTalk(...args : Parameters<Genie.DialogueAgent.Conversation['handleThingTalk']>) {
         return this._conversation.handleThingTalk(...args);
+    }
+
+    handlePing(...args : Parameters<Genie.DialogueAgent.Conversation['handlePing']>) {
+        return this._conversation.handlePing(...args);
     }
 }
 

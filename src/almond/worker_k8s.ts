@@ -130,8 +130,10 @@ class Worker {
                 thingpediaUrl: PlatformModule.thingpediaUrl,
                 nluModelUrl: PlatformModule.nlServerUrl,
                 notifications: PlatformModule.notificationConfig,
+                activityMonitorOptions: PlatformModule.activityMonitorOptions
                 // nlg will be set to the same URL
             });
+            obj.engine!.activityMonitor!.name = `Activity monitor ${options.userId}`;
             if (this.stopped || obj.stopped)
                 return Promise.resolve();
             return obj.engine.open();
@@ -173,6 +175,8 @@ class Worker {
         const obj = this.engines.get(userId);
         if (!obj || !obj.running)
             return "stopped";
+        if (obj.engine && obj.engine.activityMonitor)
+            return obj.engine.activityMonitor.status;
         return "running";
     }
 
@@ -267,6 +271,16 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--faq-models', {
         required: true,
         help: 'FAQ model configuration',
+    });
+    parser.add_argument('--activity-monitor-idle-timeout-millis', {
+        type: 'int',
+        help: 'ActivityMonitorOptions.idleTimeoutMillis',
+        default: 600000,
+    });
+    parser.add_argument('--activity-monitor-quiesce-timeout-millis', {
+        type: 'int',
+        help: 'ActivityMonitorOptions.quiesceTimeoutMillis',
+        default: 30000,
     });
 }
 

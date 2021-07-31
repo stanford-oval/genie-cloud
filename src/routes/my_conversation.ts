@@ -216,6 +216,9 @@ async function doConversation(user : userModel.RowWithOrg, anonymous : boolean, 
                         case 'tt':
                             await wrapper.handleThingTalk(parsed.code, platformData);
                             break;
+                        case 'ping':
+                            await wrapper.handlePing();
+                            break;
                         default:
                             throw new BadRequestError('Invalid command type ' + parsed.type);
                         }
