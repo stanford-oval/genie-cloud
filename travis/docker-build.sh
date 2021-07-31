@@ -12,8 +12,3 @@ export IMAGE_NAME=stanfordoval/almond-cloud:latest
 ./hooks/build
 docker push $IMAGE_NAME
 ./hooks/post_push
-
-export IMAGE_NAME=stanfordoval/almond-cloud:latest-cuda
-./hooks/build
-docker push $IMAGE_NAME
-./hooks/post_push
