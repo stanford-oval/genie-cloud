@@ -148,7 +148,7 @@
     "@types/passport-http-bearer": "^1.0.37",
     "@types/passport-local": "^1.0.34",
     "@types/passport-oauth2-client-password": "^0.1.2",
-    "@types/rss": "0.0.28",
+    "@types/rss": "0.0.29",
     "@types/seedrandom": "^3.0.1",
     "@types/semver": "^7.3.8",
     "@types/serve-favicon": "^2.5.3",
