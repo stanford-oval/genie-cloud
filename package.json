@@ -164,7 +164,7 @@
     "cli-table": "^0.3.6",
     "codemirror": "^5.62.2",
     "coveralls": "^3.1.1",
-    "eslint": "^7.31.0",
+    "eslint": "^7.32.0",
     "foodoc": "^0.0.9",
     "form-data": "^4.0.0",
     "infinite-scroll": "^4.0.1",
