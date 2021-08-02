@@ -193,6 +193,7 @@ class DatasetUpdater {
             flags: {
                 bookkeeping: true,
                 unbalanced: true,
+                dialogues: true,
             },
             maxDepth: SYNTHETIC_DEPTH,
             targetPruningSize: TARGET_PRUNING_SIZE,
