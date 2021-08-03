@@ -63,10 +63,14 @@ node ${srcdir}/dist/main.js download-dataset -l en --output exact.tsv
 ${srcdir}/dist/main.js execute-sql-file /proc/self/fd/0 <<<"insert into training_jobs set id = 2, job_type ='train', language = 'en', model_tag ='org.thingpedia.models.developer', all_devices = 1, status = 'started', task_index = 0, task_name = 'prepare-training-set', config = '{\"synthetic_depth\":3,\"dataset_target_pruning_size\":1000,\"dataset_eval_probability\":1.0}'"
 node ${srcdir}/dist/main.js run-training-task -t prepare-training-set --job-id 2 --job-dir $workdir/training/jobs/2 --debug
 
+set +o pipefail
+shuf exact.tsv | head
+shuf ./training/jobs/2/dataset/eval.tsv | head
+
 sha256sum exact.tsv ./exact/en.btrie ./training/jobs/2/dataset/eval.tsv ./training/jobs/2/dataset/train.tsv
 sha256sum -c <<EOF
-5f60a66b47b377cccc3dfd4e548ae707475201120837098905de254032cce06f  exact.tsv
-b3b5b141c8a19206b9606dd3679ab6a035783d167a3a40d8a45eb0d4ec9a87b3  ./exact/en.btrie
+1bcf9e7f1b2e078477f84789519fb77a2acbe2cf2024abc06cac2a7a5d7ce88b  exact.tsv
+fefba15afac62b2ddbd07c612b8210e83fb616b4788c47aa9faa42b8c1bd68f7  ./exact/en.btrie
 6f16c60e07f0e61afbf1bdd9357ca77c248c3f3b51e8727a62a580f1257c4902  ./training/jobs/2/dataset/eval.tsv
 a79e8f3e6487598a157e7a49f66950a4a78540a480ab76c68ddbadb6cb6e45dc  ./training/jobs/2/dataset/train.tsv
 EOF
