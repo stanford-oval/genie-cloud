@@ -1,0 +1,102 @@
+WITH_THINGPEDIA: embedded
+THINGPEDIA_URL: /thingpedia
+WITH_LUINET: embedded
+#DOCUMENTATION_URL: /doc/getting-started.md
+ENABLE_DEVELOPER_PROGRAM: false
+ENABLE_ANONYMOUS_USER: true
+
+SERVER_ORIGIN: https://dev.almond.stanford.edu
+OAUTH_REDIRECT_ORIGIN: https://dev.almond.stanford.edu
+ENABLE_REDIRECT: true
+ENABLE_SECURITY_HEADERS: true
+EXTRA_ORIGINS:
+  - https://almond-dev.stanford.edu
+USE_BRAND: stanford
+
+SUPPORTED_LANGUAGES:
+  - en-US
+
+FILE_STORAGE_DIR: s3://geniehai-thingpedia/staging
+CDN_HOST: https://almond-static.stanford.edu/staging
+
+THINGENGINE_MANAGER_ADDRESS:
+  - backend.staging.svc.cluster.local:8100
+
+DATABASE_PROXY_URL: http://dbproxy.staging.svc.cluster.local:8200
+
+NL_SERVER_URL: https://nlp-staging.almond.stanford.edu
+NL_MODEL_DIR: s3://geniehai/almond-cloud/staging/inference
+NL_EXACT_MATCH_DIR: s3://geniehai/almond-cloud/staging/exact
+MS_SPEECH_SERVICE_REGION: westus2
+
+TRAINING_DIR: s3://geniehai/almond-cloud/staging/training
+TRAINING_URL: https://training-staging.research.almond.stanford.edu
+
+TENSORBOARD_DIR: /shared/tensorboard
+TRAINING_MEMORY_USAGE: 27000
+
+TRAINING_TASK_BACKEND: kubernetes
+TRAINING_KUBERNETES_IMAGE: stanfordoval/almond-cloud:v2.0.0-126-gae1bee9
+TRAINING_KUBERNETES_NAMESPACE: staging
+
+TRAINING_KUBERNETES_POD_SPEC_OVERRIDE:
+  serviceAccountName: training-pod
+  securityContext:
+    fsGroup: 65534
+  volumes:
+    - name: config
+      configMap:
+        name: almond-config-h8dd66g7gt
+    - name: secret
+      secret:
+        secretName: almond-secret-5bhc6b9hb5
+
+TRAINING_KUBERNETES_CONTAINER_SPEC_OVERRIDE:
+  volumeMounts:
+    - mountPath: /etc/almond-cloud/config.d/config.yaml
+      subPath: config.yaml
+      name: config
+      readOnly: true
+    - mountPath: /etc/almond-cloud/config.d/secret.yaml
+      subPath: secret.yaml
+      name: secret
+      readOnly: true
+
+
+EMAIL_FROM_USER: 'Almond <noreply@almond-dev.stanford.edu>'
+EMAIL_FROM_ADMIN: 'Almond <root@almond-dev.stanford.edu>'
+EMAIL_FROM_TRAINING: 'Almond Training Service <almond-training@almond-dev.stanford.edu>'
+EMAIL_TO_ADMIN: 'thingpedia-admins@lists.stanford.edu'
+MAILGUN_USER: postmaster@almond.stanford.edu
+
+ENABLE_PROMETHEUS: true
+USE_KF_INFERENCE_SERVICE: true
+
+# these features are disabled on the staging server
+GOOGLE_CLIENT_ID: null
+GITHUB_CLIENT_ID: null
+MAPQUEST_KEY: null
+DISCOURSE_SSO_REDIRECT: 'https://discourse.almond.stanford.edu'
+
+ABOUT_OVERRIDE:
+  index: 'stanford/about_index.pug'
+  tos: 'stanford/about_tos.pug'
+  privacy: 'stanford/about_privacy.pug'
+
+EXTRA_ABOUT_PAGES:
+  - url: 'get-almond'
+    view: 'stanford/about_get_almond.pug'
+    title: 'Get Almond'
+  - url: 'get-involved'
+    view: 'stanford/about_get_involved.pug'
+    title: 'Get Involved With Almond'
+
+EXTRA_NAVBAR:
+  - url: 'https://oval.cs.stanford.edu'
+    title: 'OVAL Lab'
+
+REGISTRATION_WARNING: >
+  This is the <strong>development</strong> version of Genie. It is not suitable
+  for everyday use. You should not use this server to store any sensitive or
+  important data.
+  <strong>Your account and your data might be deleted at any time without warning!</strong>

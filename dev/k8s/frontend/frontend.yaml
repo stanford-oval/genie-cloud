@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "frontend"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "frontend"
+  template:
+    metadata:
+      labels:
+        app: "frontend"
+    spec:
+      serviceAccountName: default-editor
+      containers:
+      - name: "main"
+        image: stanfordoval/almond-cloud:latest
+        args: ["run-frontend", "--k8s"]
+        env:
+        - name: NODE_MAX_OLD_SPACE_SIZE
+          value: "2000"
+        volumeMounts:
+        - mountPath: /etc/almond-cloud/config.d/config.yaml
+          subPath: config.yaml
+          name: config
+          readOnly: true
+        - mountPath: /etc/almond-cloud/config.d/secret.yaml
+          subPath: secret.yaml
+          name: secret
+          readOnly: true
+        ports:
+        - containerPort: 8080
+          name: web
+        resources:
+          requests:
+            memory: 150M
+          limits:
+            memory: 2500M
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 60
+      securityContext:
+        fsGroup: 65534
+      volumes:
+      - name: config
+        configMap:
+          name: almond-config
+      - name: secret
+        secret:
+          secretName: almond-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  annotations:
+    almond.metrics.scrape: "true"
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+  selector:
+    app: frontend
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "frontend"
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-http01-issuer
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    # set a very large value so we can upload string datasets
+    nginx.ingress.kubernetes.io/proxy-body-size: "64m"
+  labels:
+    app: frontend
+spec:
+  rules:
+  - host: dev.almond.stanford.edu
+    http:
+      paths:
+      - backend:
+          service:
+            name: frontend
+            port:
+              number: 8080
+        path: /
+        pathType: ImplementationSpecific
+  - host: almond-dev.stanford.edu
+    http:
+      paths:
+      - backend:
+          service:
+            name: frontend
+            port:
+              number: 8080
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - dev.almond.stanford.edu
+    - almond-dev.stanford.edu
+    secretName: frontend-tls

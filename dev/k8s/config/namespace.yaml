@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    serving.kubeflow.org/inferenceservice: enabled
+    control-plane: controller-manager
+  name: almond-dev
