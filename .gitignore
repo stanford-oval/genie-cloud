@@ -45,3 +45,5 @@ yarn-error.log
 .idea
 
 custom_config.js
+
+/tmp
