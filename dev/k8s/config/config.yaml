@@ -40,46 +40,6 @@ NL_EXACT_MATCH_DIR: ./exact
 
 MS_SPEECH_SERVICE_REGION: westus2
 
-# From `@/src/config.js`
-TRAINING_DIR: ./training
-TRAINING_URL: null
-
-# From `@/src/config.js`
-TENSORBOARD_DIR: null
-TRAINING_MEMORY_USAGE: 24000
-
-# From `@/src/config.js`
-TRAINING_TASK_BACKEND: kubernetes
-
-TRAINING_KUBERNETES_IMAGE: stanfordoval/almond-cloud:v2.0.0-126-gae1bee9
-
-# Dev namespace
-TRAINING_KUBERNETES_NAMESPACE: almond-dev
-
-TRAINING_KUBERNETES_POD_SPEC_OVERRIDE:
-  serviceAccountName: training-pod
-  securityContext:
-    fsGroup: 65534
-  volumes:
-    - name: config
-      configMap:
-        name: almond-config-h8dd66g7gt
-    - name: secret
-      secret:
-        secretName: almond-secret-5bhc6b9hb5
-
-TRAINING_KUBERNETES_CONTAINER_SPEC_OVERRIDE:
-  volumeMounts:
-    - mountPath: /etc/almond-cloud/config.d/config.yaml
-      subPath: config.yaml
-      name: config
-      readOnly: true
-    - mountPath: /etc/almond-cloud/config.d/secret.yaml
-      subPath: secret.yaml
-      name: secret
-      readOnly: true
-
-
 EMAIL_FROM_USER: '[DEV] Almond <noreply@almond-dev.stanford.edu>'
 EMAIL_FROM_ADMIN: '[DEV] Almond <root@almond-dev.stanford.edu>'
 EMAIL_FROM_TRAINING: '[DEV] Almond Training Service <almond-dev-training@almond-dev.stanford.edu>'
