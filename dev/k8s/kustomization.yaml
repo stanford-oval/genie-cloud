@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: almond-dev
+components:
+  - ./config
+  - ./mysql
+  - ./frontend
+  - ./dbproxy
+  - ./shared-backend
+  - ./controller
+
+images:
+  - name: stanfordoval/almond-cloud
+    newTag: "v2.0.0-183-g1fb4b53b"
