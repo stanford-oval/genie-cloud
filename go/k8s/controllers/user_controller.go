@@ -51,7 +51,7 @@ type UserState string
 const (
 	Starting UserState = "starting"
 	Running  UserState = "running"
-	Stopped  UserState = "stopped"
+	Idle     UserState = "idle"
 )
 
 // PlatformOptions is part of runEngine request
@@ -115,7 +115,7 @@ func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		if retrievedUser != nil {
 			retrievedUser.Status = userStatus
 			r.Status().Update(ctx, retrievedUser)
-			r.Log.Info(req.NamespacedName.Name, "status", retrievedUser.Status)
+			r.Log.Info("update status:", "user", retrievedUser.Spec.ID, "status", retrievedUser.Status)
 		}
 		r.Log.Info("--- end ---")
 	}()
@@ -136,7 +136,8 @@ func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	if err = r.Client.Get(ctx, req.NamespacedName, user); err != nil {
 		if apierrors.IsNotFound(err) {
 			// User is already deleted, kill engine if it's still running.
-			if userState == Running {
+			if userState == Running || userState == Idle {
+				r.Log.Info("kill engine for already deleted user:", "user", userID)
 				err = r.killEngine(ctx, userID, backendURL)
 				return ctrl.Result{}, err
 			}
@@ -146,9 +147,18 @@ func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 	retrievedUser = user
 
+	if len(user.Status.Backend) > 0 && user.Status.Backend != backendURL {
+		// backend url has changed due to scaling.
+		r.Log.Info("backends changed:", "user", user.Spec.ID, "old", user.Status.Backend, "new", backendURL)
+		if err = r.killEngine(ctx, userID, user.Status.Backend); err != nil {
+			r.Log.Error(err, "kill old engine faield")
+		}
+	}
+
 	if !user.ObjectMeta.DeletionTimestamp.IsZero() {
 		// object is marked for deletion
-		if userState == Running {
+		if userState == Running || userState == Idle {
+			r.Log.Info("kill engine for user marked for deletion:", "user", userID)
 			err = r.killEngine(ctx, userID, backendURL)
 		}
 		return ctrl.Result{}, err
@@ -156,7 +166,16 @@ func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	if userState == Running {
 		userStatus.State = string(Running)
-		return ctrl.Result{RequeueAfter: 20 * time.Second}, nil
+		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
+	}
+
+	if userState == Idle {
+		r.Log.Info("delete idle engine:", "user", user.Spec.ID)
+		userStatus.State = string(Idle)
+		if err = r.killEngine(ctx, userID, backendURL); err != nil {
+			r.Log.Error(err, "kill idle engine faield")
+		}
+		return ctrl.Result{}, r.Client.Delete(ctx, user)
 	}
 
 	if err = r.runEngine(ctx, user.Spec.ID, backendURL); err != nil {
@@ -217,7 +236,7 @@ func (r *UserReconciler) engineStatus(ctx context.Context, userID int64, userURL
 	if err := json.NewDecoder(resp.Body).Decode(jsonResponse); err != nil {
 		return "", err
 	}
-	r.Log.Info("engine status", "user:", userID, "resp:", jsonResponse)
+	r.Log.Info("engine status:", "user", userID, "resp", jsonResponse)
 	return UserState(jsonResponse.Data.(string)), nil
 }
 

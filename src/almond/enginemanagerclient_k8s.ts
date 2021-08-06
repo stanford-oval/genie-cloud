@@ -78,6 +78,10 @@ export default class EngineManagerClientK8s extends events.EventEmitter {
         this._expectClose = false;
     }
 
+    isK8s() {
+        return true;
+    }
+
     async getEngine(userId : number) : Promise<EngineProxy> {
         if (this._cachedEngines.has(userId)) {
              const cached = this._cachedEngines.get(userId)!;
@@ -107,12 +111,17 @@ export default class EngineManagerClientK8s extends events.EventEmitter {
                 return;
 
             if (!deleted) {
+                 console.log(`removed cached engine ${userId}`);
                 this._cachedEngines.delete(userId);
                 this.emit('socket-closed', userId);
             }
             deleted = true;
 
         };
+        ws.on('close', () => {
+            onError();
+        });
+
 
         rpcSocket.on('close', () => {
             onError();

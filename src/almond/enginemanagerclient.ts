@@ -74,6 +74,7 @@ interface EngineManagerInterface extends events.EventEmitter {
     clearCache(userId : number) : Promise<void>;
     restartUser(userId : number) : Promise<void>;
     restartUserWithoutCache(userId : number) : Promise<void>;
+    isK8s() : boolean;
 }
 
 class EngineManagerClientImpl extends events.EventEmitter {
@@ -97,6 +98,10 @@ class EngineManagerClientImpl extends events.EventEmitter {
         this._nShards = Config.THINGENGINE_MANAGER_ADDRESS.length;
         this._rpcControls = new Array(this._nShards);
         this._rpcSockets = new Array(this._nShards);
+    }
+
+    isK8s() {
+        return false;
     }
 
     getEngine(userId : number) : Promise<EngineProxy> {

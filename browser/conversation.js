@@ -614,6 +614,10 @@ $(() => {
             collapseButtons();
             appendUserMessage(parsed.command);
             break;
+
+        case 'ping':
+            handlePing();
+            break;
         }
     }
 
@@ -647,6 +651,10 @@ $(() => {
     function handleThingTalk(tt) {
         updateSpinner(true);
         ws.send(JSON.stringify({ type: 'tt', code: tt }));
+    }
+
+    function handlePing() {
+        ws.send(JSON.stringify({ type: 'ping' }));
     }
 
     function handleChoice(idx, title) {
