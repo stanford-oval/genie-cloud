@@ -20,6 +20,7 @@
 
 import assert from 'assert';
 import * as ThingTalk from 'thingtalk';
+import * as Genie from 'genie-toolkit';
 
 import * as db from './db';
 import * as entityModel from '../model/entity';
@@ -119,6 +120,22 @@ interface DeviceMetadata {
     issue_tracker ?: string;
 }
 
+function validateTemplateString(key : string, value : string|string[]) {
+    const strings = typeof value === 'string' ? [value] : value;
+    const langPack = Genie.I18n.get('en-US');
+
+    // try parsing each canonical form as a template string
+    // if that fails, we throw an error
+    for (const str of strings) {
+        try {
+            const parsed = Genie.SentenceGeneratorRuntime.Replaceable.parse(str);
+            parsed.preprocess(langPack, []);
+        } catch(e) {
+            throw new ValidationError(`Invalid canonical form for @${key}: ${e.message}`);
+        }
+    }
+}
+
 async function validateDevice(dbClient : db.Client, req : RequestLike, options : DeviceMetadata, classCode : string, datasetCode : string) : Promise<[ThingTalk.Ast.ClassDef, ThingTalk.Ast.Dataset]> {
     const name = options.name;
     const description = options.description;
@@ -184,7 +201,9 @@ async function validateDevice(dbClient : db.Client, req : RequestLike, options :
         classDef.nl_annotations.name = name;
     if (!classDef.nl_annotations.description)
         classDef.nl_annotations.description = description;
-    if (!classDef.nl_annotations.canonical)
+    if (classDef.nl_annotations.canonical)
+        validateTemplateString(classDef.kind, classDef.nl_annotations.canonical);
+    else
         classDef.nl_annotations.canonical = tokenizer.tokenize(name).tokens.join(' ');
     classDef.nl_annotations.thingpedia_name = name;
     classDef.nl_annotations.thingpedia_description = description;
@@ -304,18 +323,23 @@ function validateInvocation(kind : string,
                             entities : Set<string>,
                             stringTypes : Set<string>,
                             options : { checkPollInterval ?: boolean, checkUrl ?: boolean } = {}) {
+    const langPack = Genie.I18n.get('en-US');
+
     for (const name in where) {
         if (FORBIDDEN_NAMES.has(name))
             throw new ValidationError(`${name} is not allowed as a function name`);
 
         const fndef = where[name];
-        validateMetadata(fndef.metadata, ALLOWED_FUNCTION_METADATA);
+        validateMetadata(fndef.nl_annotations, ALLOWED_FUNCTION_METADATA);
         validateAnnotations(fndef.annotations);
 
-        if (!fndef.metadata.canonical)
-            fndef.metadata.canonical = [clean(name)];
-        else if (!Array.isArray(fndef.metadata.canonical))
-            fndef.metadata.canonical = [fndef.metadata.canonical];
+        if (fndef.nl_annotations.canonical)
+            validateTemplateString(fndef.qualifiedName, fndef.nl_annotations.canonical);
+        else
+            fndef.nl_annotations.canonical = [clean(name)];
+        if (!Array.isArray(fndef.nl_annotations.canonical))
+            fndef.nl_annotations.canonical = [fndef.nl_annotations.canonical];
+
         if (fndef.annotations.confirm) {
             if (fndef.annotations.confirm.isEnum) {
                 if (!['confirm', 'auto', 'display_result'].includes(fndef.annotations.confirm.toJS() as string))
@@ -347,7 +371,7 @@ function validateInvocation(kind : string,
             let type = arg.type;
             while (type instanceof ThingTalk.Type.Array)
                 type = type.elem as ThingTalk.Type;
-            validateMetadata(arg.metadata, ALLOWED_ARG_METADATA);
+            validateMetadata(arg.nl_annotations, ALLOWED_ARG_METADATA);
             validateAnnotations(arg.annotations);
 
             if (type instanceof ThingTalk.Type.Entity) {
@@ -361,8 +385,17 @@ function validateInvocation(kind : string,
                 if (arg.annotations['string_values'])
                     throw new ValidationError('The string_values annotation is valid only for String-typed parameters');
             }
-            if (!arg.metadata.canonical)
-                arg.metadata.canonical = clean(argname);
+            if (!arg.nl_annotations.canonical)
+                arg.nl_annotations.canonical = clean(argname);
+
+            // to validate the canonical form of the argument, try preprocessing it
+            // this will handle all the different variations in how the canonical form
+            // is specified (string, array, object with strings, object with arrays, etc.)
+            try {
+                langPack.preprocessParameterCanonical(arg.nl_annotations.canonical, 'user');
+            } catch(e) {
+                throw new ValidationError(`Invalid canonical form for @${fndef.qualifiedName}:${argname}: ${e.message}`);
+            }
         }
     }
 }
