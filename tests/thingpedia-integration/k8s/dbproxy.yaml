@@ -22,7 +22,7 @@ spec:
         volumeMounts:
         - mountPath: /etc/almond-cloud/config.d/config.yaml
           subPath: config.yaml
-          name: config
+          name: almond-config
           readOnly: true
         ports:
         - containerPort: 8200
@@ -31,7 +31,7 @@ spec:
           requests:
             memory: 100M
       volumes:
-      - name: config 
+      - name: almond-config 
         configMap:
           name: almond-config
 ---

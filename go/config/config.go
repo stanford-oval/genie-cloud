@@ -24,19 +24,21 @@ import (
 
 // AlmondConfig with almond-cloud configs and secrets
 type AlmondConfig struct {
-	NLServerURL      string `yaml:"NL_SERVER_URL"      json:"NL_SERVER_URL"`
-	DatabaseURL      string `yaml:"DATABASE_URL"       json:"DATABASE_URL"`
-	DatabaseProxyURL string `yaml:"DATABASE_PROXY_URL" json:"DATABASE_PROXY_URL"`
-	JWTSigningKey    string `yaml:"JWT_SIGNING_KEY"    json:"JWT_SIGNING_KEY"`
+	NLServerURL            string `yaml:"NL_SERVER_URL"      json:"NL_SERVER_URL"`
+	DatabaseURL            string `yaml:"DATABASE_URL"       json:"DATABASE_URL"`
+	DatabaseProxyURL       string `yaml:"DATABASE_PROXY_URL" json:"DATABASE_PROXY_URL"`
+	JWTSigningKey          string `yaml:"JWT_SIGNING_KEY"    json:"JWT_SIGNING_KEY"`
+	EnableDeveloperBackend bool   `yaml:"ENABLE_DEVELOPER_BACKEND"    json:"ENABLE_DEVELOPER_BACKEND"`
 }
 
 var almondConfig *AlmondConfig
 
 func initAlmonConfigWithDefaults() {
 	almondConfig = &AlmondConfig{
-		NLServerURL:   "https://nlp.almond.stanford.edu",
-		DatabaseURL:   os.Getenv("DATABASE_URL"),
-		JWTSigningKey: os.Getenv("JWT_SIGNING_KEY"),
+		NLServerURL:            "https://nlp.almond.stanford.edu",
+		DatabaseURL:            os.Getenv("DATABASE_URL"),
+		JWTSigningKey:          os.Getenv("JWT_SIGNING_KEY"),
+		EnableDeveloperBackend: false,
 	}
 }
 

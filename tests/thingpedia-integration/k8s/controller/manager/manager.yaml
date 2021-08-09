@@ -57,14 +57,19 @@ spec:
             memory: 20Mi
         volumeMounts:
         - mountPath: /etc/almond-cloud/config.d/config.yaml
-          name: config
+          name: almond-config
           readOnly: true
           subPath: config.yaml
+        - mountPath: /etc/manager-config
+          name: manager-config
       securityContext:
         fsGroup: 995
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10
       volumes:
-      - name: config
+      - name: almond-config
         configMap:
           name: almond-config
+      - name: manager-config
+        configMap:
+          name: manager-config

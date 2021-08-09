@@ -85,7 +85,10 @@ async function testAdminKillRestart(root, bob, nobody) {
     await assertRedirect(sessionRequest('/admin/users/start/1', 'POST', '', root, { followRedirects: false }), '/admin/users/search?q=1');
 
     // wait for user to start
-    await sleep(5000);
+    if (emc.isK8s())
+        await sleep(30000);
+    else
+        await sleep(5000);
     assert(await emc.isRunning(1)); // root
     assert(!await emc.isRunning(3)); // bob
 
@@ -116,7 +119,10 @@ async function testAdminKillRestart(root, bob, nobody) {
 
 
     await sessionRequest('/admin/users/start/1', 'POST', '', root);
-    await sleep(5000);
+    if (emc.isK8s())
+        await sleep(30000);
+    else
+        await sleep(5000);
     assert(await emc.isRunning(1));
 
     // noop

@@ -47,6 +47,7 @@ var (
 	probeAddr            = flagSet.String("health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	enableLeaderElection = flagSet.Bool("leader-elect", false, "Enable leader election for controller manager. "+
 		"Enabling this will ensure there is only one active controller manager.")
+	configDir = flagSet.String("config-dir", "/etc/manager-config", "Config dir for controller manager.")
 )
 
 func Usage() {
@@ -90,11 +91,12 @@ func Run(args []string) {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.UserReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-		Log:    ctrl.Log.WithName("controllers").WithName("User"),
-	}).SetupWithManager(mgr); err != nil {
+	if err = controllers.NewUserReconciler(
+		mgr.GetClient(),
+		mgr.GetScheme(),
+		ctrl.Log.WithName("controllers").WithName("User"),
+		almondConfig,
+		*configDir).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "User")
 		os.Exit(1)
 	}

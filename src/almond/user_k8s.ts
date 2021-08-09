@@ -34,7 +34,6 @@ type UserList = {
  */
 export default class UserK8sApi {
     static Running = "running";
-    static Shared = "shared";
 
     private api : k8s.CustomObjectsApi;
     private namespace : string;
@@ -61,27 +60,27 @@ export default class UserK8sApi {
        return null; 
     }
 
-    // poll every half second until we get backendURL or timedout. Error is thrown if timedout.
+    // poll every half second until user is ready or timedout. Error is thrown if timedout.
     async waitForUser(id : number, millis : number) : Promise<User> {
         const waitms = 500;
         const deadline = Date.now() + millis;
         while (Date.now() < deadline) {
             const user = await this.getUser(id);
-            if (user && user.status && user.status.backend)
+            if (user && user.status && user.status.backend && user.status.state === UserK8sApi.Running)
                 return user;
             await sleep(waitms);
         }
         throw new Error(`wait for user ${id} timedout`);
     }
     
-    async createUser(id : number, mode : string) : Promise<boolean> {
+    async createUser(id : number) : Promise<boolean> {
         try {
             console.info(`creating user ${id}`);
             const body = {
                apiVersion: "backend.almond.stanford.edu/v1",
                kind: "User",
                metadata: {name: `user-${id}`},
-               spec: { id: id, mode: mode } 
+               spec: { id: id } 
             };
             await this.api.createNamespacedCustomObject(
                 "backend.almond.stanford.edu",

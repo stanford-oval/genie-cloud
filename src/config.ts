@@ -343,6 +343,14 @@ export let ENABLE_ANONYMOUS_USER : boolean = false;
 export let ENABLE_DEVELOPER_PROGRAM : boolean = false;
 
 /**
+  Enable developer backend.
+
+  User dedicated pod to host trusted developer backend. This will increase
+  startup time of the developer as a new pod will be spin up from a cold start.
+*/
+export let ENABLE_DEVELOPER_BACKEND : boolean = false;
+
+/**
   LUInet (Natural Language model/server) configuration
 
   Set this to 'external' for a configuration using a public Natural Language
