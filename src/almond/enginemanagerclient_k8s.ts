@@ -231,7 +231,7 @@ export default class EngineManagerClientK8s extends events.EventEmitter {
 
     async restartUser(userId : number) {
         await this.userApi.deleteUser(userId);
-        await this.userApi.createUser(userId );
+        await this.userApi.createUser(userId);
     }
 
     async restartUserWithoutCache(userId : number) {

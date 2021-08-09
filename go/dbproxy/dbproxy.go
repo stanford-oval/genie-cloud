@@ -16,7 +16,12 @@ package dbproxy
 import (
 	"almond-cloud/config"
 	"almond-cloud/sql"
+	"context"
 	"log"
+	"net/http"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"flag"
 	"fmt"
@@ -76,7 +81,31 @@ func Run(args []string) {
 	r.POST("/synctable/:name/:uniqueid", syncTableInsertOne)
 	r.DELETE("/synctable/:name/:uniqueid/:millis", syncTableDeleteIfRecent)
 	r.DELETE("/synctable/:name/:uniqueid", syncTableDeleteOne)
-	r.Run(fmt.Sprintf("0.0.0.0:%d", *port))
+
+	server := &http.Server{
+		Addr:    fmt.Sprintf("0.0.0.0:%d", *port),
+		Handler: r,
+	}
+
+	go func() {
+		log.Printf("Listening at 0.0.0.0:%d\n", *port)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server with
+	// a timeout of 5 seconds.
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutting DBproxy server...")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatal("Dbproxy forced to shutdown: ", err)
+	}
+	log.Println("DBproxy exiting")
 }
 
 func prometheusHandler() gin.HandlerFunc {

@@ -47,3 +47,17 @@ kubectl delete user user-1
 sleep 2 
 test -z `kubectl get -l app=user-1 deployment -o jsonpath="{.items[*].metadata.name}"`
 test -z `kubectl get -l app=user-1 svc -o jsonpath="{.items[*].metadata.name}"`
+
+# kill controler-manager to generate coverage outputs
+MANAGER=`kubectl get pod -l control-plane=controller-manager -o jsonpath="{.items[0].metadata.name}"`
+PID=`kubectl exec $MANAGER -c manager -- ps -ef | grep backend.test |  awk '{print $2}'`
+kubectl exec $MANAGER -c manager -- kill -SIGINT $PID
+sleep 1
+kubectl exec $MANAGER -c manager -- cat /home/almond-cloud/coverage.out > coverage.out
+
+# kill dbproxy to generate coverage outputs
+DBPROXY=`kubectl get pod -l app=dbproxy -o jsonpath="{.items[0].metadata.name}"`
+PID=`kubectl exec $DBPROXY -- ps -ef | grep backend.test |  awk '{print $2}'`
+kubectl exec $DBPROXY -- kill -SIGINT $PID
+sleep 1
+kubectl exec $DBPROXY -- cat /home/almond-cloud/coverage.out >> coverage.out
