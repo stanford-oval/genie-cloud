@@ -143,28 +143,27 @@ func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	var (
 		err              error
-		backendURL       string
 		userID           int64
 		trustedDeveloper bool
-		userState        UserState
-		userStatus       backendv1.UserStatus
-		retrievedUser    *backendv1.User
+		user             *backendv1.User
+		stop             bool
+		result           ctrl.Result
+		currentStatus    backendv1.UserStatus
 	)
 
 	defer func() {
-		if err != nil {
-			userStatus.State = err.Error()
-		}
-		if retrievedUser != nil {
-			if r.almondConfig.EnableDeveloperBackend && trustedDeveloper {
-				retrievedUser.Spec.Mode = "developer"
-			} else {
-				retrievedUser.Spec.Mode = "shared"
+		if user != nil {
+			if len(user.Spec.Mode) == 0 {
+				if r.almondConfig.EnableDeveloperBackend && trustedDeveloper {
+					user.Spec.Mode = "developer"
+				} else {
+					user.Spec.Mode = "shared"
+				}
+				r.Update(ctx, user)
 			}
-			r.Update(ctx, retrievedUser)
-			retrievedUser.Status = userStatus
-			r.Status().Update(ctx, retrievedUser)
-			r.Log.Info("update status:", "user", retrievedUser.Spec.ID, "status", retrievedUser.Status)
+			user.Status = currentStatus
+			r.Status().Update(ctx, user)
+			r.Log.Info("update status:", "user", user.Spec.ID, "status", user.Status)
 		}
 		r.Log.Info("--- end ---")
 	}()
@@ -175,134 +174,39 @@ func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	if r.almondConfig.EnableDeveloperBackend && trustedDeveloper {
-		// for developer users, make sure deployment and service are up before proceeding.
-		user := &backendv1.User{}
-		if err = r.Client.Get(ctx, req.NamespacedName, user); err != nil {
-			if apierrors.IsNotFound(err) {
-				if err = r.deleteDeploymentService(ctx, req, userID); err != nil {
-					r.Log.Error(err, "fail to delete developer deployment or service")
-				}
-			}
-			return ctrl.Result{}, err
-		}
-		retrievedUser = user
-		if !retrievedUser.ObjectMeta.DeletionTimestamp.IsZero() {
-			// user is marked for deletion
-			user.Status.State = string(Stopping)
-			if err = r.deleteDeploymentService(ctx, req, userID); err != nil {
-				r.Log.Error(err, "fail to delete developer deployment or service marked for deletion")
-			}
-			return ctrl.Result{}, err
-		}
-		deployment := &appsv1.Deployment{}
-		if err = r.Client.Get(ctx, req.NamespacedName, deployment); err != nil {
-			if apierrors.IsNotFound(err) {
-				if err = r.createDeployment(ctx, req.Name, req.Namespace); err != nil {
-					return ctrl.Result{}, err
-				}
-				return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
-			}
-			return ctrl.Result{}, err
-		}
-		if deployment.Status.AvailableReplicas <= 0 {
-			err = errors.New("deployment not ready yet")
-			return ctrl.Result{RequeueAfter: 2 * time.Second}, nil
-		}
-		service := &corev1.Service{}
-		if err = r.Client.Get(ctx, req.NamespacedName, service); err != nil {
-			if apierrors.IsNotFound(err) {
-				if err = r.createService(ctx, req.Name, req.Namespace); err != nil {
-					return ctrl.Result{}, err
-				}
-				err = errors.New("service not ready")
-				return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
-			}
-			return ctrl.Result{}, err
-		}
-		if len(service.Spec.ClusterIP) == 0 {
-			err = errors.New("service ip not ready")
-			return ctrl.Result{RequeueAfter: 2 * time.Second}, nil
-		}
-		if len(service.Spec.Ports) == 0 {
-			err = errors.New("service port not available")
-			return ctrl.Result{}, err
-		}
-		backendURL = fmt.Sprintf("http://%s:%d", service.Spec.ClusterIP, service.Spec.Ports[0].Port)
+		user, currentStatus, stop, result, err = r.handleDeveloper(ctx, req, userID)
+	} else {
+		user, currentStatus, stop, result, err = r.handleSharedUser(ctx, req, userID)
+	}
+	if err != nil || stop {
+		return result, err
 	}
 
-	if len(backendURL) == 0 {
-		backendURL, err = r.getBackendURL(ctx, req.Namespace, userID)
-		if err != nil {
-			return ctrl.Result{RequeueAfter: 2 * time.Second}, nil
+	if len(user.Status.Backend) > 0 && user.Status.Backend != currentStatus.Backend {
+		// backend url has changed, kill the old backend
+		r.Log.Info("backends changed:", "user", user.Spec.ID, "old", user.Status.Backend, "new", currentStatus.Backend)
+		if err = r.killEngine(ctx, userID, user.Status.Backend); err != nil {
+			r.Log.Error(err, "kill old engine failed")
 		}
 	}
 
-	userStatus.Backend = backendURL
-
-	userState, err = r.engineStatus(ctx, userID, backendURL)
-	if err != nil {
-		if isDialError(err) {
-			return ctrl.Result{RequeueAfter: 2 * time.Second}, nil
-		}
-		return ctrl.Result{}, err
-	}
-	userStatus.State = string(userState)
-
-	if retrievedUser == nil {
-		user := &backendv1.User{}
-		if err = r.Client.Get(ctx, req.NamespacedName, user); err != nil {
-			if apierrors.IsNotFound(err) {
-				// User is already deleted, kill engine if it's still running.
-				if userState == Running || userState == Idle {
-					r.Log.Info("kill engine for already deleted user:", "user", userID)
-					err = r.killEngine(ctx, userID, backendURL)
-					return ctrl.Result{}, err
-				}
-				err = nil
-			}
-			return ctrl.Result{}, err
-		}
-		retrievedUser = user
-	}
-
-	if len(retrievedUser.Status.Backend) > 0 && retrievedUser.Status.Backend != backendURL {
-		// backend url has changed due to scaling.
-		r.Log.Info("backends changed:", "user", retrievedUser.Spec.ID, "old", retrievedUser.Status.Backend, "new", backendURL)
-		if err = r.killEngine(ctx, userID, retrievedUser.Status.Backend); err != nil {
-			r.Log.Error(err, "kill old engine faield")
-		}
-	}
-
-	if !retrievedUser.ObjectMeta.DeletionTimestamp.IsZero() {
-		// object is marked for deletion
-		if userState == Running || userState == Idle {
-			r.Log.Info("kill engine for user marked for deletion:", "user", userID)
-			if err = r.killEngine(ctx, userID, backendURL); err != nil {
-				r.Log.Error(err, "fail to kill engine marked for deletion")
-			}
-		}
-		return ctrl.Result{}, err
-	}
-
-	if userState == Running {
-		userStatus.State = string(Running)
+	if UserState(currentStatus.State) == Running {
 		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 
-	if userState == Idle {
-		r.Log.Info("delete idle engine:", "user", retrievedUser.Spec.ID)
-		userStatus.State = string(Idle)
-		if err = r.killEngine(ctx, userID, backendURL); err != nil {
-			r.Log.Error(err, "kill idle engine faield")
+	if UserState(currentStatus.State) == Idle {
+		r.Log.Info("delete idle engine:", "user", user.Spec.ID)
+		if err = r.killEngine(ctx, userID, currentStatus.Backend); err != nil {
+			r.Log.Error(err, "kill idle engine failed")
 		}
-		return ctrl.Result{}, r.Client.Delete(ctx, retrievedUser)
+		return ctrl.Result{}, r.Client.Delete(ctx, user)
 	}
 
-	if err = r.runEngine(ctx, retrievedUser.Spec.ID, backendURL); err != nil {
+	if err = r.runEngine(ctx, user.Spec.ID, currentStatus.Backend); err != nil {
+		currentStatus.State = err.Error()
 		return ctrl.Result{RequeueAfter: 2 * time.Second}, nil
 	}
-
-	userStatus.State = string(Starting)
+	currentStatus.State = string(Starting)
 	return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
 }
 
@@ -311,7 +215,7 @@ func (r *UserReconciler) getUserFromName(name string) (uid int64, trustedDevelop
 	if err != nil {
 		return
 	}
-	v, err := r.getDBEntry("user", uid, getUser)
+	v, err := r.getDBEntry("user", uid, getUser, true)
 	if err != nil {
 		return
 	}
@@ -322,13 +226,148 @@ func (r *UserReconciler) getUserFromName(name string) (uid int64, trustedDevelop
 	return
 }
 
-func (r *UserReconciler) getBackendURL(ctx context.Context, namespace string, uid int64) (urlStr string, err error) {
+func (r *UserReconciler) handleDeveloper(ctx context.Context, req ctrl.Request,
+	userID int64) (user *backendv1.User, currentStatus backendv1.UserStatus, stop bool, result ctrl.Result, err error) {
+	user = &backendv1.User{}
+	// for developer users, make sure deployment and service are up before proceeding.
+	if err = r.Client.Get(ctx, req.NamespacedName, user); err != nil {
+		if apierrors.IsNotFound(err) {
+			if err = r.deleteDeploymentService(ctx, req, userID); err != nil {
+				r.Log.Error(err, "fail to delete developer deployment or service")
+			}
+		}
+		return
+	}
+	if !user.ObjectMeta.DeletionTimestamp.IsZero() {
+		// user is marked for deletion
+		currentStatus.State = string(Stopping)
+		if err = r.deleteDeploymentService(ctx, req, userID); err != nil {
+			r.Log.Error(err, "fail to delete developer deployment or service marked for deletion")
+		}
+		return
+	}
+	deployment := &appsv1.Deployment{}
+	if err = r.Client.Get(ctx, req.NamespacedName, deployment); err != nil {
+		if apierrors.IsNotFound(err) {
+			if err = r.createDeployment(ctx, req.Name, req.Namespace); err != nil {
+				return
+			}
+			stop = true
+			result = ctrl.Result{RequeueAfter: 2 * time.Second}
+			// setting err to nil so ControllerManager will respect the RequeueAfter time
+			err = nil
+			return
+		}
+		return
+	}
+	if deployment.Status.AvailableReplicas <= 0 {
+		currentStatus.State = string(Starting)
+		stop = true
+		result = ctrl.Result{RequeueAfter: 2 * time.Second}
+		return
+	}
+	service := &corev1.Service{}
+	if err = r.Client.Get(ctx, req.NamespacedName, service); err != nil {
+		if apierrors.IsNotFound(err) {
+			if err = r.createService(ctx, req.Name, req.Namespace); err != nil {
+				return
+			}
+			currentStatus.State = string(Starting)
+			stop = true
+			result = ctrl.Result{RequeueAfter: 2 * time.Second}
+			err = nil
+			return
+		}
+		return
+	}
+	if len(service.Spec.ClusterIP) == 0 {
+		currentStatus.State = string(Starting)
+		stop = true
+		result = ctrl.Result{RequeueAfter: 2 * time.Second}
+		err = nil
+		return
+	}
+	if len(service.Spec.Ports) == 0 {
+		err = errors.New("service port not configured")
+		return
+	}
+	currentStatus.Backend = fmt.Sprintf("http://%s:%d", service.Spec.ClusterIP, service.Spec.Ports[0].Port)
+
+	engineStatus, err := r.engineStatus(ctx, userID, currentStatus.Backend)
+	if err != nil {
+		currentStatus.State = err.Error()
+		if isDialError(err) {
+			stop = true
+			err = nil
+			result = ctrl.Result{RequeueAfter: 2 * time.Second}
+			return
+		}
+		return
+	}
+	currentStatus.State = string(engineStatus)
+	return
+}
+
+func (r *UserReconciler) handleSharedUser(ctx context.Context, req ctrl.Request,
+	userID int64) (user *backendv1.User, currentStatus backendv1.UserStatus, stop bool, result ctrl.Result, err error) {
+	currentStatus.Backend, err = r.getSharedBackendURL(ctx, req.Namespace, userID)
+	if err != nil {
+		currentStatus.State = err.Error()
+		result = ctrl.Result{RequeueAfter: 2 * time.Second}
+		stop = true
+		err = nil
+		return
+	}
+
+	engineStatus, err := r.engineStatus(ctx, userID, currentStatus.Backend)
+	if err != nil {
+		currentStatus.State = err.Error()
+		if isDialError(err) {
+			stop = true
+			err = nil
+			result = ctrl.Result{RequeueAfter: 2 * time.Second}
+			return
+		}
+		return
+	}
+	currentStatus.State = string(engineStatus)
+
+	user = &backendv1.User{}
+	if err = r.Client.Get(ctx, req.NamespacedName, user); err != nil {
+		if apierrors.IsNotFound(err) {
+			// User is already deleted, kill engine if it's still running.
+			if engineStatus == Running || engineStatus == Idle {
+				r.Log.Info("kill engine for already deleted user:", "user", userID)
+				err = r.killEngine(ctx, userID, currentStatus.Backend)
+				return
+			}
+			err = nil
+			stop = true
+		}
+		return
+	}
+
+	if !user.ObjectMeta.DeletionTimestamp.IsZero() {
+		// object is marked for deletion
+		if engineStatus == Running || engineStatus == Idle {
+			r.Log.Info("kill engine for user marked for deletion:", "user", userID)
+			if err = r.killEngine(ctx, userID, currentStatus.Backend); err != nil {
+				r.Log.Error(err, "fail to kill engine marked for deletion")
+			}
+		}
+		stop = true
+		return
+	}
+	return
+}
+
+func (r *UserReconciler) getSharedBackendURL(ctx context.Context, namespace string, uid int64) (urlStr string, err error) {
 	endpoints := &corev1.Endpoints{}
 	// fetch backend endpoints.
 	if err = r.Get(ctx, client.ObjectKey{Namespace: namespace, Name: "shared-backend"}, endpoints); err != nil {
 		return
 	}
-	// StatefulSet endpoints they are always ordered by name.
+	// StatefulSet endpoints are always ordered by name.
 	var backendURLs []string
 	for _, subset := range endpoints.Subsets {
 		for _, addr := range subset.Addresses {
@@ -360,10 +399,10 @@ func (r *UserReconciler) createService(ctx context.Context, name, namespace stri
 	return nil
 }
 
-func (r *UserReconciler) getDBEntry(keyPrefix string, userID int64, fn dbQueryFunc) (interface{}, error) {
+func (r *UserReconciler) getDBEntry(keyPrefix string, userID int64, fn dbQueryFunc, useCache bool) (interface{}, error) {
 	cacheKey := fmt.Sprintf("%s-%d", keyPrefix, userID)
 	cacheEntry, ok := r.localCache[cacheKey]
-	if ok && cacheEntry.Expiration.After(time.Now()) {
+	if useCache && ok && cacheEntry.Expiration.After(time.Now()) {
 		return cacheEntry.Value, nil
 	}
 	db := sql.GetDB()
@@ -425,12 +464,12 @@ func (r *UserReconciler) killEngine(ctx context.Context, userID int64, backendUR
 }
 
 func (r *UserReconciler) runEngine(ctx context.Context, userID int64, userURL string) error {
-	v, err := r.getDBEntry("user", userID, getUser)
+	v, err := r.getDBEntry("user", userID, getUser, false)
 	if err != nil {
 		return err
 	}
 	u := v.(*sql.User)
-	v, err = r.getDBEntry("developer-key", userID, getDeveloperKey)
+	v, err = r.getDBEntry("developer-key", userID, getDeveloperKey, false)
 	if err != nil {
 		return err
 	}
@@ -458,11 +497,12 @@ func (r *UserReconciler) runEngine(ctx context.Context, userID int64, userURL st
 
 	return nil
 }
+
 func (r *UserReconciler) deleteDeploymentService(ctx context.Context, req ctrl.Request, userID int64) error {
 	r.Log.Info("Deleting deployment and service:", "user", userID)
 	meta := &metav1.ObjectMeta{Name: req.Name, Namespace: req.Namespace}
-	err1 := r.deleteDeployment(ctx, req, meta)
-	err2 := r.deleteService(ctx, req, meta)
+	err1 := r.deleteService(ctx, req, userID, meta)
+	err2 := r.deleteDeployment(ctx, req, meta)
 	if err1 != nil && err2 != nil {
 		return fmt.Errorf("Error1:%v\nError2:%v", err1, err2)
 	}
@@ -488,11 +528,17 @@ func (r *UserReconciler) deleteDeployment(ctx context.Context, req ctrl.Request,
 	return nil
 }
 
-func (r *UserReconciler) deleteService(ctx context.Context, req ctrl.Request, meta *metav1.ObjectMeta) error {
+func (r *UserReconciler) deleteService(ctx context.Context, req ctrl.Request, userID int64, meta *metav1.ObjectMeta) error {
 	service := &corev1.Service{ObjectMeta: *meta}
 	if err := r.Client.Get(ctx, req.NamespacedName, service); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil
+		}
+	}
+	if len(service.Spec.ClusterIP) > 0 && len(service.Spec.Ports) > 0 {
+		backend := fmt.Sprintf("http://%s:%d", service.Spec.ClusterIP, service.Spec.Ports[0].Port)
+		if err := r.killEngine(ctx, userID, backend); err != nil {
+			r.Log.Error(err, "kill engine failed")
 		}
 	}
 	if err := r.Client.Delete(ctx, service); err != nil {

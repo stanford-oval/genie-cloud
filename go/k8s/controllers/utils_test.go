@@ -10,7 +10,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestNewDepolyment(t *testing.T) {
+func TestNewDeployment(t *testing.T) {
 	var three int32 = 3
 	template := appsv1.Deployment{
 		ObjectMeta: v1.ObjectMeta{Name: "template-user"},

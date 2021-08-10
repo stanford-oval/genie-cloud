@@ -47,7 +47,7 @@ var (
 	probeAddr            = flagSet.String("health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	enableLeaderElection = flagSet.Bool("leader-elect", false, "Enable leader election for controller manager. "+
 		"Enabling this will ensure there is only one active controller manager.")
-	configDir = flagSet.String("config-dir", "/etc/manager-config", "Config dir for controller manager.")
+	configDir = flagSet.String("config-dir", "/etc/almond-cloud/manager-config", "Config dir for controller manager.")
 )
 
 func Usage() {

@@ -9,7 +9,7 @@ FRONTEND=`kubectl get pod -l app=frontend -o jsonpath="{.items[0].metadata.name}
 kubectl exec $FRONTEND --  bash -c "cd /opt/almond-cloud && npx nyc tests/thingpedia-integration/thingpedia-integration.sh"
 
 # Run selenium test on ubuntu with Firefox installed
-THINGENGINE_CONFIGDIR=tests/thingpedia-integration/k8s npx nyc ts-node tests/test_website_selenium.js
+SELENIUM_BROWSER=firefox THINGENGINE_CONFIGDIR=tests/thingpedia-integration/k8s npx nyc ts-node tests/test_website_selenium.js
 
 # Get local nyc output
 npx nyc report
@@ -53,6 +53,7 @@ MANAGER=`kubectl get pod -l control-plane=controller-manager -o jsonpath="{.item
 PID=`kubectl exec $MANAGER -c manager -- ps -ef | grep backend.test |  awk '{print $2}'`
 kubectl exec $MANAGER -c manager -- kill -SIGINT $PID
 sleep 1
+kubectl exec $MANAGER -c manager -- cat /home/almond-cloud/coverage.out
 kubectl exec $MANAGER -c manager -- cat /home/almond-cloud/coverage.out > coverage.out
 
 # kill dbproxy to generate coverage outputs
@@ -60,4 +61,5 @@ DBPROXY=`kubectl get pod -l app=dbproxy -o jsonpath="{.items[0].metadata.name}"`
 PID=`kubectl exec $DBPROXY -- ps -ef | grep backend.test |  awk '{print $2}'`
 kubectl exec $DBPROXY -- kill -SIGINT $PID
 sleep 1
-kubectl exec $DBPROXY -- cat /home/almond-cloud/coverage.out >> coverage.out
+kubectl exec $DBPROXY -- cat /home/almond-cloud/coverage.out | tail -n +2
+kubectl exec $DBPROXY -- cat /home/almond-cloud/coverage.out | tail -n +2 >> coverage.out

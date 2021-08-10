@@ -345,9 +345,11 @@ export let ENABLE_DEVELOPER_PROGRAM : boolean = false;
 /**
   Enable developer backend.
 
-  User dedicated pod to host trusted developer backend. This will increase
-  startup time of the developer as a new pod will be spin up from a cold start.
-*/
+  Use dedicated pod to host trusted developer backend. For security, it 
+  is recommended to enable this feature when ENABLE_DEVELOPER_PROGRAM is 
+  set to true. This, however, will increase startup time of developer's
+  backend as a new pod will be created.
+  */
 export let ENABLE_DEVELOPER_BACKEND : boolean = false;
 
 /**
