@@ -30,7 +30,7 @@ spec:
         args:
         - manager
         - --namespace=tba
-        - --aws-tls-cert=/etc/aws/aws-global-bundle.pem
+        # - --aws-tls-cert=/etc/aws/aws-global-bundle.pem
         - --health-probe-bind-address=:8081
         - --metrics-bind-address=127.0.0.1:8080
         - --leader-elect
@@ -64,9 +64,9 @@ spec:
           name: secret
           readOnly: true
           subPath: secret.yaml
-        - mountPath: /etc/aws
-          name: aws-secret
-          readOnly: true
+        # - mountPath: /etc/aws
+        #   name: aws-secret
+        #   readOnly: true
       securityContext:
         fsGroup: 65534
       serviceAccountName: controller-manager
@@ -78,6 +78,6 @@ spec:
       - name: secret
         secret:
           secretName: almond-secret
-      - name: aws-secret
-        secret:
-          secretName: aws-tls-secret
+      # - name: aws-secret
+      #   secret:
+      #     secretName: aws-tls-secret

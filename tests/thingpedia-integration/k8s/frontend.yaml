@@ -65,6 +65,30 @@ spec:
   type: NodePort
   ports:
   - port: 8080
-    nodePort: 30950
+    protocol: TCP
   selector:
     app: frontend
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "frontend"
+  labels:
+    app: frontend
+spec:
+  defaultBackend:
+    service:
+      name: frontend
+      port:
+        number: 8080
+  rules:
+  - host: almond.local
+    http:
+      paths:
+      - backend:
+          service:
+            name: frontend
+            port:
+              number: 8080
+        path: /
+        pathType: ImplementationSpecific
