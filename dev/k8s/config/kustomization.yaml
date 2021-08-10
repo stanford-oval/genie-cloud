@@ -5,6 +5,7 @@ kind: Component
 
 resources:
   - namespace.yaml
+  - sa.yaml
 
 configMapGenerator:
 - name: almond-config
@@ -15,8 +16,6 @@ secretGenerator:
 - name: almond-secret
   files:
     - secret.yaml
-
-secretGenerator:
 - name: almond-secret-kv
   envs:
     - .env.secret
