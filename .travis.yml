@@ -73,7 +73,7 @@ jobs:
       after_success:
       - cat nyc_output | npx coveralls
       - cd go
-      - echo go coverall job id: $COVERALLS_SERVICE_JOB_ID nyc coverall job id: $TRAVIS_JOB_ID
+      - echo go coverall job id: nyc coverall job id: $TRAVIS_JOB_ID
       - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/goveralls -coverprofile=../coverage.out -service=travis-ci
     -
       name: "NLP Integration Tests"
