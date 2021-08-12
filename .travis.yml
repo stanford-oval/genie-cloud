@@ -72,6 +72,9 @@ jobs:
       script: ./tests/thingpedia-integration/run-integration.sh
       after_success: cat nyc_output | npx coveralls
     -
+      name: "Thingpedia Integration Go Coverall Job"
+      script: echo test
+    -
       name: "NLP Integration Tests"
       install:
       - nvm install 12
