@@ -70,7 +70,10 @@ jobs:
       - export PATH="`pwd`/geckodriver:$PATH"
       - ./tests/thingpedia-integration/setup-integration.sh
       script: ./tests/thingpedia-integration/run-integration.sh
-      after_success: cat nyc_output | npx coveralls
+      after_success:
+      - cat nyc_output | npx coveralls
+      - cd go
+      - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/goveralls -coverprofile=../coverage.out -service=travis-ci
     -
       name: "NLP Integration Tests"
       install:
