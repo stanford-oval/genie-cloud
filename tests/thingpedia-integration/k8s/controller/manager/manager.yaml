@@ -25,23 +25,29 @@ spec:
         ports:
         - containerPort: 8443
           name: https
-      - command:
-        - /usr/local/bin/backend
-        args:
-        - manager
-        - --namespace=tba
-        - --health-probe-bind-address=:8081
-        - --metrics-bind-address=127.0.0.1:8080
-        - --leader-elect
-        image: localhost/almond-cloud:latest
+      - name: manager
+        image: localhost/almond-test:latest
         imagePullPolicy: IfNotPresent
+        command: ["/bin/bash"]
+        args:
+        - -c
+        - |
+          set -x
+          cd /opt/almond-cloud/go
+          /usr/local/go/bin/go test -timeout 0 -coverpkg ./... -v -covermode=count -coverprofile=/home/almond-cloud/coverage.out ./backend/... &
+          wait $!
+          while [ 1 ]; do sleep 100; done          
+        env:
+        - name: ENABLE_INTEGRATION
+          value: "true"
+        - name: INTEGRATION_ARGS
+          value: "manager --namespace=default --health-probe-bind-address=:8081 --metrics-bind-address=127.0.0.1:8080 --leader-elect"
         livenessProbe:
           httpGet:
             path: /healthz
             port: 8081
           initialDelaySeconds: 15
           periodSeconds: 20
-        name: manager
         readinessProbe:
           httpGet:
             path: /readyz
@@ -49,22 +55,24 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 10
         resources:
-          limits:
-            cpu: 100m
-            memory: 30Mi
           requests:
-            cpu: 100m
-            memory: 20Mi
+            cpu: 500m
+            memory: 100Mi
         volumeMounts:
         - mountPath: /etc/almond-cloud/config.d/config.yaml
-          name: config
+          name: almond-config
           readOnly: true
           subPath: config.yaml
+        - mountPath: /etc/almond-cloud/manager-config
+          name: manager-config
       securityContext:
         fsGroup: 995
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10
       volumes:
-      - name: config
+      - name: almond-config
         configMap:
           name: almond-config
+      - name: manager-config
+        configMap:
+          name: manager-config

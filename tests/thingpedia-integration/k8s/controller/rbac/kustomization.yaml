@@ -18,3 +18,5 @@ resources:
 - auth_proxy_client_clusterrole.yaml
 - user_editor_role.yaml
 - user_editor_role_binding.yaml
+- controller_manager_role.yaml
+- controller_manager_role_binding.yaml

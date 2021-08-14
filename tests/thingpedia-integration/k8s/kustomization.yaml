@@ -14,3 +14,7 @@ configMapGenerator:
 - name: almond-config
   files:
     - config.d/config.yaml
+- name: manager-config
+  files:
+    - manager-config/developer-deployment.json
+    - manager-config/developer-service.json

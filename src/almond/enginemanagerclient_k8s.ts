@@ -89,11 +89,11 @@ export default class EngineManagerClientK8s extends events.EventEmitter {
         }
         let user = await this.userApi.getUser(userId);
         if (user === null) {
-            if (!await this.userApi.createUser(userId, UserK8sApi.Shared))
+            if (!await this.userApi.createUser(userId))
                 throw new Error(`failed to create user ${userId}`);
         }
         if (user === null || !user.status || !user.status.backend)
-            user = await this.userApi.waitForUser(userId, 10000);
+            user = await this.userApi.waitForUser(userId, 60000);
 
         await waitForEngine(userId, user.status.backend, 10000);
 
@@ -214,7 +214,7 @@ export default class EngineManagerClientK8s extends events.EventEmitter {
     }
 
     async startUser(userId : number) {
-        await this.userApi.createUser(userId, UserK8sApi.Shared);
+        await this.userApi.createUser(userId);
     }
 
     async killUser(userId : number) {
@@ -231,7 +231,7 @@ export default class EngineManagerClientK8s extends events.EventEmitter {
 
     async restartUser(userId : number) {
         await this.userApi.deleteUser(userId);
-        await this.userApi.createUser(userId, UserK8sApi.Shared);
+        await this.userApi.createUser(userId);
     }
 
     async restartUserWithoutCache(userId : number) {

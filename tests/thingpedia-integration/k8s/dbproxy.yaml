@@ -14,15 +14,26 @@ spec:
     spec:
       containers:
       - name: "main"
-        image: localhost/almond-cloud:latest
+        image: localhost/almond-test:latest
         imagePullPolicy: IfNotPresent
-        command: ["/usr/local/bin/backend"]
-        args: ["dbproxy", "-port", "8200"]
+        command: ["/bin/bash"]
+        args:
+        - -c
+        - |
+          set -x
+          cd /opt/almond-cloud/go
+          /usr/local/go/bin/go test -timeout 0 -coverpkg ./... -v -covermode=count -coverprofile=/home/almond-cloud/coverage.out ./backend/... &
+          wait $pid
+          while [ 1 ]; do sleep 100; done          
         env:
+        - name: ENABLE_INTEGRATION
+          value: "true"
+        - name: INTEGRATION_ARGS
+          value: "dbproxy -port 8200" 
         volumeMounts:
         - mountPath: /etc/almond-cloud/config.d/config.yaml
           subPath: config.yaml
-          name: config
+          name: almond-config
           readOnly: true
         ports:
         - containerPort: 8200
@@ -31,7 +42,7 @@ spec:
           requests:
             memory: 100M
       volumes:
-      - name: config 
+      - name: almond-config 
         configMap:
           name: almond-config
 ---

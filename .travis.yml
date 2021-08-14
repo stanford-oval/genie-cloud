@@ -65,12 +65,22 @@ jobs:
       - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
       - curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash && chmod +x kustomize && sudo mv kustomize /usr/local/bin/
       - go get sigs.k8s.io/kind
+      - go get golang.org/x/tools/cmd/cover
+      - go get github.com/mattn/goveralls
       - travis_retry npm ci
       - mkdir -p geckodriver/ && wget https://github.com/mozilla/geckodriver/releases/download/v0.22.0/geckodriver-v0.22.0-linux64.tar.gz && tar xvf geckodriver-v0.22.0-linux64.tar.gz -C geckodriver/
       - export PATH="`pwd`/geckodriver:$PATH"
       - ./tests/thingpedia-integration/setup-integration.sh
       script: ./tests/thingpedia-integration/run-integration.sh
-      after_success: cat nyc_output | npx coveralls
+      after_success:
+      - cat nyc_output | npx coveralls
+      - cd go
+      - export COVERALLS_SERVICE_JOB_ID=$((TRAVIS_JOB_ID+1))
+      - echo "go coverall $COVERALLS_SERVICE_JOB_ID nyc coverall $TRAVIS_JOB_ID"
+      - $(go env GOPATH | awk 'BEGIN{FS=":"} {print $1}')/bin/goveralls -coverprofile=../coverage.out -service=travis-ci
+    -
+      name: "Thingpedia Integration Go Coverall Job Id"
+      script: echo "go coverall will use this job id $TRAVIS_JOB_ID"
     -
       name: "NLP Integration Tests"
       install:

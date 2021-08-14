@@ -325,7 +325,7 @@ async function testRegister(driver) {
     // we're logged in, so we get a nice link to the Settings page
     const settingsLink = await driver.wait(
         WD.until.elementLocated(WD.By.linkText('Settings')),
-        120000);
+        240000);
 
     // let's click it...
     await settingsLink.click();
