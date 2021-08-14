@@ -237,6 +237,7 @@ func (r *UserReconciler) handleDeveloper(ctx context.Context, req ctrl.Request,
 			}
 		}
 		stop = true
+		user = nil
 		return
 	}
 	if !user.ObjectMeta.DeletionTimestamp.IsZero() {
