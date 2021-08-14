@@ -236,6 +236,7 @@ func (r *UserReconciler) handleDeveloper(ctx context.Context, req ctrl.Request,
 				r.Log.Error(err, "fail to delete developer deployment or service")
 			}
 		}
+		stop = true
 		return
 	}
 	if !user.ObjectMeta.DeletionTimestamp.IsZero() {
@@ -244,6 +245,7 @@ func (r *UserReconciler) handleDeveloper(ctx context.Context, req ctrl.Request,
 		if err = r.deleteDeploymentService(ctx, req, userID); err != nil {
 			r.Log.Error(err, "fail to delete developer deployment or service marked for deletion")
 		}
+		stop = true
 		return
 	}
 	deployment := &appsv1.Deployment{}
