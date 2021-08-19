@@ -17,6 +17,7 @@ spec:
       containers:
       - name: "main"
         image: stanfordoval/almond-cloud:latest
+        imagePullPolicy: IfNotPresent
         args:
         - run-worker
         - --thingpedia-url=https://dev.almond.stanford.edu/thingpedia
@@ -29,12 +30,6 @@ spec:
         volumeMounts:
         - mountPath: /srv/thingengine
           name: local-storage
-        env:
-        - name:  MONGODB_URL
-          valueFrom:
-            secretKeyRef:
-              name: almond-secret-kv
-              key: MONGODB_URL
         resources:
           requests:
             memory: 200M

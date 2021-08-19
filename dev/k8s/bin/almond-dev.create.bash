@@ -10,4 +10,4 @@ set -u # Error on undefined vars
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 
 cd "${REPO_ROOT}/dev/k8s" && \
-	kustomize build | kubectl apply -f -
+	kustomize build | kubectl --context docker-desktop apply -f -
