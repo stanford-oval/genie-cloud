@@ -27,6 +27,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as util from 'util';
 import * as yaml from 'js-yaml';
+import * as mysql from 'mysql';
+import * as Url from 'url';
 
 import * as db from '../util/db';
 import * as user from '../util/user';
@@ -258,11 +260,19 @@ async function importBuiltinDevices(dbClient : db.Client, rootOrg : BasicOrgRow)
     for (const primaryKind of BUILTIN_DEVICES) {
         console.log(`Loading builtin device ${primaryKind}`);
 
-        const filename = path.resolve(path.dirname(module.filename), '../../data/' + primaryKind + '.yaml');
-        const manifest = yaml.load((await util.promisify(fs.readFile)(filename)).toString(), { filename });
+        const filename = path.resolve(
+            path.dirname(module.filename),
+            '../../data/' + primaryKind + '.yaml'
+        );
+        const manifest = yaml.load(
+            (await util.promisify(fs.readFile)(filename)).toString(),
+            { filename }
+        );
 
-        const iconPath = path.resolve(path.dirname(module.filename),
-                                      '../../data/' + getBuiltinIcon(primaryKind) + '.png');
+        const iconPath = path.resolve(
+            path.dirname(module.filename),
+            '../../data/' + getBuiltinIcon(primaryKind) + '.png'
+        );
 
         await Importer.importDevice(dbClient, req, primaryKind, manifest, {
             owner: rootOrg.id,
@@ -348,7 +358,68 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
 }
 
+async function waitForDB() {
+    // FIXME    This is terrible code, written hastily. Needs clean up.
+    
+    console.log(`Waiting for the database to come up...`);
+    
+    const parsed = Url.parse(Config.DATABASE_URL!);
+    const [user, pass] = parsed.auth!.split(':');
+
+    const options = {
+        host: parsed.hostname!,
+        port: parseInt(parsed.port!),
+        database: parsed.pathname!.substring(1),
+        user: user,
+        password: pass,
+        multipleStatements: true
+    };
+    Object.assign(options, parsed.query);
+    
+    const TIMEOUT_MS = 10000; // 10 seconds
+    const SLEEP_MS = 1000; // 1 second
+    const start_time = Date.now();
+    const sleep = (ms: number) => {
+        return new Promise(resolve => setTimeout(resolve, ms))
+    }
+    
+    while (Date.now() - start_time < TIMEOUT_MS) {
+        console.log(`Attempting to connect to the db...`);
+        
+        const ok = await new Promise<boolean>((resolve, _reject) => {
+            const connection = mysql.createConnection(options);
+            connection.query(`SHOW TABLES;`, (error: any) => {
+                if (error) {
+                    console.error(`FAILED to connect to the db: ${error}`);
+                    resolve(false);
+                } else {
+                    connection.end((error: any) => {
+                        if (error) {
+                            console.error(
+                                `FAILED to end connection to the db: ${error}`
+                            );
+                            resolve(false);
+                        } else {
+                            console.log(`SUCCESS connected to db!`)
+                            resolve(true);
+                        }
+                    });
+                }
+            });
+        });
+        if (ok) {
+            return;
+        }
+        console.log(`Going to sleep for ${SLEEP_MS}ms...`);
+        await sleep(SLEEP_MS);
+    }
+    
+    throw new Error(`Failed to connect to db after ${TIMEOUT_MS}ms`);
+}
+
 export async function main(argv : any) {
+    await waitForDB();
+    
     // Check if we bootstrapped already
     if (!argv.force) {
         if (await isAlreadyBootstrapped()) {

@@ -15,6 +15,7 @@ spec:
       serviceAccountName: default-editor
       containers:
       - name: "main"
+        imagePullPolicy: IfNotPresent
         image: stanfordoval/almond-cloud:latest
         command: ["/usr/local/bin/backend"]
         args: ["dbproxy", "-port", "8200"] #, "-aws-tls-cert", "/etc/aws/aws-global-bundle.pem"]

@@ -25,7 +25,10 @@ spec:
         ports:
         - containerPort: 8443
           name: https
-      - command:
+      - name: manager
+        image: stanfordoval/almond-cloud:latest
+        imagePullPolicy: IfNotPresent
+        command:
         - /usr/local/bin/backend
         args:
         - manager
@@ -34,14 +37,17 @@ spec:
         - --health-probe-bind-address=:8081
         - --metrics-bind-address=127.0.0.1:8080
         - --leader-elect
-        image: stanfordoval/almond-cloud:latest
+        env:
+        - name: ENABLE_INTEGRATION
+          value: "true"
+        - name: INTEGRATION_ARGS
+          value: "manager --namespace=default --health-probe-bind-address=:8081 --metrics-bind-address=127.0.0.1:8080 --leader-elect"
         livenessProbe:
           httpGet:
             path: /healthz
             port: 8081
           initialDelaySeconds: 15
           periodSeconds: 20
-        name: manager
         readinessProbe:
           httpGet:
             path: /readyz
@@ -50,11 +56,9 @@ spec:
           periodSeconds: 10
         resources:
           limits:
-            cpu: 100m
-            memory: 30Mi
           requests:
-            cpu: 100m
-            memory: 20Mi
+            cpu: 500m
+            memory: 200Mi
         volumeMounts:
         - mountPath: /etc/almond-cloud/config.d/config.yaml
           name: config
@@ -64,6 +68,8 @@ spec:
           name: secret
           readOnly: true
           subPath: secret.yaml
+        - mountPath: /etc/almond-cloud/manager-config
+          name: manager-config
         # - mountPath: /etc/aws
         #   name: aws-secret
         #   readOnly: true
@@ -78,6 +84,9 @@ spec:
       - name: secret
         secret:
           secretName: almond-secret
+      - name: manager-config
+        configMap:
+          name: manager-config
       # - name: aws-secret
       #   secret:
       #     secretName: aws-tls-secret

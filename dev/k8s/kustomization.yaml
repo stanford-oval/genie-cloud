@@ -4,7 +4,8 @@ kind: Kustomization
 namespace: almond-dev
 components:
   - ./config
-  - ./mysql
+  - ./database
+  - ./bootstrap
   - ./frontend
   - ./dbproxy
   - ./shared-backend
@@ -12,4 +13,4 @@ components:
 
 images:
   - name: stanfordoval/almond-cloud
-    newTag: "v2.0.0-183-g1fb4b53b"
+    newName: localhost/almond-cloud

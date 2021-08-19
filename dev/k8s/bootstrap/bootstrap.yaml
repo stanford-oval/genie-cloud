@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: almond-bootstrap
+  labels:
+    app: almond-bootstrapper
+
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 0
+
+  template:
+    metadata:
+      labels:
+        app: almond-bootstrapper
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: main
+        image: stanfordoval/almond-cloud:latest
+        imagePullPolicy: IfNotPresent
+        args: ["bootstrap"]
+        volumeMounts:
+        - mountPath: /etc/almond-cloud/config.d/config.yaml
+          subPath: config.yaml
+          name: config
+          readOnly: true
+        - mountPath: /etc/almond-cloud/config.d/secret.yaml
+          subPath: secret.yaml
+          name: secret
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: almond-config
+      - name: secret
+        secret:
+          secretName: almond-secret

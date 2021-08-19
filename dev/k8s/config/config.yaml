@@ -1,82 +1,96 @@
-# Use staging's Thingpedia
+# Almond Cloud Configuration
+# ============================================================================
+
+# MySQL (MariaDB)
+# ----------------------------------------------------------------------------
+
+DATABASE_URL: >-
+  mysql://root:password@mariadb.almond-dev.svc.cluster.local/thingengine_dev?charset=utf8mb4_bin
+DATABASE_PROXY_URL: http://dbproxy.almond-dev.svc.cluster.local:8200
+
+# HTTP
+# ----------------------------------------------------------------------------
+
+SERVER_ORIGIN: http://almond.local
+ENABLE_REDIRECT: false
+
+# CDN
+# ----------------------------------------------------------------------------
+
+CDN_HOST: /download
+
+# Natural Language Server
+# ----------------------------------------------------------------------------
+
+WITH_LUINET: embedded
+
+NL_SERVER_URL: https://nlp-staging.almond.stanford.edu
+
+# Thingpedia
+# ----------------------------------------------------------------------------
+  
 WITH_THINGPEDIA: external
+
 THINGPEDIA_URL: https://dev.almond.stanford.edu/thingpedia
 
-# Use staging's LUInet
-WITH_LUINET: external
+ENABLE_DEVELOPER_PROGRAM: true
 
-ENABLE_DEVELOPER_PROGRAM: false
+ENABLE_DEVELOPER_BACKEND: true
+
+# Prometheus
+# ----------------------------------------------------------------------------
+
+ENABLE_PROMETHEUS: true
+
+PROMETHEUS_ACCESS_TOKEN: my-prometheus-access-token
+  
+# User Experience
+# ----------------------------------------------------------------------------
+
 ENABLE_ANONYMOUS_USER: true
-
-# Point to the local instance
-SERVER_ORIGIN: http://127.0.0.1:8080 # TODO or :7070 ?
-OAUTH_REDIRECT_ORIGIN: http://127.0.0.1:8080 # TODO or :7070 ?
-
-ENABLE_REDIRECT: true
-
-# No HTTPS on local dev instances
-ENABLE_SECURITY_HEADERS: false
 
 USE_BRAND: stanford
 
-SUPPORTED_LANGUAGES:
-  - en-US
-
-# Copied from `@/src/config.ts`
-FILE_STORAGE_DIR: ./shared/download
-CDN_HOST: /download
-
-THINGENGINE_MANAGER_ADDRESS:
-  - backend.almond-dev.svc.cluster.local:8100
-
-DATABASE_PROXY_URL: http://dbproxy.almond-dev.svc.cluster.local:8200
-
-# Use staging's NL server
-NL_SERVER_URL: https://nlp-staging.almond.stanford.edu
-
-# From `@/src/config.js`
-NL_MODEL_DIR: ./models
-NL_EXACT_MATCH_DIR: ./exact
-
-MS_SPEECH_SERVICE_REGION: westus2
-
-EMAIL_FROM_USER: '[DEV] Almond <noreply@almond-dev.stanford.edu>'
-EMAIL_FROM_ADMIN: '[DEV] Almond <root@almond-dev.stanford.edu>'
-EMAIL_FROM_TRAINING: '[DEV] Almond Training Service <almond-dev-training@almond-dev.stanford.edu>'
-EMAIL_TO_ADMIN: 'thingpedia-admins@lists.stanford.edu'
-MAILGUN_USER: postmaster@almond.stanford.edu
-
-# From `@/src/config.js`
-ENABLE_PROMETHEUS: true
-USE_KF_INFERENCE_SERVICE: true
-
-# these features are disabled on staging and dev instances
-GOOGLE_CLIENT_ID: null
-GITHUB_CLIENT_ID: null
-MAPQUEST_KEY: null
-
-# From `@/src/config.js`
-DISCOURSE_SSO_REDIRECT: null
-
 ABOUT_OVERRIDE:
-  index: 'stanford/about_index.pug'
-  tos: 'stanford/about_tos.pug'
-  privacy: 'stanford/about_privacy.pug'
-
+  index: stanford/about_index.pug
+  tos: stanford/about_tos.pug
+  privacy: stanford/about_privacy.pug
+  
 EXTRA_ABOUT_PAGES:
-  - url: 'get-almond'
-    view: 'stanford/about_get_almond.pug'
-    title: 'Get Almond'
-  - url: 'get-involved'
-    view: 'stanford/about_get_involved.pug'
-    title: 'Get Involved With Almond'
+  - url: get-almond
+    view: stanford/about_get_almond.pug
+    title: "Get Almond"
+  - url: get-involved
+    view: stanford/about_get_involved.pug
+    title: "Get Involved With Almond"
 
 EXTRA_NAVBAR:
-  - url: 'https://oval.cs.stanford.edu'
-    title: 'OVAL Lab'
+  - url: https://oval.cs.stanford.edu
+    title: "OVAL Lab"
+    
+# Single Sign-On (SSO)
+# ----------------------------------------------------------------------------
 
-REGISTRATION_WARNING: >
-  This is the <strong>development</strong> version of Genie. It is not suitable
-  for everyday use. You should not use this server to store any sensitive or
-  important data.
-  <strong>Your account and your data might be deleted at any time without warning!</strong>
+### Discourse ###
+
+DISCOURSE_SSO_SECRET: d836444a9e4084d5b224a60c208dce14
+
+DISCOURSE_SSO_REDIRECT: https://discourse.almond.stanford.edu
+
+# Security
+# ----------------------------------------------------------------------------
+
+AES_SECRET_KEY: 80bb23f93126074ba01410c8a2278c0c
+
+JWT_SIGNING_KEY: "not so secret key"
+
+SECRET_KEY: "not so secret key"
+
+# Languages
+# ----------------------------------------------------------------------------
+
+SUPPORTED_LANGUAGES:
+  - en-US
+  - it-IT
+  - zh-CN
+  - zh-TW
