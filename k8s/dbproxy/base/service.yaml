@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dbproxy
+  annotations:
+    almond.metrics.scrape: "true"
+spec:
+  ports:
+  - port: 8200
+    protocol: TCP
+  selector:
+    app: dbproxy

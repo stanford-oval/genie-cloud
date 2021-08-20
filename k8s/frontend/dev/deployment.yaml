@@ -1,0 +1,35 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  template:
+    spec:
+      containers:
+        - name: main
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+          args:
+            - -c
+            - |
+              set -ex
+              cd /opt/almond-cloud
+              /usr/bin/npm run debug
+          volumeMounts:
+            - mountPath: /opt/almond-cloud/src
+              name: src
+            - mountPath: /opt/almond-cloud/views
+              name: views
+      volumes:
+        - name: src
+          hostPath:
+            # directory location on host
+            path: /Users/nrser/src/github.com/stanford-oval/almond-cloud/src
+            # this field is optional
+            type: Directory
+        - name: views
+          hostPath:
+            path: /Users/nrser/src/github.com/stanford-oval/almond-cloud/views
+            type: Directory

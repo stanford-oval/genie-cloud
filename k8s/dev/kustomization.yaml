@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: almond-dev
+components:
+  - ../config/dev
+  - ../database/dev
+  - ../bootstrap/dev
+  - ../frontend/dev
+  - ../dbproxy/dev
+  - ../shared-backend/dev
+  - ../controller/crd/dev
+  - ../controller/rbac/dev
+  - ../controller/manager/dev
+
+images:
+  - name: stanfordoval/almond-cloud
+    newName: localhost/almond-cloud
