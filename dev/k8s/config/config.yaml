@@ -28,9 +28,13 @@ NL_SERVER_URL: https://nlp-staging.almond.stanford.edu
 
 # Thingpedia
 # ----------------------------------------------------------------------------
-  
-WITH_THINGPEDIA: external
 
+# Use a local thingpedia  
+# WITH_THINGPEDIA: embedded
+# THINGPEDIA_URL: /thingpedia
+
+# Use staging's Thingpedia
+WITH_THINGPEDIA: external
 THINGPEDIA_URL: https://dev.almond.stanford.edu/thingpedia
 
 ENABLE_DEVELOPER_PROGRAM: true

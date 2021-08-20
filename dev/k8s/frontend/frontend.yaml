@@ -1,3 +1,18 @@
+# ---
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: src
+# spec:
+#   # storageClassName: hostpath
+#   accessModes:
+#   - ReadWriteMany
+#   capacity:
+#     storage: 1Gi
+#   hostPath:
+#     path: /Users/nrser/src/github.com/stanford-oval/almond-cloud/src
+#     type: DirectoryOrCreate
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,10 +32,20 @@ spec:
       - name: "main"
         image: stanfordoval/almond-cloud:latest
         imagePullPolicy: IfNotPresent
-        args: ["run-frontend", "--k8s"]
+        command:
+          - /bin/bash
+        args:
+          - -c
+          - |
+            set -ex
+            cd /opt/almond-cloud
+            /usr/bin/npm run debug
+        # args: ["run-frontend", "--k8s"]
         env:
         - name: NODE_MAX_OLD_SPACE_SIZE
           value: "2000"
+        - name: THINGENGINE_ROOTDIR
+          value: /home/almond-cloud
         volumeMounts:
         - mountPath: /etc/almond-cloud/config.d/config.yaml
           subPath: config.yaml
@@ -30,6 +55,10 @@ spec:
           subPath: secret.yaml
           name: secret
           readOnly: true
+        - mountPath: /opt/almond-cloud/src
+          name: src
+        - mountPath: /opt/almond-cloud/views
+          name: views
         ports:
         - containerPort: 8080
           name: web
@@ -53,6 +82,16 @@ spec:
       - name: secret
         secret:
           secretName: almond-secret
+      - name: src
+        hostPath:
+          # directory location on host
+          path: /Users/nrser/src/github.com/stanford-oval/almond-cloud/src
+          # this field is optional
+          type: Directory
+      - name: views
+        hostPath:
+          path: /Users/nrser/src/github.com/stanford-oval/almond-cloud/views
+          type: Directory
 ---
 apiVersion: v1
 kind: Service
