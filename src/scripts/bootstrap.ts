@@ -273,10 +273,21 @@ async function importBuiltinDevices(dbClient : db.Client, rootOrg : BasicOrgRow)
             path.dirname(module.filename),
             '../../data/' + getBuiltinIcon(primaryKind) + '.png'
         );
+        
+        const exists = async (path: string) => {
+            console.log(`Checking for path ${path}...`);
+            try {
+                const stats = await util.promisify(fs.stat)(path);
+                return stats.isFile();
+            } catch (error) {
+                console.log(`Path ${path} does not exist -- ${error}`);
+                return false;
+            }
+        }
 
         await Importer.importDevice(dbClient, req, primaryKind, manifest, {
             owner: rootOrg.id,
-            iconPath: iconPath
+            iconPath: (await exists(iconPath)) ? iconPath : null,
         });
     }
 }

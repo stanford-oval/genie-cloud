@@ -327,7 +327,7 @@ router.post('/register', iv.validatePOST({
 
         if (req.body['password'].length < 8 ||
             req.body['password'].length > 255)
-            throw new BadRequestError(req._("You must specifiy a valid password, of at least 8 characters."));
+            throw new BadRequestError(req._("You must specify a valid password, of at least 4 characters."));
 
         if (req.body['confirm-password'] !== req.body['password'])
             throw new BadRequestError(req._("The password and the confirmation do not match."));
