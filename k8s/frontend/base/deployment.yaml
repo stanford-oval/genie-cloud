@@ -1,0 +1,57 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      serviceAccountName: default-editor
+      containers:
+      - name: main
+        image: stanfordoval/almond-cloud:latest
+        args: ["run-frontend", "--k8s"]
+        env:
+        - name: NODE_MAX_OLD_SPACE_SIZE
+          value: "2000"
+        - name: THINGENGINE_ROOTDIR
+          value: /home/almond-cloud
+        volumeMounts:
+        - mountPath: /etc/almond-cloud/config.d/config.yaml
+          subPath: config.yaml
+          name: config
+          readOnly: true
+        - mountPath: /etc/almond-cloud/config.d/secret.yaml
+          subPath: secret.yaml
+          name: secret
+          readOnly: true
+        ports:
+        - containerPort: 8080
+          name: web
+        resources:
+          requests:
+            memory: 150M
+          limits:
+            memory: 2500M
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 60
+      securityContext:
+        fsGroup: 65534
+      volumes:
+      - name: config
+        configMap:
+          name: almond-config
+      - name: secret
+        secret:
+          secretName: almond-secret

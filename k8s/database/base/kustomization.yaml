@@ -1,0 +1,3 @@
+resources:
+  - mariadb.yaml
+  - create-db.yaml
