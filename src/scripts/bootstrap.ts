@@ -260,34 +260,15 @@ async function importBuiltinDevices(dbClient : db.Client, rootOrg : BasicOrgRow)
     for (const primaryKind of BUILTIN_DEVICES) {
         console.log(`Loading builtin device ${primaryKind}`);
 
-        const filename = path.resolve(
-            path.dirname(module.filename),
-            '../../data/' + primaryKind + '.yaml'
-        );
-        const manifest = yaml.load(
-            (await util.promisify(fs.readFile)(filename)).toString(),
-            { filename }
-        );
+        const filename = path.resolve(path.dirname(module.filename), '../../data/' + primaryKind + '.yaml');
+        const manifest = yaml.load((await util.promisify(fs.readFile)(filename)).toString(), { filename });
 
-        const iconPath = path.resolve(
-            path.dirname(module.filename),
-            '../../data/' + getBuiltinIcon(primaryKind) + '.png'
-        );
-        
-        const exists = async (path: string) => {
-            console.log(`Checking for path ${path}...`);
-            try {
-                const stats = await util.promisify(fs.stat)(path);
-                return stats.isFile();
-            } catch (error) {
-                console.log(`Path ${path} does not exist -- ${error}`);
-                return false;
-            }
-        }
+        const iconPath = path.resolve(path.dirname(module.filename),
+                                      '../../data/' + getBuiltinIcon(primaryKind) + '.png');
 
         await Importer.importDevice(dbClient, req, primaryKind, manifest, {
             owner: rootOrg.id,
-            iconPath: (await exists(iconPath)) ? iconPath : null,
+            iconPath: iconPath
         });
     }
 }
