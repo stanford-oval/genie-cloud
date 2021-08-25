@@ -1,9 +1,0 @@
-[Unit]
-Description=Daily timer to apply Almond credit updates
-
-[Timer]
-AccuracySec=1s
-OnCalendar=*-*-* 00:00:00 UTC
-
-[Install]
-WantedBy=timers.target
