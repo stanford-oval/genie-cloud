@@ -1,25 +1,40 @@
-# Almond Cloud Configuration
+# Almond Cloud PRIVATE Configuration
 # ============================================================================
+# 
+# **_WARNING_**
+# 
+# This file contains configuration that is checked in to source control in a 
+# public repository.
+# 
+# ANY VALUES DEFINED HERE WILL BE SHARED NOT ONLY BETWEEN ALL DEVELOPERS, BUT
+# WILL BE PUBLISHED TO THE ENTIRE WORLD.
+# 
+# Do **NOT** -- even for a quick minute -- edit this file to include:
+# 
+# 1.  Any values that are specific to **YOU** and your development instance.
+# 2.  Any **SECRETS**, such as account credentials, API tokens or access keys, 
+#     database URLs and passwords, your email address, etc.
+# 
+# Personal and secret values go in the adjacent `secret.yaml` file.
+# 
 
 # MySQL (MariaDB)
 # ----------------------------------------------------------------------------
 
-DATABASE_URL: >-
-  mysql://root:password@mariadb.almond-dev.svc.cluster.local/thingengine_dev?charset=utf8mb4_bin
 DATABASE_PROXY_URL: http://dbproxy.almond-dev.svc.cluster.local:8200
 
 # HTTP
 # ----------------------------------------------------------------------------
 
-SERVER_ORIGIN: http://almond.local
+SERVER_ORIGIN: http://localhost
 ENABLE_REDIRECT: false
 
-# CDN
+# Content Distribution Network (CDN)
 # ----------------------------------------------------------------------------
 
 CDN_HOST: /download
 
-# Natural Language Server
+# Natural Language (NL) Server
 # ----------------------------------------------------------------------------
 
 WITH_LUINET: embedded
@@ -29,7 +44,7 @@ NL_SERVER_URL: https://nlp-staging.almond.stanford.edu
 # Thingpedia
 # ----------------------------------------------------------------------------
 
-# Use a local thingpedia  
+# Use a local thingpedia
 WITH_THINGPEDIA: embedded
 THINGPEDIA_URL: /thingpedia
 
@@ -46,8 +61,6 @@ ENABLE_DEVELOPER_BACKEND: true
 
 ENABLE_PROMETHEUS: true
 
-PROMETHEUS_ACCESS_TOKEN: my-prometheus-access-token
-  
 # User Experience
 # ----------------------------------------------------------------------------
 
@@ -71,24 +84,6 @@ EXTRA_ABOUT_PAGES:
 EXTRA_NAVBAR:
   - url: https://oval.cs.stanford.edu
     title: "OVAL Lab"
-    
-# Single Sign-On (SSO)
-# ----------------------------------------------------------------------------
-
-### Discourse ###
-
-DISCOURSE_SSO_SECRET: d836444a9e4084d5b224a60c208dce14
-
-DISCOURSE_SSO_REDIRECT: https://discourse.almond.stanford.edu
-
-# Security
-# ----------------------------------------------------------------------------
-
-AES_SECRET_KEY: 80bb23f93126074ba01410c8a2278c0c
-
-JWT_SIGNING_KEY: "not so secret key"
-
-SECRET_KEY: "not so secret key"
 
 # Languages
 # ----------------------------------------------------------------------------

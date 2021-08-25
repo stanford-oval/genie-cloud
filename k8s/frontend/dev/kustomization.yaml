@@ -6,3 +6,4 @@ resources:
 
 patches:
   - deployment.yaml
+  - deployment.local.yaml

@@ -2,20 +2,16 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: bootstrap
-
 spec:
   template:
     spec:
       containers:
-      - name: main
-        imagePullPolicy: IfNotPresent
-        volumeMounts:
-          - mountPath: /home/almond-cloud/shared
-            name: shared
+        - name: main
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /home/almond-cloud/shared
+              name: shared
       volumes:
         - name: shared
           hostPath:
-            # directory location on host
-            path: /Users/nrser/src/github.com/stanford-oval/almond-cloud/tmp/shared
-            # this field is optional
             type: DirectoryOrCreate

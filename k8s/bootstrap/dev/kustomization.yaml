@@ -6,3 +6,4 @@ bases:
 
 patches:
   - job.yaml
+  - job.local.yaml

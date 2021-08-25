@@ -27,17 +27,10 @@ spec:
       volumes:
         - name: src
           hostPath:
-            # directory location on host
-            path: /Users/nrser/src/github.com/stanford-oval/almond-cloud/src
-            # this field is optional
             type: Directory
         - name: views
           hostPath:
-            path: /Users/nrser/src/github.com/stanford-oval/almond-cloud/views
             type: Directory
         - name: shared
           hostPath:
-            # directory location on host
-            path: /Users/nrser/src/github.com/stanford-oval/almond-cloud/tmp/shared
-            # this field is optional
             type: DirectoryOrCreate
