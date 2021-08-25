@@ -26,7 +26,7 @@ DATABASE_PROXY_URL: http://dbproxy.almond-dev.svc.cluster.local:8200
 # HTTP
 # ----------------------------------------------------------------------------
 
-SERVER_ORIGIN: http://localhost
+SERVER_ORIGIN: http://localhost:8080
 ENABLE_REDIRECT: false
 
 # Content Distribution Network (CDN)

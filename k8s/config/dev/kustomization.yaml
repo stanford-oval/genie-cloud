@@ -18,4 +18,6 @@ configMapGenerator:
 secretGenerator:
   - name: almond-secret
     files:
+      # NOTE  This file must be created locally, see adjacent
+      #       `secret.yaml.EXAMPLE` file
       - secret.yaml

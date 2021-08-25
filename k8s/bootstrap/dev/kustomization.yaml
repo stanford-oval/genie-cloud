@@ -6,4 +6,6 @@ bases:
 
 patches:
   - job.yaml
+  # NOTE  This file must be created locally, see adjacent
+  #       `job.local.yaml.EXAMPLE` file
   - job.local.yaml

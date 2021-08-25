@@ -6,4 +6,7 @@ resources:
 
 patches:
   - deployment.yaml
+  # NOTE  This file must be created locally, see adjacent
+  #       `deployment.local.yaml.EXAMPLE` file
   - deployment.local.yaml
+  - service.yaml
