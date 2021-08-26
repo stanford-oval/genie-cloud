@@ -4,7 +4,7 @@ kind: Kustomization
 namespace: almond-dev
 components:
   - ../config/dev
-  - ../database/dev
+  - ../db/dev
   - ../bootstrap/dev
   - ../frontend/dev
   - ../dbproxy/dev
