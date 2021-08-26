@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: shared-backend
+spec:
+  template:
+    spec:
+      containers:
+      - name: main
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: THINGPEDIA_URL
+            value: http://localhost:8080/thingpedia
+          - name: NL_SERVER_URL
+            value: https://nlp-staging.almond.stanford.edu
+          - name: OAUTH_REDIRECT_URL
+            value: https://localhost:8080

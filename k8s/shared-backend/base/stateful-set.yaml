@@ -1,28 +1,30 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: "shared-backend"
+  name: shared-backend
 spec:
   selector:
     matchLabels:
-      app: "shared-backend"
+      app: shared-backend
   replicas: 1
   serviceName: shared-backend
   template:
     metadata:
       labels:
-        app: "shared-backend"
+        app: shared-backend
     spec:
       serviceAccountName: default-editor
       containers:
-      - name: "main"
+      - name: main
         image: stanfordoval/almond-cloud:latest
-        imagePullPolicy: IfNotPresent
+        env:
+          - name: THINGPEDIA_URL
+          - name: NL_SERVER_URL
         args:
         - run-worker
-        - --thingpedia-url=https://dev.almond.stanford.edu/thingpedia
-        - --nl-server-url=https://nlp-staging.almond.stanford.edu
-        - --oauth-redirect-origin=https://dev.almond.stanford.edu
+        - --thingpedia-url=${THINGPEDIA_URL}
+        - --nl-server-url=${NL_SERVER_URL}
+        - --oauth-redirect-origin=${OAUTH_REDIRECT_URL}
         - --faq-models={}
         - --notification-config={}
         - --locale=en-US
@@ -41,16 +43,3 @@ spec:
       volumes:
       - name: local-storage
         emptyDir: {}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: shared-backend
-  labels:
-    app: shared-backend
-spec:
-  ports:
-  - port: 8100
-    protocol: TCP
-  selector:
-    app: shared-backend
