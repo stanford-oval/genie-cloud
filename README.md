@@ -114,14 +114,18 @@ information at <https://oval.cs.stanford.edu>.
     http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
     
     to view the dashboard (there shouldn't be much there yet!).
+
+8.  Build the Almond Cloud Docker image
     
-8.  Deploy Almond Cloud
+        docker build -f docker/Dockerfile -t localhost/almond-cloud .
+
+9.  Deploy Almond Cloud
     
     Check that your `kubectl` context is correct as in the previous step, then:
     
         kustomize build "$(git rev-parse --show-toplevel)/k8s/dev" | kubectl apply -f -
     
-9.  Go back to the dashboard and switch to the `almond-dev` namespace.
+10. Go back to the dashboard and switch to the `almond-dev` namespace.
     
     You should see the Almond Cloud components booting up. It can take a few
     minutes for everything to "go green", but after that you can use Almond
