@@ -3,3 +3,7 @@ kind: Component
 
 bases:
   - ../base
+
+patches:
+  - create.job.local.yaml
+  - deployment.local.yaml

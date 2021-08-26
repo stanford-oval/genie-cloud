@@ -10,12 +10,15 @@ spec:
       containers:
       - name: create-db
         image: mariadb:10.2.22
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: MYSQL_ROOT_PASSWORD
         command: 
         - /bin/bash
         - -c
         - |
           set -ex
-          while ! mysqladmin ping -h mariadb --silent; do
+          while ! mysqladmin ping -h db --silent; do
               sleep 1
           done
-          mysql -h mariadb -ppassword -e "create database if not exists thingengine_dev;"
+          mysql -h db -p${MYSQL_ROOT_PASSWORD} -e "create database if not exists thingengine_dev;"
