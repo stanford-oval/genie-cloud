@@ -1,0 +1,14 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: kubernetes-dashboard
+  namespace: kubernetes-dashboard
+spec:
+  template:
+    spec:
+      containers:
+        - name: kubernetes-dashboard
+          args:
+            - --auto-generate-certificates
+            - --namespace=kubernetes-dashboard
+            - --enable-skip-login
