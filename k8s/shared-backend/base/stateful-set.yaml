@@ -20,11 +20,12 @@ spec:
         env:
           - name: THINGPEDIA_URL
           - name: NL_SERVER_URL
+          - name: OAUTH_REDIRECT_URL
         args:
         - run-worker
-        - --thingpedia-url=${THINGPEDIA_URL}
-        - --nl-server-url=${NL_SERVER_URL}
-        - --oauth-redirect-origin=${OAUTH_REDIRECT_URL}
+        - --thingpedia-url=$(THINGPEDIA_URL)
+        - --nl-server-url=$(NL_SERVER_URL)
+        - --oauth-redirect-origin=$(OAUTH_REDIRECT_URL)
         - --faq-models={}
         - --notification-config={}
         - --locale=en-US
