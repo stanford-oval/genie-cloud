@@ -3,3 +3,6 @@ kind: Component
 
 bases:
   - ../base
+
+patches:
+  - stateful-set.yaml

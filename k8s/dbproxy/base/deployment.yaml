@@ -30,9 +30,6 @@ spec:
           subPath: secret.yaml
           name: secret
           readOnly: true
-        # - mountPath: /etc/aws
-        #   name: aws-secret
-        #   readOnly: true
         ports:
         - containerPort: 8200
           name: web
@@ -48,6 +45,3 @@ spec:
       - name: secret 
         secret:
           secretName: almond-secret
-      # - name: aws-secret 
-      #   secret:
-      #     secretName: aws-tls-secret
