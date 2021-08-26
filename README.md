@@ -119,7 +119,7 @@ information at <https://oval.cs.stanford.edu>.
     
     Check that your `kubectl` context is correct as in the previous step, then:
     
-        kustomize build "$(git rev-parse --show-toplevel)/k8s/dashboard/dev" | kubectl apply -f -
+        kustomize build "$(git rev-parse --show-toplevel)/k8s/dev" | kubectl apply -f -
     
 9.  Go back to the dashboard and switch to the `almond-dev` namespace.
     
