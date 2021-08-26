@@ -41,6 +41,10 @@ information at <https://oval.cs.stanford.edu>.
     Then
     
         git clone --branch wip/nrser/k8s-dev-setup https://github.com/stanford-oval/almond-cloud.git
+    
+    and change into the cloned repository with
+    
+        cd almond-cloud
 
 3.  You need Kubernetes running locally. For Windows and Mac we recommend 
     [Docker Desktop][]. After installation, follow the
@@ -58,6 +62,7 @@ information at <https://oval.cs.stanford.edu>.
     
 4.  Install the latest [Kustomize][]. Follow their installation
     [instructions](https://kubectl.docs.kubernetes.io/installation/kustomize/).
+    
     If you're on the Mac, I recommend the Homebrew option.
     
     > ### NOTE ###
@@ -68,9 +73,62 @@ information at <https://oval.cs.stanford.edu>.
     
     [Kustomize]: https://kustomize.io/
     
-5.  Prepare your configuration:
+5.  Prepare your configuration: open each of the `*.EXAMPLE` files under the
+    `k8s` directory and follow the instructions.
     
-    1.  
+    You can list those files like:
+    
+        ls -lh ./k8s/*/dev/*.EXAMPLE
+    
+6.  Check your config files build successfully with `kustomize`
+    
+        kustomize build "$(git rev-parse --show-toplevel)/k8s/dev"
+    
+    You should see a big dump of `YAML` to the screen. If there is an error,
+    try to figure it out or ask for help.
+    
+7.  Deploy the Kubernetes Dashboard
+    
+    Check that your `kubectl` is using the correct context. If you are using
+    Docker Desktop, it should be `docker-desktop`:
+    
+        $ kubectl config current-context
+        docker-desktop
+    
+    If your context is wrong, you can set it with
+    
+        kubectl config use-context docker-dashboard
+    
+    Deploy the dashboard with
+    
+        kustomize build "$(git rev-parse --show-toplevel)/k8s/dashboard/dev" | kubectl apply -f -
+    
+    In a separate terminal, run
+    
+        kubectl proxy
+    
+    and keep that terminal open.
+    
+    Visit
+    
+    http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+    
+    to view the dashboard (there shouldn't be much there yet!).
+    
+8.  Deploy Almond Cloud
+    
+    Check that your `kubectl` context is correct as in the previous step, then:
+    
+        kustomize build "$(git rev-parse --show-toplevel)/k8s/dashboard/dev" | kubectl apply -f -
+    
+9.  Go back to the dashboard and switch to the `almond-dev` namespace.
+    
+    You should see the Almond Cloud components booting up. It can take a few
+    minutes for everything to "go green", but after that you can use Almond
+    Cloud at
+    
+    http://localhost:8080
+
 
 ## Installation
 
