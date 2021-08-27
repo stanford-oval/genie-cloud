@@ -23,7 +23,7 @@ import * as ThingTalk from 'thingtalk';
 
 import * as db from './db';
 import * as entityModel from '../model/entity';
-import * as stringModel from '../model/strings';
+// import * as stringModel from '../model/strings';
 import * as userModel from '../model/user';
 
 import { clean, splitParams } from './tokenize';
@@ -158,7 +158,7 @@ async function validateDevice(dbClient : db.Client, req : RequestLike, options :
             throw new ValidationError(req._("A description is required for entity %s").format(stmt.name));
     }
 
-    const [entities, stringTypes] = await validateAllInvocations(classDef, {
+    const [entities, _stringTypes] = await validateAllInvocations(classDef, {
         checkPollInterval: !classDef.is_abstract,
         checkUrl: fullcode,
         deviceName: name
@@ -175,9 +175,9 @@ async function validateDevice(dbClient : db.Client, req : RequestLike, options :
     if (missingEntities.length > 0)
         throw new ValidationError('Invalid entity types: ' + missingEntities.join(', '));
 
-    const missingStrings = await stringModel.findNonExisting(dbClient, stringTypes);
-    if (missingStrings.length > 0)
-        throw new ValidationError('Invalid string types: ' + missingStrings.join(', '));
+    // const missingStrings = await stringModel.findNonExisting(dbClient, stringTypes);
+    // if (missingStrings.length > 0)
+    //     throw new ValidationError('Invalid string types: ' + missingStrings.join(', '));
 
     const tokenizer = I18n.get('en-US').genie.getTokenizer();
     if (!classDef.nl_annotations.name)
