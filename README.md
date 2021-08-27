@@ -99,28 +99,38 @@ information at <https://oval.cs.stanford.edu>.
     
     to view the dashboard (there shouldn't be much there yet!).
 
-5.  Prepare your configuration
+7.  Deploy the Nginx Ingress Controller
     
-    Under the `k8s` directory there are several files that end with a
-    `.EXAMPLE` suffix. Each of those files is a template for a local file that
-    will hold your unique settings.
+        kustomize build k8s/ingres-nginx/dev | kubectl apply -f -
+
+8.  Create a [Mailgun][] account (if you don't already have one) and get the
+    _SMTP_ username and password for the domain you want to use to send emails.
     
-    You need to create a copy of those files _without_ the `.EXAMPLE` suffix.
+    If you use the "sandbox" domain, make sure you add your email address to the
+    _Authorized Recipients_ and click the confirmation link they mail to you.
     
-    So for the file
+    [Mailgun]: https://www.mailgun.com/
     
-        k8s/bootstrap/dev/job.local.yaml.EXAMPLE
+9.  Create a local dev environment file
     
-    you need to create a copy
+    1.  Create a text file in the `dev` directory named `.env`
+    2.  Add these lines to the file, replacing the stuff between the `'` quotes
+        with the SMTP credentials from the last step and your email address.
+        
+            MAILGUN_SMTP_USERNAME='postmaster@your-domain.mailgun.org'
+            MAILGUN_SMTP_PASSWORD='your-smtp-password'
+            DEVELOPER_EMAIL='you@yourself.com'
+    3.  Save the file.
     
-        k8s/bootstrap/dev/job.local.yaml
+10. Generate your `kustomize` secret file
     
-    Then open the new copy and follow the instructions under each `# TODO`
-    section.
+        ./dev/bin/almond-dev.configure.bash
     
-6.  Check your config files build successfully with `kustomize`
+    The secret file is written to `k8s/config/dev/secret.yaml`.
+
+11. Check your config files build successfully with `kustomize`
     
-        kustomize build "$(git rev-parse --show-toplevel)/k8s/dev"
+        kustomize build ./k8s/dev
     
     You should see a big dump of `YAML` to the screen. If there is an error,
     try to figure it out or ask for help.
@@ -129,7 +139,7 @@ information at <https://oval.cs.stanford.edu>.
     
     Check that your `kubectl` context is correct as in the previous step, then:
     
-        kustomize build "$(git rev-parse --show-toplevel)/k8s/dev" | kubectl apply -f -
+        kustomize build ./k8s/dev | kubectl apply -f -
     
 10. Go back to the dashboard and switch to the `almond-dev` namespace.
     
