@@ -32,7 +32,14 @@ function getDownloadLocation(kind : string, version : number, developer : boolea
     // freely)
 
     // Resolve the URL against SERVER_ORIGIN if CDN_HOST is empty
-    return Promise.resolve(Url.resolve(Config.SERVER_ORIGIN, `${Config.CDN_HOST}/devices/${kind}-v${version}.zip`));
+    return Promise.resolve(
+        Url.resolve(
+            // HACK!!! Needs a new config var introduced?
+            // Config.SERVER_ORIGIN,
+            "http://frontend.almond-dev.svc.cluster.local:8080",
+            `${Config.CDN_HOST}/devices/${kind}-v${version}.zip`
+        )
+    );
 }
 
 const writableDirectory = AbstractFS.resolve(Config.FILE_STORAGE_DIR);
