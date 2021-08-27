@@ -1,0 +1,12 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-db
+spec:
+  template:
+    spec:
+      containers:
+        - name: create-db
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: password

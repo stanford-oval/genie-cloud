@@ -1,0 +1,19 @@
+# Source: ingress-nginx/templates/controller-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+spec:
+  ports:
+    - $patch: replace
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: http
+      appProtocol: http
+    - name: https
+      port: 8443
+      protocol: TCP
+      targetPort: https
+      appProtocol: https
