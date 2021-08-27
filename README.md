@@ -59,49 +59,33 @@ information at <https://oval.cs.stanford.edu>.
     [Minikube]: https://github.com/kubernetes/minikube
     [MicroK8s]: https://microk8s.io/
     [Kind]: https://github.com/kubernetes-sigs/kind
+
+4.  Build the Almond Cloud Docker image
     
-4.  Install the latest [Kustomize][]. Follow their installation
+        docker build -f docker/Dockerfile -t localhost/almond-cloud .
+
+5.  Install the latest `kustomize`.
+    
+    Mac:
+    
+        brew install kustomize
+    
+    Windows and Linux: Follow their installation
     [instructions](https://kubectl.docs.kubernetes.io/installation/kustomize/).
     
     If you're on the Mac, I recommend the Homebrew option.
     
     > ### NOTE ###
     > 
-    > Kustomize _does_ come bundled with the `kubectl` that Kubernetes
-    > installations typically shit with, but some or all will be too out-of-date
+    > Kustomize _does_ come bundled with the `kubectl` utility that Kubernetes
+    > installations ship with, but some or all will be too out-of-date
     > for our needs.
     
     [Kustomize]: https://kustomize.io/
+
+6.  Deploy the Kubernetes Dashboard
     
-5.  Prepare your configuration: open each of the `*.EXAMPLE` files under the
-    `k8s` directory and follow the instructions.
-    
-    You can list those files like:
-    
-        ls -lh ./k8s/*/dev/*.EXAMPLE
-    
-6.  Check your config files build successfully with `kustomize`
-    
-        kustomize build "$(git rev-parse --show-toplevel)/k8s/dev"
-    
-    You should see a big dump of `YAML` to the screen. If there is an error,
-    try to figure it out or ask for help.
-    
-7.  Deploy the Kubernetes Dashboard
-    
-    Check that your `kubectl` is using the correct context. If you are using
-    Docker Desktop, it should be `docker-desktop`:
-    
-        $ kubectl config current-context
-        docker-desktop
-    
-    If your context is wrong, you can set it with
-    
-        kubectl config use-context docker-dashboard
-    
-    Deploy the dashboard with
-    
-        kustomize build "$(git rev-parse --show-toplevel)/k8s/dashboard/dev" | kubectl apply -f -
+        kustomize build k8s/dashboard/dev | kubectl apply -f -
     
     In a separate terminal, run
     
@@ -115,9 +99,31 @@ information at <https://oval.cs.stanford.edu>.
     
     to view the dashboard (there shouldn't be much there yet!).
 
-8.  Build the Almond Cloud Docker image
+5.  Prepare your configuration
     
-        docker build -f docker/Dockerfile -t localhost/almond-cloud .
+    Under the `k8s` directory there are several files that end with a
+    `.EXAMPLE` suffix. Each of those files is a template for a local file that
+    will hold your unique settings.
+    
+    You need to create a copy of those files _without_ the `.EXAMPLE` suffix.
+    
+    So for the file
+    
+        k8s/bootstrap/dev/job.local.yaml.EXAMPLE
+    
+    you need to create a copy
+    
+        k8s/bootstrap/dev/job.local.yaml
+    
+    Then open the new copy and follow the instructions under each `# TODO`
+    section.
+    
+6.  Check your config files build successfully with `kustomize`
+    
+        kustomize build "$(git rev-parse --show-toplevel)/k8s/dev"
+    
+    You should see a big dump of `YAML` to the screen. If there is an error,
+    try to figure it out or ask for help.
 
 9.  Deploy Almond Cloud
     

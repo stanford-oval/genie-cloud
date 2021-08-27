@@ -24,13 +24,17 @@
                 "containers": [
                     {
                         "args": [
-                            "-c",
-                            "set -ex\ncd /opt/almond-cloud\nnpx nyc /opt/almond-cloud/tests/thingpedia-integration/k8s/start.sh run-worker \\\n    --thingpedia-url=http://frontend.default.svc.cluster.local:8080/thingpedia \\\n    --nl-server-url=https://nlp-staging.almond.stanford.edu \\\n    --oauth-redirect-origin=http://frontend.default.svc.cluster.local:8080 \\\n    --faq-models={} \\\n    --notification-config={} \\\n    --locale=en-US \\\n    --activity-monitor-idle-timeout-millis=1000000 \\\n    --activity-monitor-quiesce-timeout-millis=10000 \\\n    \u0026\nwait $!\nwhile [ 1 ]; do sleep 100; done          \n"
+                            "run-worker",
+                            "--thingpedia-url=http://frontend.almond-dev.svc.cluster.local:8080/thingpedia",
+                            "--nl-server-url=https://nlp-staging.almond.stanford.edu",
+                            "--oauth-redirect-origin=http://frontend.almond-dev.svc.cluster.local:8080",
+                            "--faq-models={}",
+                            "--notification-config={}",
+                            "--locale=en-US",
+                            "--activity-monitor-idle-timeout-millis=1000000",
+                            "--activity-monitor-quiesce-timeout-millis=10000"
                         ],
-                        "command": [
-                            "/bin/bash"
-                        ],
-                        "image": "localhost/almond-test:latest",
+                        "image": "localhost/almond-cloud:latest",
                         "imagePullPolicy": "IfNotPresent",
                         "name": "main",
                         "ports": [
