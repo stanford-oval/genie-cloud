@@ -101,7 +101,7 @@ information at <https://oval.cs.stanford.edu>.
 
 7.  Deploy the Nginx Ingress Controller
     
-        kustomize build k8s/ingres-nginx/dev | kubectl apply -f -
+        kustomize build k8s/ingress-nginx/dev | kubectl apply -f -
 
 8.  Create a [Mailgun][] account (if you don't already have one) and get the
     _SMTP_ username and password for the domain you want to use to send emails.
@@ -136,8 +136,6 @@ information at <https://oval.cs.stanford.edu>.
     try to figure it out or ask for help.
 
 9.  Deploy Almond Cloud
-    
-    Check that your `kubectl` context is correct as in the previous step, then:
     
         kustomize build ./k8s/dev | kubectl apply -f -
     
