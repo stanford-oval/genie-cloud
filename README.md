@@ -97,7 +97,8 @@ information at <https://oval.cs.stanford.edu>.
     
     http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
     
-    to view the dashboard (there shouldn't be much there yet!).
+    and use the _Skip_ button to login and view the dashboard (there shouldn't
+    be much there yet!).
 
 7.  Deploy the Nginx Ingress Controller
     
