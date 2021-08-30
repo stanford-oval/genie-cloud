@@ -21,17 +21,15 @@
 # MySQL (MariaDB)
 # ----------------------------------------------------------------------------
 
-DATABASE_URL: mysql://root:password@db.almond-dev.svc.cluster.local/thingengine_dev?charset=utf8mb4_bin
+DATABASE_URL: mysql://root:password@db/thingengine_dev?charset=utf8mb4_bin
   
-DATABASE_PROXY_URL: http://dbproxy.almond-dev.svc.cluster.local:8200
+DATABASE_PROXY_URL: http://dbproxy:8200
 
 # HTTP
 # ----------------------------------------------------------------------------
 
 SERVER_ORIGIN: http://localhost:8080
 ENABLE_REDIRECT: false
-
-FRONTEND_URL: http://frontend.almond-dev.svc.cluster.local:8080
 
 # Content Distribution Network (CDN)
 # ----------------------------------------------------------------------------

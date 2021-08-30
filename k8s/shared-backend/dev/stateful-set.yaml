@@ -10,8 +10,8 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: THINGPEDIA_URL
-              value: http://frontend.almond-dev.svc.cluster.local:8080/thingpedia
+              value: http://frontend:8080/thingpedia
             - name: NL_SERVER_URL
               value: https://nlp-staging.almond.stanford.edu
             - name: OAUTH_REDIRECT_URL
-              value: http://frontend.almond-dev.svc.cluster.local:8080
+              value: http://frontend:8080
