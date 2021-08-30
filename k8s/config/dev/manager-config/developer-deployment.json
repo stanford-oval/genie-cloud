@@ -25,9 +25,9 @@
                     {
                         "args": [
                             "run-worker",
-                            "--thingpedia-url=http://frontend.almond-dev.svc.cluster.local:8080/thingpedia",
+                            "--thingpedia-url=http://frontend:8080/thingpedia",
                             "--nl-server-url=https://nlp-staging.almond.stanford.edu",
-                            "--oauth-redirect-origin=http://frontend.almond-dev.svc.cluster.local:8080",
+                            "--oauth-redirect-origin=http://frontend:8080",
                             "--faq-models={}",
                             "--notification-config={}",
                             "--locale=en-US",
