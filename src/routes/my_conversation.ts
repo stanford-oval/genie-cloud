@@ -146,6 +146,7 @@ interface ConversationQueryParams {
     hide_welcome ?: '1'|''|undefined;
     id ?: string;
     flags ?: Record<string, unknown>;
+    skip_history ?: '1'|''|undefined;
 }
 
 async function doConversation(user : userModel.RowWithOrg, anonymous : boolean, ws : WebSocket, query : ConversationQueryParams) {
@@ -167,6 +168,8 @@ async function doConversation(user : userModel.RowWithOrg, anonymous : boolean, 
         }
 
         const options = {
+            replayHistory: !query.skip_history,
+
             showWelcome: !query.hide_welcome,
             anonymous,
             dialogueFlags: flags,
