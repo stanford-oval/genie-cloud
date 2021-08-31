@@ -15,7 +15,7 @@ spec:
             - |
               set -ex
               cd /opt/almond-cloud
-              /usr/bin/npm run start:dev -- \
+              /usr/bin/npm run debug -- \
                   run-worker \
                   --thingpedia-url=${THINGPEDIA_URL} \
                   --nl-server-url=${NL_SERVER_URL} \
