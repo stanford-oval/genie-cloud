@@ -15,7 +15,7 @@ spec:
             - |
               set -ex
               cd /opt/almond-cloud
-              /usr/bin/npm run start:dev bootstrap
+              /usr/bin/npm run start:dev -- bootstrap
           env:
             - name: THINGENGINE_ROOTDIR
               value: /home/almond-cloud
