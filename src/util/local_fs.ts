@@ -28,7 +28,8 @@ let _cachedir  : string;
 export function init() {
     const rootdir = process.env.THINGENGINE_ROOTDIR || process.cwd();
     process.env.THINGENGINE_ROOTDIR = rootdir;
-
+    
+    safeMkdirSync(rootdir);
     _writabledir = rootdir + '/shared';
     safeMkdirSync(_writabledir);
     _cachedir = _writabledir + '/cache';

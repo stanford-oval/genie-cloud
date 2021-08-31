@@ -6,3 +6,4 @@ bases:
 
 patches:
   - stateful-set.yaml
+  - stateful-set.local.yaml

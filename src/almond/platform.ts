@@ -220,7 +220,7 @@ export class Platform extends Tp.BasePlatform {
 
         this._gettext = i18n.get(this._locale);
 
-        this._writabledir = _shared ? (process.cwd() + '/' + options.cloudId) : process.cwd();
+        this._writabledir = _shared ? ('/home/almond-cloud/' + options.cloudId) : '/home/almond-cloud';
         try {
             fs.mkdirSync(this._writabledir + '/cache');
         } catch(e) {

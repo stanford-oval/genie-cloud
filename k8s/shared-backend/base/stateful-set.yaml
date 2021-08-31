@@ -21,6 +21,8 @@ spec:
           - name: THINGPEDIA_URL
           - name: NL_SERVER_URL
           - name: OAUTH_REDIRECT_URL
+          - name: THINGENGINE_ROOTDIR
+            value: /home/almond-cloud
         args:
         - run-worker
         - --thingpedia-url=$(THINGPEDIA_URL)

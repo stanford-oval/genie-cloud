@@ -1,11 +1,12 @@
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
 
-resources:
+bases:
   - ../base
+
+resources:
+  - persistent-volume-claim.yaml
 
 patches:
   - deployment.yaml
-  # NOTE  This file must be created locally, see adjacent
-  #       `deployment.local.yaml.EXAMPLE` file
   - deployment.local.yaml

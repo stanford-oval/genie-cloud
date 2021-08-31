@@ -49,6 +49,8 @@ NL_SERVER_URL: https://nlp-staging.almond.stanford.edu
 # Use a local thingpedia
 WITH_THINGPEDIA: embedded
 THINGPEDIA_URL: /thingpedia
+# THINGENGINE_MANAGER_ADDRESS:
+#   - backend:8100
 
 # Use staging's Thingpedia
 # WITH_THINGPEDIA: external
