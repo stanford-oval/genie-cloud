@@ -7,5 +7,4 @@ set -u # Error on undefined vars
 # set -v # Print everything
 # set -x # Print commands (with expanded vars)
 
-cd "$(git rev-parse --show-toplevel)/k8s" && \
-	kubectl --context docker-desktop delete namespace almond-dev
+kubectl --context kind-kind delete namespace almond-dev

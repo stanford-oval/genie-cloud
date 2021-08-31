@@ -4,9 +4,6 @@ kind: Component
 bases:
   - ../base
 
-resources:
-  - persistent-volume-claim.yaml
-
 patches:
   - deployment.yaml
   - deployment.local.yaml

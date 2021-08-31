@@ -35,5 +35,5 @@ spec:
           hostPath:
             type: Directory
         - name: shared
-          persistentVolumeClaim:
-            claimName: shared
+          hostPath:
+            type: Directory
