@@ -179,7 +179,7 @@ async function doConversation(user : userModel.RowWithOrg, anonymous : boolean, 
         const delegate = new WebsocketAssistantDelegate(ws);
 
         let wrapper : rpc.Proxy<ConversationWrapper>|undefined;
-        const id = anonymous ? (query.id || 'web-' + makeRandom(4)) : 'main';
+        const id = query.id || (anonymous ? 'web-' + makeRandom(4) : 'main');
         ws.send(JSON.stringify({ type: 'id', id : id }));
 
         ws.on('error', (err) => {
