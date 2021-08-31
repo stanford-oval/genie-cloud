@@ -33,11 +33,3 @@ spec:
           volumeMounts:
             - mountPath: /opt/almond-cloud/src
               name: src
-            - mountPath: /opt/almond-cloud/views
-              name: views
-            - mountPath: /home/almond-cloud/shared
-              name: shared
-      volumes:
-        - name: shared
-          persistentVolumeClaim:
-            claimName: shared
