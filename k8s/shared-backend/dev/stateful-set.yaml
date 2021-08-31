@@ -33,3 +33,7 @@ spec:
           volumeMounts:
             - mountPath: /opt/almond-cloud/src
               name: src
+      volumes:
+        - name: src
+          hostPath:
+            type: Directory

@@ -25,6 +25,9 @@ spec:
             - mountPath: /home/almond-cloud/shared
               name: shared
       volumes:
+        - name: src
+          hostPath:
+            type: Directory
         - name: shared
           hostPath:
             type: Directory
