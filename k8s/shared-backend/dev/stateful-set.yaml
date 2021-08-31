@@ -8,6 +8,21 @@ spec:
       containers:
         - name: main
           imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+          args:
+            - -c
+            - |
+              set -ex
+              cd /opt/almond-cloud
+              /usr/bin/npm run start:dev -- \
+                  run-worker \
+                  --thingpedia-url=${THINGPEDIA_URL} \
+                  --nl-server-url=${NL_SERVER_URL} \
+                  --oauth-redirect-origin=${OAUTH_REDIRECT_URL} \
+                  --faq-models={} \
+                  --notification-config={} \
+                  --locale=en-US
           env:
             - name: THINGPEDIA_URL
               value: http://frontend:8080/thingpedia
@@ -15,3 +30,14 @@ spec:
               value: https://nlp-staging.almond.stanford.edu
             - name: OAUTH_REDIRECT_URL
               value: http://frontend:8080
+          volumeMounts:
+            - mountPath: /opt/almond-cloud/src
+              name: src
+            - mountPath: /opt/almond-cloud/views
+              name: views
+            - mountPath: /home/almond-cloud/shared
+              name: shared
+      volumes:
+        - name: shared
+          persistentVolumeClaim:
+            claimName: shared

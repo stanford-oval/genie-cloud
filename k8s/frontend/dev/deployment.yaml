@@ -16,7 +16,10 @@ spec:
             - |
               set -ex
               cd /opt/almond-cloud
-              /usr/bin/npm run debug
+              /usr/bin/npm run debug -- run-frontend --k8s
+          env:
+            - name: THINGENGINE_ROOTDIR
+              value: /home/almond-cloud
           volumeMounts:
             - mountPath: /opt/almond-cloud/src
               name: src
@@ -32,5 +35,5 @@ spec:
           hostPath:
             type: Directory
         - name: shared
-          hostPath:
-            type: DirectoryOrCreate
+          persistentVolumeClaim:
+            claimName: shared

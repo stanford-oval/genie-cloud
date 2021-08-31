@@ -26,8 +26,8 @@
     "prepare": "make prepare",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "install": "make install",
-    "debug": "nodemon",
-    "start:dev": "node --inspect=5858 -r ts-node/register ./src/main.ts run-frontend --k8s"
+    "debug": "nodemon --",
+    "start:dev": "node --inspect=5858 -r ts-node/register ./src/main.ts"
   },
   "resolutions": {},
   "dependencies": {
@@ -201,7 +201,7 @@
     "watch": [
       "src"
     ],
-    "exec": "npm run start:dev",
+    "exec": "npm run start:dev --",
     "ext": "ts,js",
     "env": {
       "NODE_ENV": "development"
