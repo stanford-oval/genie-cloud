@@ -92,7 +92,7 @@
     "passport-local": "^1.0.0",
     "passport-oauth2-client-password": "^0.1.2",
     "passport-totp": "^0.0.2",
-    "prom-client": "^13.1.0",
+    "prom-client": "^13.2.0",
     "pug": "^3.0.2",
     "rss": "^1.2.2",
     "sanitize-filename": "^1.6.2",
