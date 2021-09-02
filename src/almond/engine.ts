@@ -34,10 +34,12 @@ export class ConversationWrapper implements rpc.Stubbable {
     private _conversation : Genie.DialogueAgent.Conversation;
     private _delegate : rpc.Proxy<Genie.DialogueAgent.ConversationDelegate>;
 
-    constructor(conversation : Genie.DialogueAgent.Conversation, delegate : rpc.Proxy<Genie.DialogueAgent.ConversationDelegate>) {
+    constructor(conversation : Genie.DialogueAgent.Conversation,
+                delegate : rpc.Proxy<Genie.DialogueAgent.ConversationDelegate>,
+                replayHistory : boolean|undefined) {
         this._conversation = conversation;
         this._delegate = delegate;
-        this._conversation.addOutput(delegate);
+        this._conversation.addOutput(delegate, replayHistory);
     }
 
     destroy() {
@@ -231,13 +233,13 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
     }
 
     async getOrOpenConversation(id : string, delegate : rpc.Proxy<Genie.DialogueAgent.ConversationDelegate>,
-                                options : Genie.DialogueAgent.ConversationOptions,
+                                options : Genie.DialogueAgent.ConversationOptions & { replayHistory ?: boolean },
                                 initialState ?: Genie.DialogueAgent.ConversationState) {
         options.faqModels = PlatformModule.faqModels;
         if (options.anonymous)
             options.log = true;
         const conversation = await this.assistant.getOrOpenConversation(id, options, initialState || undefined);
-        return new ConversationWrapper(conversation, delegate);
+        return new ConversationWrapper(conversation, delegate, options.replayHistory);
     }
 
     async addNotificationOutput(delegate : rpc.Proxy<NotificationDelegateProxy>) {
