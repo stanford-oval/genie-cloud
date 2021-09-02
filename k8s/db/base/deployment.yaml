@@ -21,3 +21,21 @@ spec:
           ports:
             - containerPort: 3306
               protocol: TCP
+          volumeMounts:
+            - name: storage
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: db-storage
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
