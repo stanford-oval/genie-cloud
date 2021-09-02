@@ -69,6 +69,8 @@ class GoogleAssistantDelegate implements rpc.Stubbable {
     async setExpected(what : string|null, ctx : unknown) {
     }
 
+    async addDevice() {}
+
     async addMessage(msg : Genie.DialogueAgent.Protocol.Message) {
         switch (msg.type) {
         case 'text':

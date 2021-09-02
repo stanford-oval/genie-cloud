@@ -22,6 +22,7 @@ import type WebSocket from 'ws';
 import type express from 'express';
 import * as rpc from 'transparent-rpc';
 import type * as Genie from 'genie-toolkit';
+import type * as Tp from 'thingpedia';
 
 import type { ConversationWrapper, NotificationWrapper } from '../almond/engine';
 import * as userModel from '../model/user';
@@ -117,12 +118,16 @@ class WebsocketAssistantDelegate implements Genie.DialogueAgent.ConversationDele
         this._ws = ws;
     }
 
-    setHypothesis() {
+    async setHypothesis() {
         // voice doesn't go through SpeechHandler, hence hypotheses don't go through here!
     }
 
-    setExpected(what : string|null) {
+    async setExpected(what : string|null) {
         this._send(JSON.stringify({ type: 'askSpecial', ask: what }));
+    }
+
+    async addDevice(uniqueId : string, state : Tp.BaseDevice.DeviceState) {
+        this._send(JSON.stringify({ type: 'new-device', uniqueId, state }));
     }
 
     async addMessage(msg : Genie.DialogueAgent.Protocol.Message) {
