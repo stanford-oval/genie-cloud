@@ -111,7 +111,7 @@ export function results(ws : WebSocket, req : express.Request, next : express.Ne
 
 
 class WebsocketAssistantDelegate implements Genie.DialogueAgent.ConversationDelegate, rpc.Stubbable {
-    $rpcMethods = ['setHypothesis', 'setExpected', 'addMessage'] as const;
+    $rpcMethods = ['setHypothesis', 'setExpected', 'addMessage', 'addDevice'] as const;
     private _ws : WebSocket;
 
     constructor(ws : WebSocket) {
