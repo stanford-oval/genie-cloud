@@ -31,6 +31,7 @@ spec:
                 --faq-models={} \
                 --notification-config={} \
                 --locale=en-US \
+                --shared \
                 --activity-monitor-idle-timeout-millis=10000 \
                 --activity-monitor-quiesce-timeout-millis=1000 \
                 &
