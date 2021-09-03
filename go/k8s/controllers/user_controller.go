@@ -313,6 +313,16 @@ func (r *UserReconciler) handleDeveloper(ctx context.Context, req ctrl.Request,
 
 func (r *UserReconciler) handleSharedUser(ctx context.Context, req ctrl.Request,
 	userID int64) (user *backendv1.User, currentStatus backendv1.UserStatus, stop bool, result ctrl.Result, err error) {
+
+	var userErr error
+	backendUser := &backendv1.User{}
+	// A non-nil User is required to update the user state (see the defer func in Reconcile). Thus, we get the
+	// backendUser at the start.  If any error occurs such as an non-existing backend, it will be propagated to User CR.
+	// The handling of userErr is deferred later because it depends the engine status and backend url.
+	if userErr = r.Client.Get(ctx, req.NamespacedName, backendUser); userErr == nil {
+		user = backendUser
+	}
+
 	currentStatus.Backend, err = r.getSharedBackendURL(ctx, req.Namespace, userID)
 	if err != nil {
 		currentStatus.State = err.Error()
@@ -335,14 +345,15 @@ func (r *UserReconciler) handleSharedUser(ctx context.Context, req ctrl.Request,
 	}
 	currentStatus.State = string(engineStatus)
 
-	user = &backendv1.User{}
-	if err = r.Client.Get(ctx, req.NamespacedName, user); err != nil {
-		if apierrors.IsNotFound(err) {
+	if userErr != nil {
+		err = userErr
+		if apierrors.IsNotFound(userErr) {
 			// User is already deleted, kill engine if it's still running.
 			if engineStatus == Running || engineStatus == Idle {
 				r.Log.Info("kill engine for already deleted user:", "user", userID)
-				err = r.killEngine(ctx, userID, currentStatus.Backend)
-				return
+				if err := r.killEngine(ctx, userID, currentStatus.Backend); err != nil {
+					r.Log.Error(err, "failed to kill engine", "user", userID)
+				}
 			}
 			err = nil
 			stop = true
