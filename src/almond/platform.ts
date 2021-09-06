@@ -222,7 +222,7 @@ export class Platform extends Tp.BasePlatform {
 
         this._writabledir = _shared ? (process.cwd() + '/' + options.cloudId) : process.cwd();
         try {
-            fs.mkdirSync(this._writabledir + '/cache');
+            fs.mkdirSync(this._writabledir + '/cache', {recursive: true});
         } catch(e) {
             if (e.code !== 'EEXIST')
                 throw e;
