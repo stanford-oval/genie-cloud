@@ -368,7 +368,7 @@ async function waitForDB() {
     };
     Object.assign(options, parsed.query);
 
-    const TIMEOUT_MS = 10000; // 10 seconds
+    const TIMEOUT_MS = 30000; // 30 seconds
     const SLEEP_MS = 1000; // 1 second
     const start_time = Date.now();
     const sleep = (ms: number) => {
