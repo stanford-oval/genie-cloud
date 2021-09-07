@@ -371,37 +371,39 @@ async function waitForDB() {
     const TIMEOUT_MS = 30000; // 30 seconds
     const SLEEP_MS = 1000; // 1 second
     const start_time = Date.now();
-    const sleep = (ms: number) => {
-        return new Promise(resolve => setTimeout(resolve, ms))
-    }
+    const sleep = (ms : number) => {
+        return new Promise((resolve) => {
+            setTimeout(resolve, ms);
+        });
+    };
 
     while (Date.now() - start_time < TIMEOUT_MS) {
         console.log(`Attempting to connect to the db...`);
 
         const ok = await new Promise<boolean>((resolve, _reject) => {
             const connection = mysql.createConnection(options);
-            connection.query(`SHOW TABLES;`, (error: any) => {
+            connection.query(`SHOW TABLES;`, (error : any) => {
                 if (error) {
                     console.error(`FAILED to connect to the db: ${error}`);
                     resolve(false);
                 } else {
-                    connection.end((error: any) => {
+                    connection.end((error : any) => {
                         if (error) {
                             console.error(
                                 `FAILED to end connection to the db: ${error}`
                             );
                             resolve(false);
                         } else {
-                            console.log(`SUCCESS connected to db!`)
+                            console.log(`SUCCESS connected to db!`);
                             resolve(true);
                         }
                     });
                 }
             });
         });
-        if (ok) {
+        if (ok)
             return;
-        }
+
         console.log(`Going to sleep for ${SLEEP_MS}ms...`);
         await sleep(SLEEP_MS);
     }
