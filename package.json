@@ -56,7 +56,7 @@
     "express-session": "^1.17.2",
     "express-ws": "^5.0.2",
     "express-xml-bodyparser": "^0.3.0",
-    "genie-toolkit": "github:stanford-oval/genie-toolkit#wip/conversation-devices",
+    "genie-toolkit": "github:stanford-oval/genie-toolkit",
     "gettext-parser": "^4.0.4",
     "gm": "^1.23.1",
     "highlight.js": "^10.7.3",
