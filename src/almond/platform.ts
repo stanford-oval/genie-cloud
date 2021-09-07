@@ -25,6 +25,7 @@ import * as fs from 'fs';
 import * as util from 'util';
 import * as os from 'os';
 import * as events from 'events';
+import * as path from 'path';
 import * as child_process from 'child_process';
 import { LocalCVC4Solver } from 'smtlib';
 import * as Tp from 'thingpedia';
@@ -219,8 +220,9 @@ export class Platform extends Tp.BasePlatform {
         };
 
         this._gettext = i18n.get(this._locale);
-
-        this._writabledir = _shared ? ('/home/almond-cloud/' + options.cloudId) : '/home/almond-cloud';
+        
+        const rootDir = process.env.THINGENGINE_ROOTDIR || process.cwd();
+        this._writabledir = _shared ? path.resolve(rootDir, options.cloudId) : rootDir;
         try {
             fs.mkdirSync(this._writabledir + '/cache');
         } catch(e) {

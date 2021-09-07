@@ -34,6 +34,12 @@
                             "--activity-monitor-idle-timeout-millis=1000000",
                             "--activity-monitor-quiesce-timeout-millis=10000"
                         ],
+                        "env": [
+                            {
+                              "name": "THINGENGINE_ROOTDIR",
+                              "value": "/home/almond-cloud"
+                            }  
+                        ],
                         "image": "localhost/almond-cloud:latest",
                         "imagePullPolicy": "IfNotPresent",
                         "name": "main",

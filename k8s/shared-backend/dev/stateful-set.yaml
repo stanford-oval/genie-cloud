@@ -30,6 +30,8 @@ spec:
               value: https://nlp-staging.almond.stanford.edu
             - name: OAUTH_REDIRECT_URL
               value: http://localhost:8080
+            - name: THINGENGINE_ROOTDIR
+              value: /home/almond-cloud
           volumeMounts:
             - mountPath: /opt/almond-cloud/src
               name: src
