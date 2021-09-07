@@ -48,13 +48,13 @@ import * as Config from '../src/config';
 assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
 I18n.init(Config.SUPPORTED_LANGUAGES);
 
-const req = { 
+const req = {
     _ : (x : string ) : string => { return x; },
 } as Validation.RequestLike;
 
 async function loadManifest(primaryKind : string) {
     const filename = path.resolve(path.dirname(module.filename), './data/' + primaryKind + '.yaml');
-    return yaml.load((await util.promisify(fs.readFile)(filename)).toString(), { filename });
+    return yaml.load((await util.promisify(fs.readFile)(filename)).toString(), { filename }) as any;
 }
 
 async function loadAllDevices(dbClient : db.Client, bob : userModel.RowWithOrg, root : userModel.RowWithOrg) {
@@ -183,7 +183,7 @@ async function loadExamples(dbClient : db.Client, bob : userModel.RowWithOrg) {
             click_count: 8,
             flags: 'exact',
         },
-    
+
         // thingpedia
         {
             id: 1000,
@@ -269,7 +269,7 @@ async function loadExamples(dbClient : db.Client, bob : userModel.RowWithOrg) {
             flags: 'template',
             name: 'GenData'
         },
-    
+
         // online
         {
             id: 1010,
