@@ -105,7 +105,7 @@
     "sockaddr": "^1.0.0",
     "tar": "^6.1.11",
     "thingpedia": "^2.10.0-alpha.2",
-    "thingtalk": "^2.1.0-alpha.5",
+    "thingtalk": "^2.1.0-alpha.6",
     "thirty-two": "^1.0.2",
     "tmp-promise": "^3.0.2",
     "transparent-rpc": "^1.1.0",
