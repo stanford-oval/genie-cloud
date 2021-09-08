@@ -1,7 +1,6 @@
 DATABASE_URL: "mysql://root:password@mariadb.default.svc.cluster.local/thingengine_test?charset=utf8mb4_bin"
 DATABASE_PROXY_URL: "http://dbproxy.default.svc.cluster.local:8200"
-SERVER_ORIGIN: "http://almond.local"
-ENABLE_REDIRECT: false
+SERVER_ORIGIN: "http://localhost:8080"
 CDN_HOST: /download
 WITH_THINGPEDIA: embedded
 WITH_LUINET: embedded
