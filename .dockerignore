@@ -12,6 +12,7 @@
 home
 workdir
 shared
+tmp
 
 platform_config.js
 secret_config.js

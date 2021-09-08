@@ -1,0 +1,79 @@
+{
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "metadata": {
+        "labels": {
+            "app": "<user>"
+        },
+        "name": "<user>",
+        "namespace": "default"
+    },
+    "spec": {
+        "selector": {
+            "matchLabels": {
+                "app": "<user>"
+            }
+        },
+        "template": {
+            "metadata": {
+                "labels": {
+                    "app": "<user>"
+                }
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "args": [
+                            "run-worker",
+                            "--thingpedia-url=http://frontend:8080/thingpedia",
+                            "--nl-server-url=https://nlp-staging.almond.stanford.edu",
+                            "--oauth-redirect-origin=http://frontend:8080",
+                            "--faq-models={}",
+                            "--notification-config={}",
+                            "--locale=en-US",
+                            "--activity-monitor-idle-timeout-millis=1000000",
+                            "--activity-monitor-quiesce-timeout-millis=10000"
+                        ],
+                        "env": [
+                            {
+                              "name": "THINGENGINE_ROOTDIR",
+                              "value": "/home/almond-cloud"
+                            }  
+                        ],
+                        "image": "localhost/almond-cloud:latest",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "main",
+                        "ports": [
+                            {
+                                "containerPort": 8100,
+                                "name": "almond",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "resources": {
+                            "requests": {
+                                "memory": "200M"
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/srv/thingengine",
+                                "name": "local-storage"
+                            }
+                        ],
+                        "workingDir": "/srv/thingengine"
+                    }
+                ],
+                "securityContext": {
+                    "fsGroup": 65534
+                },
+                "volumes": [
+                    {
+                        "emptyDir": {},
+                        "name": "local-storage"
+                    }
+                ]
+            }
+        }
+    }
+}

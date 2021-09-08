@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "dbproxy"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "dbproxy"
+  template:
+    metadata:
+      labels:
+        app: "dbproxy"
+    spec:
+      serviceAccountName: default-editor
+      containers:
+      - name: "main"
+        image: stanfordoval/almond-cloud:latest
+        command: ["/usr/local/bin/backend"]
+        args: ["dbproxy", "-port", "8200"] #, "-aws-tls-cert", "/etc/aws/aws-global-bundle.pem"]
+        env:
+        - name: GIN_MODE
+          value: "release"
+        volumeMounts:
+        - mountPath: /etc/almond-cloud/config.d/config.yaml
+          subPath: config.yaml
+          name: config
+          readOnly: true
+        - mountPath: /etc/almond-cloud/config.d/secret.yaml
+          subPath: secret.yaml
+          name: secret
+          readOnly: true
+        ports:
+        - containerPort: 8200
+          name: web
+        resources:
+          requests:
+            memory: 100M
+          limits:
+            memory: 2500M
+      volumes:
+      - name: config 
+        configMap:
+          name: almond-config
+      - name: secret 
+        secret:
+          secretName: almond-secret

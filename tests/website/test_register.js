@@ -64,7 +64,7 @@ async function testRegister(charlie) {
         locale: 'en-US',
         timezone: 'America/Los_Angeles',
         agree_terms: '1'
-    }, charlie), 'You must specifiy a valid password, of at least 8 characters.');
+    }, charlie), 'You must specify a valid password, of at least 8 characters.');
 
     await assertBanner(sessionRequest('/user/register', 'POST', {
         username: 'charlie',

@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bootstrap
+spec:
+  template:
+    spec:
+      containers:
+        - name: main
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+          args:
+            - -c
+            - |
+              set -ex
+              cd /opt/almond-cloud
+              /usr/bin/npm run start:dev -- bootstrap
+          env:
+            - name: THINGENGINE_ROOTDIR
+              value: /home/almond-cloud
+          volumeMounts:
+            - mountPath: /opt/almond-cloud/src
+              name: src
+            - mountPath: /home/almond-cloud/shared
+              name: shared
+      volumes:
+        - name: src
+          hostPath:
+            type: Directory
+        - name: shared
+          hostPath:
+            type: Directory

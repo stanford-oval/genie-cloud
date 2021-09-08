@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: shared-backend
+spec:
+  selector:
+    matchLabels:
+      app: shared-backend
+  replicas: 1
+  serviceName: shared-backend
+  template:
+    metadata:
+      labels:
+        app: shared-backend
+    spec:
+      serviceAccountName: default-editor
+      containers:
+      - name: main
+        image: stanfordoval/almond-cloud:latest
+        env:
+          - name: THINGPEDIA_URL
+          - name: NL_SERVER_URL
+          - name: OAUTH_REDIRECT_URL
+          - name: THINGENGINE_ROOTDIR
+            value: /home/almond-cloud
+        args:
+        - run-worker
+        - --thingpedia-url=$(THINGPEDIA_URL)
+        - --nl-server-url=$(NL_SERVER_URL)
+        - --oauth-redirect-origin=$(OAUTH_REDIRECT_URL)
+        - --faq-models={}
+        - --notification-config={}
+        - --locale=en-US
+        workingDir: /srv/thingengine
+        volumeMounts:
+        - mountPath: /srv/thingengine
+          name: local-storage
+        resources:
+          requests:
+            memory: 200M
+        ports:
+          - containerPort: 8100
+            name: almond
+      securityContext:
+        fsGroup: 65534
+      volumes:
+      - name: local-storage
+        emptyDir: {}

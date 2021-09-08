@@ -22,6 +22,7 @@ import type WebSocket from 'ws';
 import type express from 'express';
 import * as rpc from 'transparent-rpc';
 import type * as Genie from 'genie-toolkit';
+import type * as Tp from 'thingpedia';
 
 import type { ConversationWrapper, NotificationWrapper } from '../almond/engine';
 import * as userModel from '../model/user';
@@ -110,19 +111,23 @@ export function results(ws : WebSocket, req : express.Request, next : express.Ne
 
 
 class WebsocketAssistantDelegate implements Genie.DialogueAgent.ConversationDelegate, rpc.Stubbable {
-    $rpcMethods = ['setHypothesis', 'setExpected', 'addMessage'] as const;
+    $rpcMethods = ['setHypothesis', 'setExpected', 'addMessage', 'addDevice'] as const;
     private _ws : WebSocket;
 
     constructor(ws : WebSocket) {
         this._ws = ws;
     }
 
-    setHypothesis() {
+    async setHypothesis() {
         // voice doesn't go through SpeechHandler, hence hypotheses don't go through here!
     }
 
-    setExpected(what : string|null) {
+    async setExpected(what : string|null) {
         this._send(JSON.stringify({ type: 'askSpecial', ask: what }));
+    }
+
+    async addDevice(uniqueId : string, state : Tp.BaseDevice.DeviceState) {
+        this._send(JSON.stringify({ type: 'new-device', uniqueId, state }));
     }
 
     async addMessage(msg : Genie.DialogueAgent.Protocol.Message) {
@@ -147,6 +152,7 @@ interface ConversationQueryParams {
     id ?: string;
     flags ?: Record<string, unknown>;
     skip_history ?: '1'|''|undefined;
+    sync_devices ?: '1'|''|undefined;
 }
 
 async function doConversation(user : userModel.RowWithOrg, anonymous : boolean, ws : WebSocket, query : ConversationQueryParams) {
@@ -169,6 +175,7 @@ async function doConversation(user : userModel.RowWithOrg, anonymous : boolean, 
 
         const options = {
             replayHistory: !query.skip_history,
+            syncDevices: !!query.sync_devices,
 
             showWelcome: !query.hide_welcome,
             anonymous,

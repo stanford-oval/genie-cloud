@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: shared-backend
+spec:
+  template:
+    spec:
+      containers:
+        - name: main
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+          args:
+            - -c
+            - |
+              set -ex
+              cd /opt/almond-cloud
+              /usr/bin/npm run debug -- \
+                  run-worker \
+                  --thingpedia-url=${THINGPEDIA_URL} \
+                  --nl-server-url=${NL_SERVER_URL} \
+                  --oauth-redirect-origin=${OAUTH_REDIRECT_URL} \
+                  --faq-models={} \
+                  --notification-config={} \
+                  --locale=en-US
+          env:
+            - name: THINGPEDIA_URL
+              value: http://frontend:8080/thingpedia
+            - name: NL_SERVER_URL
+              value: https://nlp-staging.almond.stanford.edu
+            - name: OAUTH_REDIRECT_URL
+              value: http://localhost:8080
+            - name: THINGENGINE_ROOTDIR
+              value: /home/almond-cloud
+          volumeMounts:
+            - mountPath: /opt/almond-cloud/src
+              name: src
+      volumes:
+        - name: src
+          hostPath:
+            type: Directory

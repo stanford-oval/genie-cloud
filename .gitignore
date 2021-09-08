@@ -8,9 +8,9 @@
 *.bin
 .buildconfig
 
-home
-workdir
-shared
+/home
+/workdir
+/shared
 
 /platform_config.js
 /secret_config.js
@@ -22,16 +22,12 @@ shared
 /public/download/icons
 /public/download/blog-assets
 
-doc/doc-list.json
-doc/fts.json
-doc/thingpedia-api
-doc/jsdoc/*/
-views/doc_*.pug
-!views/doc_base.pug
-!views/doc_sidebar.pug
-views/thingpedia_doc_index.pug
+/views/doc_*.pug
+!/views/doc_base.pug
+!/views/doc_sidebar.pug
+/views/thingpedia_doc_index.pug
 
-tests/embeddings
+/tests/embeddings
 
 node_modules/
 /dist
@@ -45,3 +41,5 @@ yarn-error.log
 .idea
 
 custom_config.js
+
+/tmp

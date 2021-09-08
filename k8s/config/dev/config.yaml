@@ -1,0 +1,99 @@
+# Almond Cloud PRIVATE Configuration
+# ============================================================================
+# 
+# **_WARNING_**
+# 
+# This file contains configuration that is checked in to source control in a 
+# public repository.
+# 
+# ANY VALUES DEFINED HERE WILL BE SHARED NOT ONLY BETWEEN ALL DEVELOPERS, BUT
+# WILL BE PUBLISHED TO THE ENTIRE WORLD.
+# 
+# Do **NOT** -- even for a quick minute -- edit this file to include:
+# 
+# 1.  Any values that are specific to **YOU** and your development instance.
+# 2.  Any **SECRETS**, such as account credentials, API tokens or access keys, 
+#     database URLs and passwords, your email address, etc.
+# 
+# Personal and secret values go in the adjacent `secret.yaml` file.
+# 
+
+# MySQL (MariaDB)
+# ----------------------------------------------------------------------------
+
+DATABASE_URL: mysql://root:password@db/thingengine_dev?charset=utf8mb4_bin
+  
+DATABASE_PROXY_URL: http://dbproxy:8200
+
+# HTTP
+# ----------------------------------------------------------------------------
+
+SERVER_ORIGIN: http://localhost:8080
+ENABLE_REDIRECT: false
+
+# Content Distribution Network (CDN)
+# ----------------------------------------------------------------------------
+
+CDN_HOST: /download
+
+# Natural Language (NL) Server
+# ----------------------------------------------------------------------------
+
+WITH_LUINET: embedded
+
+NL_SERVER_URL: https://nlp-staging.almond.stanford.edu
+
+# Thingpedia
+# ----------------------------------------------------------------------------
+
+# Use a local thingpedia
+WITH_THINGPEDIA: embedded
+THINGPEDIA_URL: /thingpedia
+# THINGENGINE_MANAGER_ADDRESS:
+#   - backend:8100
+
+# Use staging's Thingpedia
+# WITH_THINGPEDIA: external
+# THINGPEDIA_URL: https://dev.almond.stanford.edu/thingpedia
+
+ENABLE_DEVELOPER_PROGRAM: true
+
+ENABLE_DEVELOPER_BACKEND: false
+
+# Prometheus
+# ----------------------------------------------------------------------------
+
+ENABLE_PROMETHEUS: true
+
+# User Experience
+# ----------------------------------------------------------------------------
+
+ENABLE_ANONYMOUS_USER: true
+
+USE_BRAND: stanford
+
+ABOUT_OVERRIDE:
+  index: stanford/about_index.pug
+  tos: stanford/about_tos.pug
+  privacy: stanford/about_privacy.pug
+  
+EXTRA_ABOUT_PAGES:
+  - url: get-almond
+    view: stanford/about_get_almond.pug
+    title: "Get Almond"
+  - url: get-involved
+    view: stanford/about_get_involved.pug
+    title: "Get Involved With Almond"
+
+EXTRA_NAVBAR:
+  - url: https://oval.cs.stanford.edu
+    title: "OVAL Lab"
+
+# Languages
+# ----------------------------------------------------------------------------
+
+SUPPORTED_LANGUAGES:
+  - en-US
+  - it-IT
+  - zh-CN
+  - zh-TW

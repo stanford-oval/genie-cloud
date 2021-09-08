@@ -156,8 +156,10 @@ const _backends = {
     },
 
     'file:': {
-        async mkdirRecursive(url : Url.UrlObject) {
-            const components = path.resolve(url.pathname!).split('/').slice(1);
+        async mkdirRecursive(url : string | Url.UrlObject) {
+            const pathname = typeof url === "string" ? url : url.pathname!;
+            
+            const components = path.resolve(pathname).split('/').slice(1);
 
             let subpath = '';
             for (const component of components) {
@@ -209,6 +211,7 @@ const _backends = {
             return fs.createReadStream(url.pathname!);
         },
         async writeFile(url : Url.UrlObject, blob : string|Buffer|NodeJS.ReadableStream, options ?: { contentType ?: string }) {
+            await this.mkdirRecursive(path.dirname(url.pathname!));
             const output = fs.createWriteStream(url.pathname!);
             if (typeof blob === 'string' || blob instanceof Uint8Array)
                 output.end(blob);

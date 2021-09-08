@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+bases:
+  - ../base
+
+resources:
+  - namespace.yaml
+
+patches:
+  - namespace.yaml
+
+configMapGenerator:
+  - name: almond-config
+    files:
+      - config.yaml
+  # FIXME   These are here -- rather than in base -- because they embed several
+  #         instance-specific configuration variables. Maybe the user controller
+  #         thing should fill them in..?
+  - name: manager-config
+    files:
+      - manager-config/developer-deployment.json
+      - manager-config/developer-service.json
+
+secretGenerator:
+  - name: almond-secret
+    files:
+      # NOTE  This file must be created locally, see adjacent
+      #       `secret.yaml.EXAMPLE` file
+      - secret.yaml
