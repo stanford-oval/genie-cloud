@@ -84,12 +84,16 @@ async function learn(req : express.Request, res : express.Response) {
 
     let sequence = req.body.target.split(' ');
     try {
-        const parsed = ThingTalk.Syntax.parse(sequence, ThingTalk.Syntax.SyntaxType.Tokenized, tokenized.entities);
+        const parsed = ThingTalk.Syntax.parse(sequence, ThingTalk.Syntax.SyntaxType.Tokenized, tokenized.entities, {
+            locale: req.params.locale,
+            timezone: req.body.timezone
+        });
         await parsed.typecheck(new ThingTalk.SchemaRetriever(model.tpClient, null, true));
 
         // serialize again to normalize the program and also check that entities and spans are present
         sequence = Genie.ThingTalkUtils.serializePrediction(parsed, tokenized.tokens, tokenized.entities, {
-            locale: req.params.locale
+            locale: req.params.locale,
+            timezone: req.body.timezone
         });
     } catch(e) {
         res.status(400).json({ error: 'Invalid ThingTalk', detail: e.message });
@@ -171,11 +175,11 @@ async function learn(req : express.Request, res : express.Response) {
 }
 
 router.post('/@:model_tag/:locale/learn',
-    iv.validatePOST({ q: 'string', store: 'string', access_token: '?string', thingtalk_version: 'string', target: 'string', owner: '?string' }, { json: true }),
+    iv.validatePOST({ q: 'string', store: 'string', access_token: '?string', thingtalk_version: 'string', target: 'string', owner: '?string', timezone: '?string' }, { json: true }),
     (req, res, next) => { learn(req, res).catch(next); });
 
 router.post('/:locale/learn',
-    iv.validatePOST({ q: 'string', store: 'string', access_token: '?string', thingtalk_version: 'string', target: 'string', owner: '?string' }, { json: true }),
+    iv.validatePOST({ q: 'string', store: 'string', access_token: '?string', thingtalk_version: 'string', target: 'string', owner: '?string', timezone: '?string' }, { json: true }),
     (req, res, next) => { learn(req, res).catch(next); });
 
 export default router;

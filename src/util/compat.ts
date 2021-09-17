@@ -20,14 +20,14 @@
 
 import * as ThingTalk from 'thingtalk';
 
-export function parseOldOrNewSyntax(code : string) {
+export function parseOldOrNewSyntax(code : string, options : { locale : string, timezone : string }) {
     try {
-        return ThingTalk.Syntax.parse(code);
+        return ThingTalk.Syntax.parse(code, ThingTalk.Syntax.SyntaxType.Normal, options);
     } catch(e1) {
         if (e1.name !== 'SyntaxError')
             throw e1;
         try {
-            return ThingTalk.Syntax.parse(code, ThingTalk.Syntax.SyntaxType.Legacy);
+            return ThingTalk.Syntax.parse(code, ThingTalk.Syntax.SyntaxType.Legacy, options);
         } catch(e2) {
             if (e2.name !== 'SyntaxError')
                 throw e2;

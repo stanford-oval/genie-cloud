@@ -220,12 +220,18 @@ function getDetails<T, ReqQuery extends { version ?: string }>(fn : (dbClient : 
 
         let parsed;
         try {
-            parsed = parseOldOrNewSyntax(code);
+            parsed = parseOldOrNewSyntax(code, {
+                locale: 'en-US',
+                timezone: 'UTC'
+            });
         } catch(e) {
             if (e.name !== 'SyntaxError')
                 throw e;
             // really obsolete device, likely a JSON manifest
-            parsed = parseOldOrNewSyntax(`abstract class @${device.primary_kind} { }`);
+            parsed = parseOldOrNewSyntax(`abstract class @${device.primary_kind} { }`, {
+                locale: 'en-US',
+                timezone: 'UTC'
+            });
         }
         assert(parsed instanceof ThingTalk.Ast.Library && parsed.classes.length > 0);
         const classDef = parsed.classes[0];

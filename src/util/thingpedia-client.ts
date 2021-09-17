@@ -161,7 +161,10 @@ export default class ThingpediaClientCloud extends Tp.BaseClient implements rpc.
                 !/(makeArgMap|\$context)/.test(code) /* quick check for old-syntax constructs */)
                 return code;
 
-            const parsed = parseOldOrNewSyntax(code);
+            const parsed = parseOldOrNewSyntax(code, {
+                locale: 'en-US',
+                timezone: 'UTC'
+            });
             assert(parsed instanceof ThingTalk.Ast.Library);
             const classDef = parsed.classes[0];
 

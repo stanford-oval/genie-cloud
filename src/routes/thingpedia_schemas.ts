@@ -62,7 +62,10 @@ router.get('/by-id/:kind', (req, res, next) => {
                                               message: req._("Not Found.") });
             return;
         }
-        const parsed = parseOldOrNewSyntax(devices[0].code);
+        const parsed = parseOldOrNewSyntax(devices[0].code, {
+            locale: 'en-US',
+            timezone: 'UTC'
+        });
         assert(parsed instanceof ThingTalk.Ast.Library);
         const classDef = parsed.classes[0];
         const schema = schemas[0];

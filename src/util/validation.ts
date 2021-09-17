@@ -76,7 +76,10 @@ async function loadClassDef(dbClient : db.Client, req : RequestLike, kind : stri
 
     let parsed;
     try {
-        parsed = await ThingTalk.Syntax.parse(`${classCode}\n${datasetCode}`).typecheck(schemaRetriever, true);
+        parsed = await ThingTalk.Syntax.parse(`${classCode}\n${datasetCode}`, ThingTalk.Syntax.SyntaxType.Normal, {
+            locale: req.user!.locale,
+            timezone: req.user!.timezone,
+        }).typecheck(schemaRetriever, true);
     } catch(e) {
         if (e.name === 'SyntaxError' && e.location) {
             let lineNumber = e.location.start.line;
@@ -229,7 +232,9 @@ function validateDataset(dataset : ThingTalk.Ast.Dataset) {
             const ruleprog = ex.clone().toProgram();
 
             // try and convert to NN
-            const allocator = new ThingTalk.Syntax.EntityRetriever('', {});
+            const allocator = new ThingTalk.Syntax.EntityRetriever('', {}, {
+                timezone: 'UTC'
+            });
             ThingTalk.Syntax.serialize(ruleprog, ThingTalk.Syntax.SyntaxType.Tokenized, allocator);
 
             // validate placeholders in all utterances

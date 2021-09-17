@@ -42,14 +42,18 @@ async function autoValidateParaphrase(dbClient : db.Client, batchId : number, la
 
     const tokenizer = i18n.get(language).genie.getTokenizer();
     const [program, { tokens: preprocessed, entities }] = await Promise.all([
-        ThingTalk.Syntax.parse(thingtalk).typecheck(schemas),
+        ThingTalk.Syntax.parse(thingtalk, ThingTalk.Syntax.SyntaxType.Normal, {
+            locale: language,
+            timezone: 'UTC'
+        }).typecheck(schemas),
         tokenizer.tokenize(utterance)
     ]);
 
     let target_code;
     try {
         target_code = Genie.ThingTalkUtils.serializePrediction(program, preprocessed, entities, {
-            locale: language
+            locale: language,
+            timezone: 'UTC'
         });
     } catch(e) {
         throw new BadRequestError(e.message);
@@ -163,7 +167,10 @@ router.get(`/submit/:batch/:hit`, (req, res, next) => {
             sentences.push(row.sentence);
 
             const hint = new Set<string>();
-            const parsed = ThingTalk.Syntax.parse(row.thingtalk);
+            const parsed = ThingTalk.Syntax.parse(row.thingtalk, ThingTalk.Syntax.SyntaxType.Normal, {
+                locale: batch.language,
+                timezone: 'UTC'
+            });
             for (const [,prim] of parsed.iteratePrimitives(false)) {
                 if (prim.selector.kind !== 'org.thingpedia.builtin.thingengine.builtin') {
                     allDeviceKinds.add(prim.selector.kind);

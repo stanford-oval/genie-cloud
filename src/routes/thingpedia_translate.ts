@@ -179,7 +179,10 @@ async function validateDataset(req : express.Request, dbClient : db.Client) {
     const tpClient = new ThingpediaClient(req.user!.developer_key, req.user!.locale, undefined, dbClient);
     const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
-    const parsed = await ThingTalk.Syntax.parse(req.body.dataset).typecheck(schemaRetriever, false);
+    const parsed = await ThingTalk.Syntax.parse(req.body.dataset, ThingTalk.Syntax.SyntaxType.Normal, {
+        locale: req.user!.locale,
+        timezone: req.user!.timezone,
+    }).typecheck(schemaRetriever, false);
 
     if (!(parsed instanceof ThingTalk.Ast.Library) ||
         parsed.datasets.length !== 1 ||
