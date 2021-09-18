@@ -21,14 +21,11 @@
 import type WebSocket from 'ws';
 import type express from 'express';
 import * as rpc from 'transparent-rpc';
-import type * as Genie from 'genie-toolkit';
-import type * as Tp from 'thingpedia';
 
-import type { ConversationWrapper, NotificationWrapper } from '../almond/engine';
+import type { WebSocketConnnectionWrapper, NotificationWrapper } from '../almond/engine';
 import * as userModel from '../model/user';
 import * as user from '../util/user';
 import * as EngineManager from '../almond/enginemanagerclient';
-import { BadRequestError } from '../util/errors';
 import { makeRandom } from '../util/random';
 
 import * as Config from '../config';
@@ -44,7 +41,7 @@ export function anonymous(ws : WebSocket, req : express.Request) {
     });
 }
 
-class WebsocketApiDelegate implements rpc.Stubbable {
+class WebsocketDelegate implements rpc.Stubbable {
     $rpcMethods = ['send'] as const;
     private _ws : WebSocket;
 
@@ -80,7 +77,7 @@ export function results(ws : WebSocket, req : express.Request, next : express.Ne
         };
         EngineManager.get().on('socket-closed', onclosed);
 
-        const delegate = new WebsocketApiDelegate(ws);
+        const delegate = new WebsocketDelegate(ws);
         let wrapper : rpc.Proxy<NotificationWrapper>|undefined = undefined;
         ws.on('error', (err) => {
             ws.close();
@@ -109,44 +106,6 @@ export function results(ws : WebSocket, req : express.Request, next : express.Ne
     });
 }
 
-
-class WebsocketAssistantDelegate implements Genie.DialogueAgent.ConversationDelegate, rpc.Stubbable {
-    $rpcMethods = ['setHypothesis', 'setExpected', 'addMessage', 'addDevice'] as const;
-    private _ws : WebSocket;
-
-    constructor(ws : WebSocket) {
-        this._ws = ws;
-    }
-
-    async setHypothesis() {
-        // voice doesn't go through SpeechHandler, hence hypotheses don't go through here!
-    }
-
-    async setExpected(what : string|null) {
-        this._send(JSON.stringify({ type: 'askSpecial', ask: what }));
-    }
-
-    async addDevice(uniqueId : string, state : Tp.BaseDevice.DeviceState) {
-        this._send(JSON.stringify({ type: 'new-device', uniqueId, state }));
-    }
-
-    async addMessage(msg : Genie.DialogueAgent.Protocol.Message) {
-        this._send(JSON.stringify(msg));
-    }
-
-    private _send(data : string) {
-        try {
-            this._ws.send(data);
-        } catch(e) {
-            console.error(`Failed to send message on assistant websocket: ${e.message}`);
-            // ignore "Not Opened" error in closing
-            try {
-                this._ws.close();
-            } catch(e) { /**/ }
-        }
-    }
-}
-
 interface ConversationQueryParams {
     hide_welcome ?: '1'|''|undefined;
     id ?: string;
@@ -157,6 +116,42 @@ interface ConversationQueryParams {
 
 async function doConversation(user : userModel.RowWithOrg, anonymous : boolean, ws : WebSocket, query : ConversationQueryParams) {
     try {
+        let wrapper : rpc.Proxy<WebSocketConnnectionWrapper>|undefined;
+        let opened = false;
+
+        ws.on('error', (err) => {
+            ws.close();
+        });
+        ws.on('close', async () => {
+            if (!wrapper)
+                return;
+            try {
+                await wrapper.destroy();
+            } catch(e) {
+                // ignore errors if engine died
+            }
+            wrapper.$free();
+            wrapper = undefined;
+        });
+        let initQueue : any[] = [];
+        ws.on('message', (data) => {
+            Promise.resolve().then(async () => {
+                const parsed = JSON.parse(String(data));
+                if (opened) {
+                    if (!wrapper) // race condition, connection closed
+                        return;
+                    await wrapper.handle(parsed);
+                } else {
+                    initQueue.push(parsed);
+                }
+            }).catch((e) => {
+                // either the message didn't parse as json, or we had an error sending the error
+                // (ie the websocket is closed)
+                // eat the error and close the socket
+                ws.terminate();
+            });
+        });
+
         const engine = await EngineManager.get().getEngine(user.id);
         const onclosed = (userId : number) => {
             if (userId === user.id)
@@ -186,67 +181,14 @@ async function doConversation(user : userModel.RowWithOrg, anonymous : boolean, 
             inactivityTimeout: anonymous ? (3600 * 1000) : -1
         };
 
-        const delegate = new WebsocketAssistantDelegate(ws);
+        const delegate = new WebsocketDelegate(ws);
 
-        let wrapper : rpc.Proxy<ConversationWrapper>|undefined;
         const id = query.id || (anonymous ? 'web-' + makeRandom(4) : 'main');
-        ws.send(JSON.stringify({ type: 'id', id : id }));
-
-        ws.on('error', (err) => {
-            ws.close();
-        });
-        ws.on('close', async () => {
-            if (!wrapper)
-                return;
-            try {
-                await wrapper.destroy();
-            } catch(e) {
-                // ignore errors if engine died
-            }
-            wrapper.$free();
-            wrapper = undefined;
-        });
-
-        wrapper = await engine.getOrOpenConversation(id, delegate, options);
-        ws.on('message', (data) => {
-            Promise.resolve().then(async () => {
-                if (!wrapper) // race condition, connection closed
-                    return;
-                try {
-                    try {
-                        const parsed = JSON.parse(data as string);
-                        const platformData = {};
-                        switch (parsed.type) {
-                        case 'command':
-                            await wrapper.handleCommand(parsed.text, platformData);
-                            break;
-                        case 'parsed':
-                            await wrapper.handleParsedCommand(parsed.json, parsed.title, platformData);
-                            break;
-                        case 'tt':
-                            await wrapper.handleThingTalk(parsed.code, platformData);
-                            break;
-                        case 'ping':
-                            await wrapper.handlePing();
-                            break;
-                        default:
-                            throw new BadRequestError('Invalid command type ' + parsed.type);
-                        }
-                    } catch(e) {
-                        console.error(e.stack);
-                        ws.send(JSON.stringify({ type: 'error', error: e.message, code: e.code }));
-                    }
-                } catch(e) {
-                    // likely, the websocket is busted
-                    console.error(`Failed to send error on conversation websocket: ${e.message}`);
-
-                    // ignore "Not Opened" error in closing
-                    try {
-                        ws.close();
-                    } catch(e) { /**/ }
-                }
-            });
-        });
+        wrapper = await engine.getOrOpenConversationWebSocket(id, delegate, options);
+        for (const msg of initQueue)
+            await wrapper.handle(msg);
+        opened = true;
+        initQueue = [];
     } catch(error) {
         console.error('Error in conversation websocket: ' + error.message);
 

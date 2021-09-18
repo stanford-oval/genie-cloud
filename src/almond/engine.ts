@@ -27,8 +27,12 @@ import PlatformModule from './platform';
 // API wrappers for Genie's classes that expose the $rpcMethods interface
 // used by transparent-rpc
 
+interface WebsocketDelegate {
+    send(data : any) : Promise<void>;
+}
+
 export class ConversationWrapper implements rpc.Stubbable {
-    $rpcMethods = ['destroy', 'getState', 'handleCommand', 'handleParsedCommand', 'handleThingTalk', 'handlePing'] as const;
+    $rpcMethods = ['destroy', 'getState', 'handleCommand', 'handleParsedCommand', 'handleThingTalk'] as const;
     $free ?: () => void;
 
     private _conversation : Genie.DialogueAgent.Conversation;
@@ -64,9 +68,45 @@ export class ConversationWrapper implements rpc.Stubbable {
     handleThingTalk(...args : Parameters<Genie.DialogueAgent.Conversation['handleThingTalk']>) {
         return this._conversation.handleThingTalk(...args);
     }
+}
 
-    handlePing(...args : Parameters<Genie.DialogueAgent.Conversation['handlePing']>) {
-        return this._conversation.handlePing(...args);
+export class WebSocketConnnectionWrapper implements rpc.Stubbable {
+    $rpcMethods = ['destroy', 'getState', 'handle'] as const;
+    $free ?: () => void;
+
+    private _conversation : Genie.DialogueAgent.Conversation;
+    private _delegate : rpc.Proxy<WebsocketDelegate>;
+    private _connection : Genie.DialogueAgent.Protocol.WebSocketConnection;
+
+    constructor(conversation : Genie.DialogueAgent.Conversation,
+                delegate : rpc.Proxy<WebsocketDelegate>,
+                replayHistory : boolean|undefined,
+                syncDevices : boolean|undefined) {
+        this._conversation = conversation;
+        this._delegate = delegate;
+        this._connection = new Genie.DialogueAgent.Protocol.WebSocketConnection(conversation, (msg) => this._delegate.send(msg), {
+            replayHistory,
+            syncDevices
+        });
+    }
+
+    async start() {
+        return this._connection.start();
+    }
+
+    async destroy() {
+        await this._connection.stop();
+        this._delegate.$free();
+        if (this.$free)
+            this.$free();
+    }
+
+    getState() {
+        return this._conversation.getState();
+    }
+
+    handle(msg : Genie.DialogueAgent.Protocol.ClientProtocolMessage) {
+        return this._connection.handle(msg);
     }
 }
 
@@ -118,21 +158,13 @@ class RecordingController implements rpc.Stubbable {
     }
 }
 
-interface NotificationDelegateProxy {
-    send(data : {
-        result : Parameters<Genie.DialogueAgent.NotificationDelegate['notify']>[0]
-    } | {
-        error : Parameters<Genie.DialogueAgent.NotificationDelegate['notifyError']>[0]
-    }) : Promise<void>;
-}
-
 export class NotificationWrapper implements Genie.DialogueAgent.NotificationDelegate {
     $rpcMethods = ['destroy'] as const;
     $free ?: () => void;
     private _dispatcher : Genie.DialogueAgent.AssistantDispatcher;
-    private _delegate : rpc.Proxy<NotificationDelegateProxy>;
+    private _delegate : rpc.Proxy<WebsocketDelegate>;
 
-    constructor(dispatcher : Genie.DialogueAgent.AssistantDispatcher, delegate : rpc.Proxy<NotificationDelegateProxy>) {
+    constructor(dispatcher : Genie.DialogueAgent.AssistantDispatcher, delegate : rpc.Proxy<WebsocketDelegate>) {
         this._dispatcher = dispatcher;
         this._delegate = delegate;
         this._dispatcher.addNotificationOutput(this);
@@ -165,6 +197,7 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
         'getConversation',
         'ensureConversation',
         'getOrOpenConversation',
+        'getOrOpenConversationWebSocket',
         'addNotificationOutput',
         'converse',
 
@@ -242,7 +275,19 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
         return new ConversationWrapper(conversation, delegate, options.replayHistory);
     }
 
-    async addNotificationOutput(delegate : rpc.Proxy<NotificationDelegateProxy>) {
+    async getOrOpenConversationWebSocket(id : string, delegate : rpc.Proxy<WebsocketDelegate>,
+        options : Genie.DialogueAgent.ConversationOptions & { replayHistory ?: boolean, syncDevices ?: boolean },
+        initialState ?: Genie.DialogueAgent.ConversationState) {
+        options.faqModels = PlatformModule.faqModels;
+        if (options.anonymous)
+            options.log = true;
+        const conversation = await this.assistant.getOrOpenConversation(id, options, initialState || undefined);
+        const wrapper = new WebSocketConnnectionWrapper(conversation, delegate, options.replayHistory, options.syncDevices);
+        await wrapper.start();
+        return wrapper;
+    }
+
+    async addNotificationOutput(delegate : rpc.Proxy<WebsocketDelegate>) {
         return new NotificationWrapper(this.assistant, delegate);
     }
 

@@ -120,7 +120,10 @@ async function loadCheatsheetFromFile(language : string,
         devices_rev[dev.kind] = true;
     }
 
-    const parsed = ThingTalk.Syntax.parse(await tpClient.getAllExamples());
+    const parsed = ThingTalk.Syntax.parse(await tpClient.getAllExamples(), ThingTalk.Syntax.SyntaxType.Normal, {
+        locale: language,
+        timezone: 'UTC'
+    });
     assert(parsed instanceof ThingTalk.Ast.Library);
     const parsedExamples = parsed.datasets[0].examples;
     const examples = parsedExamples.map((e) : BasicExample|null => {
@@ -186,7 +189,10 @@ function rowsToExamples(rows : Array<Omit<exampleModel.PrimitiveTemplateRow, "la
         // convert each example from ThingTalk 1 to ThingTalk 2 if necessary
         // quick and dirty check to identify the syntax version
         if (targetCode.indexOf(':=') >= 0) {
-            const parsed = ThingTalk.Syntax.parse(`dataset @foo { ${targetCode} }`, ThingTalk.Syntax.SyntaxType.Legacy);
+            const parsed = ThingTalk.Syntax.parse(`dataset @foo { ${targetCode} }`, ThingTalk.Syntax.SyntaxType.Legacy, {
+                locale: 'en-US',
+                timezone: 'UTC'
+            });
             assert(parsed instanceof ThingTalk.Ast.Library);
             targetCode = parsed.datasets[0].examples[0].prettyprint();
 
@@ -256,7 +262,10 @@ ${rowsToExamples(rows, options)}}`;
         const tpClient = new AdminThingpediaClient(language, options.dbClient || null);
         const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
-        const parsed = ThingTalk.Syntax.parse(code);
+        const parsed = ThingTalk.Syntax.parse(code, ThingTalk.Syntax.SyntaxType.Normal, {
+            locale: language,
+            timezone: 'UTC'
+        });
         await parsed.typecheck(schemas, false);
         return ThingTalk.Syntax.serialize(parsed, ThingTalk.Syntax.SyntaxType.Normal, undefined, {
             compatibility: options.thingtalk_version
