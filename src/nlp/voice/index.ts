@@ -158,13 +158,28 @@ async function restSTTAndNLU(req : express.Request, res : express.Response, next
     res.json(result);
 }
 
-function tts(req : express.Request, res : express.Response, next : express.NextFunction) {
+function ttspost(req : express.Request, res : express.Response, next : express.NextFunction) {
     if (!I18n.get(req.params.locale, false)) {
         res.status(404).json({ error: 'Unsupported language' });
         return;
     }
 
     textToSpeech(req.params.locale, req.body.gender || 'male', req.body.text).then((stream) => {
+        // audio/x-wav is strictly-speaking non-standard, yet it seems to be
+        // widely used for .wav files
+        if (stream.statusCode === 200)
+            res.set('Content-Type', 'audio/x-wav');
+        stream.pipe(res);
+    }).catch(next);
+}
+
+function ttsget(req : express.Request, res : express.Response, next : express.NextFunction) {
+    if (!I18n.get(req.params.locale, false)) {
+        res.status(404).json({ error: 'Unsupported language' });
+        return;
+    }
+
+    textToSpeech(req.params.locale, req.query.gender as 'male'|'female'|'' || 'male', req.query.text as string).then((stream) => {
         // audio/x-wav is strictly-speaking non-standard, yet it seems to be
         // widely used for .wav files
         if (stream.statusCode === 200)
@@ -181,7 +196,11 @@ router.post('/:locale/voice/query', upload.single('audio'),
 router.post('/:locale/voice/tts', iv.validatePOST({
     gender: /^(|male|female)$/,
     text: 'string'
-}, { json: true }), tts);
+}, { json: true }), ttspost);
+router.get('/:locale/voice/tts', iv.validateGET({
+    gender: /^(|male|female)$/,
+    text: 'string'
+}, { json: true }), ttsget);
 
 // provide identical API keyed off to :model_tag, so people can change the NL_SERVER_URL
 // to include the model tag
@@ -192,6 +211,10 @@ router.post('/@:model_tag/:locale/voice/query', upload.single('audio'),
 router.post('/@:model_tag/:locale/voice/tts', iv.validatePOST({
     gender: /^(|male|female)$/,
     text: 'string'
-}, { json: true }), tts);
+}, { json: true }), ttspost);
+router.get('/@:model_tag/:locale/voice/tts', iv.validateGET({
+    gender: /^(|male|female)$/,
+    text: 'string'
+}, { json: true }), ttsget);
 
 export default router;
