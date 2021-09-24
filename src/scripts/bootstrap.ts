@@ -22,13 +22,13 @@
 // Bootstrap an installation of Almond Cloud by creating the
 // database schema and adding the requisite initial data
 
+import assert from 'assert';
 import * as argparse from 'argparse';
 import * as path from 'path';
-import * as fs from 'fs';
-import * as util from 'util';
-import * as yaml from 'js-yaml';
+import { promises as pfs } from 'fs';
 import * as mysql from 'mysql';
 import * as Url from 'url';
+import * as ThingTalk from 'thingtalk';
 
 import * as db from '../util/db';
 import * as user from '../util/user';
@@ -240,33 +240,56 @@ function getBuiltinIcon(kind : string) {
     switch (kind) {
     case 'org.thingpedia.builtin.bluetooth.generic':
     case 'org.thingpedia.builtin.matrix':
-        return kind;
+        return kind + '/icon.png';
     default:
-        return 'org.thingpedia.builtin.thingengine.builtin';
+        return 'icon.png';
     }
 }
 
 async function importBuiltinDevices(dbClient : db.Client, rootOrg : BasicOrgRow) {
     const BUILTIN_DEVICES = [
+        // interfaces
+        'messaging',
+        'org.thingpedia.volume-control',
+
+        // devices
         'org.thingpedia.builtin.thingengine',
         'org.thingpedia.builtin.thingengine.builtin',
         'org.thingpedia.builtin.thingengine.gnome',
         'org.thingpedia.builtin.thingengine.phone',
         'org.thingpedia.builtin.test',
         'org.thingpedia.builtin.bluetooth.generic',
-        'messaging',
     ] as const;
 
     for (const primaryKind of BUILTIN_DEVICES) {
         console.log(`Loading builtin device ${primaryKind}`);
 
-        const filename = path.resolve(path.dirname(module.filename), '../../data/' + primaryKind + '.yaml');
-        const manifest = yaml.load((await util.promisify(fs.readFile)(filename)).toString(), { filename }) as any;
+        const directory = path.resolve(path.dirname(module.filename), '../../data/' + primaryKind);
+
+        const manifest = await pfs.readFile(path.join(directory, 'manifest.tt'), { encoding: 'utf8' });
+        const library = ThingTalk.Syntax.parse(manifest, ThingTalk.Syntax.SyntaxType.Normal, { locale: 'en-US', timezone: 'UTC' });
+        assert(library instanceof ThingTalk.Ast.Library);
+        const classDef = library.classes[0];
+
+        const dataset = await pfs.readFile(path.join(directory, 'dataset.tt'), { encoding: 'utf8' });
+
+        const data = {
+            class: manifest,
+            dataset,
+            thingpedia_name: classDef.nl_annotations.thingpedia_name,
+            thingpedia_description: classDef.nl_annotations.thingpedia_description,
+            subcategory: classDef.getImplementationAnnotation<string>('subcategory') ?? 'service',
+            license: classDef.getImplementationAnnotation<string>('license') ?? 'Apache-2.0',
+            license_gplcompatible: classDef.getImplementationAnnotation<boolean>('license_gplcompatible') ?? true,
+            website: classDef.getImplementationAnnotation<string>('website'),
+            repository: classDef.getImplementationAnnotation<string>('repository'),
+            issue_tracker: classDef.getImplementationAnnotation<string>('issue_tracker'),
+        };
 
         const iconPath = path.resolve(path.dirname(module.filename),
-                                      '../../data/' + getBuiltinIcon(primaryKind) + '.png');
+                                      '../../data/' + getBuiltinIcon(primaryKind));
 
-        await Importer.importDevice(dbClient, req, primaryKind, manifest, {
+        await Importer.importDevice(dbClient, req, primaryKind, data, {
             owner: rootOrg.id,
             iconPath: iconPath
         });

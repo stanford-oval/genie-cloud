@@ -1,0 +1,57 @@
+dataset @org.thingpedia.builtin.thingengine.gnome
+#[language="en"] {
+  action (p_app_id : Entity(org.freedesktop:app_id)) = @org.thingpedia.builtin.thingengine.gnome.open_app(app_id=p_app_id)
+  #_[utterances=["open $p_app_id",
+                   "open $p_app_id on my laptop",
+                   "open $p_app_id on my pc",
+                   "start $p_app_id"]]
+  #[id=55296696]
+  #[name="OpenAppWithAppId"];
+
+  action (p_url : Entity(tt:url), p_app_id : Entity(org.freedesktop:app_id)) = @org.thingpedia.builtin.thingengine.gnome.open_app(app_id=p_app_id, url=p_url)
+  #_[utterances=["open $p_url with $p_app_id",
+                   "open $p_url with $p_app_id on my laptop",
+                   "use $p_app_id to open $p_url"]]
+  #[id=55296700]
+  #[name="OpenAppWithAppIdWithUrl"];
+
+  action (p_power : Enum(on, off)) = @org.thingpedia.builtin.thingengine.gnome.set_power(power=p_power)
+  #_[utterances=["turn $p_power my pc",
+                   "turn $p_power my laptop"]]
+  #[id=55296703]
+  #[name="SetPowerWithPower"];
+
+  action (p_file_name : Entity(tt:path_name)) = @org.thingpedia.builtin.thingengine.gnome.create_file(file_name=p_file_name)
+  #_[utterances=["create a file named ${p_file_name:const} on my laptop"]]
+  #[id=55296705]
+  #[name="CreateFileWithFileName"];
+
+  action (p_file_name : Entity(tt:path_name), p_contents : String) = @org.thingpedia.builtin.thingengine.gnome.create_file(contents=p_contents, file_name=p_file_name)
+  #_[utterances=["create a file named ${p_file_name:const} on my laptop containing $p_contents"]]
+  #[id=55296706]
+  #[name="CreateFileWithContentsWithFileName"];
+
+  action (p_file_name : Entity(tt:path_name)) = @org.thingpedia.builtin.thingengine.gnome.delete_file(file_name=p_file_name)
+  #_[utterances=["delete ${p_file_name} from my laptop",
+                   "delete the file named ${p_file_name:const} from my laptop"]]
+  #[id=55296707]
+  #[name="DeleteFileWithFileName"];
+
+  action = @org.thingpedia.builtin.thingengine.gnome.set_background()
+  #_[utterances=["change the background on my laptop"]]
+  #[id=55296709]
+  #[name="SetBackground"];
+
+  action (p_picture_url : Entity(tt:picture)) = @org.thingpedia.builtin.thingengine.gnome.set_background(picture_url=p_picture_url)
+  #_[utterances=["set the background of my laptop to ${p_picture_url}",
+                   "use ${p_picture_url} as the background of my laptop"]]
+  #[id=55296710]
+  #[name="SetBackgroundWithPictureUrl"];
+
+  query = @org.thingpedia.builtin.thingengine.gnome.get_screenshot()
+  #_[utterances=[", take a screenshot of my laptop",
+                   ", save a screenshot of my laptop"]]
+  #[id=55296712]
+  #[name="GetScreenshot"];
+
+}
