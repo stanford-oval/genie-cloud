@@ -69,8 +69,8 @@ shuf ./training/jobs/2/dataset/eval.tsv | head
 
 sha256sum exact.tsv ./exact/en.btrie ./training/jobs/2/dataset/eval.tsv ./training/jobs/2/dataset/train.tsv
 sha256sum -c <<EOF
-6aae7594ad774e23634d88cb84197b43d8646722730087470d9c783b0b7eb675  exact.tsv
-4f7326d833953aee245da096693d47f15399ac2cae6fab46953230fa12385faf  ./exact/en.btrie
+bf22f56e914b9e20bf133325a002df7842fba8f7b271c2f9c4441602c1d1599a  exact.tsv
+828f33c0a4771b300d3f7c452b09a3bacc05db7297cb3729069bde7ceff1af46  ./exact/en.btrie
 6f16c60e07f0e61afbf1bdd9357ca77c248c3f3b51e8727a62a580f1257c4902  ./training/jobs/2/dataset/eval.tsv
-a79e8f3e6487598a157e7a49f66950a4a78540a480ab76c68ddbadb6cb6e45dc  ./training/jobs/2/dataset/train.tsv
+e12e4f8f3e1ccde36cf9a84d4a734293b25bd466fd5635c87fbb2ee005db0123  ./training/jobs/2/dataset/train.tsv
 EOF
