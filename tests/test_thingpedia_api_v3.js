@@ -278,7 +278,7 @@ function checkExamples(generated, expected) {
 
 async function testGetExamplesByDevice() {
     const BING_EXAMPLES = 10;
-    const BUILTIN_EXAMPLES = 44;
+    const BUILTIN_EXAMPLES = 52;
     const INVISIBLE_EXAMPLES = 1;
 
     checkExamples(await ttRequest('/examples/by-kinds/com.bing'), BING_EXAMPLES);
@@ -394,7 +394,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 33,
+      "id": 85,
       "language": "en",
       "type": "thingpedia",
       "utterance": "change the wake word",
@@ -410,7 +410,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 297,
+      "id": 380,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me images from bing matching ____ larger than ____ x ____",
@@ -426,7 +426,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 70,
+      "id": 143,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open the file at ____",
@@ -442,7 +442,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 264,
+      "id": 347,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me texts i received in the last hour",
@@ -458,23 +458,23 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 103,
+      "id": 30,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "my ____ address is ____",
-      "preprocessed": "my ${p_type} address is ${p_location}",
-      "target_code": "program (p_type : Enum(current, home, work), p_location : Location) = @org.thingpedia.builtin.thingengine.builtin.set_location(location=p_location, type=p_type);",
+      "utterance": "mute my ____ device",
+      "preprocessed": "mute my ${p_name:const} device",
+      "target_code": "action (p_name : String) = @org.thingpedia.volume-control(name=p_name).mute();",
       "click_count": 1,
       "like_count": 0,
       "liked": false,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
-        "org.thingpedia.builtin.thingengine.builtin"
+        "org.thingpedia.volume-control"
       ]
     },
     {
-      "id": 271,
+      "id": 354,
       "language": "en",
       "type": "thingpedia",
       "utterance": "call somebody",
@@ -490,7 +490,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 121,
+      "id": 197,
       "language": "en",
       "type": "thingpedia",
       "utterance": "How are u feeling today?",
@@ -510,7 +510,7 @@ async function testGetCommands() {
        devices: [
          'org.thingpedia.builtin.thingengine.builtin'
        ],
-       id: 186,
+       id: 266,
        is_base: 1,
        language: 'en',
        like_count: 0,
@@ -565,22 +565,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 233,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "show me a screenshot of my laptop",
-      "preprocessed": "a screenshot of my laptop",
-      "target_code": "query = @org.thingpedia.builtin.thingengine.gnome.get_screenshot();",
-      "click_count": 1,
-      "like_count": 0,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.gnome"
-      ]
-    },
-    {
-      "id": 225,
+      "id": 310,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop",
@@ -595,12 +580,12 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 211,
+      "id": 287,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "delete file on laptop",
-      "preprocessed": "delete file on laptop",
-      "target_code": "action = @org.thingpedia.builtin.thingengine.gnome.delete_file();",
+      "utterance": "show me screenshot of my laptop",
+      "preprocessed": "screenshot of my laptop",
+      "target_code": "query = @org.thingpedia.builtin.thingengine.gnome.get_screenshot();",
       "click_count": 1,
       "like_count": 0,
       "is_base": 1,
@@ -610,7 +595,22 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 224,
+      "id": 285,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "show me laptop screenshot",
+      "preprocessed": "laptop screenshot",
+      "target_code": "query = @org.thingpedia.builtin.thingengine.gnome.get_screenshot();",
+      "click_count": 1,
+      "like_count": 0,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 309,
       "language": "en",
       "type": "thingpedia",
       "utterance": "turn ____ my laptop",
@@ -625,7 +625,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 232,
+      "id": 297,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete a file from my laptop",
@@ -640,7 +640,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 231,
+      "id": 316,
       "language": "en",
       "type": "thingpedia",
       "utterance": "use ____ as the background of my laptop",
@@ -655,7 +655,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 235,
+      "id": 318,
       "language": "en",
       "type": "thingpedia",
       "utterance": "save a screenshot of my laptop",
@@ -670,7 +670,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 221,
+      "id": 291,
       "language": "en",
       "type": "thingpedia",
       "utterance": "lock my laptop",
@@ -685,7 +685,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 230,
+      "id": 315,
       "language": "en",
       "type": "thingpedia",
       "utterance": "set the background of my laptop to ____",
@@ -700,7 +700,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 229,
+      "id": 314,
       "language": "en",
       "type": "thingpedia",
       "utterance": "change the background on my laptop",
@@ -715,22 +715,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 212,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "set background on laptop",
-      "preprocessed": "set background on laptop",
-      "target_code": "action = @org.thingpedia.builtin.thingengine.gnome.set_background();",
-      "click_count": 1,
-      "like_count": 0,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.gnome"
-      ]
-    },
-    {
-      "id": 226,
+      "id": 311,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop containing ____",
@@ -745,7 +730,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 214,
+      "id": 302,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open ____ on my laptop",
@@ -760,7 +745,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 228,
+      "id": 313,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete the file named ____ from my laptop",
@@ -775,7 +760,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 234,
+      "id": 317,
       "language": "en",
       "type": "thingpedia",
       "utterance": "take a screenshot of my laptop",
@@ -790,7 +775,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 218,
+      "id": 306,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open ____ with ____ on my laptop",
@@ -805,22 +790,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 207,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "open app on laptop",
-      "preprocessed": "open app on laptop",
-      "target_code": "action = @org.thingpedia.builtin.thingengine.gnome.open_app();",
-      "click_count": 1,
-      "like_count": 0,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.gnome"
-      ]
-    },
-    {
-      "id": 210,
+      "id": 295,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create file on laptop",
@@ -835,12 +805,12 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 209,
+      "id": 312,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "set power on laptop",
-      "preprocessed": "set power on laptop",
-      "target_code": "action = @org.thingpedia.builtin.thingengine.gnome.set_power();",
+      "utterance": "delete ____ from my laptop",
+      "preprocessed": "delete ${p_file_name} from my laptop",
+      "target_code": "action (p_file_name : Entity(tt:path_name)) = @org.thingpedia.builtin.thingengine.gnome.delete_file(file_name=p_file_name);",
       "click_count": 1,
       "like_count": 0,
       "is_base": 1,
@@ -850,6 +820,36 @@ async function testGetCommands() {
       ]
     },
     {
+      "id": 293,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "activate the lock screen on my laptop",
+      "preprocessed": "activate the lock screen on my laptop",
+      "target_code": "action = @org.thingpedia.builtin.thingengine.gnome.lock();",
+      "click_count": 1,
+      "like_count": 0,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 294,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "set laptop power",
+      "preprocessed": "set laptop power",
+      "target_code": "action = @org.thingpedia.builtin.thingengine.gnome.set_power();",
+      "click_count": 1,
+      "like_count": 0,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    /*{
       "id": 206,
       "language": "en",
       "type": "thingpedia",
@@ -908,7 +908,7 @@ async function testGetCommands() {
       "devices": [
         "org.thingpedia.builtin.thingengine.gnome"
       ]
-    }
+    }*/
   ]
     });
 
@@ -1120,7 +1120,8 @@ async function testGetDeviceList(_class) {
                  'org.thingpedia.builtin.thingengine.builtin'],
         'system': ['org.thingpedia.builtin.test',
                    'org.thingpedia.builtin.thingengine',
-                   'messaging']
+                   'messaging',
+                   'org.thingpedia.volume-control']
     };
 
     const publicDevices = new Set;

@@ -1,0 +1,64 @@
+class @org.thingpedia.builtin.thingengine.gnome
+#_[thingpedia_name="Genie 4 GNOME"]
+#_[thingpedia_description="Your Genie, on your Free Desktop OS"]
+#_[canonical="genie 4 gnome"]
+#[repository="https://github.com/stanford-oval/almond-gnome"]
+#[subcategory="service"]
+#[license="Apache-2.0"]
+#[license_gplcompatible=true]
+{
+  import loader from @org.thingpedia.builtin();
+  import config from @org.thingpedia.config.builtin();
+
+  query get_screenshot(out picture_url: Entity(tt:picture))
+  #_[canonical=["laptop screenshot", "screenshot of my pc", "screenshot of my laptop"]]
+  #_[formatted=[{type="picture",url="${picture_url}"}]]
+  #[doc="get a screenshot from your PC"]
+  #[confirm=false];
+
+  action open_app(in req app_id: Entity(org.freedesktop:app_id) #_[prompt="What app do you want to open?"],
+                  in opt url: Entity(tt:url) #_[prompt="What file do you want to open?"])
+  #_[canonical=["open an app", "open a program"]]
+  #[doc="open the given app (optionally with a file)"]
+  #[confirm=false];
+
+  action lock()
+  #_[canonical=["lock my pc", "lock my laptop", "lock my computer", "activate the lock screen on my laptop"]]
+  #[doc="lock your PC"]
+  #[confirm=false];
+
+  action set_power(in req power: Enum(on,off) #_[prompt="do you want to turn it on or off"])
+  #_[canonical="set laptop power"]
+  #[doc="switch on/off"]
+  #[confirm=true];
+
+  action create_file(in req file_name: Entity(tt:path_name) #_[prompt="what should be the name of the file"]
+                     #_[canonical={
+                       base=["name", "file name"],
+                       preposition=["named #", "called #"]
+                     }],
+                     in req contents: String #_[prompt="what do you want to write in the file"]
+                     #_[canonical={
+                       base=["contents"],
+                       property=["# in it"],
+                       preposition=["containing #"]
+                     }])
+  #_[canonical="create file on laptop"]
+  #[doc="create a new file in your laptop"]
+  #[confirm=true];
+
+  action delete_file(in req file_name: Entity(tt:path_name) #_[prompt="what file do you want to delete"])
+  #_[canonical=["delete a file", "delete a file from my laptop"]]
+  #[doc="delete a file from your laptop"]
+  #[confirm=true];
+
+  action set_background(in req picture_url: Entity(tt:picture)
+                        #_[prompt="what picture do you want to use as the background"]
+                        #_[canonical={
+                          base=["picture", "image"],
+                          preposition=["to #"],
+                        }])
+  #_[canonical=["set the background", "set the wallpaper", "change the background image"]]
+  #[doc="changes the laptop wallpaper"]
+  #[confirm=false];
+}

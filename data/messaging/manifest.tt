@@ -1,0 +1,7 @@
+abstract class @messaging
+#_[thingpedia_name="Messaging Interface"]
+#_[thingpedia_description="This interface is provided by all devices that can be used as messaging backends for communicating Almond."]
+#[repository="https://github.com/stanford-oval/genie-toolkit"]
+#[subcategory="communication"]
+{
+}
