@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nlp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nlp
+  template:
+    metadata:
+      labels:
+        app: nlp
+    spec:
+      serviceAccountName: training-nlp
+      containers:
+        - name: nlp
+          image: stanfordoval/almond-cloud:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NODE_ENV
+              value: "production"
+          args: ["run-nlp"]
+          volumeMounts:
+            - mountPath: /etc/almond-cloud/config.d/config.yaml
+              subPath: config.yaml
+              name: config
+              readOnly: true
+            - mountPath: /etc/almond-cloud/config.d/secret.yaml
+              subPath: secret.yaml
+              name: secret
+              readOnly: true
+          resources:
+            requests:
+              memory: 1G
+            limits:
+              memory: 2G
+          readinessProbe:
+            tcpSocket:
+              port: 8400
+            periodSeconds: 20
+      securityContext:
+        fsGroup: 65534
+      volumes:
+        - name: config
+          configMap:
+            name: almond-config
+        - name: secret
+          secret:
+            secretName: almond-secret

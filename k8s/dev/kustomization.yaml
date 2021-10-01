@@ -9,6 +9,7 @@ components:
   - ../frontend/dev
   - ../dbproxy/dev
   - ../shared-backend/dev
+  - ../nlp/dev
   - ../controller/crd/dev
   - ../controller/rbac/dev
   - ../controller/manager/dev
