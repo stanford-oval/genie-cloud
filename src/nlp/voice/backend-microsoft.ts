@@ -235,8 +235,8 @@ class TextToSpeech {
   constructor({
     tokenRefresh_ms = TTS_DEFAULT_TOKEN_REFRESH_MS,
   }: {
-    tokenRefresh_ms: number;
-  }) {
+    tokenRefresh_ms?: number,
+  } = {}) {
     this._accessToken = null;
     this._accessTokenPromise = this.retrieveAccessToken();
     this._tokenRefresh_ms = tokenRefresh_ms;
