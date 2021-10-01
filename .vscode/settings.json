@@ -1,5 +1,6 @@
 {
   "cSpell.words": [
     "writabledir"
-  ]
+  ],
+  "typescript.tsdk": "${workspaceFolder}/node_modules/typescript/lib/",
 }
