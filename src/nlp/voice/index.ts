@@ -26,12 +26,14 @@ import * as os from 'os';
 import * as iv from '../../util/input_validation';
 import * as I18n from '../../util/i18n';
 
-import { SpeechToText, textToSpeech } from './backend-microsoft';
+import { SpeechToText, TextToSpeech } from './backend-microsoft';
 import runNLU from '../nlu';
 
 const upload = multer({ dest: os.tmpdir() });
 
 const router = express.Router();
+
+const textToSpeech = new TextToSpeech();
 
 async function streamSTT(ws : WebSocket, req : express.Request) {
     if (!I18n.get(req.params.locale, false)) {
@@ -164,7 +166,7 @@ function ttspost(req : express.Request, res : express.Response, next : express.N
         return;
     }
 
-    textToSpeech(req.params.locale, req.body.gender || 'male', req.body.text).then((stream) => {
+    textToSpeech.request(req.params.locale, req.body.gender || 'male', req.body.text).then((stream) => {
         // audio/x-wav is strictly-speaking non-standard, yet it seems to be
         // widely used for .wav files
         if (stream.statusCode === 200)
@@ -179,7 +181,7 @@ function ttsget(req : express.Request, res : express.Response, next : express.Ne
         return;
     }
 
-    textToSpeech(req.params.locale, req.query.gender as 'male'|'female'|'' || 'male', req.query.text as string).then((stream) => {
+    textToSpeech.request(req.params.locale, req.query.gender as 'male'|'female'|'' || 'male', req.query.text as string).then((stream) => {
         // audio/x-wav is strictly-speaking non-standard, yet it seems to be
         // widely used for .wav files
         if (stream.statusCode === 200)
