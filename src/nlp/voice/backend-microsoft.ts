@@ -218,9 +218,9 @@ const VOICES: Record<string, { male: string; female: string }> = {
 /**
  * Default period between TTS access token refreshes, in milliseconds. Access
  * tokens are good for 10 minutes:
- * 
+ *
  * https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/rest-text-to-speech#authentication
- * 
+ *
  * So I've chosen 8 minutes.
  */
 const TTS_DEFAULT_TOKEN_REFRESH_MS = 8 * 60 * 1000;
@@ -235,7 +235,7 @@ class TextToSpeech {
   constructor({
     tokenRefresh_ms = TTS_DEFAULT_TOKEN_REFRESH_MS,
   }: {
-    tokenRefresh_ms?: number,
+    tokenRefresh_ms?: number;
   } = {}) {
     this._accessToken = null;
     this._accessTokenPromise = this.retrieveAccessToken();
