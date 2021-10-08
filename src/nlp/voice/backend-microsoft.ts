@@ -36,10 +36,10 @@ import * as wav from "wav";
 import * as Config from "../../config";
 
 class SpeechToTextFailureError extends Error {
-    status: number;
-    code: string;
+    status : number;
+    code : string;
 
-    constructor(status: number, code: string, message: string) {
+    constructor(status : number, code : string, message : string) {
         super(message);
         this.status = status;
         this.code = code;
@@ -47,13 +47,13 @@ class SpeechToTextFailureError extends Error {
 }
 
 class SpeechToText {
-    private _locale: string;
+    private _locale : string;
 
-    constructor(locale: string) {
+    constructor(locale : string) {
         this._locale = locale;
     }
 
-    private _initRecognizer(sdkInputStream: AudioInputStream) {
+    private _initRecognizer(sdkInputStream : AudioInputStream) {
         const audioConfig = AudioConfig.fromStreamInput(sdkInputStream);
         const speechConfig = SpeechConfig.fromSubscription(
             Config.MS_SPEECH_SUBSCRIPTION_KEY!,
@@ -65,7 +65,7 @@ class SpeechToText {
         return new SpeechRecognizer(speechConfig, audioConfig);
     }
 
-    async recognizeOnce(wavFilename: string): Promise<string> {
+    async recognizeOnce(wavFilename : string) : Promise<string> {
         const sdkAudioInputStream = AudioInputStream.createPushStream();
         const recognizer = this._initRecognizer(sdkAudioInputStream);
 
@@ -74,13 +74,13 @@ class SpeechToText {
                 // Indicates that recognizable speech was not detected, and that
                 // recognition is done.
                 if (e.result.reason === ResultReason.NoMatch)
-                    reject(
+                    { reject(
                         new SpeechToTextFailureError(
                             400,
                             "E_NO_MATCH",
                             "Speech unrecognizable."
                         )
-                    );
+                    ); }
             };
 
             recognizer.recognizeOnceAsync(
@@ -117,14 +117,14 @@ class SpeechToText {
         });
     }
 
-    async recognizeStream(stream: WebSocket) {
+    async recognizeStream(stream : WebSocket) {
         const sdkAudioInputStream = AudioInputStream.createPushStream();
         const recognizer = this._initRecognizer(sdkAudioInputStream);
 
         return new Promise((resolve, reject) => {
             let fullText = "",
                 lastFC = 0,
-                timerLastFrame: NodeJS.Timeout,
+                timerLastFrame : NodeJS.Timeout,
                 _ended = false;
 
             function stopRecognizer() {
@@ -152,15 +152,15 @@ class SpeechToText {
                 recognizer.stopContinuousRecognitionAsync(
                     () => {
                         // Recognition stopped
-                        if (fullText) resolve(fullText);
+                        if (fullText) { resolve(fullText); }
                         else
-                            reject(
+                            { reject(
                                 new SpeechToTextFailureError(
                                     400,
                                     "E_NO_MATCH",
                                     "Speech unrecognizable."
                                 )
-                            );
+                            ); }
                         recognizer.close();
                     },
                     () => {
@@ -196,7 +196,7 @@ class SpeechToText {
             );
 
             stream
-                .on("message", (data: Buffer) => {
+                .on("message", (data : Buffer) => {
                     if (data.length) {
                         if (!_ended) sdkAudioInputStream.write(data);
                         lastFC = 0;
@@ -211,7 +211,7 @@ class SpeechToText {
     }
 }
 
-const VOICES: Record<string, { male: string; female: string }> = {
+const VOICES : Record<string, { male : string; female : string }> = {
     "en-us": {
         male: "GuyNeural",
         female: "AriaNeural",
@@ -231,27 +231,27 @@ const TTS_DEFAULT_TOKEN_REFRESH_MS = 8 * 60 * 1000;
 class TextToSpeech {
     public readonly URL = `https://${Config.MS_SPEECH_SERVICE_REGION}.api.cognitive.microsoft.com/sts/v1.0/issuetoken`;
 
-    private _accessToken: null | string;
-    private _accessTokenPromise: Promise<string>;
-    private _tokenRefresh_ms: number;
+    private _accessToken : null | string;
+    private _accessTokenPromise : Promise<string>;
+    private _tokenRefresh_ms : number;
 
     constructor({
         tokenRefresh_ms = TTS_DEFAULT_TOKEN_REFRESH_MS,
-    }: {
-        tokenRefresh_ms?: number;
+    } : {
+        tokenRefresh_ms ?: number;
     } = {}) {
         this._accessToken = null;
         this._accessTokenPromise = this.retrieveAccessToken();
         this._tokenRefresh_ms = tokenRefresh_ms;
     }
 
-    retrieveAccessToken(): Promise<string> {
+    retrieveAccessToken() : Promise<string> {
         console.log(`TextToSpeech.retrieveAccessToken() START`);
         return Tp.Helpers.Http.post(this.URL, "", {
             extraHeaders: {
                 "Ocp-Apim-Subscription-Key": Config.MS_SPEECH_SUBSCRIPTION_KEY!,
             },
-        }).then((accessToken: string) => {
+        }).then((accessToken : string) => {
             console.log(`TextToSpeech.retrieveAccessToken() DONE`);
             this._accessToken = accessToken;
             console.log(`Scheduling refresh in ${this._tokenRefresh_ms} ms...`);
@@ -263,7 +263,7 @@ class TextToSpeech {
         });
     }
 
-    async getAccessToken(): Promise<string> {
+    async getAccessToken() : Promise<string> {
         console.log(`TextToSpeech.getAccessToken() START`);
         if (typeof this._accessToken === "string") {
             console.log(`this._accessToken present, returning (FAST)`);
@@ -274,9 +274,9 @@ class TextToSpeech {
     }
 
     async request(
-        locale: string,
-        gender: "male" | "female" = "male",
-        text: string
+        locale : string,
+        gender : "male" | "female" = "male",
+        text : string
     ) {
         const accessToken = await this.getAccessToken();
         // Create the SSML request.
