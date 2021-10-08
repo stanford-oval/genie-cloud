@@ -3,7 +3,7 @@ branches:
   - "/^wip/"
   - "/^dependabot/"
 language: go
-dist: focal
+dist: bionic
 node_js: '12'
 go: 1.16.x
 python: '3.8'
