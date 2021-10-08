@@ -1,16 +1,29 @@
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Almond
+//
+// Copyright 2018 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Neil Souza <neil@neilsouza.com>
+
 import { createClient } from "redis";
 import { RedisClientType } from "redis/dist/lib/client";
 
 import * as Config from "../config";
 
-enum State {
-    Closed,
-    Connecting,
-    Ready,
-}
-
-let currentClient : null | RedisClientType = null;
-let state : State = State.Closed;
+let clientPromise : null | Promise<RedisClientType> = null;
 
 function hasRedis() : boolean {
     return (
@@ -24,67 +37,31 @@ function getURL() : string {
         url += Config.REDIS_USER;
         if (Config.REDIS_PASSWORD !== null) 
             url += `:${Config.REDIS_PASSWORD}`;
-        
         url += "@";
     }
     url += Config.REDIS_HOST;
     return url;
 }
 
-function ensureClient() : RedisClientType {
-    console.log(`ENTER redis.ensureClient()`);
-    const existingClient = currentClient;
-    if (existingClient !== null) {
-        console.log(`Client exists, returning.`);
-        return existingClient;
-    }
+async function createNewClient() : Promise<RedisClientType> {
+    console.log(`ENTER redis.createNewClient()`);
     
     const url = getURL();
-    console.log(`Creating new Redis client for ${url}...`);
-    const newClient = createClient({ url });
+    
+    console.log(`Creating new Redis client...`);
+    const client = createClient({ url });
+    
+    await client.connect();
 
-    newClient.connect().then(
-        () => {
-            console.log(
-                `Redis client connected, setting redis.state to Ready.`
-            );
-            state = State.Ready;
-        },
-        (reason) => {
-            console.error(`Redis client failed to connect: ${reason}`);
-            currentClient = null;
-            console.log(`Setting redis.state to Closed.`);
-            state = State.Closed;
-        }
-    );
-
-    currentClient = newClient;
-
-    console.log(`Returning new client.`);
-    return newClient;
+    console.log(`Returning new Redis client.`);
+    return client;
 }
 
-async function getRedisClient() : Promise<RedisClientType> {
+function getRedisClient() : Promise<RedisClientType> {
     console.log(`ENTER redis.getClient()`);
-    const client = ensureClient();
-    if (state === State.Connecting) {
-        console.log(`Redis client is Connecting, returning promise.`);
-        return new Promise<RedisClientType>((resolve, reject) => {
-            const readyListener = () => {
-                console.log(`Redis emitted "ready", resolving client.`);
-                client.off("error", errorListener);
-                resolve(client);
-            };
-            const errorListener = (error : Error) => {
-                console.log(`Redis emitted "error", rejecting.`);
-                client.off("ready", readyListener);
-                reject(error);
-            };
-            client.on("ready", readyListener);
-            client.on("error", errorListener);
-        });
-    }
-    return client;
+    if (clientPromise === null) 
+        clientPromise = createNewClient();
+    return clientPromise;
 }
 
 export { hasRedis, getRedisClient };
