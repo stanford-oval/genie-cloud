@@ -29,7 +29,7 @@ import * as I18n from "../../util/i18n";
 
 import { SpeechToText, TextToSpeech } from "./backend-microsoft";
 import runNLU from "../nlu";
-import { getRedisClient } from "../../util/redis";
+import { getRedisClient, hasRedis } from "../../util/redis";
 
 const upload = multer({ dest: os.tmpdir() });
 
@@ -227,12 +227,29 @@ async function ttsCached(req : express.Request, res : express.Response) {
   }
 }
 
+async function ttsNoCache(req : express.Request, res : express.Response) {
+  if (!I18n.get(req.params.locale, false)) {
+    res.status(404).json({ error: "Unsupported language" });
+    return;
+  }
+  const locale = req.params.locale;
+  const gender = req.params.gender === "female" ? "female" : "male";
+  const text = req.body.text;
+
+  const stream = await textToSpeech.request(locale, gender, text);
+  if (stream.statusCode === 200) res.set("Content-Type", "audio/x-wav");
+  stream.pipe(res);
+}
+
 function ttspost(
   req : express.Request,
   res : express.Response,
   next : express.NextFunction
 ) {
-  ttsCached(req, res).catch(next);
+  if (hasRedis()) 
+    ttsCached(req, res).catch(next);
+   else 
+    ttsNoCache(req, res).catch(next);
 }
 
 function ttsget(
@@ -240,7 +257,10 @@ function ttsget(
   res : express.Response,
   next : express.NextFunction
 ) {
-  ttsCached(req, res).catch(next);
+  if (hasRedis()) 
+    ttsCached(req, res).catch(next);
+   else 
+    ttsNoCache(req, res).catch(next);
 }
 
 router.ws("/:locale/voice/stream", streamSTT);

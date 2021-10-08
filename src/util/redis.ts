@@ -1,16 +1,25 @@
 import { createClient } from "redis";
 import { RedisClientType } from "redis/dist/lib/client";
 
+import * as Config from '../config';
+
 enum State {
   Closed,
   Connecting,
   Ready,
 }
 
-let currentClient: null | RedisClientType = null;
-let state: State = State.Closed;
+let currentClient : null | RedisClientType = null;
+let state : State = State.Closed;
 
-function ensureClient(): RedisClientType {
+function hasRedis() : boolean {
+  return (
+    typeof Config.REDIS_HOST === "string" &&
+    Config.REDIS_HOST.length > 0
+  );
+}
+
+function ensureClient() : RedisClientType {
   console.log(`ENTER redis.ensureClient()`);
   const existingClient = currentClient;
   if (existingClient !== null) {
@@ -40,7 +49,7 @@ function ensureClient(): RedisClientType {
   return newClient;
 }
 
-async function getRedisClient(): Promise<RedisClientType> {
+async function getRedisClient() : Promise<RedisClientType> {
   console.log(`ENTER redis.getClient()`);
   const client = ensureClient();
   if (state === State.Connecting) {
@@ -51,7 +60,7 @@ async function getRedisClient(): Promise<RedisClientType> {
         client.off("error", errorListener);
         resolve(client);
       };
-      const errorListener = (error: Error) => {
+      const errorListener = (error : Error) => {
         console.log(`Redis emitted "error", rejecting.`);
         client.off("ready", readyListener);
         reject(error);
@@ -63,4 +72,4 @@ async function getRedisClient(): Promise<RedisClientType> {
   return client;
 }
 
-export { getRedisClient };
+export { hasRedis, getRedisClient };
