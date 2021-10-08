@@ -1,0 +1,45 @@
+class @org.thingpedia.builtin.thingengine.phone
+#_[thingpedia_name="Phone"]
+#_[thingpedia_description="Install the Almond App on your phone to access your mobile features, including your location"]
+#[repository="https://github.com/stanford-oval/almond-android"]
+#[subcategory="communication"]
+{
+    import loader from @org.thingpedia.builtin();
+    import config from @org.thingpedia.config.builtin();
+
+    monitorable list query sms(out sender: Entity(tt:phone_number) #_[prompt="What number do you want to monitor?"] #_[canonical="sender"],
+                               out message: String #_[canonical="message"] #[string_values="tt:long_free_text"],
+                               out date: Date #_[canonical="date"])
+    #_[canonical="receive sms on phone"]
+    #_[confirmation="your SMS"]
+    #_[confirmation_remote="$__person's SMS"]
+    #_[formatted=[{type="text",text="SMS from ${from} received at ${date}: ${body}"}]]
+    #[poll_interval=0ms]
+    #[doc="trigger when an SMS is received"];
+
+    action send_sms(in req to: Entity(tt:phone_number) #_[prompt="Who do you want to text?"] #_[canonical="to"],
+                    in req message: String #_[prompt="What do you want to say in your text?"] #_[canonical="message"] #[string_values="tt:long_free_text"])
+    #_[canonical="send sms on phone"]
+    #_[confirmation="send a message to $to containing $message"]
+    #_[confirmation_remote="send a message from $__person to $to containing $message"]
+    #[doc="send a message to the specified phone number (carrier charges apply)"];
+
+    action set_ringer(in req mode: Enum(normal,vibrate,silent) #_[prompt="What mode to you want to set?"] #_[canonical="mode"])
+    #_[canonical="set ringer on phone"]
+    #_[confirmation="set your phone to $mode"]
+    #_[confirmation_remote="set $__person's phone to $mode"]
+    #[doc="set ringer mode; valid values are \"normal\", \"vibrate\" and \"silent\""]
+    #[confirm=false];
+
+    action call(in req number: Entity(tt:phone_number) #_[prompt="Who do you want to call?"] #_[canonical="number"])
+    #_[canonical="make call on phone"]
+    #_[confirmation="call $number"]
+    #_[confirmation_remote="call $number using $__person's phone"]
+    #[doc="place a phone call"];
+
+    action call_emergency()
+    #_[canonical="call emergency on phone"]
+    #_[confirmation="call emergency assistance"]
+    #_[confirmation_remote="call emergency assistance from $__person's phone"]
+    #[doc="place an emergency call; due to regulations on emergency numbers, the call is not actually placed, it just shows the dialer with the right number"];
+}

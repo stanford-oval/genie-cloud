@@ -95,7 +95,10 @@ function assertHttpError(request, httpStatus, expectedMessage) {
             } else {
                 message = err.detail;
             }
-            assert(message.indexOf(expectedMessage) >= 0, `Unexpected error message, expected "${expectedMessage}" got "${message}"`);
+            if (expectedMessage instanceof RegExp)
+                assert(expectedMessage.test(message), `Unexpected error message, expected "${expectedMessage}" got "${message}"`);
+            else
+                assert(message.indexOf(expectedMessage) >= 0, `Unexpected error message, expected "${expectedMessage}" got "${message}"`);
         }
     });
 }
