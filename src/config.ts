@@ -694,6 +694,12 @@ export let EXTRA_ENVIRONMENT : Record<string, string> = {};
 export let REDIS_HOST : null | string = null;
 
 /**
+ * User to connect to redis as. Must be defined if `REDIS_PASSWORD` is not 
+ * `null.
+ */
+export let REDIS_USER : null | string = null;
+
+/**
  * Optional Redis password.
  */
 export let REDIS_PASSWORD : null | string = null;

@@ -97,3 +97,8 @@ EXTRA_NAVBAR:
 
 SUPPORTED_LANGUAGES:
   - en-US
+  
+# Redis
+# ----------------------------------------------------------------------------
+
+REDIS_HOST: redis
