@@ -42,9 +42,6 @@ CDN_HOST: /download
 WITH_LUINET: embedded
 
 NL_SERVER_URL: https://nlp-staging.almond.stanford.edu
-NL_EXACT_MATCH_DIR: s3://geniehai/almond-cloud/staging/exact
-
-MS_SPEECH_SERVICE_REGION: westus2
 
 # Thingpedia
 # ----------------------------------------------------------------------------
