@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: frontend
+  name: nlp
   annotations:
     kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
@@ -9,21 +9,21 @@ metadata:
     # set a very large value so we can upload string datasets
     nginx.ingress.kubernetes.io/proxy-body-size: "64m"
   labels:
-    app: frontend
+    app: nlp
 spec:
   defaultBackend:
     service:
-      name: frontend
+      name: nlp
       port:
-        number: 8080
+        number: 8400
   rules:
-  - host: almond-cloud.test
+  - host: nlp.almond-cloud.test
     http:
       paths:
       - backend:
           service:
-            name: frontend
+            name: nlp
             port:
-              number: 8080
+              number: 8400
         path: /
         pathType: ImplementationSpecific

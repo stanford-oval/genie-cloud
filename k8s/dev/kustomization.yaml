@@ -5,6 +5,7 @@ namespace: almond-dev
 components:
   - ../config/dev
   - ../db/dev
+  - ../redis/dev
   - ../bootstrap/dev
   - ../frontend/dev
   - ../dbproxy/dev

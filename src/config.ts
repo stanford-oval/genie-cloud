@@ -686,3 +686,20 @@ export let NOTIFICATION_CONFIG : Genie.DialogueAgent.NotificationConfig = {};
  * Additional environment variables to set for the almond workers.
  */
 export let EXTRA_ENVIRONMENT : Record<string, string> = {};
+
+/**
+ * Optional Redis host used for caching. If this is not `null`, the app will try
+ * to use the cache.
+ */
+export let REDIS_HOST : null | string = null;
+
+/**
+ * User to connect to redis as. Must be defined if `REDIS_PASSWORD` is not 
+ * `null.
+ */
+export let REDIS_USER : null | string = null;
+
+/**
+ * Optional Redis password.
+ */
+export let REDIS_PASSWORD : null | string = null;

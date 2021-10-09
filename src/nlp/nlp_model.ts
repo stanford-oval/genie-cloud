@@ -32,6 +32,10 @@ import * as Config from '../config';
 import kfInferenceUrl from '../util/kf_inference_url';
 
 import type { NLPInferenceServer } from './main';
+import { ParseOptions, PredictionResult } from "genie-toolkit/dist/lib/prediction/types";
+import { EntityMap } from "genie-toolkit/dist/lib/utils/entity-utils";
+import { hasRedis, getRedisClient } from "../util/redis";
+import { LocalParserOptions } from "genie-toolkit/dist/lib/prediction/localparserclient";
 
 // A ThingpediaClient that operates under the credentials of a specific organization
 class OrgThingpediaClient extends BaseThingpediaClient {
@@ -186,6 +190,96 @@ export default class NLPModel {
     private async _download() {
         this._localdir = await AbstractFS.download(this._modeldir + '/');
     }
+    
+    public static orderedPairsFor(
+        record : Record<string, any>,
+        omit : string[] = [],
+    ) : Array<[string, any]> {
+        const pairs : Array<[string, any]> = [];
+        for (const key of Object.keys(record).sort()) {
+            if (!omit.includes(key)) {
+                const value = record[key];
+                if (value !== undefined) 
+                    pairs.push([key, value]);
+            }
+        }
+        return pairs;
+    }
+    
+    public static cacheKeyFor(
+        tokens : string[],
+        entities : EntityMap,
+        contextCode : string[] | undefined,
+        options : ParseOptions 
+    ) : string {
+        const argsSig = JSON.stringify([
+            ["tokens", tokens],
+            ["entities", Object.keys(entities).sort()],
+            ["contextCode", contextCode],
+            [
+                "options",
+                NLPModel.orderedPairsFor(
+                    options, ["tokenized", "expect", "choices", "store"]
+                )
+            ],
+        ]);
+        return `nlp.query:${argsSig}`;
+    }
+    
+    private async cacheGet(
+        tokens : string[],
+        entities : EntityMap,
+        contextCode : string[] | undefined,
+        options : ParseOptions
+    ) : Promise<null | PredictionResult> {
+        if (options.expect === 'MultipleChoice') {
+            // Don't cache multiple-choice queries
+            return null;
+        }
+        const redisClient = await getRedisClient();
+        const key =
+            NLPModel.cacheKeyFor(tokens, entities, contextCode, options);
+        const value = await redisClient.GET(key);
+        if (value === null) {
+            console.log(`CACHE MISS ${key}`);
+            return null;
+        } else {
+            console.log(`CACHE HIT ${key}`);
+        }
+        return JSON.parse(value) as PredictionResult;
+    }
+    
+    private async cacheSet(
+        result : PredictionResult,
+        contextCode : string[] | undefined,
+        options : ParseOptions
+    ) : Promise<void> {
+        const redisClient = await getRedisClient();
+        const key = NLPModel.cacheKeyFor(
+            result.tokens,
+            result.entities,
+            contextCode,
+            options
+        );
+        console.log(`CACHE SET ${key}`);
+        // Cache for one day
+        await redisClient.SET(key, JSON.stringify(result), {EX: 60 * 60 * 24});
+    }
+    
+    private get predictorOptions() : LocalParserOptions {
+        const options : LocalParserOptions = {
+          id: this.id,  
+        };
+        
+        if (hasRedis()) {
+            options.cacheInterface = {
+                get: this.cacheGet.bind(this),
+                set: this.cacheSet.bind(this),
+            };
+        }
+        
+        return options;
+    }
 
     async destroy() {
         return Promise.all([
@@ -206,7 +300,7 @@ export default class NLPModel {
 
         const oldpredictor = this.predictor;
         this.predictor = Genie.ParserClient.get('file://' + path.resolve(this._localdir!), this.locale, this._platform,
-            this.exact, this.tpClient, { id: this.id });
+            this.exact, this.tpClient, this.predictorOptions);
         await this.predictor.start();
 
         await Promise.all([
@@ -227,7 +321,7 @@ export default class NLPModel {
             url = 'file://' + path.resolve(this._localdir!);
         }
         this.predictor = Genie.ParserClient.get(url, this.locale, this._platform,
-            this.exact, this.tpClient, { id: this.id });
+            this.exact, this.tpClient, this.predictorOptions);
         await this.predictor.start();
     }
 }
