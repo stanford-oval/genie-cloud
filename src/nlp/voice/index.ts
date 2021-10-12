@@ -31,6 +31,8 @@ import { SpeechToText, TextToSpeech } from "./backend-microsoft";
 import runNLU from "../nlu";
 import { getRedisClient, hasRedis } from "../../util/redis";
 
+type TGender = "female" | "male";
+
 const upload = multer({ dest: os.tmpdir() });
 
 const router = express.Router();
@@ -189,15 +191,12 @@ async function restSTTAndNLU(
     res.json(result);
 }
 
-async function ttsCached(req : express.Request, res : express.Response) {
-    if (!I18n.get(req.params.locale, false)) {
-        res.status(404).json({ error: "Unsupported language" });
-        return;
-    }
-    const locale = req.params.locale;
-    const gender = req.params.gender === "female" ? "female" : "male";
-    const text = req.body.text;
-
+async function ttsCached(
+    res : express.Response,
+    locale : string,
+    gender : TGender,
+    text : string
+) {
     const argsSig = createHash("md5")
         .update(JSON.stringify([locale, gender, text]))
         .digest("hex");
@@ -231,36 +230,41 @@ async function ttsCached(req : express.Request, res : express.Response) {
     }
 }
 
-async function ttsNoCache(req : express.Request, res : express.Response) {
-    if (!I18n.get(req.params.locale, false)) {
-        res.status(404).json({ error: "Unsupported language" });
-        return;
-    }
-    const locale = req.params.locale;
-    const gender = req.params.gender === "female" ? "female" : "male";
-    const text = req.body.text;
-
+async function ttsNoCache(
+    res : express.Response,
+    locale : string,
+    gender : TGender,
+    text : string
+) {
     const stream = await textToSpeech.request(locale, gender, text);
     if (stream.statusCode === 200) res.set("Content-Type", "audio/x-wav");
     stream.pipe(res);
 }
 
-function ttspost(
+function tts(
     req : express.Request,
     res : express.Response,
-    next : express.NextFunction
+    next : express.NextFunction,
 ) {
-    if (hasRedis()) ttsCached(req, res).catch(next);
-    else ttsNoCache(req, res).catch(next);
-}
-
-function ttsget(
-    req : express.Request,
-    res : express.Response,
-    next : express.NextFunction
-) {
-    if (hasRedis()) ttsCached(req, res).catch(next);
-    else ttsNoCache(req, res).catch(next);
+    // Validate the locale is supported
+    if (!I18n.get(req.params.locale, false)) {
+        res.status(404).json({ error: "Unsupported language" });
+        return;
+    }
+    const locale = req.params.locale;
+    
+    // In a GET request the args are in the query, otherwise (POST) they are
+    // in the body
+    const args = req.method === "GET" ? req.query : req.body;
+    
+    // Extract / cast the args. We know text is a string because validation has
+    // already been run
+    const gender : TGender = args.gender === "female" ? "female" : "male";
+    const text : string = args.text as string;
+    
+    // Switch handler depending on Redis cache availability
+    const ttsHandler = hasRedis() ? ttsCached : ttsNoCache;
+    ttsHandler(res, locale, gender, text).catch(next);
 }
 
 router.ws("/:locale/voice/stream", streamSTT);
@@ -281,7 +285,7 @@ router.post(
         },
         { json: true }
     ),
-    ttspost
+    tts
 );
 router.get(
     "/:locale/voice/tts",
@@ -292,7 +296,7 @@ router.get(
         },
         { json: true }
     ),
-    ttsget
+    tts
 );
 
 // provide identical API keyed off to :model_tag, so people can change the
@@ -314,7 +318,7 @@ router.post(
         },
         { json: true }
     ),
-    ttspost
+    tts
 );
 router.get(
     "/@:model_tag/:locale/voice/tts",
@@ -325,7 +329,7 @@ router.get(
         },
         { json: true }
     ),
-    ttsget
+    tts
 );
 
 export default router;
