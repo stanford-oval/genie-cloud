@@ -38,7 +38,7 @@
     "actions-on-google": "^2.14.0",
     "argparse": "^2.0.0",
     "asn1.js": "^5.4.1",
-    "aws-sdk": "^2.1009.0",
+    "aws-sdk": "^2.1010.0",
     "body-parser": "^1.18.3",
     "cacheable-middleware": "^1.0.0",
     "color-scheme": "^1.0.0",
