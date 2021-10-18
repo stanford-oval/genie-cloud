@@ -60,8 +60,8 @@ async function testMyApiCreateGetApp(auth) {
     }), { auth, dataContentType: 'application/json' }));
 
     assert(result.uniqueId.startsWith('uuid-'));
-    assert(result.description === 'Get get 10 byte of data with count 2.'
-        || result.description === 'Get get data on test with count 2 and size 10 byte.');
+    assert(result.description === 'Get get 10 bytes of data with count 2.'
+        || result.description === 'Get get data on test with count 2 and size 10 bytes.');
     assert.strictEqual(result.code, '@org.thingpedia.builtin.test.get_data(count=2, size=10byte);');
     assert.strictEqual(result.icon, '/download/icons/org.thingpedia.builtin.test.png');
     assert.deepStrictEqual(result.errors, []);
@@ -110,8 +110,8 @@ async function testMyApiCreateWhenApp(auth) {
     }), { auth, dataContentType: 'application/json' }));
 
     assert(result.uniqueId.startsWith('uuid-'));
-    assert(result.description === 'Notify me when there are new get 10 byte of data.'
-        || result.description === 'Notify me when there are new get data on test with size 10 byte.',
+    assert(result.description === 'Notify me when there are new get 10 bytes of data.'
+        || result.description === 'Notify me when there are new get data on test with size 10 bytes.',
         `Invalid description ${result.description}`);
     assert.strictEqual(result.code, 'monitor(@org.thingpedia.builtin.test.get_data(size=10byte));');
     assert.strictEqual(result.icon, '/download/icons/org.thingpedia.builtin.test.png');
