@@ -94,7 +94,7 @@
     "passport-local": "^1.0.0",
     "passport-oauth2-client-password": "^0.1.2",
     "passport-totp": "^0.0.2",
-    "prom-client": "^13.2.0",
+    "prom-client": "^14.0.0",
     "pug": "^3.0.2",
     "redis": "^4.0.0-rc.2",
     "rss": "^1.2.2",
