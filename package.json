@@ -153,7 +153,7 @@
     "@types/passport-oauth2-client-password": "^0.1.2",
     "@types/rss": "0.0.29",
     "@types/seedrandom": "^3.0.1",
-    "@types/semver": "^7.3.8",
+    "@types/semver": "^7.3.9",
     "@types/serve-favicon": "^2.5.3",
     "@types/serve-static": "^1.13.10",
     "@types/tmp": "^0.2.1",
