@@ -30,7 +30,6 @@ import * as Tp from 'thingpedia';
 
 import * as db from './db';
 import * as trainingJobModel from '../model/training_job';
-import { InternalError } from './errors';
 
 import * as Config from '../config';
 
@@ -88,19 +87,6 @@ export default class TrainingServer {
             // if the server is down eat the error
             if (err.code !== 503 && err.code !== 404 && err.code !== 'EHOSTUNREACH' && err.code !== 'ECONNREFUSED' && err.code !== 'ECONNRESET')
                 throw err;
-        });
-    }
-
-    queueModel(language : string, modelTag : string, jobType : string, owner = null, config = null) {
-        if (!Config.TRAINING_URL)
-            throw new InternalError('E_INVALID_CONFIG', "Configuration error: Training server is not configured");
-
-        const auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : undefined;
-        return Tp.Helpers.Http.post(Config.TRAINING_URL + '/jobs/create', JSON.stringify({
-            language, forDevices: null, modelTag, jobType, owner, config
-        }), { auth: auth, dataContentType: 'application/json' }).then((response) => {
-            const parsed = JSON.parse(response);
-            console.log('Successfully started training job ' + parsed.id);
         });
     }
 }
