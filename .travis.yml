@@ -19,7 +19,7 @@ services:
   - docker
 before_install:
   - sudo apt-get update && sudo apt-get install apt-transport-https ca-certificates -y && sudo update-ca-certificates
-  
+
 stages:
   - test
   - name: deploy
@@ -94,18 +94,6 @@ jobs:
       - export GENIENLP_EMBEDDINGS=`pwd`/tests/embeddings
       - export PATH="`pwd`/geckodriver:$PATH"
       script: npx nyc ./tests/nlp-integration.sh
-      after_success: npm run coverage
-    -
-      name: "Training Integration Tests"
-      install:
-      - nvm install 12
-      - ./travis/install-webalmond-deps.sh
-      - travis_retry npm ci
-      - pyenv global 3.8.1
-      - ./tests/install-nlp-deps.sh
-      - export GENIENLP_EMBEDDINGS=`pwd`/tests/embeddings
-      - export PATH="`pwd`/geckodriver:$PATH"
-      script: npx nyc ./tests/training-integration.sh
       after_success: npm run coverage
     -
       stage: deploy

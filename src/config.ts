@@ -345,8 +345,8 @@ export let ENABLE_DEVELOPER_PROGRAM : boolean = false;
 /**
   Enable developer backend.
 
-  Use dedicated pod to host trusted developer backend. For security, it 
-  is recommended to enable this feature when ENABLE_DEVELOPER_PROGRAM is 
+  Use dedicated pod to host trusted developer backend. For security, it
+  is recommended to enable this feature when ENABLE_DEVELOPER_PROGRAM is
   set to true. This, however, will increase startup time of developer's
   backend as a new pod will be created.
   */
@@ -391,21 +391,29 @@ export let NL_SERVER_ADMIN_TOKEN : string|null = null;
 export let NL_THINGPEDIA_DEVELOPER_KEY : string|null = null;
 
 /**
-  Deployed model directory.
+  Deployed models.
 
-  This is the path containing the models that should be served by the NLP inference
-  server. It can be a relative or absolute path, or a file: or s3: URI.
+  This contains the list of models that should be served by the NLP inference
+  server.
+
+  Each model has a tag (which works as a prefix of the URL) and a locale.
+  The model with tag "org.thingpedia.models.default" will be also served without
+  a tag prefix.
+
+  Models are served based on the given URL, which can be a relative or absolute path,
+  a kf+http: URI (for a KFserving deployment), or a file: or s3: URI.
   Relative paths are interpreted relative to the current working directory, or
   the `THINGENGINE_ROOTDIR` environment variable if set.
-
-  For a file URI, if the training and inference servers are on different machines,
-  you should specify the hostname of the inference server. The training server will
-  use `rsync` to upload the model after training.
-
-  If this is set to `null`, trained models will not be uploaded to a NLP inference
-  server. This is not a valid setting for the inference server.
 */
-export let NL_MODEL_DIR : string = './models';
+export let NL_MODELS : Array<{
+  tag : string,
+  locale : string,
+  owner : number|undefined,
+  model_url : string,
+  access_token : string|undefined,
+  contextual : boolean,
+  use_exact : boolean,
+}> = [];
 
 /**
   Directory for exact match files.
@@ -423,14 +431,6 @@ export let NL_EXACT_MATCH_DIR : string = './exact';
   The kubernetes service name for NLP server.
 */
 export let NL_SERVICE_NAME : string = 'nlp';
-
-
-/**
-  Use kf serving inference service.
-
-  Will make HTTP requests to models that are hosted in kf-serving inference service.
-*/
-export let USE_KF_INFERENCE_SERVICE : boolean = false;
 
 /**
   Training server URL.
@@ -694,7 +694,7 @@ export let EXTRA_ENVIRONMENT : Record<string, string> = {};
 export let REDIS_HOST : null | string = null;
 
 /**
- * User to connect to redis as. Must be defined if `REDIS_PASSWORD` is not 
+ * User to connect to redis as. Must be defined if `REDIS_PASSWORD` is not
  * `null.
  */
 export let REDIS_USER : null | string = null;
