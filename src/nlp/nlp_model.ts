@@ -190,7 +190,7 @@ export default class NLPModel {
     private async _download() {
         this._localdir = await AbstractFS.download(this._modeldir + '/');
     }
-    
+
     public static orderedPairsFor(
         record : Record<string, any>,
         omit : string[] = [],
@@ -199,18 +199,18 @@ export default class NLPModel {
         for (const key of Object.keys(record).sort()) {
             if (!omit.includes(key)) {
                 const value = record[key];
-                if (value !== undefined) 
+                if (value !== undefined)
                     pairs.push([key, value]);
             }
         }
         return pairs;
     }
-    
+
     public static cacheKeyFor(
         tokens : string[],
         entities : EntityMap,
         contextCode : string[] | undefined,
-        options : ParseOptions 
+        options : ParseOptions
     ) : string {
         const argsSig = JSON.stringify([
             ["tokens", tokens],
@@ -219,13 +219,13 @@ export default class NLPModel {
             [
                 "options",
                 NLPModel.orderedPairsFor(
-                    options, ["tokenized", "expect", "choices", "store"]
+                    options, ["context", "entities", "tokenized", "expect", "choices", "store"]
                 )
             ],
         ]);
         return `nlp.query:${argsSig}`;
     }
-    
+
     private async cacheGet(
         tokens : string[],
         entities : EntityMap,
@@ -248,7 +248,7 @@ export default class NLPModel {
         }
         return JSON.parse(value) as PredictionResult;
     }
-    
+
     private async cacheSet(
         result : PredictionResult,
         contextCode : string[] | undefined,
@@ -265,19 +265,19 @@ export default class NLPModel {
         // Cache for one day
         await redisClient.SET(key, JSON.stringify(result), {EX: 60 * 60 * 24});
     }
-    
+
     private get predictorOptions() : LocalParserOptions {
         const options : LocalParserOptions = {
-          id: this.id,  
+          id: this.id,
         };
-        
+
         if (hasRedis()) {
             options.cacheInterface = {
                 get: this.cacheGet.bind(this),
                 set: this.cacheSet.bind(this),
             };
         }
-        
+
         return options;
     }
 
