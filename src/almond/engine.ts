@@ -269,7 +269,7 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
                                 options : Genie.DialogueAgent.ConversationOptions & { replayHistory ?: boolean },
                                 initialState ?: Genie.DialogueAgent.ConversationState) {
         options.faqModels = PlatformModule.faqModels;
-        if (options.anonymous)
+        if (options.anonymous || process.env.NODE_ENV !=='production')
             options.log = true;
         const conversation = await this.assistant.getOrOpenConversation(id, options, initialState || undefined);
         return new ConversationWrapper(conversation, delegate, options.replayHistory);
@@ -279,7 +279,7 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
         options : Genie.DialogueAgent.ConversationOptions & { replayHistory ?: boolean, syncDevices ?: boolean },
         initialState ?: Genie.DialogueAgent.ConversationState) {
         options.faqModels = PlatformModule.faqModels;
-        if (options.anonymous)
+        if (options.anonymous || process.env.NODE_ENV !=='production')
             options.log = true;
         const conversation = await this.assistant.getOrOpenConversation(id, options, initialState || undefined);
         const wrapper = new WebSocketConnnectionWrapper(conversation, delegate, options.replayHistory, options.syncDevices);
