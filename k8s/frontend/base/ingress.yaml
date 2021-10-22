@@ -8,6 +8,7 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     # set a very large value so we can upload string datasets
     nginx.ingress.kubernetes.io/proxy-body-size: "64m"
+    nginx.org/client-max-body-size: "64m"
   labels:
     app: frontend
 spec:
