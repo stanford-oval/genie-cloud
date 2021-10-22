@@ -8,6 +8,7 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     # set a very large value so we can upload string datasets
     nginx.ingress.kubernetes.io/proxy-body-size: "64m"
+    nginx.ingress.kubernetes.io/proxy-max-temp-file-size: "1024m"
     nginx.org/client-max-body-size: "64m"
   labels:
     app: frontend
@@ -18,7 +19,7 @@ spec:
       port:
         number: 8080
   rules:
-  - host: almond-cloud.test
+  - host: localhost
     http:
       paths:
       - backend:
