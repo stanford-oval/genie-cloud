@@ -216,6 +216,26 @@ const VOICES : Record<string, { male : string; female : string }> = {
         male: "GuyNeural",
         female: "AriaNeural",
     },
+    "it-it": {
+        male: "DiegoNeural",
+        female: "ElsaNeural"
+    },
+    "zh-cn": {
+        male: "YunxiNeural",
+        female: "XiaohanNeural"
+    },
+    "zh-tw": {
+        male: "YunJheNeural",
+        female: "HsiaoChenNeural"
+    },
+    "es-es": {
+        male: "AlvaroNeural",
+        female: "ElviraNeural"
+    },
+    "es-us": {
+        male: "AlonsoNeural",
+        female: "PalomaNeural"
+    }
 };
 
 /**
