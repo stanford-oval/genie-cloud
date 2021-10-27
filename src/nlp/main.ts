@@ -87,11 +87,17 @@ export class NLPInferenceServer {
 
     async loadExactMatcher(matcher : Genie.ExactMatcher, language : string) {
         const url = AbstractFS.resolve(Config.NL_EXACT_MATCH_DIR, language + '.btrie');
-        const tmpPath = await AbstractFS.download(url);
 
-        await matcher.load(tmpPath);
+        try {
+            const tmpPath = await AbstractFS.download(url);
+            await matcher.load(tmpPath);
 
-        await AbstractFS.removeTemporary(tmpPath);
+            await AbstractFS.removeTemporary(tmpPath);
+        } catch(e : any) {
+            if (e.code !== 'ENOENT' && e.code !== 404)
+                throw e;
+            console.log(`WARNING: missing exact matcher file for ${language}`);
+        }
     }
 
     async load() {
