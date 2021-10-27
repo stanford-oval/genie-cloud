@@ -169,10 +169,6 @@ export default class NLPModel {
         }
     }
 
-    private async _download() {
-        this._localdir = await AbstractFS.download(this._modeldir + '/');
-    }
-
     public static orderedPairsFor(
         record : Record<string, any>,
         omit : string[] = [],
