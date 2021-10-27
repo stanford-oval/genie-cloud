@@ -1,0 +1,28 @@
+# These are the **dev** requirements, and do _not_ include the cli package
+# itself.
+# 
+# So, for a full-setup (from the repo root):
+# 
+#     pip install -r ./cli/requirements.txt
+#     pip install -e ./cli
+# 
+
+# Building and publishing
+# setuptools
+# wheel
+# twine
+
+# VSCode / formatting stuff, updated 2021-10-26
+black==21.9b0 # No idea how this versioning crap works
+pylint>=2.11.1,<3.0
+rope>=0.21.0,<0.22
+mypy>=0.910
+
+# # Doc generation
+# sphinx>=3.5.2,<4
+# # Guess this is supposed to get us Markdown
+# # myst-parser>=0.13.5,<2
+# # recommonmark>=0.7.1
+# commonmark>=0.9.1
+# # Read The Docs theme, which hopefully doesn't look so terrible
+# sphinx-rtd-theme>=0.5.1

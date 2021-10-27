@@ -1,16 +1,8 @@
 import setuptools
-from subprocess import run
-
-def get_version() -> str:
-    return run(
-        ["git", "describe"],
-        capture_output=True,
-        encoding="utf-8",
-    ).stdout.strip()
 
 setuptools.setup(
     name="almond-cloud-cli",
-    version=get_version(),
+    version="0.0.0",
     author="Stanford OVAL",
     author_email="thingpedia-admins@lists.stanford.edu",
     description="Command Line Interface (CLI) for Almond Cloud development and deployment",
@@ -19,7 +11,8 @@ setuptools.setup(
     python_requires=">=3,<4",
     install_requires=[
         "splatlog>=0.1.0",
-        "argcomplete>=1.12.3,<2",
+        "clavier>=0.1.2",
+        "kubernetes>=19.15.0,<20",
     ],
     scripts=[
         "bin/almond-cloud",

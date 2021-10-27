@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+# PYTHON_ARGCOMPLETE_OK
+
+from almond_cloud import run  # pylint: disable=import-self
+
+run()

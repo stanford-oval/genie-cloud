@@ -12,4 +12,7 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true,
   },
+  "[python]": {
+    "editor.formatOnSave": true
+  }
 }
