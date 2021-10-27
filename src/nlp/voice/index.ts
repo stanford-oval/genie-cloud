@@ -47,7 +47,7 @@ async function streamSTT(ws : WebSocket, req : express.Request) {
     const log = LOG.childFor(streamSTT);
     
     log.debug("Streaming STT...");
-    const timer = log.startTimer();
+    const profiler = log.startTimer();
     
     if (!I18n.get(req.params.locale, false)) {
         await ws.send(JSON.stringify({ error: "Unsupported language" }));
@@ -80,14 +80,18 @@ async function streamSTT(ws : WebSocket, req : express.Request) {
     }, 5000);
 
     ws.on("close", () => {
-        timer.done({
-            level: "http",
-            message: "Done streaming STT.",
+        profiler.done({
+            level: "info",
+            message: "Closed connection",
         });
         if (sessionTimeout) clearTimeout(sessionTimeout);
     });
 
     function initialPacket(msg : string) {
+        profiler.done({
+            level: "info",
+            message: "Initial packet received",
+        });
         ws.removeListener("message", initialPacket);
         clearTimeout(sessionTimeout);
 
@@ -100,9 +104,14 @@ async function streamSTT(ws : WebSocket, req : express.Request) {
         }
 
         if (parsed.ver && parsed.ver === 1) {
-            const stt = new SpeechToText(req.params.locale);
+            const stt = new SpeechToText(req.params.locale, profiler);
             stt.recognizeStream(ws)
                 .then((text) => {
+                    profiler.done({
+                        level: "info",
+                        message: "Stream recognized",
+                        text,
+                    });
                     const result = { result: "ok", text: text };
                     ws.send(JSON.stringify(result));
                     ws.close(1000);
