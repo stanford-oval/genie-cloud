@@ -340,6 +340,11 @@ async function testMyApiConverse(auth) {
             type: 'text',
             text: 'The answer is foofoo.',
             icon: 'org.thingpedia.builtin.test'
+        }, {
+            id: 3,
+            type: 'text',
+            text: 'foofoo',
+            icon: 'org.thingpedia.builtin.test'
         }]
     });
 
@@ -353,11 +358,11 @@ async function testMyApiConverse(auth) {
     assert.deepStrictEqual(result2, {
         askSpecial: null,
         messages: [{
-            id: 3,
+            id: 4,
             type: 'command',
             command: 'yes',
         }, {
-            id: 4,
+            id: 5,
             type: 'text',
             text: 'Sorry, I did not understand that. Can you rephrase it?',
             icon: 'org.thingpedia.builtin.test'

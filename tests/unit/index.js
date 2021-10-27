@@ -39,7 +39,8 @@ seq([
     ('./test_binary_search'),
     ('./test_input_validation'),
     ('./test_example_names'),
-    ('./test_k8s_api.js'),
-    ('./test_kf_inference_url.js'),
-    ('./test_json_websocket.ts')
+    ('./test_k8s_api'),
+    ('./test_kf_inference_url'),
+    ('./test_json_websocket'),
+    ('./test_class_validation')
 ]);

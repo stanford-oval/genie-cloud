@@ -23,7 +23,6 @@ import express from 'express';
 import * as db from '../util/db';
 import * as i18n from '../util/i18n';
 import * as Config from '../config';
-import * as modelsModel from '../model/nlp_models';
 import * as exampleModel from '../model/example';
 
 const router = express.Router();
@@ -72,19 +71,15 @@ router.post('/reload/@:model_tag/:locale', (req, res, next) => {
         return;
     }
 
-    const language = i18n.localeToLanguage(req.params.locale);
+    const model = req.app.service.getModel(req.params.model_tag, req.params.locale);
+    if (!model) {
+        res.status(404).json({ error: 'No such model' });
+        return;
+    }
 
-    db.withTransaction(async (dbClient) => {
-        const spec = (await modelsModel.getByTag(dbClient, language, req.params.model_tag))[0];
-        if (!spec) {
-            res.status(404).json({ error: 'No such model' });
-            return;
-        }
-        const model = req.app.service.getOrCreateModel(spec);
-
-        await model.reload();
+    model.reload().then(() => {
         res.json({ result: 'ok' });
-    }, 'repeatable read', 'read only');
+    }).catch(next);
 });
 
 export default router;

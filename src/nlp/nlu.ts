@@ -60,7 +60,7 @@ export default async function runNLU(query : string,
     let model : NLPModel|undefined;
     if (modelTag) {
         model = service.getModel(modelTag, params.locale);
-        if (!model || !model.trained) {
+        if (!model) {
             res.status(404).json({ error: 'No such model' });
             return undefined;
         }
@@ -81,7 +81,7 @@ export default async function runNLU(query : string,
 
         for (const candidate of fallbacks) {
             model = service.getModel(candidate, params.locale);
-            if (model && model.trained) {
+            if (model) {
                 if (model.contextual && !data.context) {
                     data.context = 'null';
                     data.entities = {};

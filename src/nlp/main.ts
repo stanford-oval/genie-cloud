@@ -28,10 +28,8 @@ import Prometheus from 'prom-client';
 import * as Genie from 'genie-toolkit';
 import rateLimit from 'express-rate-limit';
 
-import * as db from '../util/db';
 import Metrics from '../util/metrics';
 import * as errorHandling from '../util/error_handling';
-import * as modelsModel from '../model/nlp_models';
 import * as I18n from '../util/i18n';
 import * as AbstractFS from '../util/abstract_fs';
 
@@ -87,19 +85,6 @@ export class NLPInferenceServer {
         return undefined;
     }
 
-    getOrCreateModel(spec : modelsModel.Row) {
-        const key = `@${spec.tag}/${spec.language}`;
-        let model = this._models.get(key);
-        if (model) {
-            model.init(spec, this);
-            return model;
-        }
-
-        model = new NLPModel(spec, this);
-        this._models.set(key, model);
-        return model;
-    }
-
     async loadExactMatcher(matcher : Genie.ExactMatcher, language : string) {
         const url = AbstractFS.resolve(Config.NL_EXACT_MATCH_DIR, language + '.btrie');
         const tmpPath = await AbstractFS.download(url);
@@ -109,7 +94,7 @@ export class NLPInferenceServer {
         await AbstractFS.removeTemporary(tmpPath);
     }
 
-    async loadAllLanguages() {
+    async load() {
         for (const locale of Config.SUPPORTED_LANGUAGES) {
             const language = I18n.localeToLanguage(locale);
             const matcher = new Genie.ExactMatcher();
@@ -117,15 +102,11 @@ export class NLPInferenceServer {
             this._exactMatchers.set(language, matcher);
         }
 
-        await db.withTransaction(async (dbClient) => {
-            const modelspecs = await modelsModel.getAll(dbClient);
-            for (const modelspec of modelspecs) {
-                const model = new NLPModel(modelspec, this);
-                await model.load();
-                this._models.set(model.id, model);
-            }
-        }, 'repeatable read', 'read only');
-
+        for (const spec of Config.NL_MODELS) {
+            const model = new NLPModel(spec, this);
+            await model.load();
+            this._models.set(model.id, model);
+        }
         console.log(`Loaded ${this._models.size} models`);
     }
 
@@ -189,7 +170,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
 export async function main(argv : any) {
     const daemon = new NLPInferenceServer();
 
-    daemon.loadAllLanguages();
+    await daemon.load();
     await daemon.initFrontend(argv.port);
 
     if (Config.ENABLE_PROMETHEUS)

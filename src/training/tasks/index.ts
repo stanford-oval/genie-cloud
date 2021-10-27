@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -18,20 +18,8 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import prepareTrainingSet from './prepare-training-set';
 import updateDataset from './update-dataset';
-import train from './train';
-import evaluate from './evaluate';
-import genCustomSynthetic from './gen-custom-synthetic';
-import genCustomAugmented from './gen-custom-augmented';
-import genCustomTurking from './gen-custom-turking';
 
 export default {
-    'prepare-training-set': prepareTrainingSet,
     'update-dataset': updateDataset,
-    'train': train,
-    'evaluate': evaluate,
-    'gen-custom-synthetic': genCustomSynthetic,
-    'gen-custom-augmented': genCustomAugmented,
-    'gen-custom-turking': genCustomTurking
 };

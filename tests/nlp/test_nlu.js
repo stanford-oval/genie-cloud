@@ -245,22 +245,15 @@ function assertHttpError(request, httpStatus, expectedMessage) {
 }
 
 async function testAdmin() {
-    // trying to access an invalid model or a model that was not trained will answer 404
+    // trying to access an invalid model will answer 404
     await assertHttpError(request('/@org.thingpedia.foo/en-US/query?q=hello', 'GET', '', {}), 404);
-    await assertHttpError(request('/@org.thingpedia.test.nottrained/en-US/query?q=hello', 'GET', '', {}), 404);
 
     // reloading an invalid model will fail
     await assertHttpError(request('/admin/reload/@foo.bar/en-US', 'POST', '', {}), 404);
 
-    // reloading any model will succeed, regardless of whether it was trained previously or not
+    // reloading any model will succeed
     assert.deepStrictEqual(JSON.parse(await request('/admin/reload/@org.thingpedia.models.default/en-US',
         'POST', '', {})), { result: "ok" });
-
-    assert.deepStrictEqual(JSON.parse(await request('/admin/reload/@org.thingpedia.test.nottrained/en-US',
-        'POST', '', {})), { result: "ok" });
-
-    // but after reload, if the model was not trained we still get 404
-    await assertHttpError(request('/@org.thingpedia.test.nottrained/en-US/query?q=hello', 'GET', '', {}), 404);
 }
 
 async function main() {
