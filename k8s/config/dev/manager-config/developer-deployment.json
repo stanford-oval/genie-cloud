@@ -27,7 +27,7 @@
                             "run-worker",
                             "--thingpedia-url=http://frontend:8080/thingpedia",
                             "--nl-server-url=https://nlp-staging.almond.stanford.edu",
-                            "--oauth-redirect-origin=http://frontend:8080",
+                            "--oauth-redirect-origin=http://localhost:8080",
                             "--faq-models={}",
                             "--notification-config={}",
                             "--locale=en-US",

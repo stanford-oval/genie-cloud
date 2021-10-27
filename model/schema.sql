@@ -992,7 +992,7 @@ CREATE TABLE `user_conversation` (
   `intermediateContext` text COLLATE utf8mb4_bin NULL,
   `user` varchar(255) COLLATE utf8mb4_bin NOT NULL,
   -- iso 8601 string (for sqlite compatibility)
-  `userTimestamp` char(24) COLLATE utf8mb4_bin NOT NULL,
+  `userTimestamp` char(24) COLLATE utf8mb4_bin NULL,
   `userTarget` text COLLATE utf8mb4_bin NOT NULL,
   `vote` ENUM('up', 'down') COLLATE utf8mb4_bin NULL,
   `comment` text COLLATE utf8mb4_bin NULL,

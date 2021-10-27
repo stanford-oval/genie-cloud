@@ -197,7 +197,7 @@ export default class NLPModel {
             [
                 "options",
                 NLPModel.orderedPairsFor(
-                    options, ["tokenized", "expect", "choices", "store"]
+                    options, ["context", "entities", "tokenized", "expect", "choices", "store"]
                 )
             ],
         ]);
