@@ -54,6 +54,11 @@ ENABLE_PROMETHEUS: true
 PROMETHEUS_ACCESS_TOKEN: my-prometheus-access-token
 MS_SPEECH_SUBSCRIPTION_KEY: "${MS_SPEECH_SUBSCRIPTION_KEY}"
 MS_SPEECH_SERVICE_REGION: westus2
+SUPPORTED_LANGUAGES:
+  - en-US
+  - it-IT
+  - zh-CN
+  - es-ES
 NL_MODELS:
 - tag: org.thingpedia.models.default
   locale: en
