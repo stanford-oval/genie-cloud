@@ -985,12 +985,12 @@ CREATE TABLE `user_conversation` (
   `previousId` varchar(255) COLLATE utf8mb4_bin NULL,
   `dialogueId` varchar(255) COLLATE utf8mb4_bin NOT NULL,
   `context` text COLLATE utf8mb4_bin NULL,
-  `agent` varchar(255) COLLATE utf8mb4_bin NULL,
+  `agent` text COLLATE utf8mb4_bin NULL,
   -- iso 8601 string (for sqlite compatibility)
   `agentTimestamp` char(24) COLLATE utf8mb4_bin NULL,
   `agentTarget` text COLLATE utf8mb4_bin NULL,
   `intermediateContext` text COLLATE utf8mb4_bin NULL,
-  `user` varchar(255) COLLATE utf8mb4_bin NOT NULL,
+  `user` text COLLATE utf8mb4_bin NOT NULL,
   -- iso 8601 string (for sqlite compatibility)
   `userTimestamp` char(24) COLLATE utf8mb4_bin NULL,
   `userTarget` text COLLATE utf8mb4_bin NOT NULL,
