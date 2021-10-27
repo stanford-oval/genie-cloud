@@ -20,11 +20,6 @@ services:
 before_install:
   - sudo apt-get update && sudo apt-get install apt-transport-https ca-certificates -y && sudo update-ca-certificates
 
-stages:
-  - test
-  - name: deploy
-    if: type = push AND branch = master AND repo = stanford-oval/almond-cloud
-
 env:
   global:
   - TZ="America/Los_Angeles"
@@ -32,6 +27,12 @@ env:
 
 jobs:
   include:
+    -
+      name: "Docker Build"
+      if: type = push AND branch = master AND repo = stanford-oval/almond-cloud
+      install:
+      - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+      script: ./travis/docker-build.sh
     -
       name: "Unit Tests"
       install:
@@ -95,12 +96,6 @@ jobs:
       - export PATH="`pwd`/geckodriver:$PATH"
       script: npx nyc ./tests/nlp-integration.sh
       after_success: npm run coverage
-    -
-      stage: deploy
-      name: "Docker Build"
-      install:
-      - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-      script: ./travis/docker-build.sh
 
 notifications:
   webhooks: https://coveralls.io/webhook
