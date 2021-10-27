@@ -18,6 +18,7 @@
 //
 // Author: Euirim Choi <euirim@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
+//         Neil Souza <neil@neilsouza.com>
 
 import { createHash } from "crypto";
 import WebSocket from "ws";
@@ -30,8 +31,11 @@ import * as I18n from "../../util/i18n";
 import { SpeechToText, TextToSpeech } from "./backend-microsoft";
 import runNLU from "../nlu";
 import { getRedisClient, hasRedis } from "../../util/redis";
+import Logging from "../../logging";
 
 type TGender = "female" | "male";
+
+const LOG = Logging.get(__filename);
 
 const upload = multer({ dest: os.tmpdir() });
 
@@ -40,9 +44,15 @@ const router = express.Router();
 const textToSpeech = new TextToSpeech();
 
 async function streamSTT(ws : WebSocket, req : express.Request) {
+    const log = LOG.childFor(streamSTT);
+    
+    log.debug("Streaming STT...");
+    const timer = log.startTimer();
+    
     if (!I18n.get(req.params.locale, false)) {
         await ws.send(JSON.stringify({ error: "Unsupported language" }));
         await ws.close();
+        log.error("Closed -- Unsupported language", {locale: req.params.locale});
         return;
     }
 
@@ -61,6 +71,7 @@ async function streamSTT(ws : WebSocket, req : express.Request) {
             // OPEN
             ws.send(JSON.stringify(e));
             ws.close(code);
+            log.error(`Closed -- ${e.error}`, {code});
         }
     }
 
@@ -69,6 +80,10 @@ async function streamSTT(ws : WebSocket, req : express.Request) {
     }, 5000);
 
     ws.on("close", () => {
+        timer.done({
+            level: "http",
+            message: "Done streaming STT.",
+        });
         if (sessionTimeout) clearTimeout(sessionTimeout);
     });
 

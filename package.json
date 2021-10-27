@@ -33,6 +33,7 @@
   "dependencies": {
     "@fragaria/address-formatter": "^2.6.4",
     "@kubernetes/client-node": "^0.15.1",
+    "@stanford-oval/logging": "^0.1.1",
     "accept-language": "^3.0.18",
     "accepts": "^1.3.5",
     "actions-on-google": "^2.14.0",
