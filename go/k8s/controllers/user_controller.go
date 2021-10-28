@@ -138,7 +138,15 @@ func NewUserReconciler(client client.Client, scheme *runtime.Scheme, log logr.Lo
 func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = r.Log.WithValues("user-controller", req.NamespacedName)
 	r.Log.Info("--- start ---")
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+
+	// make two contexts: one with a long timeout and one with a short one
+	// we use the long timeout context to talk to k8s in the defer function
+	// that way we are sure that we always write something back and make
+	// forward progress
+
+	ctx_outer, cancel_outer := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel_outer()
+	ctx, cancel := context.WithTimeout(ctx_outer, 10*time.Second)
 	defer cancel()
 
 	var (
@@ -159,11 +167,13 @@ func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				} else {
 					user.Spec.Mode = "shared"
 				}
-				r.Update(ctx, user)
+				if err = r.Update(ctx_outer, user); err != nil {
+					r.Log.Error(err, "failed to update user mode")
+				}
 			}
 			user.Status = currentStatus
 			r.Log.Info("updating status:", "user", user.Spec.ID, "status", user.Status)
-			if err = r.Status().Update(ctx, user); err != nil {
+			if err = r.Status().Update(ctx_outer, user); err != nil {
 				r.Log.Error(err, "failed to update user status")
 			}
 		}
