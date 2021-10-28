@@ -171,7 +171,6 @@ class Worker {
     }
 
    engineStatus(userId : number) : string {
-        console.log(`Status of engine ${userId}`);
         const obj = this.engines.get(userId);
         if (!obj || !obj.running)
             return "stopped";
