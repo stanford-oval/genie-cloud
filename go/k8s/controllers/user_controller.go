@@ -162,8 +162,10 @@ func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				r.Update(ctx, user)
 			}
 			user.Status = currentStatus
-			r.Status().Update(ctx, user)
-			r.Log.Info("update status:", "user", user.Spec.ID, "status", user.Status)
+			r.Log.Info("updating status:", "user", user.Spec.ID, "status", user.Status)
+			if err = r.Status().Update(ctx, user); err != nil {
+				r.Log.Error(err, "failed to update user status")
+			}
 		}
 		r.Log.Info("--- end ---")
 	}()
