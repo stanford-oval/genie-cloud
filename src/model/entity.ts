@@ -101,7 +101,9 @@ export async function lookup(client : db.Client, language : string, token : stri
                                     from entity_lexicon where language = ? and match entity_canonical
                                     against (? in natural language mode)
                                     union distinct select entity_id,entity_value,entity_canonical,entity_name
-                                    from entity_lexicon where language = ? and entity_value = ?`, [language, token, language, token]);
+                                    from entity_lexicon where language = ? and entity_canonical like ?
+                                    union distinct select entity_id,entity_value,entity_canonical,entity_name
+                                    from entity_lexicon where language = ? and entity_value = ?`, [language, token, language, `%${token}%`, language, token]);
 }
 
 export async function lookupWithType(client : db.Client, language : string, type : string, token : string) : Promise<Array<Omit<ValueRow, "language">>> {
@@ -109,8 +111,10 @@ export async function lookupWithType(client : db.Client, language : string, type
                                     from entity_lexicon where language = ? and entity_id = ? and match entity_canonical
                                     against (? in natural language mode)
                                     union distinct select entity_id,entity_value,entity_canonical,entity_name
+                                    from entity_lexicon where language = ? and entity_id = ? and entity_canonical like ?
+                                    union distinct select entity_id,entity_value,entity_canonical,entity_name
                                     from entity_lexicon where language = ? and entity_id = ? and
-                                    entity_value = ?`, [language, type, token, language, type, token]);
+                                    entity_value = ?`, [language, type, token, language, type, `%${token}%`, language, type, token]);
 }
 
 export async function findNonExisting(client : db.Client, ids : string[]) {
