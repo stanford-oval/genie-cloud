@@ -11,7 +11,7 @@ setuptools.setup(
     python_requires=">=3,<4",
     install_requires=[
         "splatlog>=0.1.0",
-        "clavier>=0.1.2",
+        "clavier==0.1.3a0",
         "kubernetes>=19.15.0,<20",
     ],
     scripts=[

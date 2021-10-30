@@ -26,12 +26,14 @@ with CFG.configure("almond_cloud", src=__file__) as cloud:
     with cloud.configure("k8s") as k8s:
         k8s.namespace = "almond-dev"
 
-        k8s.container_pod_prefixes = [
-            "dbproxy-",
-            "frontend-",
-            "shared-backend-",
-            "nlp-",
-        ]
+        k8s.name_groups = {
+            "image": [
+                "dbproxy",
+                "frontend",
+                "shared-backend",
+                "nlp",
+            ]
+        }
 
 with CFG.configure(io.rel, src=__file__) as rel:
     rel.to = CFG.almond_cloud.paths.repo

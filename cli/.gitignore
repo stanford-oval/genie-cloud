@@ -30,7 +30,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# CHANGED   Don't just ignore _any_ directory named 'lib', that sucks
+/lib/
 lib64/
 parts/
 sdist/
