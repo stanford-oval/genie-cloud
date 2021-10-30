@@ -18,6 +18,9 @@
 # Personal and secret values go in the adjacent `secret.yaml` file.
 # 
 
+NL_EXACT_MATCH_DIR: s3://geniehai/almond-cloud/staging/exact
+MS_SPEECH_SERVICE_REGION: westus2
+
 # MySQL (MariaDB)
 # ----------------------------------------------------------------------------
 

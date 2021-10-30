@@ -7,7 +7,6 @@ spec:
     spec:
       containers:
         - name: nlp
-          imagePullPolicy: IfNotPresent
           command:
             - /bin/bash
           args:
@@ -16,11 +15,6 @@ spec:
               set -ex
               cd /opt/almond-cloud
               /usr/bin/npm run debug -- run-nlp
-          env:
-            - name: NODE_ENV
-              value: "development"
-            - name: THINGENGINE_ROOTDIR
-              value: /home/almond-cloud
           volumeMounts:
             - mountPath: /opt/almond-cloud/src
               name: src

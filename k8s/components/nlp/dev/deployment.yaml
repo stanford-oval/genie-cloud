@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nlp
+spec:
+  template:
+    spec:
+      containers:
+        - name: nlp
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NODE_ENV
+              value: "development"
+            - name: THINGENGINE_ROOTDIR
+              value: /home/almond-cloud

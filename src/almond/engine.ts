@@ -269,7 +269,7 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
                                 options : Genie.DialogueAgent.ConversationOptions & { replayHistory ?: boolean },
                                 initialState ?: Genie.DialogueAgent.ConversationState) {
         options.faqModels = PlatformModule.faqModels;
-        options.debug = true;
+        // options.debug = true;
         if (options.anonymous || process.env.NODE_ENV !=='production')
             options.log = true;
         const conversation = await this.assistant.getOrOpenConversation(id, options, initialState || undefined);
@@ -280,7 +280,7 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
         options : Genie.DialogueAgent.ConversationOptions & { replayHistory ?: boolean, syncDevices ?: boolean },
         initialState ?: Genie.DialogueAgent.ConversationState) {
         options.faqModels = PlatformModule.faqModels;
-        options.debug = true;
+        // options.debug = true;
         if (options.anonymous || process.env.NODE_ENV !=='production')
             options.log = true;
         const conversation = await this.assistant.getOrOpenConversation(id, options, initialState || undefined);

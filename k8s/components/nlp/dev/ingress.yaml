@@ -11,11 +11,6 @@ metadata:
   labels:
     app: nlp
 spec:
-  defaultBackend:
-    service:
-      name: nlp
-      port:
-        number: 8400
   rules:
   - host: nlp.almond-cloud.test
     http:

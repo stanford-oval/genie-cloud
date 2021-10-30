@@ -46,4 +46,16 @@ You can deploy the NLP server locally to test STT and TTS calls --
 6.  Use a local DNS server that routes *.test to 127.0.0.1
 7.  Configure your NLP URL to be
     
-    http://nlp.almond-cloud.test:8080
+        http://nlp.almond-cloud.test:8080
+    
+    and your frontend host/port to be:
+    
+        almond-cloud.test:8080
+    
+    An example for `genie-client-cpp` config would be:
+    
+    ```ini
+    [general]
+    url=ws://almond-cloud.test:8080/me/api/conversation
+    nlUrl=http://nlp.almond-cloud.test:8080
+    ```
