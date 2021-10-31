@@ -1,4 +1,4 @@
-def add_to(subparsers):
+def add_parser(subparsers):
     parser = subparsers.add_parser(
         "thingpedia",
         help="Work with thingpedia-common-devices",

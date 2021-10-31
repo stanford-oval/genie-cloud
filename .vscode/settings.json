@@ -1,5 +1,15 @@
 {
   "cSpell.words": [
+    "bootstrapper",
+    "kube",
+    "kubectl",
+    "kubernetes",
+    "kust",
+    "kustard",
+    "kustomization",
+    "kustomizations",
+    "kustomize",
+    "kustomized",
     "writabledir"
   ],
   "typescript.tsdk": "${workspaceFolder}/node_modules/typescript/lib/",

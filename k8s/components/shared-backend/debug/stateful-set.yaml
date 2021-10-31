@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: shared-backend
+spec:
+  template:
+    spec:
+      containers:
+        - name: main
+          command:
+            - /bin/bash
+          args:
+            - -c
+            - |
+              set -ex
+              cd /opt/almond-cloud
+              /usr/bin/npm run debug -- \
+                  run-worker \
+                  --thingpedia-url=${THINGPEDIA_URL} \
+                  --nl-server-url=${NL_SERVER_URL} \
+                  --oauth-redirect-origin=${OAUTH_REDIRECT_URL} \
+                  --faq-models={} \
+                  --notification-config={} \
+                  --locale=en-US
+          volumeMounts:
+            - mountPath: /opt/almond-cloud/src
+              name: src
+      volumes:
+        - name: src
+          hostPath:
+            type: Directory
+            path: //src

@@ -6,9 +6,9 @@ components:
   - ../../../components/config/dev
   - ../../../components/db/dev
   - ../../../components/redis/dev
-  - ../../../components/frontend/dev
+  - ../../../components/frontend/debug
   - ../../../components/dbproxy/dev
-  - ../../../components/shared-backend/dev
+  - ../../../components/shared-backend/debug
   - ../../../components/controller/crd/dev
   - ../../../components/controller/rbac/dev
   - ../../../components/controller/manager/dev
@@ -16,3 +16,6 @@ components:
 images:
   - name: stanfordoval/almond-cloud
     newName: localhost/almond-cloud
+
+transformers:
+  - resolve-host-paths.yaml

@@ -1,8 +1,9 @@
 from pathlib import Path
 from typing import List
-from clavier import log as logging, arg_par, err, io
 
-from almond_cloud.config import CONFIG
+import splatlog as logging
+from clavier import arg_par
+
 
 LOG = logging.getLogger(__name__)
 

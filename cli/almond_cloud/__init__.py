@@ -7,7 +7,7 @@ from almond_cloud import cmd
 
 
 def run():
-    sesh = Sesh(__name__, CONFIG.paths.cli.root / "README.md", cmd)
+    sesh = Sesh(__name__, CONFIG.root / "cli" / "README.md", cmd)
     sesh.setup(CONFIG.log.level)
     sesh.parse()
     sesh.exec()

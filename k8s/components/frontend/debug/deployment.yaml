@@ -1,12 +1,14 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nlp
+  name: frontend
 spec:
   template:
     spec:
       containers:
-        - name: nlp
+        - name: main
+          imagePullPolicy: IfNotPresent
           command:
             - /bin/bash
           args:
@@ -14,7 +16,7 @@ spec:
             - |
               set -ex
               cd /opt/almond-cloud
-              /usr/bin/npm run debug -- run-nlp
+              /usr/bin/npm run debug -- run-frontend --k8s
           env:
             - name: THINGENGINE_ROOTDIR
               value: /home/almond-cloud

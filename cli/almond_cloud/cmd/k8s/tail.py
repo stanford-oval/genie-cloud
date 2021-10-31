@@ -2,10 +2,11 @@ from typing import Iterable, List, NoReturn
 from queue import Queue
 from threading import Thread
 
+import splatlog as logging
 from kubernetes import client, config
 from kubernetes.watch import Watch
 from kubernetes.client.models.v1_pod import V1Pod
-from clavier import log as logging, arg_par, err, io
+from clavier import arg_par, err, io
 
 from almond_cloud.config import CONFIG
 

@@ -6,6 +6,7 @@ components:
   - ../../../components/config/dev
   - ../../../components/db/dev
   - ../../../components/redis/dev
+  - ../../../components/bootstrap/dev
   - ../../../components/frontend/dev
   - ../../../components/dbproxy/dev
   - ../../../components/shared-backend/dev

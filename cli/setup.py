@@ -10,9 +10,9 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     python_requires=">=3,<4",
     install_requires=[
-        "splatlog>=0.1.0",
-        "clavier==0.1.3a0",
+        "clavier==0.1.3a1",
         "kubernetes>=19.15.0,<20",
+        "pyyaml>=6.0,<7",
     ],
     scripts=[
         "bin/almond-cloud",

@@ -1,3 +1,7 @@
+import splatlog as logging
+
+LOG = logging.getLogger(__name__)
+
 NLP_DESC = f"""\
 Manage local nlp service.
 
@@ -6,7 +10,7 @@ staging.
 """
 
 
-def add_to(subparsers):
+def add_parser(subparsers):
     parser = subparsers.add_parser(
         "nlp",
         help=NLP_DESC.splitlines()[0],

@@ -1,6 +1,7 @@
 from argparse import BooleanOptionalAction
+import splatlog as logging
 
-from clavier import sh, log as logging
+from clavier import sh
 
 from almond_cloud.config import CONFIG
 
@@ -25,7 +26,7 @@ def add_to(subparsers):
 def build_image(plain: bool = False):
     opts = {
         "tag": CONFIG.image.name,
-        "file": CONFIG.paths.repo / "docker" / "Dockerfile",
+        "file": CONFIG.root / "docker" / "Dockerfile",
     }
 
     if plain:
@@ -36,7 +37,7 @@ def build_image(plain: bool = False):
         "build",
         opts,
         ".",
-        cwd=CONFIG.paths.repo,
+        cwd=CONFIG.root,
         log=LOG,
         rel_paths=True,
         opts_style=" ",

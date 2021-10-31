@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       labels:
-        app: bootstraper
+        app: bootstrapper
     spec:
       restartPolicy: Never
       containers:

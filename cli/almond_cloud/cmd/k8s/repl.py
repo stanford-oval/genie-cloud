@@ -1,7 +1,5 @@
-from textwrap import dedent
-
+import splatlog as logging
 from kubernetes import client, config
-from clavier import log as logging
 
 from almond_cloud.config import CONFIG
 
@@ -17,7 +15,7 @@ new commands.
 """
 
 
-def add_to(subparsers):
+def add_parser(subparsers):
     parser = subparsers.add_parser(
         "repl",
         target=repl,

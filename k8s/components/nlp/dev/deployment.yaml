@@ -10,6 +10,4 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_ENV
-              value: "development"
-            - name: THINGENGINE_ROOTDIR
-              value: /home/almond-cloud
+              value: development

@@ -1,8 +1,10 @@
-from clavier import log as logging, arg_par
+from clavier import arg_par
+import splatlog as logging
 
 from almond_cloud.config import CONFIG
 from .image.build import build_image
 from .k8s.flip import flip
+
 
 LOG = logging.getLogger(__name__)
 

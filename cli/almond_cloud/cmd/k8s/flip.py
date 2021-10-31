@@ -1,14 +1,11 @@
-from typing import Iterable, List, NoReturn
-from queue import Queue
-from threading import Thread
+from typing import List
 
+import splatlog as logging
 from kubernetes import client, config
-from kubernetes.watch import Watch
-from kubernetes.client.models.v1_pod import V1Pod
-from clavier import log as logging, arg_par, err, io
+from clavier import arg_par
 
 from almond_cloud.config import CONFIG
-from almond_cloud.helpers.k8s import match_pod_name, expand_names
+from almond_cloud.lib.k8s import match_pod_name, expand_names
 
 LOG = logging.getLogger(__name__)
 
