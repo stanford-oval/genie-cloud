@@ -5,4 +5,4 @@ components:
   - ../dev
 
 patches:
-  - job.yaml
+  - bootstrap.job.yaml

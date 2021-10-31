@@ -1,4 +1,3 @@
 resources:
-  - create.job.yaml
   - deployment.yaml
   - service.yaml

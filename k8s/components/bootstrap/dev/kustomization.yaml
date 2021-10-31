@@ -5,4 +5,5 @@ bases:
   - ../base
 
 patches:
-  - job.yaml
+  - create-db.job.yaml
+  - bootstrap.job.yaml

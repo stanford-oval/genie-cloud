@@ -2,9 +2,16 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: create-db
+  labels:
+    app: bootstrap
+
 spec:
   backoffLimit: 0
+  
   template:
+    metadata:
+      labels:
+        app: bootstrap
     spec:
       restartPolicy: Never
       containers:

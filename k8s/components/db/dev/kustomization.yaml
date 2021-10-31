@@ -5,5 +5,4 @@ bases:
   - ../base
 
 patches:
-  - create.job.yaml
   - deployment.yaml
