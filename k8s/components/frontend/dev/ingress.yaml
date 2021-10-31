@@ -1,0 +1,49 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend
+  # SEE https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    
+    # Set body limits to very large values so we can upload string datasets
+    
+    # https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#custom-max-body-size
+    nginx.ingress.kubernetes.io/proxy-body-size: "64m"
+    
+    # https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#proxy-max-temp-file-size
+    nginx.ingress.kubernetes.io/proxy-max-temp-file-size: "1024m"
+    
+    # http://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size
+    nginx.org/client-max-body-size: "64m"
+  labels:
+    app: frontend
+spec:
+  # WARNING Do _NOT_ defined a `defaultBackend` here, it does not seem to get
+  #         the annotations above applied to it, and this gets really confusing
+  #         when trying to upload and getting "413 Request Entity Too Large"
+  #         errors.
+  rules:
+    - host: localhost
+      http:
+        paths:
+        - backend:
+            service:
+              name: frontend
+              port:
+                number: 8080
+          path: /
+          pathType: ImplementationSpecific
+    
+    - host: almond-cloud.test
+      http:
+        paths:
+        - backend:
+            service:
+              name: frontend
+              port:
+                number: 8080
+          path: /
+          pathType: ImplementationSpecific

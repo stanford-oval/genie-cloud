@@ -4,5 +4,8 @@ kind: Component
 bases:
   - ../base
 
+resources:
+  - ingress.yaml
+
 patches:
   - deployment.yaml
