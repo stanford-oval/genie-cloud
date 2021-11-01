@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 import splatlog as logging
 from kubernetes import client, config
@@ -28,17 +28,32 @@ def add_parser(subparsers: arg_par.Subparsers):
         help="Pods to follow, which are prefix-matched against the name",
     )
 
+    parser.add_argument(
+        "-c",
+        "--context",
+        default=None,
+        help="kubectl context to use",
+    )
 
-def flip(pod_names: List[str]):
+    parser.add_argument("-n", "--namespace", default=CONFIG.k8s.namespace)
+
+
+def flip(pod_names: List[str], namespace: str, context: Optional[str] = None):
     expanded_names = expand_names(pod_names)
 
-    LOG.debug("Flipping...", arg_names=pod_names, expanded_names=expanded_names)
+    LOG.debug(
+        "Flipping...",
+        arg_names=pod_names,
+        expanded_names=expanded_names,
+        context=context,
+        namespace=namespace,
+    )
 
-    config.load_kube_config()
+    config.load_kube_config(context=context)
     api_v1 = client.CoreV1Api()
-    all_pods = api_v1.list_namespaced_pod(CONFIG.k8s.namespace).items
+    all_pods = api_v1.list_namespaced_pod(namespace).items
     pods = [pod for pod in all_pods if match_pod_name(expanded_names, pod)]
 
     for pod in pods:
         LOG.info("Deleting pod...", name=pod.metadata.name)
-        api_v1.delete_namespaced_pod(pod.metadata.name, CONFIG.k8s.namespace)
+        api_v1.delete_namespaced_pod(pod.metadata.name, namespace)
