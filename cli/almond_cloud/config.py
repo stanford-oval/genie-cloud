@@ -33,6 +33,10 @@ with CFG.configure("almond_cloud", src=__file__) as pkg:
         # Where our Kustomize plugins live.
         kust.plugins_dir = pkg.root / "k8s" / "plugins"
 
+    with pkg.configure("thingpedia") as tp:
+        tp.dir = pkg.root / ".." / "thingpedia-common-devices"
+        tp.url = "http://almond-cloud.test:8080/thingpedia"
+
 with CFG.configure(io.rel, src=__file__) as rel:
     rel.to = CFG.almond_cloud.root
 
