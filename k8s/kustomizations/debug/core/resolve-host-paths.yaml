@@ -1,9 +1,0 @@
-apiVersion: almond-cloud
-kind: ResolveHostPaths
-metadata:
-  name: resolve-host-paths
-  annotations:
-    config.kubernetes.io/function: |
-      exec:
-        path: resolve-host-paths.py
-spec: {}

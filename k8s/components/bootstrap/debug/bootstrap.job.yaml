@@ -21,14 +21,8 @@ spec:
           volumeMounts:
             - mountPath: /opt/almond-cloud/src
               name: src
-            - mountPath: /home/almond-cloud/shared
-              name: shared
       volumes:
         - name: src
           hostPath:
             type: Directory
             path: //src
-        - name: shared
-          hostPath:
-            type: Directory
-            path: //tmp/shared

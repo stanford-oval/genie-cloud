@@ -54,6 +54,7 @@ def dump(name: TFilename, dest: TFilename = CONFIG.kust.dump_dir):
         build_options={
             "enable-alpha-plugins": True,
             "enable-exec": True,
+            "load-restrictor": "LoadRestrictionsNone",
         },
     )
     LOG.info(

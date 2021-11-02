@@ -16,10 +16,10 @@ from almond_cloud.etc.coll import dig
 
 
 def transform_item(item):
-    print(
-        f"TRANSFORMING {dig(item, 'kind')} {dig(item, 'metadata', 'name')}",
-        file=sys.stderr,
-    )
+    # print(
+    #     f"TRANSFORMING {dig(item, 'kind')} {dig(item, 'metadata', 'name')}",
+    #     file=sys.stderr,
+    # )
     # yaml.safe_dump(item, sys.stderr)
 
     for volume in dig(

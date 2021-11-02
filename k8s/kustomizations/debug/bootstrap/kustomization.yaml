@@ -19,4 +19,4 @@ images:
     newName: localhost/almond-cloud
 
 transformers:
-  - resolve-host-paths.yaml
+  - ../../../plugins/resolve-host-paths/transformer.yaml

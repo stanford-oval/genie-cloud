@@ -25,8 +25,6 @@ spec:
               name: src
             - mountPath: /opt/almond-cloud/views
               name: views
-            - mountPath: /home/almond-cloud/shared
-              name: shared
       volumes:
         - name: src
           hostPath:
@@ -36,7 +34,3 @@ spec:
           hostPath:
             type: Directory
             path: //views
-        - name: shared
-          hostPath:
-            type: Directory
-            path: //tmp/shared

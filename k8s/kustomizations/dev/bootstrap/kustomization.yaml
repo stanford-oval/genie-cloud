@@ -17,3 +17,6 @@ components:
 images:
   - name: stanfordoval/almond-cloud
     newName: localhost/almond-cloud
+
+transformers:
+  - ../../../plugins/resolve-host-paths/transformer.yaml

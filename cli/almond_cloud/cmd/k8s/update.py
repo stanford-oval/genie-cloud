@@ -23,6 +23,7 @@ def update():
         options={
             "enable-alpha-plugins": True,
             "enable-exec": True,
+            "load-restrictor": "LoadRestrictionsNone",
         },
     )
     sh.run(
