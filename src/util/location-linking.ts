@@ -59,6 +59,9 @@ export default async function resolveLocation(locale = 'en-US', searchKey : stri
     else
         url = FREE_URL;
 
+    // remove the word "in"
+    searchKey = searchKey.replace(/\bin\b/ig, '');
+
     const data : NominatimQueryArgs = {
         format: 'jsonv2',
         'accept-language': locale,
