@@ -23,7 +23,11 @@ with CFG.configure("almond_cloud", src=__file__) as pkg:
                 "frontend",
                 "shared-backend",
                 "nlp",
-            ]
+            ],
+            "skills": [
+                "shared-backend",
+                "user",
+            ],
         }
 
     with pkg.configure("kust") as kust:
