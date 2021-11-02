@@ -50,6 +50,8 @@ class GoogleAssistantDelegate implements rpc.Stubbable {
         this._suggestions = [];
     }
 
+    destroy() {}
+
     async flush(conv : ActionsSdkConversation<unknown, unknown>) {
         if (this._suggestions.length)
             this._buffer.push(new Suggestions(this._suggestions));
