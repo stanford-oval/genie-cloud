@@ -1,8 +1,7 @@
 from __future__ import annotations
-from dataclasses import dataclass, fields
 from typing import Any, Callable, Dict, Iterable, List, Optional, Union
 from subprocess import CalledProcessError
-from functools import wraps
+from almond_cloud.config import CONFIG
 
 from clavier import sh
 import splatlog as logging
@@ -12,7 +11,7 @@ LOG = logging.getLogger(__name__)
 TValue = Any
 
 
-GIT_CONFIG_PREFIX = "context"
+GIT_CONFIG_PREFIX = "targets"
 GIT_CONFIG_KEY_SEP = "."
 GIT_CONFIG_LIST_SEP = ";"
 
@@ -94,7 +93,7 @@ def list() -> List[str]:
     )
 
 
-def get(context_name) -> Dict[str, str]:
+def get(target_name) -> Dict[str, str]:
     config_lines: List[str] = sh.get(
         "git",
         "config",
@@ -102,13 +101,16 @@ def get(context_name) -> Dict[str, str]:
         "--list",
     ).splitlines()
 
-    prefix = git_config_name(context_name) + GIT_CONFIG_KEY_SEP
+    prefix = git_config_name(target_name) + GIT_CONFIG_KEY_SEP
 
-    context = {}
+    if target_name in CONFIG.targets:
+        target = CONFIG.targets[target_name].to_dict()
+    else:
+        target = {}
 
     for line in config_lines:
         name, value = line.split("=", 1)
         if name.startswith(prefix):
-            context[name.removeprefix(prefix)] = value
+            target[name.removeprefix(prefix)] = value
 
-    return context
+    return target

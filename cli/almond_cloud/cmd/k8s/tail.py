@@ -8,6 +8,7 @@ from kubernetes.watch import Watch
 from kubernetes.client.models.v1_pod import V1Pod
 from clavier import arg_par, err, io
 
+from almond_cloud.lib import targets
 from almond_cloud.config import CONFIG
 
 LOG = logging.getLogger(__name__)
@@ -32,13 +33,20 @@ def add_parser(subparsers: arg_par.Subparsers):
     )
 
     parser.add_argument(
-        "-c",
-        "--context",
-        default=None,
-        help="kubectl context to use",
+        "-t",
+        "--target",
+        dest="target_name",
+        default="local",
+        help="Target name with the Thingpedia url and access-token to use",
     )
 
-    parser.add_argument("-n", "--namespace", default=CONFIG.k8s.namespace)
+    parser.add_argument(
+        "-l",
+        "--lines",
+        dest="tail_lines",
+        default=42,
+        help="How many lines to print at start",
+    )
 
 
 def match_pod_name(pod_names: Iterable[str], pod: V1Pod) -> bool:
@@ -51,12 +59,15 @@ def match_pod_name(pod_names: Iterable[str], pod: V1Pod) -> bool:
 
 
 def tail_one(
-    api_v1: client.CoreV1Api, pod_name: str, namespace: str
+    api_v1: client.CoreV1Api, pod_name: str, namespace: str, tail_lines: int
 ) -> NoReturn:
     watch = Watch()
     color_name = io.capture(f"[dim white]{pod_name}[/]", end="")
     for line in watch.stream(
-        api_v1.read_namespaced_pod_log, pod_name, namespace
+        api_v1.read_namespaced_pod_log,
+        pod_name,
+        namespace,
+        tail_lines=tail_lines,
     ):
         print(f"{color_name}  {line}")
 
@@ -98,11 +109,17 @@ def tail_many(
         print(queue.get())
 
 
-def tail(
-    pod_names: List[str],
-    namespace: str = CONFIG.k8s.namespace,
-    context: Optional[str] = None,
-):
+def tail(pod_names: List[str], target_name: str, tail_lines: int):
+    target = targets.get(target_name)
+    namespace = target["k8s.namespace"]
+    context = target.get("k8s.context")
+
+    LOG.info(
+        "Tailing pods...",
+        context=context,
+        namespace=namespace,
+    )
+
     config.load_kube_config(context=context)
     api_v1 = client.CoreV1Api()
     all_pods = api_v1.list_namespaced_pod(namespace).items
@@ -117,6 +134,6 @@ def tail(
         raise err.UserError("No pods found.")
 
     if len(pods) == 1:
-        tail_one(api_v1, pods[0].metadata.name, namespace)
+        tail_one(api_v1, pods[0].metadata.name, namespace, tail_lines)
 
     tail_many(api_v1, [pod.metadata.name for pod in pods], namespace)

@@ -6,6 +6,7 @@ from clavier import arg_par
 
 from almond_cloud.config import CONFIG
 from almond_cloud.lib.k8s import match_pod_name, expand_names
+from almond_cloud.lib import targets
 
 LOG = logging.getLogger(__name__)
 
@@ -29,16 +30,18 @@ def add_parser(subparsers: arg_par.Subparsers):
     )
 
     parser.add_argument(
-        "-c",
-        "--context",
-        default=None,
-        help="kubectl context to use",
+        "-t",
+        "--target",
+        dest="target_name",
+        default="local",
+        help="Target name with the Thingpedia url and access-token to use",
     )
 
-    parser.add_argument("-n", "--namespace", default=CONFIG.k8s.namespace)
 
-
-def flip(pod_names: List[str], namespace: str, context: Optional[str] = None):
+def flip(pod_names: List[str], target_name: str):
+    target = targets.get(target_name)
+    namespace = target["k8s.namespace"]
+    context = target.get("k8s.context")
     expanded_names = expand_names(pod_names)
 
     LOG.debug(

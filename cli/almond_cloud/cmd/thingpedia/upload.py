@@ -7,7 +7,7 @@ from clavier import arg_par, sh
 
 from almond_cloud.config import CONFIG
 from almond_cloud.etc.path import TFilename
-from almond_cloud.lib import context
+from almond_cloud.lib import targets
 
 LOG = logging.getLogger(__name__)
 
@@ -38,11 +38,11 @@ def add_parser(subparsers: arg_par.Subparsers):
     )
 
     parser.add_argument(
-        "-c",
-        "--context",
-        dest="context_name",
+        "-t",
+        "--target",
+        dest="target_name",
         default="local",
-        help="Context name with the Thingpedia url and access-token to use",
+        help="Target name with the Thingpedia url and access-token to use",
     )
 
     parser.add_argument(
@@ -76,11 +76,11 @@ def upload_demo(dir: TFilename, url: str, token: str):
     )
 
 
-def upload(dir: TFilename, context_name: str, skills: List[str]):
-    ctx = context.get(context_name)
+def upload(dir: TFilename, target_name: str, skills: List[str]):
+    target = targets.get(target_name)
 
-    url = ctx["thingpedia.url"]
-    token = ctx["thingpedia.access-token"]
+    url = target["thingpedia.url"]
+    token = target["thingpedia.access-token"]
 
     if len(skills) == 1 and skills[0] == "demo":
         return upload_demo(dir, url, token)
