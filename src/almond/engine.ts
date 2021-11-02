@@ -95,7 +95,7 @@ export class WebSocketConnnectionWrapper implements rpc.Stubbable {
     }
 
     async destroy() {
-        await this._connection.stop();
+        this._connection.destroy();
         this._delegate.$free();
         if (this.$free)
             this.$free();
