@@ -60,7 +60,7 @@ export default async function resolveLocation(locale = 'en-US', searchKey : stri
         url = FREE_URL;
 
     // remove the word "in"
-    searchKey = searchKey.replace(/\bin\b/ig, '');
+    searchKey = searchKey.replace(/\b(in|at)\b/ig, '');
 
     const data : NominatimQueryArgs = {
         format: 'jsonv2',
@@ -81,6 +81,7 @@ export default async function resolveLocation(locale = 'en-US', searchKey : stri
 
     const tokenizer = I18n.get(locale).genie.getTokenizer();
     return parsed.map((result) => {
+        delete result.address.postcode;
         const addressKeys = Object.keys(result.address);
         const firstKey = addressKeys[0];
 
