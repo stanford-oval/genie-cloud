@@ -18,14 +18,7 @@ def add_parser(subparsers: arg_par.Subparsers):
 
 def update():
     src = CONFIG.kust.kustomizations_dir / "dev" / "core"
-    resources = kustard.build(
-        src,
-        options={
-            "enable-alpha-plugins": True,
-            "enable-exec": True,
-            "load-restrictor": "LoadRestrictionsNone",
-        },
-    )
+    resources = kustard.build(src)
     sh.run(
         "kubectl",
         "apply",
