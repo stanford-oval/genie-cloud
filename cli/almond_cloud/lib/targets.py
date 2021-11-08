@@ -93,7 +93,7 @@ def list() -> List[str]:
     )
 
 
-def get(target_name) -> Dict[str, str]:
+def get(target_name: str) -> Dict[str, str]:
     config_lines: List[str] = sh.get(
         "git",
         "config",
@@ -114,3 +114,7 @@ def get(target_name) -> Dict[str, str]:
             target[name.removeprefix(prefix)] = value
 
     return target
+
+
+def set(target_name: str, key: str, value: Optional[str]) -> None:
+    git_config_set((target_name, key), value)

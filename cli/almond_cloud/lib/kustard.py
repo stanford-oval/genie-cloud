@@ -19,6 +19,7 @@ from pathlib import Path
 from shutil import rmtree
 
 from clavier import sh
+import splatlog as logging
 
 from almond_cloud.etc.coll import dig
 from almond_cloud.etc.path import TFilename, add_ext, path_for
@@ -26,11 +27,20 @@ from almond_cloud.etc.path import TFilename, add_ext, path_for
 from almond_cloud.config import CONFIG
 
 
+LOG = logging.getLogger(__name__)
+
 YAML_EXTS = (".yaml", ".yml")
+
+DEFAULT_BUILD_OPTS = {
+    "enable-alpha-plugins": True,
+    "enable-exec": True,
+    "load-restrictor": "LoadRestrictionsNone",
+}
 
 
 TDoc = Any
 TPathDoc = Tuple[Path, TDoc]
+TBuildOps = Mapping[str, Any]
 
 
 def is_kind(doc: TDoc, kind: str) -> bool:
@@ -54,14 +64,44 @@ def build_env() -> Mapping[str, str]:
     }
 
 
-def build(src: TFilename, options=None) -> str:
+def build_opts(options: Optional[TBuildOps] = None) -> TBuildOps:
+    if options is None:
+        return DEFAULT_BUILD_OPTS
+    return {**DEFAULT_BUILD_OPTS, **options}
+
+
+def build(src: TFilename, options: Optional[TBuildOps] = None) -> str:
     path = str(CONFIG.kust.plugins_dir / "resolvehostpaths")
     return sh.get(
         "kustomize",
         "build",
-        options,
+        build_opts(options),
         src,
         env=build_env(),
+    )
+
+
+@LOG.inject
+def apply(
+    src: TFilename,
+    *,
+    log: logging.TLogger = LOG,
+    build_options: Optional[TBuildOps] = None,
+    kubectl_context: Optional[str] = None,
+) -> sh.CompletedProcess:
+    LOG.debug(
+        "Applying Kustomize build...",
+        build_options=build_options,
+        kubectl_context=kubectl_context,
+    )
+    build_output = build(src, options=build_options)
+    return sh.run(
+        "kubectl",
+        {"context": kubectl_context},
+        "apply",
+        "--filename",
+        "-",
+        input=build_output,
     )
 
 

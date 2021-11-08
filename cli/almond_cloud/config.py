@@ -44,7 +44,7 @@ with CFG.configure("almond_cloud", src=__file__) as pkg:
         # Local development instance
         with targets.configure("local") as local:
             with local.configure("thingpedia") as local_tp:
-                url = "http://localhost:8080/thingpedia"
+                local_tp.url = "http://localhost:8080/thingpedia"
             with local.configure("k8s") as local_k8s:
                 local_k8s.namespace = "almond-dev"
 
