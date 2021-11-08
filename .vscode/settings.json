@@ -23,6 +23,12 @@
     "source.fixAll.eslint": true,
   },
   "[python]": {
-    "editor.formatOnSave": true
-  }
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true
+  },
+  "[typescript]": {
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true
+  },
 }
