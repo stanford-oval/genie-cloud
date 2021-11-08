@@ -32,6 +32,7 @@ import { SpeechToText, TextToSpeech } from "./backend-microsoft";
 import runNLU from "../nlu";
 import { getRedisClient, hasRedis } from "../../util/redis";
 import Logging from "../../logging";
+import { MicrosoftSpeechToTextStream } from "./microsoft-speech-to-text";
 
 type TGender = "female" | "male";
 
@@ -104,12 +105,18 @@ async function streamSTT(ws : WebSocket, req : express.Request) {
         }
 
         if (parsed.ver && parsed.ver === 1) {
-            const stt = new SpeechToText(req.params.locale, profiler);
-            stt.recognizeStream(ws)
+            const wakeWordPattern = new RegExp("^[A-Za-z]+\\s+(gene|genie|jeannie|jenny|jennie|ragini|dean)[.,]?\\s*", "i");
+            // const wakeWordPattern = new RegExp("^^[A-Za-z]+ (ho[nm][a-z]*)[.,]?\\s*", "i");
+            const stt = new MicrosoftSpeechToTextStream({
+                locale: req.params.locale,
+                input: ws,
+                wakeWordPattern,
+            });
+            stt.recognize()
                 .then((text) => {
                     profiler.done({
                         level: "info",
-                        message: "Stream recognized",
+                        message: "Total time",
                         text,
                     });
                     const result = { result: "ok", text: text };

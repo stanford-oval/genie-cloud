@@ -32,7 +32,6 @@ import {
     SpeechRecognizer,
 } from "microsoft-cognitiveservices-speech-sdk";
 import * as wav from "wav";
-import * as Winston from "winston";
 import { Logger } from "@stanford-oval/logging";
 
 import * as Config from "../../config";
@@ -55,11 +54,9 @@ class SpeechToText {
     private static readonly _log = LOG.childFor(SpeechToText);
     
     private _locale : string;
-    private _profiler ?: Winston.Profiler;
 
-    constructor(locale : string, profiler ?: Winston.Profiler) {
+    constructor(locale : string) {
         this._locale = locale;
-        this._profiler = profiler;
     }
     
     private get _log() : Logger.TLogger {
@@ -129,26 +126,24 @@ class SpeechToText {
             fileStream.pipe(wavReader);
         });
     }
-    
-    private _profile(message : string, meta : any = {}) {
-        if (this._profiler) {
-            this._profiler.done({
-                level: "info",
-                message,
-                ...meta
-            });
-        } else {
-            this._log.debug(message, meta);
-        }
-    }
 
     async recognizeStream(stream : WebSocket) {
         const log = this._log.childFor(this.recognizeStream);
         log.debug(`Start recognizing stream...`);
         
+        let profiler = log.startTimer();
+        
+        const profile = (message : string, meta : any = {}) => {
+            profiler.done({
+                level: "info",
+                message,
+                ...meta
+            });
+            profiler = log.startTimer();
+        };
+        
         const sdkAudioInputStream = AudioInputStream.createPushStream();
         const recognizer = this._initRecognizer(sdkAudioInputStream);
-        const self = this;
 
         return new Promise((resolve, reject) => {
             let fullText = "",
@@ -157,7 +152,7 @@ class SpeechToText {
                 _ended = false;
 
             function stopRecognizer() {
-                self._profile("Stopping recognizer");
+                profile("Stopping recognizer");
                 if (timerLastFrame) clearInterval(timerLastFrame);
                 sdkAudioInputStream.close();
                 _ended = true;
@@ -166,19 +161,25 @@ class SpeechToText {
             recognizer.recognized = (_, e) => {
                 const result = e.result;
                 const reason = result.reason;
-
-                // Indicates that recognizable speech was not detected
-                if (reason === ResultReason.NoMatch) {
-                    this._profile("No match");
-                    recognizer.sessionStopped(_, e);
-                }
-                // Add recognized text to fullText
-                if (reason === ResultReason.RecognizedSpeech) {
-                    fullText += result.text;
-                    this._profile("Recognized speech", {
-                            text: result.text,
-                            fullText,
-                    });
+                
+                switch (reason) {
+                    case ResultReason.NoMatch:
+                        // Indicates that recognizable speech was not detected
+                        profile("No match");
+                        recognizer.sessionStopped(_, e);
+                        break;
+                    case ResultReason.RecognizingSpeech:
+                        log.info("HYPOTHESIS speech", result);
+                        break;
+                    case ResultReason.RecognizedSpeech:
+                        // Add recognized text to fullText
+                        if (fullText !== "") fullText += " ";
+                        fullText += result.text;
+                        profile("FINAL (recognized) speech", {
+                                text: result.text,
+                                fullText,
+                        });
+                        break;
                 }
             };
 
@@ -189,7 +190,10 @@ class SpeechToText {
                 recognizer.stopContinuousRecognitionAsync(
                     () => {
                         // Recognition stopped
-                        if (fullText) { resolve(fullText); }
+                        if (fullText) {
+                            profile("Resolving speech");
+                            resolve(fullText);
+                        }
                         else
                             { reject(
                                 new SpeechToTextFailureError(
@@ -214,10 +218,10 @@ class SpeechToText {
 
             recognizer.startContinuousRecognitionAsync(
                 () => {
-                    this._profile("Recognition started");
+                    profile("Recognition started");
                     timerLastFrame = setInterval(() => {
                         if (lastFC >= 2) {
-                            this._profile("Timed out");
+                            profile("Timed out");
                             stopRecognizer();
                         }
                         lastFC++;
@@ -241,11 +245,12 @@ class SpeechToText {
                         if (!_ended) sdkAudioInputStream.write(data);
                         lastFC = 0;
                     } else {
+                        profile("Input stream terminated (empty frame)");
                         stopRecognizer();
                     }
                 })
                 .on("end", () => {
-                    this._profile("Input stream ended");
+                    profile("Input stream ended");
                     stopRecognizer();
                 });
         });
