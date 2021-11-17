@@ -397,7 +397,7 @@ function validateInvocation(kind : string,
             // this will handle all the different variations in how the canonical form
             // is specified (string, array, object with strings, object with arrays, etc.)
             try {
-                langPack.preprocessParameterCanonical(arg.nl_annotations.canonical, 'user');
+                langPack.preprocessParameterCanonical(arg, 'user');
             } catch(e) {
                 throw new ValidationError(`Invalid canonical form for @${fndef.qualifiedName}:${argname}: ${e.message}`);
             }
