@@ -19,11 +19,9 @@
 // Author: Neil Souza <neil@neilsouza.com>
 
 import { createClient } from "redis";
-import { RedisClientType } from "redis/dist/lib/client";
-
 import * as Config from "../config";
 
-let clientPromise : null | Promise<RedisClientType> = null;
+let clientPromise : null | Promise<any> = null;
 
 function hasRedis() : boolean {
     return (
@@ -35,7 +33,7 @@ function getURL() : string {
     let url = "redis://";
     if (Config.REDIS_USER !== null) {
         url += Config.REDIS_USER;
-        if (Config.REDIS_PASSWORD !== null) 
+        if (Config.REDIS_PASSWORD !== null)
             url += `:${Config.REDIS_PASSWORD}`;
         url += "@";
     }
@@ -43,23 +41,23 @@ function getURL() : string {
     return url;
 }
 
-async function createNewClient() : Promise<RedisClientType> {
+async function createNewClient() {
     console.log(`ENTER redis.createNewClient()`);
-    
+
     const url = getURL();
-    
+
     console.log(`Creating new Redis client...`);
     const client = createClient({ url });
-    
+
     await client.connect();
 
     console.log(`Returning new Redis client.`);
     return client;
 }
 
-function getRedisClient() : Promise<RedisClientType> {
+function getRedisClient() : ReturnType<typeof createNewClient> {
     console.log(`ENTER redis.getClient()`);
-    if (clientPromise === null) 
+    if (clientPromise === null)
         clientPromise = createNewClient();
     return clientPromise;
 }
