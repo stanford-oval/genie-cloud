@@ -93,7 +93,7 @@ ${srcdir}/dist/main.js run-nlp --port $NLP_PORT &
 inferpid=$!
 
 # kick off a dummy request to the nlp server just to get it ready
-sleep 5
+sleep 10
 curl "http://127.0.0.1:$NLP_PORT/en-US/query?q=hello" || true
 
 # in interactive mode, sleep forever
@@ -103,7 +103,7 @@ if test "$1" = "--interactive" ; then
     sleep 84600
 else
     # sleep until the process is settled
-    sleep 30
+    sleep 20
 
     ts-node $srcdir/tests/nlp
 fi
