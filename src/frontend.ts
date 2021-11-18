@@ -176,6 +176,7 @@ class Frontend {
                                                 { maxAge: 86400000 }));
         codeStorage.initFrontend(this._app);
         this._app.use(cacheable());
+        this._app.use(passport.initialize());
         passportUtil.initialize();
 
         this._app.use(bodyParser.json());
@@ -215,7 +216,6 @@ class Frontend {
                                 store: this._sessionStore,
                                 secret: secretKey.getSecretKey() }));
         this._app.use(connect_flash());
-        this._app.use(passport.initialize());
         this._app.use(passport.session());
 
         // this is an authentication kludge used by the Android app
