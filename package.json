@@ -162,7 +162,7 @@
     "@types/ws": "^7.4.7",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
-    "apidoc": "^0.29.0",
+    "apidoc": "^0.50.1",
     "browserify": "^17.0.0",
     "byline": "^5.0.0",
     "cli-table": "^0.3.7",
