@@ -83,6 +83,7 @@ mkdir -p 'models/org.thingpedia.models.default:en'
 
 wget --no-verbose -c https://almond-static.stanford.edu/test-data/models/genienlp-v0.6.0a2.tar.xz -O $srcdir/tests/embeddings/genienlp-v0.6.0a2.xz
 tar xvf $srcdir/tests/embeddings/genienlp-v0.6.0a2.xz -C 'models/org.thingpedia.models.default:en'
+sed -i 's/}/,"eval_src_languages":"en"}/' 'models/org.thingpedia.models.default:en/config.json'
 
 mkdir -p 'exact'
 wget --no-verbose -c https://almond-static.stanford.edu/test-data/exact.tsv -O exact/en.tsv
@@ -91,6 +92,10 @@ ${srcdir}/dist/main.js compile-exact-btrie -o exact/en.btrie exact/en.tsv
 ${srcdir}/dist/main.js run-nlp --port $NLP_PORT &
 inferpid=$!
 
+# kick off a dummy request to the nlp server just to get it ready
+sleep 10
+curl "http://127.0.0.1:$NLP_PORT/en-US/query?q=hello" || true
+
 # in interactive mode, sleep forever
 # the developer will run the tests by hand
 # and Ctrl+C
@@ -98,7 +103,7 @@ if test "$1" = "--interactive" ; then
     sleep 84600
 else
     # sleep until the process is settled
-    sleep 30
+    sleep 20
 
     ts-node $srcdir/tests/nlp
 fi

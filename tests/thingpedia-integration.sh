@@ -170,8 +170,8 @@ shuf exact.tsv | head
 
 sha256sum exact.tsv ./exact/en.btrie
 sha256sum -c <<EOF
-bf22f56e914b9e20bf133325a002df7842fba8f7b271c2f9c4441602c1d1599a  exact.tsv
-828f33c0a4771b300d3f7c452b09a3bacc05db7297cb3729069bde7ceff1af46  ./exact/en.btrie
+a7b8fae5c92429d744bdb686c91a09638b8eb7822b79d790ef83b2ca33a84d7c  exact.tsv
+cc16d0bcd900c92bd7613d13299b683109bc2f9b2162e10369619f3eacfadffd  ./exact/en.btrie
 EOF
 
 rm -rf $workdir

@@ -135,6 +135,7 @@ async function test(i) {
             console.error(`Test Case #${i+1}: does not match what expected`);
             console.error('Expected: ' + expected);
             console.error('Generated: ' + error.message);
+            console.error(error);
             if (process.env.TEST_MODE)
                 throw new Error(`testClassValidation ${i+1} FAILED`);
         }

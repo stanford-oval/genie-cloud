@@ -129,22 +129,22 @@ async function testMyApiCreateWhenApp(auth) {
             if (count === 0) {
                 assert.deepStrictEqual(parsed, { result:
                     { appId: result.uniqueId,
-                      raw: { data: '!!!!!!!!!!', size: 10 },
+                      raw: { data: '""""""""""', size: 10 },
                       type: 'org.thingpedia.builtin.test:get_data',
                       formatted: [{
                         type: 'text',
-                        text: 'Notification from Test: the answer is !!!!!!!!!!',
+                        text: 'Notification from Test: the answer is """""""""".',
                       }],
                       icon: '/download/icons/org.thingpedia.builtin.test.png' }
                 });
             } else {
                 assert.deepStrictEqual(parsed, { result:
                     { appId: result.uniqueId,
-                      raw: { data: '""""""""""', size: 10 },
+                      raw: { data: '##########', size: 10 },
                       type: 'org.thingpedia.builtin.test:get_data',
                       formatted: [{
                         type: 'text',
-                        text: 'Notification from Test: the answer is """""""""".',
+                        text: 'Notification from Test: the answer is ##########.',
                       }],
                       icon: '/download/icons/org.thingpedia.builtin.test.png' }
                 });

@@ -37,6 +37,7 @@ jobs:
       name: "Unit Tests"
       install:
       - nvm install 12
+      - pyenv global 3.8.1
       - travis_retry npm ci
       script:
       - npm run lint
@@ -46,7 +47,6 @@ jobs:
     -
       name: "GO Unit Tests"
       install:
-      - nvm install 12
       - go get golang.org/x/tools/cmd/cover
       - go get github.com/mattn/goveralls
       before_script: cd go
@@ -56,6 +56,7 @@ jobs:
       name: "Web Almond Integration Tests"
       install:
       - nvm install 12
+      - pyenv global 3.8.1
       - ./travis/install-webalmond-deps.sh
       - travis_retry npm ci
       - export PATH="`pwd`/geckodriver:$PATH"
@@ -65,11 +66,10 @@ jobs:
       name: "Thingpedia Integration Tests"
       install:
       - nvm install 12
+      - pyenv global 3.8.1
       - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
       - curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash && chmod +x kustomize && sudo mv kustomize /usr/local/bin/
       - go get sigs.k8s.io/kind
-      - go get golang.org/x/tools/cmd/cover
-      - go get github.com/mattn/goveralls
       - travis_retry npm ci
       - mkdir -p geckodriver/ && wget https://github.com/mozilla/geckodriver/releases/download/v0.22.0/geckodriver-v0.22.0-linux64.tar.gz && tar xvf geckodriver-v0.22.0-linux64.tar.gz -C geckodriver/
       - export PATH="`pwd`/geckodriver:$PATH"
@@ -88,9 +88,9 @@ jobs:
       name: "NLP Integration Tests"
       install:
       - nvm install 12
+      - pyenv global 3.8.1
       - ./travis/install-webalmond-deps.sh
       - travis_retry npm ci
-      - pyenv global 3.8.1
       - ./tests/install-nlp-deps.sh
       - export GENIENLP_EMBEDDINGS=`pwd`/tests/embeddings
       - export PATH="`pwd`/geckodriver:$PATH"
