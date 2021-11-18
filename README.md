@@ -1,4 +1,4 @@
-# Thingpedia & Web Almond
+# Genie for Cloud Environments
 
 [![Build Status](https://travis-ci.com/stanford-oval/almond-cloud.svg?branch=master)](https://travis-ci.com/stanford-oval/almond-cloud)
 [![Coverage Status](https://coveralls.io/repos/github/stanford-oval/almond-cloud/badge.svg?branch=master)](https://coveralls.io/github/stanford-oval/almond-cloud?branch=master)
@@ -7,14 +7,11 @@
 [![Discord](https://img.shields.io/discord/642041264208085014)](https://discord.gg/anthtR4)
 [![Discourse status](https://img.shields.io/discourse/https/community.almond.stanford.edu/status.svg)](https://community.almond.stanford.edu)
 
-This repository contains Thingpedia, the open, crowdsourced knowledge base for
-the Almond virtual assistant. It also contains Web Almond, a cloud service to
-provide Almond through a web interface.
+This repository is the cloud-native version of Genie, the open virtual-assistant.
+It includes the web frontend, the Genie backend, the embedded skill library, and
+the NLP model servers.
 
-The production branch of this repository is deployed at
-<https://almond.stanford.edu>
-
-Thingpedia is part of Almond, a research project led by
+Genie is a research project led by
 prof. Monica Lam, from Stanford University.  You can find more
 information at <https://oval.cs.stanford.edu>.
 
@@ -136,20 +133,14 @@ information at <https://oval.cs.stanford.edu>.
     You should see a big dump of `YAML` to the screen. If there is an error,
     try to figure it out or ask for help.
 
-9.  Deploy Almond Cloud
+9.  Deploy Genie
     
         kustomize build ./k8s/dev | kubectl apply -f -
     
 10. Go back to the dashboard and switch to the `almond-dev` namespace.
     
-    You should see the Almond Cloud components booting up. It can take a few
+    You should see the Genie components booting up. It can take a few
     minutes for everything to "go green", but after that you can use Almond
     Cloud at
     
     http://localhost:8080
-
-
-## Installation
-
-For detailed installation instructions, see
-[our wiki](https://wiki.almond.stanford.edu/user-guide/almond-cloud/install).
