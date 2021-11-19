@@ -22,6 +22,7 @@ import * as rpc from 'transparent-rpc';
 import express from 'express';
 import * as k8s from '@kubernetes/client-node';
 import WebSocket from 'ws';
+import { URL } from 'url';
 
 import JsonWebSocketAdapter from '../util/json_websocket';
 import UserK8sApi from './user_k8s';
