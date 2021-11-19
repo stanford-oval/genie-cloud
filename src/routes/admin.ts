@@ -427,7 +427,6 @@ function slugify(s : string) {
 }
 
 import mdAnchor from 'markdown-it-anchor';
-import mdHighlight from 'markdown-it-highlightjs';
 import mdContainerPandoc from 'markdown-it-container-pandoc';
 import mdFootnote from 'markdown-it-footnote';
 import mdTOC from 'markdown-it-table-of-contents';
@@ -439,7 +438,6 @@ router.post('/blog/update', user.requireRole(user.Role.BLOG_EDITOR),
         return '<table class="table">';
     };
     md.use(mdAnchor);
-    md.use(mdHighlight);
     md.use(mdContainerPandoc);
     md.use(mdFootnote);
     md.use(mdTOC, { includeLevel: [2,3] });
@@ -471,7 +469,6 @@ router.post('/blog/create', user.requireRole(user.Role.BLOG_EDITOR),
         return '<table class="table">';
     };
     md.use(mdAnchor);
-    md.use(mdHighlight);
     md.use(mdContainerPandoc);
     md.use(mdFootnote);
     md.use(mdTOC, { includeLevel: [2,3] });

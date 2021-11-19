@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
@@ -17,10 +17,10 @@
 // limitations under the License.
 //
 
-// note: this module is special and must use module.exports because it is
-// imported from browser code as well
-module.exports = function(hljs) {
-  let KEYWORDS = {
+import type { HLJSApi } from 'highlight.js';
+
+export default function(hljs : HLJSApi) {
+  const KEYWORDS = {
     keyword:
       'let join edge monitor new as of in out req opt ' +
       'class extends dataset mixin this import null enum query action stream from language'
@@ -30,7 +30,7 @@ module.exports = function(hljs) {
     built_in:
       'monitorable list now notify return',
   };
-  let NUMBER = {
+  const NUMBER = {
     className: 'number',
     variants: [
       { begin: '\\b(0[bB][01]+)' },
@@ -64,4 +64,4 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
