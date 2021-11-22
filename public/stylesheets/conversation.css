@@ -20,12 +20,15 @@
     overflow-y: scroll;
     height: -webkit-fill-available;
     padding: 20px 35px;
-    min-height: 500px;
+    min-height: 450px;
     overflow-anchor: none;
 }
 
 #conversation.single #chat {
     height: calc(100vh - 425px);
+}
+#conversation.single.has-enabled-skills #chat {
+    height: calc(100vh - 490px);
 }
 
 #conversation .message-container {

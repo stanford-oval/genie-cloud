@@ -67,7 +67,7 @@ block content
 
 
   if apps.length > 0
-    div.hidden-xs
+    div.my-stuff-collapsible.hidden-xs
       button.collapsible= _("Active Commands")
       div.command-list
         for app in apps
@@ -90,9 +90,9 @@ block content
                 p= _("This rule had an error: %s").format(app.error)
 
   if devices.length > 0
-    div.hidden-xs
+    div.my-stuff-collapsible.hidden-xs
       button.collapsible= _("Enabled Skills")
       +device_list(devices)
 
   +conversation_recording_mixin()
-  +conversation_mixin('/me/ws/conversation')(class='single')
+  +conversation_mixin('/me/ws/conversation')(class='single ' + (devices.length > 0 ? 'has-enabled-skills' : ''))

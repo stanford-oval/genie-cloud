@@ -27,7 +27,6 @@
     text-align: left;
     outline: none;
     font-size: 20px;
-    margin: 5px;
 }
 
 .active,
@@ -37,5 +36,11 @@
 }
 
 .device-list .aligned-grid {
+    margin-bottom: 1em;
+}
+
+.my-stuff-collapsible {
+    max-width: 800px;
+    margin: auto;
     margin-bottom: 1em;
 }
