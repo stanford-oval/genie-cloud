@@ -381,12 +381,13 @@ pre code {
 
 .panel-primary {
     border-color: #000;
-}*/
+}
 
 .new-msg-button {
     border-radius: 10px;
     margin: 5px;
 }
+*/
 
 .row-cpd-bottom {
     margin-top: 3.2em;
@@ -394,7 +395,7 @@ pre code {
 
 footer.page-footer {
     padding-top: 1.5em;
-    background-color: #8c1515;
+    background-color: #585858;
     color: white;
     text-align: right;
     min-height: 100px;
@@ -419,9 +420,7 @@ footer.page-footer a:hover {
 }
 
 #section-heading {
-    color: black;
     background-color: white;
-    background-image: url(../images/almond-background.png);
     background-size: cover;
     background-position: center bottom;
     text-align: center;
@@ -459,102 +458,6 @@ footer.page-footer a:hover {
     min-height: 937px;
 }
 
-#almond-index-container {
-    padding-top: 3em;
-}
-
-#almond-index-container #chat {
-    background-color: #ece5ddb3;
-    margin: 1px 0em;
-    overflow-y: scroll;
-    height: -webkit-fill-available;
-    padding: 20px 35px;
-    height: 730px !important;
-}
-
-#almond-index-container .message.from-user {
-    display: block;
-    width: 90%;
-    text-align: right;
-    margin-left: auto;
-    background-color: #DCF8C6;
-    border-radius: 10px;
-    padding: 13px 24px 12px 24px;
-    margin-bottom: 10px;
-    border: solid 0.1px #00ff2c1f;
-}
-
-#almond-index-container .from-almond>.message {
-    display: block;
-    overflow: auto;
-    background-color: #fff;
-    border-radius: 10px;
-    padding: 13px 24px 12px 24px;
-    margin-bottom: 10px;
-    border: solid 0.1px #f129291f;
-}
-
-#almond-index-container #almond-title {
-    padding-top: 80px;
-}
-
-@media screen and (min-width: 769x) {
-    #almond-index-container #almond-title {
-        font-size: 125px;
-    }
-    body {
-        width: 99%;
-    }
-}
-
-#almond-index-container #try-almond-now,
-#almond-index-container .call-to-action {
-    margin: 125px 0px;
-}
-
-#almond-index-container #input-form {
-    overflow: auto;
-}
-
-#almond-index-container #cancel {
-    float: right;
-    display: block;
-    font-size: 35px;
-    padding-top: 5px;
-    cursor: pointer;
-    color: #fff;
-}
-
-#almond-index-container .message-container {
-    display: block;
-    overflow: auto;
-    clear: both;
-}
-
-#almond-index-container .message-container>img.icon {
-    height: 40px;
-    width: 40px;
-    object-fit: contain;
-    padding-right: 12px;
-    float: left;
-}
-
-#almond-index-container .message-container.from-almond {
-    width: 90%;
-    text-align: left;
-    margin-right: auto;
-}
-
-#almond-index-container #conversation.home {
-    max-height: 100%;
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-    border: 1px solid #585858;
-    margin-top: 15px;
-}
-
 @media screen and (max-width: 750px) {
     #conversation.home {
         padding: unset;
@@ -569,11 +472,9 @@ footer.page-footer a:hover {
 }
 
 #section-heading h1 {
-    color: #8c1515;
     font-weight: 900;
     letter-spacing: -0.5px;
     font-size: 96px;
-    text-shadow: 1px 1px 0px black;
 }
 
 #section-heading h2 {
