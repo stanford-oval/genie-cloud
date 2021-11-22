@@ -11,27 +11,23 @@ body {
 
 @media screen and (min-width: 490px) and (max-width: 992px) {
     #page-body {
-        margin-top: 100px;
-    }
-    .common-head {
-        margin-top: 65px !important;
+        margin-top: 60px;
     }
 }
 
 @media screen and (min-width: 993px) {
     #page-body {
-        margin-top: 65px;
+        margin-top: 60px;
     }
+}
+
+#page-body {
+    padding-bottom: 30px;
+    min-height: calc(100vh - 160px);
 }
 
 .head-home {
     margin-top: 45px !important;
-}
-
-#page-body.container,
-#page-body.container-fluid {
-    padding-bottom: 30px;
-    min-height: calc(100vh - 145px);
 }
 
 #command-container {
