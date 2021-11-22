@@ -39,12 +39,6 @@ body {
     margin-left: 60px;
 }
 
-.new-button.form-group {
-    margin-top: 7px;
-    padding: 6px 0px 0px 0px;
-    vertical-align: unset;
-}
-
 .cst-create#page-body {
     margin-top: 4em;
 }
@@ -179,11 +173,12 @@ body {
     margin-left: 0.7em;
 }
 
-#command-list-navbar .navbar-form,
+/*#command-list-navbar .navbar-form,
 #device-list-navbar .navbar-form {
     border: unset;
     margin: unset;
 }
+*/
 
 #navbar-login-button {
     margin-right: 30px;
@@ -385,10 +380,6 @@ pre code {
 }
 */
 
-.row-cpd-bottom {
-    margin-top: 3.2em;
-}
-
 footer.page-footer {
     padding-top: 1.5em;
     background-color: #585858;
@@ -426,7 +417,6 @@ footer.page-footer a:hover {
 
 #section-commandpedia {
     min-height: 53vh;
-    font-size: 1.3em;
 }
 
 #inside-almond {
@@ -497,8 +487,8 @@ footer.page-footer a:hover {
 }
 
 .sections>.divider {
-    padding-top: 2em;
-    padding-bottom: 4em;
+    padding-top: 0.5em;
+    padding-bottom: 2em;
 }
 
 .divider h3 {
