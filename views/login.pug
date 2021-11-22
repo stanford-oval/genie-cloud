@@ -21,13 +21,13 @@ block content
     div.form-group
       button(type='submit').btn.btn-primary.custom-btn= _("Log in")
 
-  p.control-label= _("Don't have a username and password yet? ")
+  p= _("Don't have a username and password yet? ")
     a.dont(href='/user/register')= _("Sign up now!")
-  p.control-label
+  p
     a(href='/user/recovery/start')= _("I forgot my password")
   if Config.GOOGLE_CLIENT_ID
-    p.control-label
+    p
       a.btn.btn-primary.custom-btn(href='/user/oauth2/google')= _("Log In with Google")
   if Config.GITHUB_CLIENT_ID
-    p.control-label
+    p
       a.btn.btn-primary.custom-btn(href='/user/oauth2/github')= _("Log In with Github")

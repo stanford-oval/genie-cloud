@@ -156,6 +156,7 @@ body {
     margin-bottom: 15px;
 }
 
+/*
 .custom-btn {
     border-radius: 10px;
     font-weight: 600;
@@ -176,6 +177,7 @@ body {
 .control-label {
     font-size: 1.2em;
 }
+*/
 
 .dont {
     margin-left: 0.7em;
@@ -191,7 +193,7 @@ body {
     margin-right: 30px;
 }
 
-.navbar-header {
+/*.navbar-header {
     height: 65px;
 }
 
@@ -234,6 +236,7 @@ body {
         width: 86% !important;
     }
 }
+*/
 
 #qrcode-placeholder>img {
     margin-left: auto;
@@ -324,7 +327,7 @@ pre code {
     margin-left: 2em;
 }
 
-.panel {
+/*.panel {
     min-height: 6.8em;
     border-bottom-left-radius: 19px;
     border-bottom-right-radius: 19px;
@@ -378,7 +381,7 @@ pre code {
 
 .panel-primary {
     border-color: #000;
-}
+}*/
 
 .new-msg-button {
     border-radius: 10px;
@@ -607,9 +610,9 @@ footer.page-footer a:hover {
     margin-bottom: 0.8em;
 }
 
-.panel>.panel-heading {
+/*.panel>.panel-heading {
     margin-top: 0px;
-}
+}*/
 
 
 /* note: we assume that all browsers which support grid layout also support flexbox
@@ -788,7 +791,7 @@ input[type="checkbox"] {
     overflow: hidden;
 }
 
-.bottom-bar.fa,
+/*.bottom-bar.fa,
 .bottom-bar.far {
     border-radius: 60px;
     background-color: transparent;
@@ -806,6 +809,7 @@ input[type="checkbox"] {
 .bottom-bar.far:hover {
     background-color: #8c1515;
 }
+*/
 
 .form-inline.form-config {
     float: right;
