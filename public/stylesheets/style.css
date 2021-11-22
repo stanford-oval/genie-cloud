@@ -419,29 +419,12 @@ footer.page-footer a:hover {
     min-height: 53vh;
 }
 
-#inside-almond {
-    min-height: 40vh;
-}
-
 #inside-almond .row {
     height: 60px;
 }
 
-#almond-manifesto {
-    min-height: 720px;
-}
-
-#almond-manifesto>p {
-    font-size: 18px;
-    padding: 50px;
-}
-
 .divider {
     scroll-snap-align: start;
-}
-
-.home-page#section-heading {
-    min-height: 937px;
 }
 
 @media screen and (max-width: 750px) {

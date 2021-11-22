@@ -49,7 +49,7 @@
 
 #almond-index-container #try-almond-now,
 #almond-index-container .call-to-action {
-    margin: 125px 0px;
+    margin: 65px 0px 0px;
 }
 
 #almond-index-container #input-form {
@@ -815,7 +815,6 @@
 #almond-manifesto>h3,
 #home-page-sections .divider>h3 {
     font-size: 48px;
-    color: #8c1515;
     font-weight: bold;
 }
 
@@ -829,7 +828,6 @@
 
 #almond-manifesto h4 {
     font-size: 24px;
-    color: #8c1515;
     font-weight: bold;
 }
 
@@ -866,10 +864,11 @@
     width: 30%;
 }
 
+/*
 #almond-manifesto .col-md-6 {
-    /*border: 1px solid black;
-  border-radius: 10px;*/
-}
+    border: 1px solid black;
+  border-radius: 10px;
+}*/
 
 h2#almond-subtitle {
     margin-bottom: 0.5em !important;
@@ -892,7 +891,6 @@ h2#almond-subtitle {
 #almond-explanation-line {
     text-align: center;
     font-size: 24px;
-    color: #8c1515;
 }
 
 .marketing-video>p {
