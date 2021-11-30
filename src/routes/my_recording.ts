@@ -27,19 +27,27 @@ import * as EngineManager from '../almond/enginemanagerclient';
 const router = express.Router();
 
 router.post('/anonymous/vote/:vote', (req, res, next) => {
+    if (req.params.vote !== 'up' && req.params.vote !== 'down') {
+        res.status(400);
+        res.json({ error: 'Invalid voting option' });
+        return;
+    }
+    const vote = req.params.vote;
+
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine((await user.getAnonymousUser(req.locale)).id);
-        return engine.getConversation(req.body.id);
+        return engine.getRecordingController(req.body.id, { anonymous: true, showWelcome: true });
     }).then(async (conversation) => {
-        if (req.params.vote !== 'up' && req.params.vote !== 'down') {
-            res.status(400);
-            return res.json({ error: 'Invalid voting option' });
-        } else if (!conversation) {
+        if (!conversation) {
             res.status(404);
             return res.json({ error: 'No conversation found' });
-        } else {
-            await conversation.voteLast(req.params.vote);
+        }
+        try {
+            await conversation.voteLast(vote);
             return res.json({ status:'ok' });
+        } finally {
+            await conversation.destroy();
+            conversation.$free();
         }
     }).catch(next);
 });
@@ -47,14 +55,18 @@ router.post('/anonymous/vote/:vote', (req, res, next) => {
 router.post('/anonymous/comment', iv.validatePOST({ comment: 'string', id: 'string' }), (req, res, next) => {
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine((await user.getAnonymousUser(req.locale)).id);
-        return engine.getConversation(req.body.id);
+        return engine.getRecordingController(req.body.id, { anonymous: true, showWelcome: true });
     }).then(async (conversation) => {
         if (!conversation) {
             res.status(404);
             return res.json({ error: 'No conversation found' });
-        } else {
+        }
+        try {
             await conversation.commentLast(req.body.comment);
             return res.json({ status:'ok' });
+        } finally {
+            await conversation.destroy();
+            conversation.$free();
         }
     }).catch(next);
 });
@@ -65,14 +77,18 @@ router.post('/start', (req, res, next) => {
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine(req.user!.id);
         engine.warnRecording();
-        return engine.getConversation(req.body.id);
+        return engine.getRecordingController(req.body.id, { anonymous: false, showWelcome: true });
     }).then(async (conversation) => {
         if (!conversation) {
             res.status(404);
             return res.json({ error: 'No conversation found' });
-        } else {
+        }
+        try {
             await conversation.startRecording();
             return res.json({ status: 'ok' });
+        } finally {
+            await conversation.destroy();
+            conversation.$free();
         }
     }).catch(next);
 });
@@ -80,14 +96,18 @@ router.post('/start', (req, res, next) => {
 router.post('/stop', (req, res, next) => {
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine(req.user!.id);
-        return engine.getConversation(req.body.id);
+        return engine.getRecordingController(req.body.id, { anonymous: false, showWelcome: true });
     }).then(async (conversation) => {
         if (!conversation) {
             res.status(404);
             return res.json({ error: 'No conversation found' });
-        } else {
+        }
+        try {
             await conversation.endRecording();
             return res.json({ status:'ok' });
+        } finally {
+            await conversation.destroy();
+            conversation.$free();
         }
     }).catch(next);
 });
@@ -95,20 +115,25 @@ router.post('/stop', (req, res, next) => {
 router.get('/warned', (req, res, next) => {
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine(req.user!.id);
-        res.json({ warned: engine.recordingWarned() ? 'yes' : 'no' });
+        res.json({ warned: await engine.recordingWarned() ? 'yes' : 'no' });
     }).catch(next);
 });
 
 router.get('/status/:id', (req, res, next) => {
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine(req.user!.id);
-        return engine.getConversation(req.params.id);
+        return engine.getRecordingController(req.params.id, { anonymous: false, showWelcome: true });
     }).then(async (conversation) => {
         if (!conversation) {
             res.status(404);
             res.json({ error: 'No conversation found' });
         } else {
-            res.json({ status: await conversation.inRecordingMode() ? 'on' : 'off' });
+            try {
+                res.json({ status: await conversation.inRecordingMode() ? 'on' : 'off' });
+            } finally {
+                await conversation.destroy();
+                conversation.$free();
+            }
         }
     }).catch(next);
 });
@@ -116,7 +141,7 @@ router.get('/status/:id', (req, res, next) => {
 router.post('/vote/:vote', (req, res, next) => {
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine(req.user!.id);
-        return engine.getConversation(req.body.id);
+        return engine.getRecordingController(req.body.id, { anonymous: false, showWelcome: true });
     }).then(async (conversation) => {
         if (req.params.vote !== 'up' && req.params.vote !== 'down') {
             res.status(400);
@@ -125,8 +150,13 @@ router.post('/vote/:vote', (req, res, next) => {
             res.status(404);
             return res.json({ error: 'No conversation found' });
         } else {
-            await conversation.voteLast(req.params.vote);
-            return res.json({ status:'ok' });
+            try {
+                await conversation.voteLast(req.params.vote);
+                return res.json({ status:'ok' });
+            } finally {
+                await conversation.destroy();
+                conversation.$free();
+            }
         }
     }).catch(next);
 });
@@ -134,14 +164,19 @@ router.post('/vote/:vote', (req, res, next) => {
 router.post('/comment', iv.validatePOST({ comment: 'string', id: 'string' }), (req, res, next) => {
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine(req.user!.id);
-        return engine.getConversation(req.body.id);
+        return engine.getRecordingController(req.body.id, { anonymous: false, showWelcome: true });
     }).then(async (conversation) => {
         if (!conversation) {
             res.status(404);
             return res.json({ error: 'No conversation found' });
         } else {
-            await conversation.commentLast(req.body.comment);
-            return res.json({ status:'ok' });
+            try {
+                await conversation.commentLast(req.body.comment);
+                return res.json({ status:'ok' });
+            } finally {
+                await conversation.destroy();
+                conversation.$free();
+            }
         }
     }).catch(next);
 });
@@ -149,20 +184,25 @@ router.post('/comment', iv.validatePOST({ comment: 'string', id: 'string' }), (r
 router.get<Record<string, string>>('/log/:id.txt', (req, res, next) => {
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine(req.user!.id);
-        return engine.getConversation(req.params.id);
+        return engine.getRecordingController(req.params.id, { anonymous: false, showWelcome: true });
     }).then(async (conversation) => {
         if (!conversation) {
             res.status(404);
             res.json({ error: 'No conversation found' });
         } else {
-            const log = await conversation.readLog();
-            if (!log) {
-                res.status(404);
-                res.json({ error: 'No conversation log found' });
-            } else {
-                res.set('Content-Type', 'text/plain');
-                res.set('Content-Disposition', `attachment; filename="log-${req.params.id}.txt"`);
-                res.send(log);
+            try {
+                const log = await conversation.readLog();
+                if (!log) {
+                    res.status(404);
+                    res.json({ error: 'No conversation log found' });
+                } else {
+                    res.set('Content-Type', 'text/plain');
+                    res.set('Content-Disposition', `attachment; filename="log-${req.params.id}.txt"`);
+                    res.send(log);
+                }
+            } finally {
+                await conversation.destroy();
+                conversation.$free();
             }
         }
     }).catch(next);
@@ -171,21 +211,26 @@ router.get<Record<string, string>>('/log/:id.txt', (req, res, next) => {
 router.get('/log/:id', (req, res, next) => {
     Promise.resolve().then(async () => {
         const engine = await EngineManager.get().getEngine(req.user!.id);
-        return engine.getConversation(req.params.id);
+        return engine.getRecordingController(req.params.id, { anonymous: false, showWelcome: true });
     }).then(async (conversation) => {
         if (!conversation) {
             res.status(404);
             res.json({ status : 'not found' });
         } else {
-            const log = await conversation.readLog();
-            if (!log) {
-                res.status(404);
-                res.json({ status: 'not found' });
-            } else {
-                res.json({
-                    status: 'ok',
-                    log: log
-                });
+            try {
+                const log = await conversation.readLog();
+                if (!log) {
+                    res.status(404);
+                    res.json({ status: 'not found' });
+                } else {
+                    res.json({
+                        status: 'ok',
+                        log: log
+                    });
+                }
+            } finally {
+                await conversation.destroy();
+                conversation.$free();
             }
         }
     }).catch(next);
