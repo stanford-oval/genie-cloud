@@ -96,7 +96,7 @@
     "passport-totp": "^0.0.2",
     "prom-client": "^14.0.1",
     "pug": "^3.0.2",
-    "redis": "^4.0.0-rc.4",
+    "redis": "^4.0.0",
     "rss": "^1.2.2",
     "sanitize-filename": "^1.6.2",
     "seedrandom": "^3.0.0",
