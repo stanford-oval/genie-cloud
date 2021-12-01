@@ -73,7 +73,7 @@
     "markdown-it-anchor": "^8.4.1",
     "markdown-it-container-pandoc": "^1.0.0",
     "markdown-it-footnote": "^3.0.3",
-    "markdown-it-table-of-contents": "^0.5.2",
+    "markdown-it-table-of-contents": "^0.6.0",
     "microsoft-cognitiveservices-speech-sdk": "^1.19.0",
     "mmap-io": "^1.1.7",
     "moment-timezone": "^0.5.34",
