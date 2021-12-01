@@ -20,6 +20,16 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+type SearchParams struct {
+	Filter [](struct {
+		Key      string      `json:"k"`
+		Operator string      `json:"o"`
+		Value    interface{} `json:"v"`
+	}) `json:"filter"`
+	Sort  []string `json:"sort"`
+	Limit int      `json:"limit"`
+}
+
 // LocalTable provides a simple access to database tables
 type LocalTable struct {
 	db *gorm.DB
@@ -37,7 +47,18 @@ func (t *LocalTable) GetAll(rows interface{}, userID int64) error {
 
 // GetAll returns all rows in the table.
 func (t *LocalTable) GetByField(rows interface{}, userID int64, field string, value string) error {
-	return t.db.Where("userId = ? and "+field+" = ?", userID, value).Find(rows).Error
+	return t.db.Where(map[string]interface{}{"userId": userID, field: value}).Find(rows).Error
+}
+
+// Search returns all rows in the table according to a search expression
+func (t *LocalTable) Search(rows interface{}, userID int64, params SearchParams) error {
+	db := t.db.Where("userId = ?", userID)
+
+	for i := 0; i < len(params.Filter); i++ {
+		db = db.Where(params.Filter[i].Key+" "+params.Filter[i].Operator+" ?", params.Filter[i].Value)
+	}
+
+	return db.Order(params.Sort[0] + " " + params.Sort[1]).Limit(params.Limit).Find(rows).Error
 }
 
 // GetOne returns one row in the table. Row key is expected to be set.

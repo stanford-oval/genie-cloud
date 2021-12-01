@@ -61,6 +61,7 @@ func init() {
 	registerRow(&UserConversation{})
 	registerRow(&UserPreference{})
 	registerRow(&UserConversationState{})
+	registerRow(&UserConversationHistory{})
 
 	syncRows = make(map[string]SyncRow)
 	registerSyncRow(&UserDevice{})
