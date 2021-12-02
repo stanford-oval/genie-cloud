@@ -13,40 +13,40 @@
 // limitations under the License.
 package sql
 
-// UserConversationState table
-type UserConversationState struct {
+// UserConversationHistory table
+type UserConversationHistory struct {
 	Key
-	DialogueState string `json:"dialogueState" gorm:"column:dialogueState"`
-	LastMessageId int    `json:"lastMessageId" gorm:"column:lastMessageId"`
-	Recording     bool   `json:"recording" gorm:"column:recording"`
+	ConversationId string `json:"conversationId" gorm:"column:conversationId"`
+	MessageId      int    `json:"messageId" gorm:"column:messageId"`
+	Message        string `json:"message" gorm:"column:message"`
 }
 
-// TableName overrides table name to `user_conversation_state`
-func (*UserConversationState) TableName() string {
-	return "user_conversation_state"
+// TableName overrides table name to `user_conversation_history`
+func (*UserConversationHistory) TableName() string {
+	return "user_conversation_history"
 }
 
 // NewRow returns a UserPreference row
-func (*UserConversationState) NewRow() Row {
-	return &UserConversationState{}
+func (*UserConversationHistory) NewRow() Row {
+	return &UserConversationHistory{}
 }
 
 // NewRows returns a slice of UserConversationState row
-func (*UserConversationState) NewRows() interface{} {
-	return &[]*UserConversationState{}
+func (*UserConversationHistory) NewRows() interface{} {
+	return &[]*UserConversationHistory{}
 }
 
 // SetKey sets the key of UserConversationState
-func (e *UserConversationState) SetKey(key Key) {
+func (e *UserConversationHistory) SetKey(key Key) {
 	e.Key = key
 }
 
 // GetKey returns the key of UserConversationState
-func (e *UserConversationState) GetKey() Key {
+func (e *UserConversationHistory) GetKey() Key {
 	return e.Key
 }
 
 // Fields returns column names excluding Key
-func (e *UserConversationState) Fields() []string {
-	return []string{"dialogueState", "lastMessageId", "recording"}
+func (e *UserConversationHistory) Fields() []string {
+	return []string{"conversationId", "messageId", "message"}
 }

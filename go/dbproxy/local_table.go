@@ -15,6 +15,8 @@ package dbproxy
 
 import (
 	"almond-cloud/sql"
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -35,6 +37,51 @@ func localTableGetAll(c *gin.Context) {
 	}
 	rows := m.NewRows()
 	if err := localTable.GetAll(rows, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"result": "ok", "data": rows})
+}
+
+func localTableSearch(c *gin.Context) {
+	localTable := sql.GetLocalTable()
+	m, ok := sql.NewRow(c.Param("name"))
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{"error": "table name not found"})
+		return
+	}
+	userID, err := parseUserID(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	fmt.Println("json search params", c.Param("search"))
+	var params sql.SearchParams
+	if json.Unmarshal([]byte(c.Param("search")), &params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	fmt.Println("loaded search params", params)
+	fmt.Println("fields", m.Fields())
+	for _, filter := range params.Filter {
+		if !contains(m.Fields(), filter.Key) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter field " + filter.Key})
+			return
+		}
+		if !contains([]string{"=", "<=", ">=", "<", ">"}, filter.Operator) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filter operator " + filter.Operator})
+			return
+		}
+	}
+	if len(params.Sort) != 2 || !contains(m.Fields(), params.Sort[0]) ||
+		(params.Sort[1] != "asc" && params.Sort[1] != "desc") {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid sort"})
+		return
+	}
+
+	rows := m.NewRows()
+	if err := localTable.Search(rows, userID, params); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

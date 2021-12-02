@@ -117,13 +117,23 @@ class RecordingController implements rpc.Stubbable {
         'endRecording',
         'inRecordingMode',
         'voteLast',
-        'commentLast'
+        'commentLast',
+        'destroy'
     ] as const;
     $free ?: () => void;
+    private _assistant : Genie.DialogueAgent.AssistantDispatcher;
     private _conversation : Genie.DialogueAgent.Conversation;
 
-    constructor(conversation : Genie.DialogueAgent.Conversation) {
+    constructor(assistant : Genie.DialogueAgent.AssistantDispatcher,
+                conversation : Genie.DialogueAgent.Conversation) {
+        this._assistant = assistant;
         this._conversation = conversation;
+    }
+
+    destroy() {
+        this._assistant.closeConversation(this._conversation.id);
+        if (this.$free)
+            this.$free();
     }
 
     async readLog() {
@@ -186,6 +196,13 @@ export class NotificationWrapper implements Genie.DialogueAgent.NotificationDele
     }
 }
 
+interface ConversationOptions {
+    anonymous ?: boolean;
+    showWelcome : boolean;
+    replayHistory ?: boolean;
+    syncDevices ?: boolean;
+}
+
 export default class Engine extends Genie.AssistantEngine implements rpc.Stubbable {
     $rpcMethods = [
         'getConsent',
@@ -194,7 +211,7 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
         'warnRecording',
         'recordingWarned',
 
-        'getConversation',
+        'getRecordingController',
         'ensureConversation',
         'getOrOpenConversation',
         'getOrOpenConversationWebSocket',
@@ -252,38 +269,39 @@ export default class Engine extends Genie.AssistantEngine implements rpc.Stubbab
         return this.assistant.converse(...args);
     }
 
-    getConversation(id : string) {
-        const conversation = this.assistant.getConversation(id);
-        if (!conversation)
-            return null;
-        return new RecordingController(conversation);
-    }
-
-    async ensureConversation(id : string, options : Genie.DialogueAgent.ConversationOptions,
-        initialState ?: Genie.DialogueAgent.ConversationState) : Promise<void> {
-        options.faqModels = PlatformModule.faqModels;
-        await this.assistant.getOrOpenConversation(id, options, initialState || undefined);
-    }
-
-    async getOrOpenConversation(id : string, delegate : rpc.Proxy<Genie.DialogueAgent.ConversationDelegate>,
-                                options : Genie.DialogueAgent.ConversationOptions & { replayHistory ?: boolean },
-                                initialState ?: Genie.DialogueAgent.ConversationState) {
+    private _getConversationOptions(options_ : ConversationOptions) {
+        const options : Genie.DialogueAgent.ConversationOptions = options_;
         options.faqModels = PlatformModule.faqModels;
         options.debug = process.env.GENIE_ENGINE_DEBUG !== "false";
         if (options.anonymous || process.env.NODE_ENV !=='production')
             options.log = true;
-        const conversation = await this.assistant.getOrOpenConversation(id, options, initialState || undefined);
+        return options;
+    }
+
+    async getRecordingController(id : string, options : ConversationOptions) {
+        const conversation = await this.assistant.getOrOpenConversation(id, this._getConversationOptions(options));
+        return new RecordingController(this.assistant, conversation);
+    }
+
+    async ensureConversation(id : string,
+                             options : ConversationOptions,
+                             initialState ?: Genie.DialogueAgent.ConversationState) : Promise<void> {
+        await this.assistant.getOrOpenConversation(id, this._getConversationOptions(options), initialState || undefined);
+    }
+
+    async getOrOpenConversation(id : string,
+                                delegate : rpc.Proxy<Genie.DialogueAgent.ConversationDelegate>,
+                                options : ConversationOptions,
+                                initialState ?: Genie.DialogueAgent.ConversationState) {
+        const conversation = await this.assistant.getOrOpenConversation(id, this._getConversationOptions(options), initialState || undefined);
         return new ConversationWrapper(conversation, delegate, options.replayHistory);
     }
 
-    async getOrOpenConversationWebSocket(id : string, delegate : rpc.Proxy<WebsocketDelegate>,
-        options : Genie.DialogueAgent.ConversationOptions & { replayHistory ?: boolean, syncDevices ?: boolean },
-        initialState ?: Genie.DialogueAgent.ConversationState) {
-        options.faqModels = PlatformModule.faqModels;
-        options.debug = process.env.GENIE_ENGINE_DEBUG !== "false";
-        if (options.anonymous || process.env.NODE_ENV !=='production')
-            options.log = true;
-        const conversation = await this.assistant.getOrOpenConversation(id, options, initialState || undefined);
+    async getOrOpenConversationWebSocket(id : string,
+                                         delegate : rpc.Proxy<WebsocketDelegate>,
+                                         options : ConversationOptions,
+                                         initialState ?: Genie.DialogueAgent.ConversationState) {
+        const conversation = await this.assistant.getOrOpenConversation(id, this._getConversationOptions(options), initialState || undefined);
         const wrapper = new WebSocketConnnectionWrapper(conversation, delegate, options.replayHistory, options.syncDevices);
         await wrapper.start();
         return wrapper;

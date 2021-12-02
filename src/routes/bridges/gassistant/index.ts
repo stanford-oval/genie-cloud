@@ -197,7 +197,7 @@ app.intent('actions.intent.MAIN', async (conv) => {
 
     const engine = await EngineManager.get().getEngine(user.id);
     await engine.getOrOpenConversation('google_assistant:' + conversationId,
-        delegate, { anonymous, showWelcome: true, debug: true });
+        delegate, { anonymous, showWelcome: true });
 
     await delegate.flush(conv);
 });
@@ -235,7 +235,7 @@ app.intent('actions.intent.TEXT', async (conv, input) => {
 
     const engine = await EngineManager.get().getEngine(user.id);
     const conversation = await engine.getOrOpenConversation('google_assistant:' + conversationId,
-        delegate, { anonymous, showWelcome: false, debug: true });
+        delegate, { anonymous, showWelcome: false });
 
     if (input.startsWith('\\t'))
         await conversation.handleThingTalk(input.substring(3));
