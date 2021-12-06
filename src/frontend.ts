@@ -173,7 +173,7 @@ class Frontend {
         });
         this._app.use(favicon(path.resolve(path.dirname(module.filename), '../public/images/favicon.ico')));
         this._app.use('/assets', express.static(path.resolve(path.dirname(module.filename), '../public'),
-                                                { maxAge: 86400000 }));
+                                                { maxAge: process.env.NODE_ENV === 'production' ? 86400000 : 0 }));
         codeStorage.initFrontend(this._app);
         this._app.use(cacheable());
         this._app.use(passport.initialize());

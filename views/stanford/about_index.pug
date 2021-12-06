@@ -38,12 +38,9 @@ block content
         div.row
           div.col-lg-12
             h1#almond-title
-              //img(src=Config.ASSET_CDN + '/images/logo.png',style='display:inline-block;padding-right:12px;height:1em;vertical-align:bottom')
+              img(src=Config.ASSET_CDN + '/images/logo.png',style='display:inline-block;padding-right:12px;height:1em;vertical-align:bottom')
               = _("Genie")
             h2#almond-subtitle= _("The Open, Privacy-Preserving Virtual Assistant")
-
-            p.text-center#almond-explanation-line
-              = _("Genie translates your commands into a personalized program.")
 
             if authenticated
               div.row
@@ -96,3 +93,10 @@ block content
             div.col-xs-12.col-md-10.col-md-offset-1
               p= _("Here is a sample of what Genie can do, and a few commands that our users and developers think are interesting. It is not an exhaustive list! Commands can combined in arbitrary ways, creating endless possibilities for your assistant.")
           include ../commandpedia.pug
+
+      section.divider
+        h3= _("Still Not Seeing What You Want?")
+        div.container
+          div.row
+            div.col-sm-6.col-md-4.col-md-offset-4.col-sm-offset-3
+              a(href='/thingpedia').btn.btn-primary.btn-block= _("Explore Thingpedia")

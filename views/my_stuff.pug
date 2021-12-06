@@ -67,7 +67,7 @@ block content
 
 
   if apps.length > 0
-    div.hidden-xs
+    div.my-stuff-collapsible.hidden-xs
       button.collapsible= _("Active Commands")
       div.command-list
         for app in apps
@@ -90,40 +90,9 @@ block content
                 p= _("This rule had an error: %s").format(app.error)
 
   if devices.length > 0
-    div.hidden-xs
+    div.my-stuff-collapsible.hidden-xs
       button.collapsible= _("Enabled Skills")
       +device_list(devices)
 
-  div.modal#recording-warning
-    div.modal-dialog
-      div.modal-content
-        div.modal-body
-          h4= _("Warning:")
-          p
-            = _("While recording is active, all your commands and all the replies from Genie will be stored ")
-            = _("and reviewed by the Stanford Genie Team.")
-        div.modal-footer
-          button.btn.btn-primary.new-msg-button#confirm-recording= _("Confirm")
-          button.btn.btn-default.new-msg-button#cancel-recording= _("Cancel")
-
-  div.hidden#toolbar
-    div.form-inline
-      div.rec_log.checkbox-inline
-        label(for='recording-toggle').control-label
-          input(type='checkbox')#recording-toggle
-          = _("Record conversation")
-      div.form-group.hidden#show-log
-        i.far.fa-save
-        span= _("Show recorded log")
-
-  div.modal#recording-save
-    div.modal-dialog
-      div.modal-content
-        div.modal-body
-          p= _("Conversation log updated.")
-          pre#recording-log
-        div.modal-footer
-          button.btn.btn-primary.new-msg-button#recording-download= _("Download")
-          button.btn.btn-default.new-msg-button#recording-save-done= _("Done")
-
-  +conversation_mixin('/me/ws/conversation')(class='single')
+  +conversation_recording_mixin()
+  +conversation_mixin('/me/ws/conversation')(class='single ' + (devices.length > 0 ? 'has-enabled-skills' : ''))

@@ -20,9 +20,15 @@
     overflow-y: scroll;
     height: -webkit-fill-available;
     padding: 20px 35px;
-    min-height: 566px;
-    height: calc(100vh - 385px);
+    min-height: 450px;
     overflow-anchor: none;
+}
+
+#conversation.single #chat {
+    height: calc(100vh - 425px);
+}
+#conversation.single.has-enabled-skills #chat {
+    height: calc(100vh - 490px);
 }
 
 #conversation .message-container {
@@ -88,20 +94,22 @@
 
 #conversation {
     overflow: hidden;
-    height: auto;
-    max-height: 500px;
     margin: auto;
     max-width: 800px;
     background-color: #ece5dd6b;
     font-weight: 400;
     font-size: 1.2em;
+    border: 1px solid #585858;
+    border-radius: 20px;
 }
 
 #conversation.single {
     max-height: 100%;
-    border-bottom-left-radius: 20px;
-    border-bottom-right-radius: 20px;
-    border: 1px solid #585858;
+}
+
+#toolbar ~ #conversation {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
     border-top: 0;
 }
 
@@ -142,16 +150,16 @@
     overflow: hidden;
 }
 
-#conversation #toolbar {
+#toolbar {
     margin: auto;
     max-width: 800px;
 }
 
-#conversation #toolbar i {
+#toolbar i {
     padding: 3px;
 }
 
-#conversation #save-log {
+#save-log {
     padding-left: 10px;
     cursor: pointer;
     width: 50%;
@@ -259,12 +267,15 @@
     background-color: unset;
 }
 
-#conversation .form-inline {
+#toolbar .form-inline {
+    background-color: #d8d8d8;
+    color: #000;
     line-height: 2.2em;
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;
     text-align: right;
     padding-right: 15px;
+    border: 1px solid #585858;
     border-bottom: 0;
 }
 

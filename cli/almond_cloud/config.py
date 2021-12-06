@@ -1,4 +1,5 @@
 from pathlib import Path
+import shutil
 
 from clavier import CFG, io
 
@@ -6,7 +7,14 @@ __all__ = ["CONFIG"]
 
 with CFG.configure("almond_cloud", src=__file__) as pkg:
     pkg.name = "almond-cloud"
+
     pkg.root = Path(__file__).resolve().parents[2]
+    if shutil.which('kind'):
+        # inside kind, the true host directory is mounted to /host in the kind node container
+        # (which is the host for the k8s pods)
+        pkg.cluster_root = Path('/host')
+    else:
+        pkg.cluster_root = pkg.root
 
     with pkg.configure("log") as log:
         log.level = "INFO"

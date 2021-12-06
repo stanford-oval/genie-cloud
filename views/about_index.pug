@@ -43,7 +43,8 @@ block content
       div.container
         if authenticated
           div.row
-            div.col-lg-6.col-lg-offset-3
+            div
+              +conversation_recording_mixin()
               +conversation_mixin('/me/ws/conversation')(class='')
         else if ENABLE_ANONYMOUS_USER
           div.row#try-almond-now-row
@@ -51,7 +52,7 @@ block content
               button.btn.btn-primary.btn-block.call-to-action#try-almond-now= _("Try Genie Now")
 
           div.row.hidden#try-almond-now-conversation
-            div.col-lg-6.col-lg-offset-3
+            div
               +conversation_mixin('/me/ws/anonymous?locale=' + locale)(class='')
 
         else

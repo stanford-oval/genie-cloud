@@ -36,6 +36,7 @@ rm -f $srcdir/secret_config.js
 mkdir -p $workdir/etc/config.d
 export THINGENGINE_CONFIGDIR=$workdir/etc
 PORT=${PORT:-8080}
+cp ${srcdir}/stanford/config.js ${THINGENGINE_CONFIGDIR}/config.d/stanford.js
 cat > ${THINGENGINE_CONFIGDIR}/config.d/99-local.yaml <<EOF
 DATABASE_URL: "mysql://thingengine:thingengine@localhost/thingengine_test"
 DATABASE_PROXY_URL: "http://127.0.0.1:8200"

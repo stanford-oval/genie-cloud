@@ -84,7 +84,7 @@ nav#doc-sidebar > ul > li > ul > li > ul > li > ul > li {
 
 
 nav#doc-sidebar li.current {
-  background-color: #8c1515;
+  background-color: rgb(44, 62, 80);
   color: white;
 }
 nav#doc-sidebar a:hover {

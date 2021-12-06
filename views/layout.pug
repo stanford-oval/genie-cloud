@@ -30,17 +30,17 @@ html
        data-voice-server-url=Config.VOICE_SERVER_URL,
        data-cloud-id=authenticated ? user.cloud_id : null,
        data-csrf-token=csrfToken)
-    nav.navbar-inverse.navbar.navbar-fixed-top(role="banner")
+    nav.navbar-default.navbar.navbar-fixed-top(role="banner")
       div.navbar-header
         button(class="navbar-toggle collapsed", data-toggle="collapse", data-target="#page-nav")
           span.sr-only= _("Toggle navigation")
           span.icon-bar
           span.icon-bar
           span.icon-bar
-        a.navbar-brand.scroller.hidden-xs.hidden-sm(href='/')
+        a.navbar-brand.hidden-xs.hidden-sm(href='/')
           //img.logo_top(src=Config.ASSET_CDN + '/images/almond.png')
           span= _("Genie")
-        span.navbar-brand.scroller.hidden-md.hidden-lg(aria-hidden='true')
+        span.navbar-brand.hidden-md.hidden-lg(aria-hidden='true')
           block page_name
 
       div.navbar-collapse.collapse(role="navigation")#page-nav
@@ -60,7 +60,4 @@ html
 
     if includefooter
       footer.page-footer.hidden-xs.hidden-sm
-        if Config.USE_BRAND == 'stanford'
-          include stanford/footer.pug
-        else
-          include footer.pug
+        include footer.pug

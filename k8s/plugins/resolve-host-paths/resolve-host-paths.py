@@ -27,7 +27,8 @@ def transform_item(item):
     ):
         if path := dig(volume, "hostPath", "path"):
             if path.startswith("//"):
-                volume["hostPath"]["path"] = str(CONFIG.root / path[2:])
+                volume["hostPath"]["path"] = str(
+                    CONFIG.cluster_root / path[2:])
     return item
 
 

@@ -2,7 +2,31 @@ div.container
   div.row
     div.col-xs-12
       p
-        small!= _("Genie is part of a research project of the <a href='https://mobisocial.stanford.edu'>Mobisocial Computing Laboratory</a> at Stanford University.")
+        small!= _("Genie is part of a research project of the <a href='https://oval.cs.stanford.edu'>Open Virtual Assistant Lab</a> at Stanford University.")
+      //-p
+        small
+          != _("Genie is free software, distributed under the <a href='https://opensource.org/licenses/Apache-2.0'>Apache license, version 2.0</a>.")
       p
         small
-          != _("Genie is free software, distributed under the <a href='https://www.gnu.org/licenses/gpl-3.0-standalone.html'>GPLv3 license</a>. ")
+          a(href='/about/tos')= _("Terms of Service")
+          |  -
+          |
+          a(href='/about/privacy')= _("Privacy Policy")
+          if Config.USE_BRAND === 'stanford'
+            |  -
+            |
+            span.footer-icons
+              a(href='https://twitter.com/StanfordOVAL').social-icon
+                img(src=Config.ASSET_CDN + '/images/symbolic-logo-twitter.svg', title=_("Connect with us on Twitter"))
+              span.social-icon-spacer(role='presentation')
+              a(href='https://discord.gg/anthtR4').social-icon
+                img(src=Config.ASSET_CDN + '/images/symbolic-logo-discord.svg', title=_("Join us on Discord"))
+              span.social-icon-spacer(role='presentation')
+              a(href='https://community.almond.stanford.edu/').social-icon
+                img(src=Config.ASSET_CDN + '/images/symbolic-logo-community.svg', title=_("Join our Community"))
+              span.social-icon-spacer(role='presentation')
+              a(href='https://github.com/stanford-oval').social-icon
+                img(src=Config.ASSET_CDN + '/images/symbolic-logo-github.svg', title=_("Fork me on GitHub"))
+              span.social-icon-spacer(role='presentation')
+              a(href='mailto:thingpedia-admins@lists.stanford.edu').social-icon
+                img(src=Config.ASSET_CDN + '/images/symbolic-logo-email.svg', title=_("Contact us via email"))

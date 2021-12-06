@@ -1,3 +1,100 @@
+
+#almond-index-container {
+    padding-top: 3em;
+}
+
+#almond-index-container #chat {
+    background-color: #ece5ddb3;
+    margin: 1px 0em;
+    overflow-y: scroll;
+    height: -webkit-fill-available;
+    padding: 20px 35px;
+    height: 730px !important;
+}
+
+#almond-index-container .message.from-user {
+    display: block;
+    width: 90%;
+    text-align: right;
+    margin-left: auto;
+    background-color: #DCF8C6;
+    border-radius: 10px;
+    padding: 13px 24px 12px 24px;
+    margin-bottom: 10px;
+    border: solid 0.1px #00ff2c1f;
+}
+
+#almond-index-container .from-almond>.message {
+    display: block;
+    overflow: auto;
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 13px 24px 12px 24px;
+    margin-bottom: 10px;
+    border: solid 0.1px #f129291f;
+}
+
+#almond-index-container #almond-title {
+    padding-top: 80px;
+}
+
+@media screen and (min-width: 769x) {
+    #almond-index-container #almond-title {
+        font-size: 125px;
+    }
+    body {
+        width: 99%;
+    }
+}
+
+#almond-index-container #try-almond-now,
+#almond-index-container .call-to-action {
+    margin: 65px 0px 0px;
+}
+
+#almond-index-container #input-form {
+    overflow: auto;
+}
+
+#almond-index-container #cancel {
+    float: right;
+    display: block;
+    font-size: 35px;
+    padding-top: 5px;
+    cursor: pointer;
+    color: #fff;
+}
+
+#almond-index-container .message-container {
+    display: block;
+    overflow: auto;
+    clear: both;
+}
+
+#almond-index-container .message-container>img.icon {
+    height: 40px;
+    width: 40px;
+    object-fit: contain;
+    padding-right: 12px;
+    float: left;
+}
+
+#almond-index-container .message-container.from-almond {
+    width: 90%;
+    text-align: left;
+    margin-right: auto;
+}
+
+#almond-index-container #conversation.home {
+    max-height: 100%;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border: 1px solid #585858;
+    margin-top: 15px;
+}
+
 #almond-index-carousel .item {
     height: 720px;
     top: 0;
@@ -718,7 +815,6 @@
 #almond-manifesto>h3,
 #home-page-sections .divider>h3 {
     font-size: 48px;
-    color: #8c1515;
     font-weight: bold;
 }
 
@@ -732,7 +828,6 @@
 
 #almond-manifesto h4 {
     font-size: 24px;
-    color: #8c1515;
     font-weight: bold;
 }
 
@@ -769,10 +864,11 @@
     width: 30%;
 }
 
+/*
 #almond-manifesto .col-md-6 {
-    /*border: 1px solid black;
-  border-radius: 10px;*/
-}
+    border: 1px solid black;
+  border-radius: 10px;
+}*/
 
 h2#almond-subtitle {
     margin-bottom: 0.5em !important;
@@ -795,7 +891,6 @@ h2#almond-subtitle {
 #almond-explanation-line {
     text-align: center;
     font-size: 24px;
-    color: #8c1515;
 }
 
 .marketing-video>p {
