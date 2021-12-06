@@ -13,8 +13,9 @@ addons:
   mariadb: '10.2'
 cache:
   timeout: 900
-  npm: true
-  pip: true
+  directories:
+  - $HOME/.npm
+  - $HOME/.cache/pip
 services:
   - docker
 before_install:
