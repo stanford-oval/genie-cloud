@@ -39,7 +39,7 @@
     "actions-on-google": "^3.0.0",
     "argparse": "^2.0.0",
     "asn1.js": "^5.4.1",
-    "aws-sdk": "^2.1040.0",
+    "aws-sdk": "^2.1043.0",
     "body-parser": "^1.18.3",
     "cacheable-middleware": "^1.0.0",
     "color-scheme": "^1.0.0",
@@ -105,7 +105,7 @@
     "smtlib": "^1.0.0",
     "sockaddr": "^1.0.0",
     "tar": "^6.1.11",
-    "thingpedia": "^2.10.0-alpha.5",
+    "thingpedia": "^2.10.0-alpha.6",
     "thingtalk": "~2.1.0-alpha.10",
     "thirty-two": "^1.0.2",
     "tmp-promise": "^3.0.3",
@@ -115,7 +115,7 @@
     "xmlbuilder": "^15.1.0"
   },
   "devDependencies": {
-    "@istanbuljs/nyc-config-typescript": "^1.0.1",
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@types/argparse": "^2.0.10",
     "@types/body-parser": "^1.19.2",
     "@types/connect-flash": "0.0.37",
