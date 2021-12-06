@@ -116,7 +116,7 @@ async function testRegister(charlie) {
     }, charlie);
 
     // check that now we're registered
-    await util.promisify(setTimeout)(45000);
+    await util.promisify(setTimeout)(60000);
     const result = minidom.parse(await sessionRequest('/user/profile', 'GET', null, charlie));
 
     let found = false;
