@@ -278,7 +278,7 @@ function checkExamples(generated, expected) {
 
 async function testGetExamplesByDevice() {
     const BING_EXAMPLES = 10;
-    const BUILTIN_EXAMPLES = 52;
+    const BUILTIN_EXAMPLES = 54;
     const INVISIBLE_EXAMPLES = 1;
 
     checkExamples(await ttRequest('/examples/by-kinds/com.bing'), BING_EXAMPLES);
@@ -410,7 +410,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 380,
+      "id": 399,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me images from bing matching ____ larger than ____ x ____",
@@ -442,7 +442,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 347,
+      "id": 366,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me texts i received in the last hour",
@@ -474,7 +474,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 354,
+      "id": 373,
       "language": "en",
       "type": "thingpedia",
       "utterance": "call somebody",
@@ -490,12 +490,12 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 197,
+      "id": 204,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "How are u feeling today?",
-      "preprocessed": "how are u feeling today ?",
-      "target_code": "program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_how_are_you);",
+      "utterance": "Why should I care about you?",
+      "preprocessed": "why should i care about you ?",
+      "target_code": "program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_motivation);",
       "click_count": 1,
       "like_count": 0,
       "liked": false,
@@ -510,16 +510,16 @@ async function testGetCommands() {
        devices: [
          'org.thingpedia.builtin.thingengine.builtin'
        ],
-       id: 266,
+       id: 197,
        is_base: 1,
        language: 'en',
        like_count: 0,
        liked: false,
        owner_name: 'Site Administration',
-       preprocessed: 'kill yourself',
-       target_code: 'program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum abusive);',
+       preprocessed: 'how are u feeling today ?',
+       target_code: 'program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_how_are_you);',
        type: 'thingpedia',
-       utterance: 'Kill yourself'
+       utterance: 'How are u feeling today?'
     }
   ];
 
@@ -565,7 +565,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 310,
+      "id": 329,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop",
@@ -580,7 +580,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 287,
+      "id": 306,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me screenshot of my laptop",
@@ -595,7 +595,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 285,
+      "id": 304,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me laptop screenshot",
@@ -610,7 +610,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 309,
+      "id": 328,
       "language": "en",
       "type": "thingpedia",
       "utterance": "turn ____ my laptop",
@@ -625,7 +625,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 297,
+      "id": 316,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete a file from my laptop",
@@ -640,7 +640,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 316,
+      "id": 335,
       "language": "en",
       "type": "thingpedia",
       "utterance": "use ____ as the background of my laptop",
@@ -655,7 +655,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 318,
+      "id": 337,
       "language": "en",
       "type": "thingpedia",
       "utterance": "save a screenshot of my laptop",
@@ -670,7 +670,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 291,
+      "id": 310,
       "language": "en",
       "type": "thingpedia",
       "utterance": "lock my laptop",
@@ -685,7 +685,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 315,
+      "id": 334,
       "language": "en",
       "type": "thingpedia",
       "utterance": "set the background of my laptop to ____",
@@ -700,7 +700,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 314,
+      "id": 333,
       "language": "en",
       "type": "thingpedia",
       "utterance": "change the background on my laptop",
@@ -715,7 +715,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 311,
+      "id": 330,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop containing ____",
@@ -730,7 +730,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 302,
+      "id": 321,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open ____ on my laptop",
@@ -745,7 +745,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 313,
+      "id": 332,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete the file named ____ from my laptop",
@@ -760,7 +760,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 317,
+      "id": 336,
       "language": "en",
       "type": "thingpedia",
       "utterance": "take a screenshot of my laptop",
@@ -775,7 +775,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 306,
+      "id": 325,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open ____ with ____ on my laptop",
@@ -790,7 +790,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 295,
+      "id": 314,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create file on laptop",
@@ -805,7 +805,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 312,
+      "id": 331,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete ____ from my laptop",
@@ -820,7 +820,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 293,
+      "id": 312,
       "language": "en",
       "type": "thingpedia",
       "utterance": "activate the lock screen on my laptop",
@@ -835,7 +835,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 294,
+      "id": 313,
       "language": "en",
       "type": "thingpedia",
       "utterance": "set laptop power",

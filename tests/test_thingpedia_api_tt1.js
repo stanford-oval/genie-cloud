@@ -254,7 +254,7 @@ async function testGetMetadata() {
 }
 
 function checkExamples(generated, expected) {
-    console.log(generated);
+    //console.log(generated);
     const parsed = ThingTalk.Syntax.parse(generated, ThingTalk.Syntax.SyntaxType.Legacy);
     assert.strictEqual(parsed.datasets.length, 1);
     const dataset = parsed.datasets[0];
