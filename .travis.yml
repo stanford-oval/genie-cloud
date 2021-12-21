@@ -90,6 +90,7 @@ jobs:
       install:
       - nvm install 12
       - pyenv global 3.8.1
+      - virtualenv --py $(pyenv which python3) venv && . ./venv/bin/activate
       - ./travis/install-webalmond-deps.sh
       - travis_retry npm ci
       - ./tests/install-nlp-deps.sh
