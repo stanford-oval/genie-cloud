@@ -278,7 +278,7 @@ function checkExamples(generated, expected) {
 
 async function testGetExamplesByDevice() {
     const BING_EXAMPLES = 10;
-    const BUILTIN_EXAMPLES = 54;
+    const BUILTIN_EXAMPLES = 65;
     const INVISIBLE_EXAMPLES = 1;
 
     checkExamples(await ttRequest('/examples/by-kinds/com.bing'), BING_EXAMPLES);
@@ -394,7 +394,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 85,
+      "id": 93,
       "language": "en",
       "type": "thingpedia",
       "utterance": "change the wake word",
@@ -410,7 +410,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 399,
+      "id": 464,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me images from bing matching ____ larger than ____ x ____",
@@ -426,7 +426,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 143,
+      "id": 160,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open the file at ____",
@@ -442,7 +442,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 366,
+      "id": 431,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me texts i received in the last hour",
@@ -474,7 +474,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 373,
+      "id": 438,
       "language": "en",
       "type": "thingpedia",
       "utterance": "call somebody",
@@ -490,7 +490,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 204,
+      "id": 222,
       "language": "en",
       "type": "thingpedia",
       "utterance": "Why should I care about you?",
@@ -510,7 +510,7 @@ async function testGetCommands() {
        devices: [
          'org.thingpedia.builtin.thingengine.builtin'
        ],
-       id: 197,
+       id: 215,
        is_base: 1,
        language: 'en',
        like_count: 0,
@@ -565,7 +565,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 329,
+      "id": 394,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop",
@@ -580,7 +580,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 306,
+      "id": 371,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me screenshot of my laptop",
@@ -595,7 +595,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 304,
+      "id": 369,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me laptop screenshot",
@@ -610,7 +610,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 328,
+      "id": 393,
       "language": "en",
       "type": "thingpedia",
       "utterance": "turn ____ my laptop",
@@ -625,7 +625,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 316,
+      "id": 381,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete a file from my laptop",
@@ -640,7 +640,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 335,
+      "id": 400,
       "language": "en",
       "type": "thingpedia",
       "utterance": "use ____ as the background of my laptop",
@@ -655,7 +655,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 337,
+      "id": 402,
       "language": "en",
       "type": "thingpedia",
       "utterance": "save a screenshot of my laptop",
@@ -670,7 +670,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 310,
+      "id": 375,
       "language": "en",
       "type": "thingpedia",
       "utterance": "lock my laptop",
@@ -685,7 +685,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 334,
+      "id": 399,
       "language": "en",
       "type": "thingpedia",
       "utterance": "set the background of my laptop to ____",
@@ -700,7 +700,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 333,
+      "id": 398,
       "language": "en",
       "type": "thingpedia",
       "utterance": "change the background on my laptop",
@@ -715,7 +715,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 330,
+      "id": 395,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop containing ____",
@@ -730,7 +730,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 321,
+      "id": 386,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open ____ on my laptop",
@@ -745,7 +745,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 332,
+      "id": 397,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete the file named ____ from my laptop",
@@ -760,7 +760,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 336,
+      "id": 401,
       "language": "en",
       "type": "thingpedia",
       "utterance": "take a screenshot of my laptop",
@@ -775,7 +775,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 325,
+      "id": 390,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open ____ with ____ on my laptop",
@@ -790,7 +790,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 314,
+      "id": 379,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create file on laptop",
@@ -805,7 +805,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 331,
+      "id": 396,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete ____ from my laptop",
@@ -820,7 +820,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 312,
+      "id": 377,
       "language": "en",
       "type": "thingpedia",
       "utterance": "activate the lock screen on my laptop",
@@ -835,7 +835,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 313,
+      "id": 378,
       "language": "en",
       "type": "thingpedia",
       "utterance": "set laptop power",
@@ -1334,6 +1334,12 @@ const ENTITIES = {"result":"ok",
     },{
         "type":"tt:device",
         "name":"Device Name",
+        "is_well_known":1,
+        "has_ner_support":0,
+        "subtype_of": []
+    },{
+        "type":"tt:device_id",
+        "name":"Device Unique Identifier",
         "is_well_known":1,
         "has_ner_support":0,
         "subtype_of": []

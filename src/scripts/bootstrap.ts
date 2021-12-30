@@ -131,6 +131,7 @@ async function importStandardEntities(dbClient : db.Client) {
         'tt:contact': 'Contact Identity',
         'tt:contact_name': 'Contact Name',
         'tt:device': 'Device Name',
+        'tt:device_id': 'Device Unique Identifier',
         'tt:email_address': 'Email Address',
         'tt:flow_token': 'Flow Identifier',
         'tt:function': 'Function Name',

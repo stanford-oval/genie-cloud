@@ -63,6 +63,6 @@ shuf exact.tsv | head
 
 sha256sum exact.tsv ./exact/en.btrie
 sha256sum -c <<EOF
-9d5b7336274b3819ed8ddd9a5337d6a3ed68341203b0ef38e02cee3a58da46a9  exact.tsv
-08536e3b2258b6e1c9aaa3784048f1fe0768ebbd8339dd3d1477b8360dd1f170  ./exact/en.btrie
+4d71ea7f99eb373dc4978aeca3a4c72ddbaa707a0c447dec8922387c59a23bad  exact.tsv
+1f9312aab346181ce38fa7ce0a79288bd2692545517fec78a31772e354c5ed2e  ./exact/en.btrie
 EOF

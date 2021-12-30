@@ -30,6 +30,6 @@ block content
 
     div.form-group
       label.control-label(for='twofa-code')= _("OTP Code")
-      input(type='password', name='code', minlength=6, maxlength=6, required=true).form-control#twofa-code
+      input(type='text', name='code', minlength=6, maxlength=6, required=true).form-control#twofa-code
 
     button(type='submit').btn.btn-success= _("Enable Two-Factor Authentication")

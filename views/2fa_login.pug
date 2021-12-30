@@ -15,7 +15,7 @@ block content
     input(type='hidden',name='_csrf',value=csrfToken)
     div.form-group
       label(for='twofa-code').control-label= _("OTP")
-      input(type='password',name='code').form-control#twofa-code
+      input(type='text',name='code').form-control#twofa-code
     div.form-group
       div.checkbox
         label
