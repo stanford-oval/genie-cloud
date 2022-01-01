@@ -53,7 +53,7 @@
     "escape-html": "^1.0.3",
     "express": "^4.17.2",
     "express-mysql-session": "^2.1.7",
-    "express-rate-limit": "^5.5.1",
+    "express-rate-limit": "^6.0.3",
     "express-session": "^1.17.2",
     "express-ws": "^5.0.2",
     "express-xml-bodyparser": "^0.3.0",
