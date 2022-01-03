@@ -119,10 +119,12 @@ export default class EngineManagerClientK8s extends events.EventEmitter {
             deleted = true;
 
         };
+        ws.on('error', () => {
+            onError();
+        });
         ws.on('close', () => {
             onError();
         });
-
 
         rpcSocket.on('close', () => {
             onError();
