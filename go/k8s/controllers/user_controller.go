@@ -111,8 +111,6 @@ const kDefaultCacheDuration = 2 * time.Hour
 
 type dbQueryFunc func(db *gorm.DB, userID int64) (interface{}, error)
 
-const kTrustedDeveloper int = 8
-
 // NewUserReconciler initializes UserReconciler and reads template files from configDir.
 func NewUserReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, almondConfig *config.AlmondConfig, configDir string) *UserReconciler {
 	r := &UserReconciler{
@@ -150,19 +148,19 @@ func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	defer cancel()
 
 	var (
-		err              error
-		userID           int64
-		trustedDeveloper bool
-		user             *backendv1.User
-		stop             bool
-		result           ctrl.Result
-		currentStatus    backendv1.UserStatus
+		err           error
+		userID        int64
+		developer     bool
+		user          *backendv1.User
+		stop          bool
+		result        ctrl.Result
+		currentStatus backendv1.UserStatus
 	)
 
 	defer func() {
 		if user != nil {
 			if len(user.Spec.Mode) == 0 {
-				if r.almondConfig.EnableDeveloperBackend && trustedDeveloper {
+				if r.almondConfig.EnableDeveloperBackend && developer {
 					user.Spec.Mode = "developer"
 				} else {
 					user.Spec.Mode = "shared"
@@ -180,12 +178,12 @@ func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		r.Log.Info("--- end ---")
 	}()
 
-	userID, trustedDeveloper, err = r.getUserFromName(req.Name)
+	userID, developer, err = r.getUserFromName(req.Name)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
-	if r.almondConfig.EnableDeveloperBackend && trustedDeveloper {
+	if r.almondConfig.EnableDeveloperBackend && developer {
 		user, currentStatus, stop, result, err = r.handleDeveloper(ctx, req, userID)
 	} else {
 		user, currentStatus, stop, result, err = r.handleSharedUser(ctx, req, userID)
@@ -222,7 +220,7 @@ func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
 }
 
-func (r *UserReconciler) getUserFromName(name string) (uid int64, trustedDeveloper bool, err error) {
+func (r *UserReconciler) getUserFromName(name string) (uid int64, developer bool, err error) {
 	uid, err = strconv.ParseInt(strings.TrimPrefix(name, "user-"), 10, 64)
 	if err != nil {
 		return
@@ -232,8 +230,8 @@ func (r *UserReconciler) getUserFromName(name string) (uid int64, trustedDevelop
 		return
 	}
 	user := v.(*sql.User)
-	if user.Roles&kTrustedDeveloper != 0 {
-		trustedDeveloper = true
+	if user.DeveloperOrg != nil {
+		developer = true
 	}
 	return
 }

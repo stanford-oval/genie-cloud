@@ -43,7 +43,7 @@ type User struct {
 	Roles               int       `json:"roles"                   gorm:"column:roles"`
 	AssistantFeedId     *string   `json:"assistant_feed_id"       gorm:"column:assistant_feed_id"`
 	DeveloperStatus     int       `json:"developer_status"        gorm:"column:developer_status"`
-	DeveloperOrg        int       `json:"developer_org"           gorm:"column:developer_org"`
+	DeveloperOrg        *int      `json:"developer_org"           gorm:"column:developer_org"`
 	ForceSparateProcess int       `json:"force_separate_process"  gorm:"column:force_separate_process"`
 	RegistrationTime    time.Time `json:"registration_time"       gorm:"column:registration_time"`
 	LastlogTime         time.Time `json:"lastlog_time"            gorm:"column:lastlog_time"`
