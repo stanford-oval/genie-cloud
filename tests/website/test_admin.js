@@ -80,6 +80,9 @@ async function testAdminKillRestart(root, bob, nobody) {
     assert(!await emc.isRunning(4)); // david
     assert(!await emc.isRunning(5)); // emma -or- alexa_user
 
+    // wait for the controller to destroy all containers and reset
+    if (emc.isK8s())
+        await sleep(30000);
 
     await assertLoginRequired(sessionRequest('/admin/users/start/1', 'POST', '', nobody));
     await assertRedirect(sessionRequest('/admin/users/start/1', 'POST', '', root, { followRedirects: false }), '/admin/users/search?q=1');
