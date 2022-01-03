@@ -141,7 +141,7 @@
     "@types/node": "^15.14.9",
     "@types/nodemailer": "^6.4.4",
     "@types/notp": "^2.0.1",
-    "@types/oauth2orize": "^1.8.9",
+    "@types/oauth2orize": "^1.8.10",
     "@types/on-finished": "^2.3.1",
     "@types/passport": "^1.0.7",
     "@types/passport-github": "^1.1.7",
