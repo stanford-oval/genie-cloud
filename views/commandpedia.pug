@@ -3,7 +3,7 @@ div#commandpedia
     form.navbar-form.navbar-left(action='', method='get')
       div.form-group
         input.form-control(type='text', name='q', placeholder=_("I want to find a command..."))
-      div.new-button.form-group
+      div.new-button.form-group 
         button.btn.btn-primary.blk-btn.search-button(type="submit")= _("Search")
         button.btn.btn-primary.blk-btn.reset-button= _("Reset")
         if authenticated
