@@ -33,7 +33,8 @@ type UserList = {
  * An api to manage kubernetes User custom resource.
  */
 export default class UserK8sApi {
-    static Running = "running";
+    static readonly Running = "running";
+    static readonly Stopped = "stopped";
 
     private api : k8s.CustomObjectsApi;
     private namespace : string;
@@ -57,7 +58,7 @@ export default class UserK8sApi {
             if (e.statusCode !== 404)
                 console.error(`Get user failed: ${JSON.stringify(e)}`);
         }
-       return null; 
+       return null;
     }
 
     // poll every half second until user is ready or timedout. Error is thrown if timedout.
@@ -72,7 +73,7 @@ export default class UserK8sApi {
         }
         throw new Error(`wait for user ${id} timedout`);
     }
-    
+
     async createUser(id : number) : Promise<boolean> {
         try {
             console.info(`creating user ${id}`);
@@ -80,7 +81,7 @@ export default class UserK8sApi {
                apiVersion: "backend.almond.stanford.edu/v1",
                kind: "User",
                metadata: {name: `user-${id}`},
-               spec: { id: id } 
+               spec: { id: id }
             };
             await this.api.createNamespacedCustomObject(
                 "backend.almond.stanford.edu",
@@ -91,13 +92,13 @@ export default class UserK8sApi {
             return true;
         } catch(e) {
             // User already exists
-            if (e.statusCode === 409) 
+            if (e.statusCode === 409)
                 return true;
             console.error(`create user failed: ${JSON.stringify(e)}`);
         }
        return false;
     }
-    
+
     async deleteUser(id : number) : Promise<boolean> {
         try {
             console.info(`deleting user ${id}`);

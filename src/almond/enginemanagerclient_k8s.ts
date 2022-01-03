@@ -44,8 +44,14 @@ interface CachedEngine {
 
 async function backendState(backendUrl : string, userId : number) : Promise<string> {
     const url = `${backendUrl}/engine-status?userid=${userId}`;
-    const resp = await Tp.Helpers.Http.get(url);
-    return JSON.parse(resp)["data"];
+    try {
+        const resp = await Tp.Helpers.Http.get(url);
+        return JSON.parse(resp)["data"];
+    } catch(e : any) {
+        if (e.code !== 'ECONNREFUSED' && e.code !== 'EHOSTUNREACH')
+            throw e;
+        return UserK8sApi.Stopped;
+    }
 }
 
 // poll every half second until engine is running or timedout. Error is thrown if timedout.
