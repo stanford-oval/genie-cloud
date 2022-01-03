@@ -57,7 +57,7 @@
     "express-session": "^1.17.2",
     "express-ws": "^5.0.2",
     "express-xml-bodyparser": "^0.3.0",
-    "genie-toolkit": "~0.9.0-rc.1",
+    "genie-toolkit": "~0.9.0",
     "gettext-parser": "^4.2.0",
     "gm": "^1.23.1",
     "highlight.js": "^11.3.1",
