@@ -101,7 +101,10 @@ async function testAdminKillRestart(root, bob, nobody) {
     await sessionRequest('/admin/users/start/4', 'POST', '', root);
     await sessionRequest('/admin/users/start/5', 'POST', '', root);
 
-    await sleep(5000);
+    if (emc.isK8s())
+        await sleep(30000);
+    else
+        await sleep(5000);
     assert(await emc.isRunning(2)); // anonymous
     assert(await emc.isRunning(3)); // bob
     assert(await emc.isRunning(4)); // david
