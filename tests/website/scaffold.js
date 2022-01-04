@@ -47,6 +47,7 @@ function request(url, method, data, options = {}) {
 }
 
 function sessionRequest(url, method, data, session, options = {}) {
+    console.log(`REQUEST: ${method} ${url}`);
     if (method === 'POST') {
         if (data instanceof FormData) {
             data.append('_csrf', session.csrfToken);

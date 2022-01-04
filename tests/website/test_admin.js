@@ -80,6 +80,9 @@ async function testAdminKillRestart(root, bob, nobody) {
     assert(!await emc.isRunning(4)); // david
     assert(!await emc.isRunning(5)); // emma -or- alexa_user
 
+    // wait for the controller to destroy all containers and reset
+    if (emc.isK8s())
+        await sleep(30000);
 
     await assertLoginRequired(sessionRequest('/admin/users/start/1', 'POST', '', nobody));
     await assertRedirect(sessionRequest('/admin/users/start/1', 'POST', '', root, { followRedirects: false }), '/admin/users/search?q=1');
@@ -101,7 +104,10 @@ async function testAdminKillRestart(root, bob, nobody) {
     await sessionRequest('/admin/users/start/4', 'POST', '', root);
     await sessionRequest('/admin/users/start/5', 'POST', '', root);
 
-    await sleep(5000);
+    if (emc.isK8s())
+        await sleep(50000);
+    else
+        await sleep(5000);
     assert(await emc.isRunning(2)); // anonymous
     assert(await emc.isRunning(3)); // bob
     assert(await emc.isRunning(4)); // david
@@ -117,7 +123,6 @@ async function testAdminKillRestart(root, bob, nobody) {
     assert(await emc.isRunning(4)); // david
     assert(await emc.isRunning(5)); // emma -or- alexa_user
 
-
     await sessionRequest('/admin/users/start/1', 'POST', '', root);
     if (emc.isK8s())
         await sleep(30000);
@@ -128,16 +133,6 @@ async function testAdminKillRestart(root, bob, nobody) {
     // noop
     await sessionRequest('/admin/users/start/1', 'POST', '', root);
     assert(await emc.isRunning(1));
-
-
-    if (emc.isK8s()) {
-        await sleep(5000);
-        // other users have been idle and should be removed by user controller by now
-        assert(!await emc.isRunning(2)); // anonymous
-        assert(!await emc.isRunning(3)); // bob
-        assert(!await emc.isRunning(4)); // david
-        assert(!await emc.isRunning(5)); // emma -or- alexa_user
-    }
 }
 
 async function testAdminOrgs(root, bob, nobody) {
