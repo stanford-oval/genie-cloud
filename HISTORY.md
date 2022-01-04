@@ -1,3 +1,47 @@
+3.0.0
+=====
+
+* The assistant was fully rebranded to Genie [#1018, #1124].
+* It is now possible to trigger the registration flow for a user in the middle of
+  an anonymous conversation (using a modal dialogue). In that case, the conversation
+  state is transferred to the newly created user [#1018].
+* Added the ability to send notifications using emails and SMS, including the ability
+  to stop and unsubscribe [#955, #1018].
+* Added support for anonymous mode in multiple languages [#1018].
+* Added the ability to use MySQL as the storage backend for the Genie user data
+  instead of sqlite. Data from all users are stored in the same database, which
+  is more scalable and more operationally efficient. For security, a proxy service
+  with per-user authentication intermediates all accesses from the engine [#983,
+  #989, #998, #1009, #1012, #1015, #1016, #1020, #1035, #1067].
+* Added a Kubernetes-native controller to manage the execution of the engines.
+  Engines for developer users are spawned as their own pod, while other engines
+  used shared worker pods. The controller starts and stops the engines as needed
+  [#1022, #1041, #1055, #1069, #1088, #1089].
+* Added support for PKCE in OAuth proxy [#1021].
+* Added rate-limiting to all endpoints, mitigating DoS and authentication brute-force [#1019].
+* Added new scripts to download conversation logs for analysis [#1050].
+* Expanded entity subtyping support to handle multiple inheritance [#1051].
+* The TTS API is now accessible over GET endpoint [#1094].
+* The NLP and TTS API endpoint now cache their output in Redis, if available [#1105, #1110].
+* The NLP API server is now configured using the configuration file. The model database
+  is ignored [#1114].
+* Removed support for uploading custom Genie template packs, as Genie no longer supports
+  custom templates without recompiling Genie.
+* Removed support for custom training using the embedded training server. It is recommended
+  to use a local Genie setup or use Kubeflow [#1114].
+* The docker image no longer contains genienlp. It is recommended to use KFServing
+  to run genienlp in a separate container instead [#1039].
+* Added scripts and Kubernetes configuration files for local development using Kubernetes.
+  The scripts include a Python CLI to control genie-cloud as well as a Kustomize
+  plugin [#1090].
+* Migrated codebase to TypeScript [#997, #1010, #1034].
+* Misc bug fixes [#986, #1001, #1002, #1003, #1040, #1043, #1068, #1075, #1117, #1147].
+* Build system and test fixes [#990, #991, #1091].
+* Updated dependencies [#984, #993, #995, #996, #1004, #1006, #1011, #1012, #1017,
+  #1025, #1026, #1029, #1030, #1032, #1033, #1036, #1046, #1054, #1056, #1057, #1058,
+  #1060, #1061, #1079, #1083, #1092, #1093, #1095, #1104, #1106, #1111, #1112, #1113,
+  #1115, #1116, #1118, #1120, #1121, #1123, #1125, #1135, #1137, #1138, #1140].
+
 2.0.0
 =====
 
