@@ -69,7 +69,7 @@
     "jszip": "^3.7.1",
     "lunr": "^2.3.9",
     "lunr-languages": "^1.9.0",
-    "markdown-it": "^12.3.0",
+    "markdown-it": "^13.0.0",
     "markdown-it-anchor": "^8.4.1",
     "markdown-it-container-pandoc": "^1.0.0",
     "markdown-it-footnote": "^3.0.3",
