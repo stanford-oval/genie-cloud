@@ -183,7 +183,7 @@
     "source-map-support": "^0.5.21",
     "tough-cookie": "^4.0.0",
     "ts-node": "^10.4.0",
-    "typescript": "~4.3.5"
+    "typescript": "~4.8.4"
   },
   "nyc": {
     "extends": "@istanbuljs/nyc-config-typescript",
