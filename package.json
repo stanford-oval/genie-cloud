@@ -76,7 +76,7 @@
     "markdown-it-table-of-contents": "^0.6.0",
     "microsoft-cognitiveservices-speech-sdk": "^1.19.0",
     "mmap-io": "^1.1.7",
-    "moment-timezone": "^0.5.34",
+    "moment-timezone": "^0.5.39",
     "morgan": "^1.9.1",
     "multer": "^1.4.4",
     "mysql": "^2.16.0",
