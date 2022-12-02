@@ -53,11 +53,12 @@ export default async function resolveLocation(locale = 'en-US', searchKey : stri
     latitude : number,
     longitude : number
 }) {
-    let url;
-    if (Config.MAPQUEST_KEY)
-        url = URL + '?key=' + Config.MAPQUEST_KEY + '&';
-    else
-        url = FREE_URL;
+    // let url;
+    // if (Config.MAPQUEST_KEY)
+    //     url = URL + '?key=' + Config.MAPQUEST_KEY + '&';
+    // else
+    //     url = FREE_URL;
+    const url = FREE_URL;
 
     // remove the word "in"
     searchKey = searchKey.replace(/\b(in|at)\b/ig, '');
