@@ -53,6 +53,7 @@ export default async function resolveLocation(locale = 'en-US', searchKey : stri
     latitude : number,
     longitude : number
 }) {
+    // TODO: MAPQUEST url is currently broken
     // let url;
     // if (Config.MAPQUEST_KEY)
     //     url = URL + '?key=' + Config.MAPQUEST_KEY + '&';
