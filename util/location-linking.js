@@ -18,11 +18,13 @@ const URL = 'http://open.mapquestapi.com/nominatim/v1/search.php'; // key=%s&for
 const FREE_URL = 'http://nominatim.openstreetmap.org/search/?'; //?format=jsonv2&accept-language=%s&limit=5&q=%s
 
 module.exports = async function resolveLocation(locale = 'en-US', searchKey, around) {
+    // TODO: MAPQUEST url is currently broken
     let url;
-    if (Config.MAPQUEST_KEY)
-        url = URL + '?key=' + Config.MAPQUEST_KEY + '&';
-    else
-        url = FREE_URL;
+    // if (Config.MAPQUEST_KEY)
+    //     url = URL + '?key=' + Config.MAPQUEST_KEY + '&';
+    // else
+    //     url = FREE_URL;
+    url = FREE_URL;
 
     const data = {
         format: 'jsonv2',
