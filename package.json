@@ -51,7 +51,7 @@
     "deep-equal": "^2.0.4",
     "discourse-sso": "^1.0.5",
     "escape-html": "^1.0.3",
-    "express": "^4.17.2",
+    "express": "^4.17.3",
     "express-mysql-session": "^2.1.7",
     "express-rate-limit": "^5.5.1",
     "express-session": "^1.17.2",
