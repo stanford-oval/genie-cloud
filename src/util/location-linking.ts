@@ -26,9 +26,9 @@ import * as addressFormatter from '@fragaria/address-formatter';
 
 import * as I18n from './i18n';
 
-import * as Config from '../config';
+// import * as Config from '../config';
 
-const URL = 'http://open.mapquestapi.com/nominatim/v1/search.php'; // key=%s&format=jsonv2&accept-language=%s&limit=5&q=%s";
+// const URL = 'http://open.mapquestapi.com/nominatim/v1/search.php'; // key=%s&format=jsonv2&accept-language=%s&limit=5&q=%s";
 const FREE_URL = 'http://nominatim.openstreetmap.org/search/?'; //?format=jsonv2&accept-language=%s&limit=5&q=%s
 
 interface NominatimQueryArgs {
