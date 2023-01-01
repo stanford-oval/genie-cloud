@@ -178,7 +178,7 @@
     "parse5": "^6.0.0",
     "proxyquire": "^2.0.0",
     "pug-lint": "^2.4.0",
-    "qs": "^6.10.2",
+    "qs": "^6.11.0",
     "selenium-webdriver": "^4.1.0",
     "source-map-support": "^0.5.21",
     "tough-cookie": "^4.0.0",
