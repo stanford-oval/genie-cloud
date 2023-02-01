@@ -46,7 +46,7 @@
     "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.6",
     "csurf": "^1.9.0",
-    "csv-parse": "^4.16.3",
+    "csv-parse": "^5.3.4",
     "csv-stringify": "^5.6.5",
     "deep-equal": "^2.0.4",
     "discourse-sso": "^1.0.5",
